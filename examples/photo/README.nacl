@@ -1,0 +1,22 @@
+A photo editing demo for Native Client using open source Javascript sliders
+from Carpe Design.  For more info on these sliders, please see:
+
+  http://carpe.ambiprospect.com/slider/
+
+This demo uses libjpeg, now a part of the packages available for Native
+Client.  If you haven't already installed these packages, please see
+
+  native_client_sdk/packages/README.txt
+
+To download and install the Carpe Design sliders, run photo_tool.sh
+
+  ./photo_tool.sh
+
+Once you've downloaded the sliders and installed your packages, you'll
+be able to build this demo.  From this directory run:
+
+  make release nacl
+
+Once the demo is built, point your browser (with the Native
+Client plugin installed) to the drawing.html file in this directory.
+This html file will run the demo embedded in a web page.
