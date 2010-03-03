@@ -1,0 +1,46 @@
+diff -Naur cairo-1.8.8/build/config.sub cairo-1.8.8.nacl/build/config.sub
+--- cairo-1.8.8/build/config.sub	2009-05-05 01:45:31.000000000 -0700
++++ cairo-1.8.8.nacl/build/config.sub	2009-10-14 18:02:17.289965000 -0700
+@@ -759,6 +759,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1283,7 +1287,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur cairo-1.8.8/config.sub cairo-1.8.8.nacl/config.sub
+--- cairo-1.8.8/config.sub	2009-05-05 01:45:31.000000000 -0700
++++ cairo-1.8.8.nacl/config.sub	2009-10-14 18:04:16.014691000 -0700
+@@ -759,6 +759,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1283,7 +1287,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)

@@ -1,0 +1,47 @@
+diff -Naur ImageMagick-6.5.4-10/Magick++/lib/Geometry.cpp ImageMagick-6.5.4-10.nacl/Magick++/lib/Geometry.cpp
+--- ImageMagick-6.5.4-10/Magick++/lib/Geometry.cpp	2009-03-23 19:39:05.000000000 -0700
++++ ImageMagick-6.5.4-10.nacl/Magick++/lib/Geometry.cpp	2009-11-04 13:09:09.084410000 -0800
+@@ -11,7 +11,7 @@
+ #include "Magick++/Include.h"
+ #include <string>
+ #include <ctype.h> // for isdigit
+-#if !defined(__WINDOWS__)
++#if !defined(__WINDOWS__) && MAGICKCORE_HAVE_STRINGS_H
+ #include <strings.h>
+ #endif
+ 
+diff -Naur ImageMagick-6.5.4-10/Magick++/lib/Image.cpp ImageMagick-6.5.4-10.nacl/Magick++/lib/Image.cpp
+--- ImageMagick-6.5.4-10/Magick++/lib/Image.cpp	2009-07-13 07:53:47.000000000 -0700
++++ ImageMagick-6.5.4-10.nacl/Magick++/lib/Image.cpp	2009-11-04 13:09:45.633322000 -0800
+@@ -14,7 +14,7 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <math.h>
+-#if !defined(__WINDOWS__)
++#if !defined(__WINDOWS__) && MAGICKCORE_HAVE_STRINGS_H
+ #include <strings.h>
+ #endif
+ 
+diff -Naur ImageMagick-6.5.4-10/config/config.sub ImageMagick-6.5.4-10.nacl/config/config.sub
+--- ImageMagick-6.5.4-10/config/config.sub	2009-08-10 09:58:08.000000000 -0700
++++ ImageMagick-6.5.4-10.nacl/config/config.sub	2009-11-04 13:11:04.351551000 -0800
+@@ -759,6 +759,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1283,7 +1287,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)

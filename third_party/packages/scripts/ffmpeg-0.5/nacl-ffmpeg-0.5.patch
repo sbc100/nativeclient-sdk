@@ -1,0 +1,115 @@
+diff -Naur ffmpeg-0.5/configure ffmpeg-0.5.nacl/configure
+--- ffmpeg-0.5/configure	2009-03-01 09:57:14.000000000 -0800
++++ ffmpeg-0.5.nacl/configure	2009-10-23 15:57:23.585565000 -0700
+@@ -1985,14 +1985,17 @@
+ enabled libfaac    && require2 libfaac "stdint.h faac.h" faacEncGetVersion -lfaac
+ enabled libfaad    && require2 libfaad faad.h faacDecOpen -lfaad
+ enabled libgsm     && require  libgsm gsm.h gsm_create -lgsm
++echo nacl: checking for libmp3lame
+ enabled libmp3lame && require  libmp3lame lame/lame.h lame_init -lmp3lame -lm
+ enabled libnut     && require  libnut libnut.h nut_demuxer_init -lnut
+ enabled libopenjpeg && require libopenjpeg openjpeg.h opj_version -lopenjpeg
+ enabled libschroedinger && add_cflags $(pkg-config --cflags schroedinger-1.0) &&
+                            require libschroedinger schroedinger/schro.h schro_init $(pkg-config --libs schroedinger-1.0)
+ enabled libspeex   && require  libspeex speex/speex.h speex_decoder_init -lspeex
++echo nacl: checking for libtheora
+ enabled libtheora  && require  libtheora theora/theora.h theora_info_init -ltheora -logg
+-enabled libvorbis  && require  libvorbis vorbis/vorbisenc.h vorbis_info_init -lvorbisenc -lvorbis -logg
++echo nacl: checking for libvorbis...
++enabled libvorbis  && require  libvorbis vorbis/vorbisenc.h vorbis_info_init -lvorbisenc -lvorbis -logg -lm
+ enabled libx264    && require  libx264 x264.h x264_encoder_open -lx264 -lm &&
+                       { check_cpp_condition x264.h "X264_BUILD >= 65" ||
+                         die "ERROR: libx264 version must be >= 0.65."; }
+diff -Naur ffmpeg-0.5/libavformat/metadata.c ffmpeg-0.5.nacl/libavformat/metadata.c
+--- ffmpeg-0.5/libavformat/metadata.c	2009-03-01 06:29:30.000000000 -0800
++++ ffmpeg-0.5.nacl/libavformat/metadata.c	2009-10-22 17:58:05.892347000 -0700
+@@ -18,7 +18,7 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
+-#include <strings.h>
++#include <string.h>
+ #include "avformat.h"
+ #include "metadata.h"
+ 
+@@ -107,13 +107,13 @@
+         if (s_conv != d_conv) {
+             if (s_conv)
+                 for (sc=s_conv; sc->native; sc++)
+-                if (!strcasecmp(key, sc->native)) {
++                if (!stricmp(key, sc->native)) {
+                     key = sc->generic;
+                     break;
+                 }
+             if (d_conv)
+                 for (dc=d_conv; dc->native; dc++)
+-                    if (!strcasecmp(key, dc->generic)) {
++                    if (!stricmp(key, dc->generic)) {
+                     key = dc->native;
+                     break;
+                 }
+diff -Naur ffmpeg-0.5/libavformat/metadata_compat.c ffmpeg-0.5.nacl/libavformat/metadata_compat.c
+--- ffmpeg-0.5/libavformat/metadata_compat.c	2009-02-26 05:00:13.000000000 -0800
++++ ffmpeg-0.5.nacl/libavformat/metadata_compat.c	2009-10-22 18:06:48.288807000 -0700
+@@ -18,7 +18,7 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
+-#include <strings.h>
++#include <string.h>
+ #include "avformat.h"
+ #include "metadata.h"
+ #include "libavutil/avstring.h"
+@@ -61,7 +61,7 @@
+     if ((m = ctx->metadata))
+         for (j=0; j<m->count; j++)
+             for (i=0; i<FF_ARRAY_ELEMS(compat_tab); i++)
+-                if (!strcasecmp(m->elems[j].key, compat_tab[i].name)) {
++                if (!stricmp(m->elems[j].key, compat_tab[i].name)) {
+                     int *ptr = (int *)((char *)ctx+compat_tab[i].offset);
+                     if (*ptr)  continue;
+                     if (compat_tab[i].size > sizeof(int))
+@@ -73,7 +73,7 @@
+     for (i=0; i<ctx->nb_chapters; i++)
+         if ((m = ctx->chapters[i]->metadata))
+             for (j=0; j<m->count; j++)
+-                if (!strcasecmp(m->elems[j].key, "title")) {
++                if (!stricmp(m->elems[j].key, "title")) {
+                     av_free(ctx->chapters[i]->title);
+                     ctx->chapters[i]->title = av_strdup(m->elems[j].value);
+                 }
+@@ -81,11 +81,11 @@
+     for (i=0; i<ctx->nb_programs; i++)
+         if ((m = ctx->programs[i]->metadata))
+             for (j=0; j<m->count; j++) {
+-                if (!strcasecmp(m->elems[j].key, "name")) {
++                if (!stricmp(m->elems[j].key, "name")) {
+                     av_free(ctx->programs[i]->name);
+                     ctx->programs[i]->name = av_strdup(m->elems[j].value);
+                 }
+-                if (!strcasecmp(m->elems[j].key, "provider_name")) {
++                if (!stricmp(m->elems[j].key, "provider_name")) {
+                     av_free(ctx->programs[i]->provider_name);
+                     ctx->programs[i]->provider_name = av_strdup(m->elems[j].value);
+                 }
+@@ -94,9 +94,9 @@
+     for (i=0; i<ctx->nb_streams; i++)
+         if ((m = ctx->streams[i]->metadata))
+             for (j=0; j<m->count; j++) {
+-                if (!strcasecmp(m->elems[j].key, "language"))
++                if (!stricmp(m->elems[j].key, "language"))
+                     av_strlcpy(ctx->streams[i]->language, m->elems[j].value, 4);
+-                if (!strcasecmp(m->elems[j].key, "filename")) {
++                if (!stricmp(m->elems[j].key, "filename")) {
+                     av_free(ctx->streams[i]->filename);
+                     ctx->streams[i]->filename= av_strdup(m->elems[j].value);
+                 }
+@@ -111,7 +111,7 @@
+ #define FILL_METADATA_STR(s, key)  FILL_METADATA(s, key, s->key)
+ #define FILL_METADATA_INT(s, key) {                                           \
+     char number[10];                                                          \
+-    snprintf(number, sizeof(number), "%d", s->key);                           \
++    sprintf(number, "%d", s->key);                                            \
+     if(s->key)  FILL_METADATA(s, key, number) }
+ 
+ void ff_metadata_mux_compat(AVFormatContext *ctx)

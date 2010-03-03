@@ -1,0 +1,17 @@
+diff -Naur lua-5.1.4/Makefile lua-5.1.4.nacl/Makefile
+--- lua-5.1.4/Makefile	2008-08-11 17:40:48.000000000 -0700
++++ lua-5.1.4.nacl/Makefile	2009-10-20 17:48:46.622628000 -0700
+@@ -5,11 +5,11 @@
+ # == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
+ 
+ # Your platform. See PLATS for possible values.
+-PLAT= none
++PLAT?= none
+ 
+ # Where to install. The installation starts in the src and doc directories,
+ # so take care if INSTALL_TOP is not an absolute path.
+-INSTALL_TOP= /usr/local
++INSTALL_TOP?= /usr/local
+ INSTALL_BIN= $(INSTALL_TOP)/bin
+ INSTALL_INC= $(INSTALL_TOP)/include
+ INSTALL_LIB= $(INSTALL_TOP)/lib

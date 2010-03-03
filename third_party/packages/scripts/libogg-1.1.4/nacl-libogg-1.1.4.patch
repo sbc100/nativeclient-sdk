@@ -1,0 +1,23 @@
+diff -Naur libogg-1.1.4/config.sub libogg-1.1.4.nacl/config.sub
+--- libogg-1.1.4/config.sub	2006-08-10 08:17:12.000000000 -0700
++++ libogg-1.1.4.nacl/config.sub	2009-10-20 17:35:00.624645000 -0700
+@@ -714,6 +714,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1214,7 +1218,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)

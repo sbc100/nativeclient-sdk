@@ -1,0 +1,12 @@
+diff -Naur fontconfig-2.7.3/fontconfig-2.7.3-build/Makefile fontconfig-2.7.3-nacl/fontconfig-2.7.3-build/Makefile
+--- fontconfig-2.7.3/fontconfig-2.7.3-build/Makefile	2009-10-20 10:54:22.039419000 -0700
++++ fontconfig-2.7.3-nacl/fontconfig-2.7.3-build/Makefile	2009-10-20 14:24:55.296729000 -0700
+@@ -255,7 +255,7 @@
+ top_builddir = .
+ top_srcdir = ..
+ SUBDIRS = fontconfig fc-case fc-lang fc-glyphname fc-arch src \
+-	fc-cache fc-cat fc-list fc-match fc-query fc-scan conf.d $(DOCSRC) test
++	conf.d $(DOCSRC)
+ 
+ EXTRA_DIST = fontconfig.pc.in fonts.conf.in fonts.dtd \
+ 	fontconfig.spec.in fontconfig.spec fontconfig-zip.in ChangeLog

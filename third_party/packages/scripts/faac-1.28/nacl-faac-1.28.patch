@@ -1,0 +1,67 @@
+diff -Naur faac-1.28/config.sub faac-1.28.nacl/config.sub
+--- faac-1.28/config.sub	2009-02-10 00:37:01.000000000 -0800
++++ faac-1.28.nacl/config.sub	2009-10-22 14:43:19.141872000 -0700
+@@ -714,6 +714,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1214,7 +1218,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur faac-1.28/frontend/main.c faac-1.28.nacl/frontend/main.c
+--- faac-1.28/frontend/main.c	2009-01-23 17:10:20.000000000 -0800
++++ faac-1.28.nacl/frontend/main.c	2009-10-22 15:40:25.955500000 -0700
+@@ -1049,13 +1049,15 @@
+             {
+                 double timeused;
+ #ifdef __unix__
++#if defined(HAVE_GETRUSAGE)
+                 struct rusage usage;
+ #endif
++#endif
+ #ifdef _WIN32
+                 char percent[MAX_PATH + 20];
+                 timeused = (GetTickCount() - begin) * 1e-3;
+ #else
+-#ifdef __unix__
++#if defined(__unix__) && defined(HAVE_GETRUSAGE)
+                 if (getrusage(RUSAGE_SELF, &usage) == 0) {
+                     timeused = (double)usage.ru_utime.tv_sec +
+                         (double)usage.ru_utime.tv_usec * 1e-6;
+diff -Naur faac-1.28/libfaac/kiss_fft/kiss_fft.h faac-1.28.nacl/libfaac/kiss_fft/kiss_fft.h
+--- faac-1.28/libfaac/kiss_fft/kiss_fft.h	2005-02-04 06:57:12.000000000 -0800
++++ faac-1.28.nacl/libfaac/kiss_fft/kiss_fft.h	2009-10-22 14:57:52.082873000 -0700
+@@ -4,7 +4,7 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <math.h>
+-#include <memory.h>
++#include <string.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff -Naur faac-1.28/libfaac/util.h faac-1.28.nacl/libfaac/util.h
+--- faac-1.28/libfaac/util.h	2003-12-19 20:32:48.000000000 -0800
++++ faac-1.28.nacl/libfaac/util.h	2009-10-22 14:57:20.498638000 -0700
+@@ -27,7 +27,7 @@
+ #endif /* __cplusplus */
+ 
+ #include <stdlib.h>
+-#include <memory.h>
++#include <string.h>
+ 
+ #ifndef max
+ #define max(a, b) (((a) > (b)) ? (a) : (b))

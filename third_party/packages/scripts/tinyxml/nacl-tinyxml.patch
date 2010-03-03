@@ -1,0 +1,57 @@
+diff -Naur tinyxml/Makefile tinyxml.nacl/Makefile
+--- tinyxml/Makefile	2007-05-06 15:41:23.000000000 -0700
++++ tinyxml.nacl/Makefile	2009-10-22 16:49:26.899037000 -0700
+@@ -8,25 +8,25 @@
+ #****************************************************************************
+ 
+ # DEBUG can be set to YES to include debugging info, or NO otherwise
+-DEBUG          := YES
++DEBUG          ?= YES
+ 
+ # PROFILE can be set to YES to include profiling info, or NO otherwise
+-PROFILE        := NO
++PROFILE        ?= NO
+ 
+ # TINYXML_USE_STL can be used to turn on STL support. NO, then STL
+ # will not be used. YES will include the STL files.
+-TINYXML_USE_STL := YES
++TINYXML_USE_STL ?= YES
+ 
+ #****************************************************************************
+ 
+-CC     := gcc
+-CXX    := g++
+-LD     := g++
+-AR     := ar rc
+-RANLIB := ranlib
++CC     ?= gcc
++CXX    ?= g++
++LD     ?= g++
++AR     ?= ar
++RANLIB ?= ranlib
+ 
+-DEBUG_CFLAGS     := -Wall -Wno-format -g -DDEBUG
+-RELEASE_CFLAGS   := -Wall -Wno-unknown-pragmas -Wno-format -O3
++DEBUG_CFLAGS     ?= -Wall -Wno-format -g -DDEBUG
++RELEASE_CFLAGS   ?= -Wall -Wno-unknown-pragmas -Wno-format -O3
+ 
+ LIBS		 :=
+ 
+@@ -81,7 +81,7 @@
+ # Targets of the build
+ #****************************************************************************
+ 
+-OUTPUT := xmltest
++OUTPUT ?= xmltest
+ 
+ all: ${OUTPUT}
+ 
+@@ -102,7 +102,7 @@
+ #****************************************************************************
+ 
+ ${OUTPUT}: ${OBJS}
+-	${LD} -o $@ ${LDFLAGS} ${OBJS} ${LIBS} ${EXTRA_LIBS}
++	${AR} rcs $@ ${OBJS}
+ 
+ #****************************************************************************
+ # common rules

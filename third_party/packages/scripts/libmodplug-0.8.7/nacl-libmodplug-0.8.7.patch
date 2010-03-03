@@ -1,0 +1,37 @@
+diff -Naur libmodplug-0.8.7/config.sub libmodplug-0.8.7.nacl/config.sub
+--- libmodplug-0.8.7/config.sub	2008-02-04 05:53:53.000000000 -0800
++++ libmodplug-0.8.7.nacl/config.sub	2009-11-14 09:56:06.735968000 -0800
+@@ -739,6 +739,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1258,7 +1262,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur libmodplug-0.8.7/src/load_abc.cpp libmodplug-0.8.7.nacl/src/load_abc.cpp
+--- libmodplug-0.8.7/src/load_abc.cpp	2009-04-26 15:06:47.000000000 -0700
++++ libmodplug-0.8.7.nacl/src/load_abc.cpp	2009-11-14 10:09:41.065034000 -0800
+@@ -2369,8 +2369,8 @@
+ 			}
+ 		}
+ 		else {
+-			srandom(time(0));	// initialize random generator with seed
+-			retval->pickrandom = 1+(int)(10000.0*random()/(RAND_MAX+1.0));
++			srand(time(0));	// initialize random generator with seed
++			retval->pickrandom = 1+(int)(10000.0*rand()/(RAND_MAX+1.0));
+ 			// can handle pickin' from songbooks with 10.000 songs
+ #ifdef NEWMIKMOD
+ 			sprintf(buf,"-%ld",retval->pickrandom+1); // next in sequence

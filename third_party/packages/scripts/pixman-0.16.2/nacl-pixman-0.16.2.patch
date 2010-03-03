@@ -1,0 +1,23 @@
+diff -Naur pixman-0.16.2/config.sub pixman-0.16.2.nacl/config.sub
+--- pixman-0.16.2/config.sub	2009-11-13 09:29:08.363344000 -0800
++++ pixman-0.16.2.nacl/config.sub	2009-11-13 09:30:10.851000000 -0800
+@@ -739,6 +739,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1258,7 +1262,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
