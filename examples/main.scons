@@ -1,0 +1,63 @@
+#!/usr/bin/python2.4
+#
+# Copyright 2009 Google Inc. All Rights Reserved.
+
+""" Main scons script for example builds.
+"""
+
+import commands
+import os
+import sys
+import SCons.Script
+
+environment_list = []
+
+AddOption('--target',
+          dest = 'target',
+          type = 'string',
+          nargs = 1,
+          action = 'store',
+          metavar = 'TARGET',
+          default = 'x86',
+          help = 'target architecture (x64 or x86)')
+
+base_env = Environment(
+    tools = ['component_setup'],
+    CCFLAGS = ['-Wall', '-Werror', '-Wno-long-long', '-pthread'],
+    CPPPATH = ['$SOURCE_ROOT'],
+    COMPONENT_LIBRARY_PUBLISH = True,
+    SOURCE_ROOT = Dir('#/.').abspath,
+)
+
+#-----------------------------------------------------------------------------
+# Build environment for NaCl module
+platform = ''
+if base_env['PLATFORM'] is 'darwin':
+    platform = 'mac'
+if base_env['PLATFORM'] is 'posix':
+    platform = 'linux'
+
+
+nacl_compiler_location = ('../compilers/host_%s/target_%s/sdk/nacl-sdk/' %
+                          (platform, GetOption('target')))
+
+# NaCl module build environment
+nacl_env = base_env.Clone(
+    tools = ['naclsdk'],
+    BUILD_GROUPS = ['default'],
+    BUILD_TYPE_DESCRIPTION = 'NaCl module',
+    BUILD_TYPE = 'nacl',
+    LIBS = ['google_nacl_imc',
+            'google_nacl_npruntime',
+            'pthread',
+            'srpc'],
+    NATIVE_CLIENT_SDK_DEFAULT_MODE='custom:' + nacl_compiler_location
+)
+
+nacl_env.Append(BUILD_SCONSCRIPTS =
+                ['npapi_pi_generator/npapi_pi_generator.scons',
+                 'npapi_helloworld/npapi_helloworld.scons'])
+
+environment_list.append(nacl_env)
+
+BuildComponents(environment_list)
