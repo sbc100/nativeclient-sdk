@@ -12,7 +12,7 @@
 #include <nacl/nacl_npapi.h>
 #include <map>
 
-#include "npapi_pi_generator/base_object.h"
+#include "examples/npapi_pi_generator/base_object.h"
 
 class Plugin {
  public:

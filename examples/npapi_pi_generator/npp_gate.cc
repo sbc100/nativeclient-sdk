@@ -9,7 +9,7 @@
 #include <nacl/npupp.h>
 #include <new>
 
-#include "npapi_pi_generator/plugin.h"
+#include "examples/npapi_pi_generator/plugin.h"
 
 // Please refer to the Gecko Plugin API Reference for the description of
 // NPP_New.

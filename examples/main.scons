@@ -26,7 +26,7 @@ base_env = Environment(
     CCFLAGS = ['-Wall', '-Werror', '-Wno-long-long', '-pthread'],
     CPPPATH = ['$SOURCE_ROOT'],
     COMPONENT_LIBRARY_PUBLISH = True,
-    SOURCE_ROOT = Dir('#/.').abspath,
+    SOURCE_ROOT = Dir('#/..').abspath
 )
 
 #-----------------------------------------------------------------------------
