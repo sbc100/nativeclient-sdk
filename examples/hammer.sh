@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 # Copyright 2010 Native Client SDK Authors. All Rights Reserved.
-# Author: sanga@google.com (Sang Ahn)
 #
-# Perform build of ginsu by invoking hammer.
+# Perform build of the examples by invoking hammer.
+
 HOST=$(uname)
 case $HOST in
   Darwin)
@@ -23,4 +23,4 @@ esac
 
 basedir=$(dirname $0)
 export SCONS_DIR=$basedir/../tools/scons-local/scons-local
-exec $basedir/../tools/hammer/hammer.sh -j $NJOBS $*
+exec /bin/bash $basedir/../tools/hammer/hammer.sh -j $NJOBS $*
