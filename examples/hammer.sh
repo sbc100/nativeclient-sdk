@@ -22,5 +22,5 @@ case $HOST in
 esac
 
 basedir=$(dirname $0)
-export SCONS_DIR=$basedir/../tools/scons-local/scons-local
+export SCONS_DIR=$basedir/../tools/scons/scons-local
 exec /bin/bash $basedir/../tools/hammer/hammer.sh -j $NJOBS $*
