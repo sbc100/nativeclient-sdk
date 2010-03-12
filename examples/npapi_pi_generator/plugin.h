@@ -9,7 +9,15 @@
 #define EXAMPLES_NPAPI_PI_GENERATOR_PLUGIN_H_
 
 #include <pthread.h>
+#if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
+#include <nacl/npapi_extensions.h>
+#else
+// Building a trusted plugin for debugging.
+#include "third_party/npapi/bindings/npapi.h"
+#include "third_party/npapi/bindings/npapi_extensions.h"
+#include "third_party/npapi/bindings/nphostapi.h"
+#endif
 #include <map>
 
 #include "examples/npapi_pi_generator/base_object.h"
@@ -28,14 +36,23 @@ class Plugin {
   double pi() const {
     return pi_;
   }
+  void* pixels() const {
+    return context2d_.region;
+  }
+  int width() const {
+    return window_ ? window_->width : 0;
+  }
+  int height() const {
+    return window_ ? window_->height : 0;
+  }
 
  private:
   NPP       npp_;
   NPObject* scriptable_object_;  // strong reference
 
   NPWindow* window_;
-  void* bitmap_data_;  // strong reference
-  size_t bitmap_size_;
+  NPDevice* device2d_;  // The PINPAPI 2D device.
+  NPDeviceContext2D context2d_;  // The PINPAPI 2D drawing context.
 
   bool quit_;
   pthread_t thread_;

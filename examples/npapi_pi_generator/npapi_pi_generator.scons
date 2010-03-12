@@ -1,36 +1,14 @@
-# Copyright 2008, Google Inc.
-# All rights reserved.
+#!/usr/bin/python
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#
-#     * Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above
-# copyright notice, this list of conditions and the following disclaimer
-# in the documentation and/or other materials provided with the
-# distribution.
-#     * Neither the name of Google Inc. nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+# Copyright 2010 The Native Client SDK Inc. All Rights Reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 Import('env')
 
 env.Prepend(CPPDEFINES = ['XP_UNIX'])
+
+program_name = 'npapi_pi_generator'
 
 npapi_pi_inputs = [
   'base_object.cc',
@@ -38,11 +16,61 @@ npapi_pi_inputs = [
   'plugin.cc',
 ]
 
-env.ComponentProgram('npapi_pi.nexe', npapi_pi_inputs,
-                     EXTRA_LIBS=['google_nacl_imc',
-                                 'google_nacl_npruntime',
-                                 'pthread',
-                                 'srpc'])
+if env['BUILD_TYPE'] == 'nacl':
+  nacl_module = '%s.nexe' % program_name
+  env.ComponentProgram(nacl_module, npapi_pi_inputs,
+                       EXTRA_LIBS=['google_nacl_imc',
+                                   'google_nacl_npruntime',
+                                   'pthread',
+                                   'srpc'])
+  
+  # Note that the html is required to run this program.
+  env.Publish(nacl_module, 'run', ['npapi_pi.html',])
+elif env['BUILD_TYPE'] == 'plugin' and env.Bit('mac'):
+  # Build a Mac trusted plugin for debugging.
+  mac_plugin_env = env.Clone(
+      LINKFLAGS = ['-bundle', '-framework', 'Foundation']
+  )
+  # Build the plugin binary
+  binary = mac_plugin_env.ComponentProgram(
+      program_name,
+      npapi_pi_inputs,
+      COMPONENT_STATIC = False,
+      COMPONENT_LIBRARY_PUBLISH=True,
+      COMPONENT_LIBRARY_LINK_SUFFIXES=[]
+  )
+  RESOURCE_DIR = '%s/examples/npapi_pi_generator/mac' % env['SOURCE_ROOT']
+  # Create resource fork
+  # TODO(dspringer): old-school resource files are no longer needed on the Mac,
+  # but the Environment.Bundle() function requires it.
+  RESOURCE_DESC = '%s/npapi_pi_generator.r' % RESOURCE_DIR
+  RESOURCE_FORK = 'npapi_pi_generator.rsrc'
+  REZ = '/Developer/Tools/Rez'
+  env.Command(
+      target = RESOURCE_FORK,
+      source = RESOURCE_DESC,
+      action = [Action(REZ + ' -o ${TARGET} ${SOURCE} -useDF')]
+  )
+  PLIST_FILE = 'Info.plist'
+  ACTION = ("cp -f ${SOURCE} ${TARGET};"
+            "chmod +w ${TARGET};"
+            "/usr/libexec/PlistBuddy -c 'Set :CFBundleExecutable npapi_pi_generator' ${TARGET};" 
+            "/usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier com.google.npapi_pi_generator' ${TARGET};"
+            "/usr/libexec/PlistBuddy -c 'Set :CFBundleName npapi_pi_generator' ${TARGET}")
+  env.Command(
+      target = PLIST_FILE,
+      source = '%s/npapi_pi_generator-Info.plist' % RESOURCE_DIR,
+      action = [Action(ACTION)]
+  )
 
-# Note that the html is required to run this program.
-env.Publish('npapi_pi.nexe', 'run', ['npapi_pi.html',])
+  plugin_name = '${STAGING_DIR}/%s.plugin' % program_name
+  mac_plugin_env.Bundle(
+      plugin_name,
+      BUNDLE_EXE = binary[0],
+      BUNDLE_INFO_PLIST = [PLIST_FILE],
+      BUNDLE_PKGINFO_FILENAME = 0,
+      BUNDLE_RESOURCES = RESOURCE_FORK
+  )
+  env.Publish(program_name, 'run',
+              ['npapi_pi.html',
+               'nacl_js_lib.js'])

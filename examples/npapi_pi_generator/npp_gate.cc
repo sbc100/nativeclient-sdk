@@ -4,12 +4,64 @@
  * be found in the LICENSE file.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#if defined (__native_client__)
+#include <nacl/npapi_extensions.h>
 #include <nacl/npupp.h>
+#else
+// Building a trusted plugin for debugging.
+#include "third_party/npapi/bindings/npapi_extensions.h"
+#include "third_party/npapi/bindings/nphostapi.h"
+#endif
 #include <new>
 
 #include "examples/npapi_pi_generator/plugin.h"
+
+#if !defined(__native_client__)
+// The trusted plugin needs to call through to the browser directly.  These
+// wrapper routines are not required whne making a Native Client module.
+
+static NPNetscapeFuncs kBrowserFuncs = { 0 };
+
+NPError NPN_GetValue(NPP instance, NPNVariable variable, void* value) {
+  return kBrowserFuncs.getvalue(instance, variable, value);
+}
+
+// Returns an opaque identifier for the string that is passed in.
+NPIdentifier NPN_GetStringIdentifier(const NPUTF8* name) {
+  return kBrowserFuncs.getstringidentifier(name);
+}
+
+NPUTF8* NPN_UTF8FromIdentifier(NPIdentifier identifier) {
+  return kBrowserFuncs.utf8fromidentifier(identifier);
+}
+
+void* NPN_MemAlloc(uint32 size) {
+  return kBrowserFuncs.memalloc(size);
+}
+
+void NPN_MemFree(void* mem) {
+  kBrowserFuncs.memfree(mem);
+}
+
+NPObject* NPN_CreateObject(NPP npp, NPClass* np_class) {
+  return kBrowserFuncs.createobject(npp, np_class);
+}
+
+NPObject* NPN_RetainObject(NPObject* obj) {
+  return kBrowserFuncs.retainobject(obj);
+}
+
+void NPN_ReleaseObject(NPObject* obj) {
+  kBrowserFuncs.releaseobject(obj);
+}
+
+#endif
+
+// PINPAPI extensions.  These get filled in when NPP_New is called.
+static NPExtensions* kPINPAPIExtensions = NULL;
 
 // Please refer to the Gecko Plugin API Reference for the description of
 // NPP_New.
@@ -23,6 +75,11 @@ NPError NPP_New(NPMIMEType mime_type,
   if (instance == NULL) {
     return NPERR_INVALID_INSTANCE_ERROR;
   }
+
+  // Grab the PINPAPI extensions.
+  NPN_GetValue(instance, NPNVPepperExtensions,
+               reinterpret_cast<void*>(&kPINPAPIExtensions));
+  assert(NULL != kPINPAPIExtensions);
 
   Plugin* plugin = new(std::nothrow) Plugin(instance);
   if (plugin == NULL) {
@@ -81,8 +138,18 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   return NPERR_GENERIC_ERROR;
 }
 
+// These are PINPAPI extensions.
+NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device) {
+  return kPINPAPIExtensions ?
+      kPINPAPIExtensions->acquireDevice(instance, device) : NULL;
+}
+
+// Instance methods.
 NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
                       NPPluginFuncs* plugin_funcs) {
+#if !defined(__native_client__)
+  memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
+#endif
   plugin_funcs->newp = NPP_New;
   plugin_funcs->destroy = NPP_Destroy;
   plugin_funcs->setwindow = NPP_SetWindow;

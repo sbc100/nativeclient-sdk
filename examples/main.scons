@@ -1,6 +1,8 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python
 #
-# Copyright 2009 Google Inc. All Rights Reserved.
+# Copyright 2010 The Native Client SDK Inc. All Rights Reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 """ Main scons script for example builds.
 """
@@ -29,6 +31,11 @@ base_env = Environment(
     SOURCE_ROOT = Dir('#/..').abspath
 )
 
+base_env.Append(BUILD_SCONSCRIPTS =
+                ['npapi_pi_generator/npapi_pi_generator.scons',
+                 'npapi_helloworld/npapi_helloworld.scons'])
+
+
 #-----------------------------------------------------------------------------
 # Build environment for NaCl module
 platform = ''
@@ -37,10 +44,10 @@ if base_env['PLATFORM'] is 'darwin':
 if base_env['PLATFORM'] is 'posix':
     platform = 'linux'
 
+nacl_compiler_location = ('%s/compilers/host_%s/target_%s/sdk/nacl-sdk/' %
+                          (base_env['SOURCE_ROOT'], platform, GetOption('target')))
 
-nacl_compiler_location = ('../compilers/host_%s/target_%s/sdk/nacl-sdk/' %
-                          (platform, GetOption('target')))
-
+#-----------------------------------------------------------------------------
 # NaCl module build environment
 nacl_env = base_env.Clone(
     tools = ['naclsdk'],
@@ -54,10 +61,21 @@ nacl_env = base_env.Clone(
     NATIVE_CLIENT_SDK_DEFAULT_MODE='custom:' + nacl_compiler_location
 )
 
-nacl_env.Append(BUILD_SCONSCRIPTS =
-                ['npapi_pi_generator/npapi_pi_generator.scons',
-                 'npapi_helloworld/npapi_helloworld.scons'])
-
 environment_list.append(nacl_env)
+
+#-----------------------------------------------------------------------------
+# Build environment for trusted PINPAPI plugin on OS X
+mac_dbg_plugin_env = base_env.Clone(
+    BUILD_TYPE = 'plugin',
+    BUILD_TYPE_DESCRIPTION = 'OS X trusted PINPAPI plugin debug build',
+    BUILD_GROUPS = ['default'],
+    CPPDEFINES = ['NPAPI_PLUGIN'],
+    tools = ['applelink', 'target_platform_mac', 'target_debug']
+)
+mac_dbg_plugin_env.FilterOut(CCFLAGS = ['-g'])
+mac_dbg_plugin_env.Append(CCFLAGS = ['-gfull', '-O0'],
+                          CPPPATH = ['$SOURCE_ROOT/third_party/include'])
+
+environment_list.append(mac_dbg_plugin_env)
 
 BuildComponents(environment_list)

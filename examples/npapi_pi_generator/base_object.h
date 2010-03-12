@@ -8,7 +8,13 @@
 #ifndef EXAMPLES_NPAPI_PI_GENERATOR_BASE_OBJECT_H_
 #define EXAMPLES_NPAPI_PI_GENERATOR_BASE_OBJECT_H_
 
+#if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
+#else
+// Building a trusted plugin for debugging.
+#include "third_party/npapi/bindings/npapi.h"
+#include "third_party/npapi/bindings/nphostapi.h"
+#endif
 
 // Helper class that maps calls to the NPObject into virtual methods.
 class BaseObject : public NPObject {

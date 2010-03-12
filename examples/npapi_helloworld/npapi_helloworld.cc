@@ -9,7 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
+#else
+// Building a trusted plugin for debugging.
+#include "third_party/npapi/bindings/npapi.h"
+#include "third_party/npapi/bindings/nphostapi.h"
+#endif
 
 // Forward declarations of npruntime entry points.
 static NPObject* Allocate(NPP npp, NPClass* npclass);

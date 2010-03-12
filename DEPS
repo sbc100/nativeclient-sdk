@@ -6,9 +6,16 @@ vars = {
 }
 
 deps = {
-  # Get the hammer tools.
+  # Get the hammer, SCons and nixysa tools.
   "src/tools/hammer": Var("hammer_trunk"),
+  "src/tools/scons": Var("chromium_trunk") + "src/third_party/scons",
   "src/tools/nixysa": Var("nixysa_trunk"),
+  # Pull in the trusted plugin headers from Chromium.
+  # TODO(dspringer): remove these once we no longer need to build trusted
+  # plugins for debugging.
+  "src/third_party/npapi/bindings": Var("chromium_trunk") +
+      "src/third_party/npapi/bindings",
+  "src/third_party/include/build/": Var("chromium_trunk") + "src/build",
   # Pull in the base headers from Chromium, this is for smart pointers.
   "src/third_party/include/base": Var("chromium_trunk") + "src/base",
 }

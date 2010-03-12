@@ -7,14 +7,25 @@
 
 #include "examples/npapi_pi_generator/plugin.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__native_client__)
 #include <nacl/nacl_imc.h>
 #include <nacl/nacl_npapi.h>
+#include <nacl/npapi_extensions.h>
 #include <nacl/npruntime.h>
+#else
+// Building a trusted plugin for debugging.
+#include "third_party/npapi/bindings/npapi.h"
+#include "third_party/npapi/bindings/npapi_extensions.h"
+#include "third_party/npapi/bindings/nphostapi.h"
+#endif
+
+extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
 
 NPIdentifier ScriptablePluginObject::id_paint;
 
@@ -91,15 +102,28 @@ bool ScriptablePluginObject::Paint(const NPVariant* args,
   return false;
 }
 
+// This is called by the brower when the 2D context has been flused to the
+// browser window.
+void FlushCallback(NPP instance, NPDeviceContext* context,
+                   NPError err, void* user_data) {
+}
+
 Plugin::Plugin(NPP npp)
     : npp_(npp),
       scriptable_object_(NULL),
-      bitmap_data_(nacl::kMapFailed),
-      bitmap_size_(0),
+      window_(NULL),
       quit_(false),
       thread_(0),
       pi_(0.0) {
   ScriptablePluginObject::InitializeIdentifiers();
+
+  // RAII pattern to acquire and initialize the PINPAPI 2D device context.
+  device2d_ = NPN_AcquireDevice(npp, NPPepper2DDevice);
+  assert(NULL != device2d_);
+  memset(&context2d_, 0, sizeof(context2d_));
+  NPDeviceContext2DConfig config;
+  NPError init_err = device2d_->initializeContext(npp, &config, &context2d_);
+  assert(NPERR_NO_ERROR == init_err);
 }
 
 Plugin::~Plugin() {
@@ -109,9 +133,6 @@ Plugin::~Plugin() {
   }
   if (scriptable_object_) {
     NPN_ReleaseObject(scriptable_object_);
-  }
-  if (bitmap_data_ != nacl::kMapFailed) {
-    nacl::Unmap(bitmap_data_, bitmap_size_);
   }
 }
 
@@ -127,17 +148,8 @@ NPObject* Plugin::GetScriptableObject() {
 }
 
 NPError Plugin::SetWindow(NPWindow* window) {
-  if (bitmap_data_ == nacl::kMapFailed) {
-    // We are using 32-bit ARGB format (4 bytes per pixel).
-    bitmap_size_ = 4 * window->width * window->height;
-    bitmap_size_ = (bitmap_size_ + nacl::kMapPageSize - 1) &
-                   ~(nacl::kMapPageSize - 1);
-    bitmap_data_ = nacl::Map(NULL, bitmap_size_,
-                             nacl::kProtRead | nacl::kProtWrite,
-                             nacl::kMapShared,
-                             reinterpret_cast<nacl::Handle>(window->window),
-                             0);
-    memset(bitmap_data_, 0, bitmap_size_);
+  if (device2d_ != NULL) {
+    // Clear the 2D drawing context.
     pthread_create(&thread_, NULL, pi, this);
   }
   window_ = window;
@@ -145,7 +157,10 @@ NPError Plugin::SetWindow(NPWindow* window) {
 }
 
 bool Plugin::Paint() {
-  if (bitmap_data_ != nacl::kMapFailed) {
+  if (device2d_) {
+    NPDeviceFlushContextCallbackPtr callback =
+        reinterpret_cast<NPDeviceFlushContextCallbackPtr>(&FlushCallback);
+    device2d_->flushContext(npp_, &context2d_, callback, NULL);
     return true;
   }
   return false;
@@ -165,15 +180,15 @@ void* Plugin::pi(void* param) {
   int count = 0;  // The number of points put inside the inscribed quadrant.
   unsigned int seed = 1;
   Plugin* plugin = static_cast<Plugin*>(param);
-  uint32_t* pixel_bits = static_cast<uint32_t*>(plugin->bitmap_data_);
+  uint32_t* pixel_bits = static_cast<uint32_t*>(plugin->pixels());
   srand(seed);
   for (int i = 1; i <= kMaxPointCount && !plugin->quit(); ++i) {
     double x = static_cast<double>(rand_r(&seed)) / RAND_MAX;
     double y = static_cast<double>(rand_r(&seed)) / RAND_MAX;
     double distance = sqrt(x * x + y * y);
-    int px = x * plugin->window_->width;
-    int py = (1.0 - y) * plugin->window_->height;
-    uint32_t color = pixel_bits[plugin->window_->width * py + px];
+    int px = x * plugin->width();
+    int py = (1.0 - y) * plugin->height();
+    uint32_t color = pixel_bits[plugin->width() * py + px];
     if (distance < 1.0) {
       // Set color to blue.
       ++count;
@@ -185,7 +200,7 @@ void* Plugin::pi(void* param) {
       color += 4 << kRedShift;
       color &= kRedMask;
     }
-    pixel_bits[plugin->window_->width * py + px] = color;
+    pixel_bits[plugin->width() * py + px] = color;
   }
   return 0;
 }
