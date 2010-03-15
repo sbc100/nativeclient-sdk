@@ -150,6 +150,8 @@ NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
 #if !defined(__native_client__)
   memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
 #endif
+  plugin_funcs->version = 11;
+  plugin_funcs->size = sizeof(plugin_funcs);
   plugin_funcs->newp = NPP_New;
   plugin_funcs->destroy = NPP_Destroy;
   plugin_funcs->setwindow = NPP_SetWindow;

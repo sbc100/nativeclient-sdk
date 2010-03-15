@@ -21,7 +21,7 @@
 	<key>CSResourcesFileMapped</key>
 	<string>yes</string>
 	<key>WebPluginDescription</key>
-	<string>Hello World Trusted Plug-in</string>
+	<string>PI Generator Trusted Plug-in</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
 		<key>application/x-nacl-srpc</key>
@@ -31,10 +31,10 @@
 				<string>nexe</string>
 			</array>
 			<key>WebPluginTypeDescription</key>
-			<string>Ginsu</string>
+			<string>PI Generator</string>
 		</dict>
 	</dict>
 	<key>WebPluginName</key>
-	<string>Hello World Trusted Plug-in</string>
+	<string>PI Generator Trusted Plug-in</string>
 </dict>
 </plist>
