@@ -31,6 +31,8 @@ base_env = Environment(
     SOURCE_ROOT = Dir('#/..').abspath
 )
 
+base_env.Prepend(CPPDEFINES = ['XP_UNIX'])
+
 base_env.Append(BUILD_SCONSCRIPTS =
                 ['npapi_pi_generator/npapi_pi_generator.scons',
                  'npapi_helloworld/npapi_helloworld.scons'])
@@ -44,8 +46,13 @@ if base_env['PLATFORM'] is 'darwin':
 if base_env['PLATFORM'] is 'posix':
     platform = 'linux'
 
-nacl_compiler_location = ('%s/compilers/host_%s/target_%s/sdk/nacl-sdk/' %
-                          (base_env['SOURCE_ROOT'], platform, GetOption('target')))
+nacl_compiler_location = (
+    '%s/compilers/host_%s/target_%s/sdk/nacl-sdk/' %
+    (base_env['SOURCE_ROOT'], platform, GetOption('target')))
+
+# This header path is required for files like pgl.h, which include "npapi.h"
+# and not "nacl/npapi.h".
+base_env.Append(CPPPATH = ['%s/nacl/include/nacl' % nacl_compiler_location])
 
 #-----------------------------------------------------------------------------
 # NaCl module build environment
@@ -73,7 +80,8 @@ mac_dbg_plugin_env = base_env.Clone(
     tools = ['applelink', 'target_platform_mac', 'target_debug']
 )
 mac_dbg_plugin_env.FilterOut(CCFLAGS = ['-g'])
-mac_dbg_plugin_env.Append(CCFLAGS = ['-gfull', '-O0'],
+mac_dbg_plugin_env.Append(BUILD_SCONSCRIPTS = ['trusted_gpu/trusted_gpu.scons'],
+                          CCFLAGS = ['-gfull', '-O0'],
                           CPPPATH = ['$SOURCE_ROOT/third_party/include'])
 
 environment_list.append(mac_dbg_plugin_env)

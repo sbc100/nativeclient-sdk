@@ -1,0 +1,52 @@
+#!/usr/bin/python2.4
+#
+# Copyright 2010 Native Client SDK Authors. All Rights Reserved.
+
+""" Build file for the trusted GPU client library, used when debugging trusted
+    plugins that use GLES2.
+    TODO(dspringer): Once we can debug /nexes, and have no more need for
+    trusted plugins, this library can be removed form the SDK.
+"""
+
+import os
+
+Import('env')
+
+library_name = 'gpu'
+
+env.Append(CPPPATH = ['$SOURCE_ROOT/third_party'],
+           CFLAGS = ['-DTRUSTED_GPU_LIBRARY_BUILD', '-DOMIT_DLOG_AND_DCHECK'],
+           CCFLAGS = ['-DTRUSTED_GPU_LIBRARY_BUILD', '-DOMIT_DLOG_AND_DCHECK'])
+env.FilterOut(CFLAGS=['-Werror', '-pedantic'])
+env.FilterOut(CCFLAGS=['-Werror', '-pedantic'])
+
+base_sources = ['logging.cc']
+base_sources = [os.path.join('$SOURCE_ROOT/third_party/include/base', src)
+    for src in base_sources]
+
+common_sources = ['cmd_buffer_common.cc',
+                  'gles2_cmd_format.cc',
+                  'gles2_cmd_utils.cc']
+common_sources = [os.path.join('$SOURCE_ROOT/third_party/gpu/command_buffer/common', src)
+    for src in common_sources]
+
+client_sources = ['cmd_buffer_helper.cc',
+                  'fenced_allocator.cc',
+                  'gles2_c_lib.cc',
+                  'gles2_cmd_helper.cc',
+                  'gles2_implementation.cc',
+                  'gles2_lib.cc',
+                  'id_allocator.cc']
+client_sources = [os.path.join('$SOURCE_ROOT/third_party/gpu/command_buffer/client', src)
+    for src in client_sources]
+
+pgl_sources = ['command_buffer_pepper.cc',
+               'pgl.cc']
+pgl_sources = [os.path.join('$SOURCE_ROOT/third_party/gpu/pgl', src)
+    for src in pgl_sources]
+
+gpu_sources = common_sources + client_sources + pgl_sources
+
+if env.Bit('mac'):
+  # Build a Mac trusted library for debugging.
+  env.ComponentLibrary('gpu', gpu_sources)
