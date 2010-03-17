@@ -36,11 +36,22 @@ At this time this is just a tarball.
 import os
 import sys
 import tarfile
+import re
+
+EXCLUDE_DIRS = ['.svn', '.download', 'scons-out']
+
+# Return True if |file| should be excluded from the tarball.
+def ExcludeFile(file):
+  return file.startswith('.DS_Store') or re.search('^\._', file)
 
 
 def main(argv):
-  tar = tarfile.open('sdk.tbz2', 'w:bz2')
-  for root, _, files in os.walk('src', topdown=False):
+  tar = tarfile.open('nacl-sdk.tgz', 'w:gz')
+  for root, dirs, files in os.walk('src'):
+    for excl in EXCLUDE_DIRS:
+      if excl in dirs:
+        dirs.remove(excl)
+    files = [f for f in files if not ExcludeFile(f)]
     for name in files:
       tar.add(os.path.join(root, name))
   tar.close()
