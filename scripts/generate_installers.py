@@ -51,7 +51,7 @@ def ExcludeFile(file):
 def SVNRevision():
   p = subprocess.Popen(['svn', 'info'],
                        stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE)
+                       stderr=subprocess.PIPE, shell=True)
   (stdout, stderr) = p.communicate()
   m = re.search('Revision: ([0-9]+)', stdout)
   if m:
