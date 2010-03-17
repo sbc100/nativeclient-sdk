@@ -19,7 +19,7 @@ if env['BUILD_TYPE'] == 'nacl':
   env.ComponentProgram(nacl_module, npapi_pi_inputs)
   
   # Note that the html is required to run this program.
-  env.Publish(nacl_module, 'run', ['npapi_pi.html',])
+  env.Publish(nacl_module, 'run', ['npapi_pi_generator.html'])
 elif env['BUILD_TYPE'] == 'plugin' and env.Bit('mac'):
   # Build a Mac trusted plugin for debugging.
   mac_plugin_env = env.Clone(
@@ -65,6 +65,4 @@ elif env['BUILD_TYPE'] == 'plugin' and env.Bit('mac'):
       BUNDLE_PKGINFO_FILENAME = 0,
       BUNDLE_RESOURCES = RESOURCE_FORK
   )
-  env.Publish(program_name, 'run',
-              ['npapi_pi.html',
-               'nacl_js_lib.js'])
+  env.Publish(program_name, 'run', ['npapi_pi_generator.html'])
