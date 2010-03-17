@@ -34,26 +34,51 @@ At this time this is just a tarball.
 """
 
 import os
+import re
+import subprocess
 import sys
 import tarfile
-import re
 
 EXCLUDE_DIRS = ['.svn', '.download', 'scons-out']
 
 # Return True if |file| should be excluded from the tarball.
 def ExcludeFile(file):
-  return file.startswith('.DS_Store') or re.search('^\._', file)
+  return (file.startswith('.DS_Store') or
+          re.search('^\._', file) or
+          file == 'DEPS')
+
+
+def SVNRevision():
+  p = subprocess.Popen(['svn', 'info'],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+  (stdout, stderr) = p.communicate()
+  m = re.search('Revision: ([0-9]+)', stdout)
+  if m:
+    return int(m.group(1))
+  else:
+    return 0
+
+
+def VersionString():
+  rev = SVNRevision()
+  build_number = os.environ.get('BUILD_NUMBER', '0')
+  return 'native_client_sdk_0_1_%d_%s' % (rev, build_number)
 
 
 def main(argv):
-  tar = tarfile.open('nacl-sdk.tgz', 'w:gz')
-  for root, dirs, files in os.walk('src'):
+  os.chdir('src')
+  version = VersionString()
+  tar = tarfile.open('../nacl-sdk.tgz', 'w:gz')
+  for root, dirs, files in os.walk('.'):
     for excl in EXCLUDE_DIRS:
       if excl in dirs:
         dirs.remove(excl)
     files = [f for f in files if not ExcludeFile(f)]
     for name in files:
-      tar.add(os.path.join(root, name))
+      path = os.path.join(root, name)
+      arcname = os.path.join(version, path)
+      tar.add(path, arcname=arcname)
   tar.close()
 
 
