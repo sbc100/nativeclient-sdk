@@ -1,0 +1,138 @@
+Welcome to the Native Client SDK.
+
+Revision date: March 18, 2010.
+
+
+SETUP
+
+Tarballs are available here:
+
+  http://build.chromium.org/buildbot/snapshots/nacl_new_sdk/
+
+Note that they are platform-specific.
+
+The tarball comes with everything you need to build both a .nexe (untrusted
+module) and a trusted plugin suitable for debugging (mac only for now, linux
+hopefully by the end of the week).  It uses hammer & scons for building (also
+included).
+
+To build the examples, you use hammer (which is a scons wrapper), e.g.:
+  cd examples; ./hammer.sh
+
+Other useful hammer switches:
+  ./hammer.sh -c # clean everything.
+  ./hammer.sh # build everything
+  ./hammer.sh --mode=nacl # build the untrusted .nexes (for release)
+  ./hammer.sh --mode=plugin # build the trusted plugins (for debug)
+
+It does not include a dev-channel version of Chrome.  You can get the dev-
+channel version of Chrome here:
+
+  http://dev.chromium.org/getting-involved/dev-channel
+
+
+RUN YOUR MODULE
+
+To run anything you build with the SDK, you'll need to supply these flags:
+  --no-sandbox --internal-nacl --internal-pepper --enable-gpu-plugin
+
+For example, to run on a Mac from the command-line:
+
+  Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
+      --internal-pepper --enable-gpu-plugin
+
+To load the .nexes, you will need to run a local http server.  A python script
+is included in the examples directory, you can start it like this:
+
+  cd examples
+  python httpd.py
+
+Note: this will serve everything under examples.  The root of the server is the
+examples dir; scons puts all built products in scons-out/{nacl,plugin}/staging.
+
+So to load an html page that references your .nexe, you would use this URL:
+
+  http://localhost:5103/scons-out/nacl/staging/npapi_helloworld.html
+
+A note about mime-types: Trusted plugins must have a mime-type that begins
+with 'pepper-'.  Native Client modules must have a mime type that is exactly
+'application/x-nacl-srpc'.  The HTML files bundles with the examples show how
+to specify a different mime type for the embedded object when you are debugging
+a trusted plugin versus running an untrusted module.  Be sure to set the mime
+type of your trusted plugin to match the mime type in the HTML (on the Mac,
+this means the Info.plist has to have one WebPluginMIMETypes entry).
+
+
+DEBUG YOUR MODULE
+
+You have to build a trusted Pepper plugin version of your module to debug it.
+The scons scripts already do this (./hammer.sh --mode=plugin).
+
+Important: your trusted plugin (or .nexe) runs in a separate process than
+Chrome.  If you use gdb, this means you will have to run a separate gdb session
+and attach to the plugin process.
+
+To debug your plugin, follow these steps:
+
+1. Create an HTML page that loads the trusted plugin when debugging, or the
+  untrusted module otherwise.  The examples come with HTML pages that show
+  how to do this, using '#debug' in the URL.  For example, the URL that loads
+  the trusted npapi_helloworld plugin for debugging is (note the trailing
+  '#debug'):
+    file:///Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.html#debug
+  which is given as a command-line parameter to Chrome.  The URL for the
+  untrusted .nexe is (note the absence of #debug):
+    http://localhost/scons-out/nacl/staging/npapi_helloworld.html
+  You type this into the Chromw browser once it is running, and you have
+  started a local http server (see below).
+
+2. Launch Chrome with the --load-plugin= and --plugin-startup-dialog flags.
+  --load-plugin takes an absolute path to your trusted plugin.  The latter part
+  of this path will have scons-out/plugin/staging/my_plugin.  For example, on
+  the Mac this would be:
+    --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.plugin
+
+  --plugin-startup-dialog causes Chrome to pause and wait for a debugger to
+  attach to the child plugin process.  It writes the PID of the child process
+  to the console so you can tell which one it is.  For example, you will see
+  this output:
+    Plugin (12554) paused waiting for debugger to attach @ pid
+    
+  An example launch line used to debug a trusted plugin on the Mac:
+    Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
+        --internal-pepper --enable-gpu-plugin \
+        --plugin-startup-dialog \
+        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.plugin \
+        file:///Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.html#debug
+    
+2. Attach to the plugin process.
+  Run gdb in its own shell.  At the gdb prompt:
+    attach <plugin_pid>
+  For example (using the PID from step 1. above):
+    % gdb
+    (gdb) attach 12554
+  Now you should be able to set break points and debug as you normally would.
+  
+  As soon as you continue in your gdb session, Chrome will resume execution.
+
+
+OTHER DEVELOPMENT
+
+If you want to contribute to the Native Client SDK itself, the code site is
+here:
+
+  http://code.google.com/p/nativeclient-sdk/
+
+Note that this is an internal Google site.
+
+
+KNOWN ISSUES
+
+- [All, Debug]: To debug your .nexe you have to build it as a trusted Pepper
+  plugin.  Once you have a trusted plugin version of your module, you can run
+  Chrome in your favorite debugger (e.g. gdb); in addition to the list of flags
+  above, you can add the --load-plugin=/path/to/my/plugin (see above).
+
+- [All]: We use hammer & scons to build.  This should be migrated to Makefiles.
+
+- [Linux]: you can only load .nexes in 32-bit Chrome.  64-bit doesn't yet work.
