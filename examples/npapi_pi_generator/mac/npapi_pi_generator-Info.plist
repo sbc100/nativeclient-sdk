@@ -24,7 +24,7 @@
 	<string>PI Generator Trusted Plug-in</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
-		<key>application/x-nacl-srpc</key>
+		<key>pepper-application/pi-generator</key>
 		<dict>
 			<key>WebPluginExtensions</key>
 			<array>

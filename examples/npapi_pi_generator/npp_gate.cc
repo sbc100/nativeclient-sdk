@@ -63,6 +63,12 @@ void NPN_ReleaseObject(NPObject* obj) {
 // PINPAPI extensions.  These get filled in when NPP_New is called.
 static NPExtensions* kPINPAPIExtensions = NULL;
 
+// These are PINPAPI extensions.
+NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device) {
+  return kPINPAPIExtensions ?
+      kPINPAPIExtensions->acquireDevice(instance, device) : NULL;
+}
+
 // Please refer to the Gecko Plugin API Reference for the description of
 // NPP_New.
 NPError NPP_New(NPMIMEType mime_type,
@@ -138,23 +144,32 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   return NPERR_GENERIC_ERROR;
 }
 
-// These are PINPAPI extensions.
-NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device) {
-  return kPINPAPIExtensions ?
-      kPINPAPIExtensions->acquireDevice(instance, device) : NULL;
-}
+// These functions are needed for both the trusted and untrused loader.  They
+// must use C-style linkage.
 
-// Instance methods.
-NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
-                      NPPluginFuncs* plugin_funcs) {
-#if !defined(__native_client__)
-  memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
-#endif
+extern "C" {
+
+NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
+  memset(plugin_funcs, 0, sizeof(*plugin_funcs));
   plugin_funcs->version = 11;
-  plugin_funcs->size = sizeof(plugin_funcs);
+  plugin_funcs->size = sizeof(*plugin_funcs);
   plugin_funcs->newp = NPP_New;
   plugin_funcs->destroy = NPP_Destroy;
   plugin_funcs->setwindow = NPP_SetWindow;
   plugin_funcs->event = NPP_HandleEvent;
   return NPERR_NO_ERROR;
 }
+
+NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
+                      NPPluginFuncs* plugin_funcs) {
+#if !defined(__native_client__)
+  memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
+#endif
+  return NPERR_NO_ERROR;
+}
+
+NPError NP_Shutdown() {
+  return NPERR_NO_ERROR;
+}
+
+}  // extern "C"
