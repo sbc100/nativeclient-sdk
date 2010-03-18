@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
@@ -126,19 +127,33 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   return NPERR_NO_ERROR;
 }
 
-/*
- * NP_Initialize
- */
+// These functions are needed for both the trusted and untrused loader.  They
+// must use C-style linkage.
+
+extern "C" {
+
+NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
+  memset(plugin_funcs, 0, sizeof(*plugin_funcs));
+  plugin_funcs->version = NPVERS_HAS_PLUGIN_THREAD_ASYNC_CALL;
+  plugin_funcs->size = sizeof(*plugin_funcs);
+  plugin_funcs->newp = NPP_New;
+  plugin_funcs->destroy = NPP_Destroy;
+  plugin_funcs->setwindow = NPP_SetWindow;
+  plugin_funcs->getvalue = NPP_GetValue;
+  return NPERR_NO_ERROR;
+}
 
 NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
                       NPPluginFuncs* plugin_funcs) {
 #if !defined(__native_client__)
   memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
 #endif
-  plugin_funcs->newp = NPP_New;
-  plugin_funcs->destroy = NPP_Destroy;
-  plugin_funcs->setwindow = NPP_SetWindow;
-  plugin_funcs->getvalue = NPP_GetValue;
 
   return NPERR_NO_ERROR;
 }
+
+NPError NP_Shutdown() {
+  return NPERR_NO_ERROR;
+}
+
+}  // extern "C"

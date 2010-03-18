@@ -24,7 +24,7 @@
 	<string>Hello World Trusted Plug-in</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
-		<key>application/x-nacl-srpc</key>
+		<key>pepper-application/helloworld-plugin</key>
 		<dict>
 			<key>WebPluginExtensions</key>
 			<array>

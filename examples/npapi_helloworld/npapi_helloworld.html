@@ -30,12 +30,25 @@ function helloworld() {
   <button onclick="fortytwo()">Call fortytwo()</button>
   <button onclick="helloworld()">Call helloworld()</button>
 
-  <embed name="nacl_module"
-         id="pluginobj"
-         width=0
-         height=0
-         src="npapi_helloworld.nexe"
-         type="application/x-nacl-srpc" />
+  <!-- For debugging, use a #debug location, and load the trusted plugin -->
+  <div id="nacl_helloworld_content"></div>
+  <script type="text/javascript">
+    contentDiv = document.getElementById('nacl_helloworld_content');
+    if (window.location.hash == '#debug') {
+      // Load the trusted plugin for debugging.
+      contentDiv.innerHTML = '<embed name="nacl_module" '
+                             + 'id="pluginobj" '
+                             + 'width=0 height=0 '
+                             + 'type="pepper-application/helloworld-plugin" />';
+    } else {
+      // Load the untrusted .nexe.
+      contentDiv.innerHTML = '<embed name="nacl_module" '
+                             + 'id="pluginobj" '
+                             + 'width=0 height=0 '
+                             + 'src="npapi_helloworld.nexe" '
+                             + 'type="application/x-nacl-srpc" />';
+    }
+  </script>
 </p>
 
 <p>If the plug-in is working correctly, a click on the "Call fortytwo" button
