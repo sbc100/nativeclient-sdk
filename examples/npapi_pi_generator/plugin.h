@@ -47,6 +47,14 @@ class Plugin {
   }
 
  private:
+  // Create and initialize the 2D context used for drawing.
+  void CreateContext();
+  // Destroy the 2D drawing context.
+  void DestroyContext();
+  bool IsContextValid() {
+    return device2d_ != NULL;
+  }
+
   NPP       npp_;
   NPObject* scriptable_object_;  // strong reference
 

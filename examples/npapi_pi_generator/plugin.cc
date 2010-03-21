@@ -112,18 +112,11 @@ Plugin::Plugin(NPP npp)
     : npp_(npp),
       scriptable_object_(NULL),
       window_(NULL),
+      device2d_(NULL),
       quit_(false),
       thread_(0),
       pi_(0.0) {
   ScriptablePluginObject::InitializeIdentifiers();
-
-  // RAII pattern to acquire and initialize the PINPAPI 2D device context.
-  device2d_ = NPN_AcquireDevice(npp, NPPepper2DDevice);
-  assert(NULL != device2d_);
-  memset(&context2d_, 0, sizeof(context2d_));
-  NPDeviceContext2DConfig config;
-  NPError init_err = device2d_->initializeContext(npp, &config, &context2d_);
-  assert(NPERR_NO_ERROR == init_err);
 }
 
 Plugin::~Plugin() {
@@ -134,6 +127,7 @@ Plugin::~Plugin() {
   if (scriptable_object_) {
     NPN_ReleaseObject(scriptable_object_);
   }
+  DestroyContext();
 }
 
 NPObject* Plugin::GetScriptableObject() {
@@ -148,22 +142,43 @@ NPObject* Plugin::GetScriptableObject() {
 }
 
 NPError Plugin::SetWindow(NPWindow* window) {
-  if (device2d_ != NULL) {
-    // Clear the 2D drawing context.
-    pthread_create(&thread_, NULL, pi, this);
-  }
+  if (!window)
+    return NPERR_NO_ERROR;
+  if (!IsContextValid())
+    CreateContext();
+  if (!IsContextValid())
+    return NPERR_GENERIC_ERROR;
+  // Clear the 2D drawing context.
+  pthread_create(&thread_, NULL, pi, this);
   window_ = window;
   return Paint() ? NPERR_NO_ERROR : NPERR_GENERIC_ERROR;
 }
 
 bool Plugin::Paint() {
-  if (device2d_) {
+  if (IsContextValid()) {
     NPDeviceFlushContextCallbackPtr callback =
         reinterpret_cast<NPDeviceFlushContextCallbackPtr>(&FlushCallback);
     device2d_->flushContext(npp_, &context2d_, callback, NULL);
     return true;
   }
   return false;
+}
+
+void Plugin::CreateContext() {
+  if (IsContextValid())
+    return;
+  device2d_ = NPN_AcquireDevice(npp_, NPPepper2DDevice);
+  assert(IsContextValid());
+  memset(&context2d_, 0, sizeof(context2d_));
+  NPDeviceContext2DConfig config;
+  NPError init_err = device2d_->initializeContext(npp_, &config, &context2d_);
+  assert(NPERR_NO_ERROR == init_err);
+}
+
+void Plugin::DestroyContext() {
+  if (!IsContextValid())
+    return;
+  device2d_->destroyContext(npp_, &context2d_);
 }
 
 // pi() estimates Pi using Monte Carlo method and it is executed by a separate

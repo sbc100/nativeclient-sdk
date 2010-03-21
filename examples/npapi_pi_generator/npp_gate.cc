@@ -126,6 +126,17 @@ NPObject* NPP_GetScriptableInstance(NPP instance) {
   return object;
 }
 
+NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
+  if (NPPVpluginScriptableNPObject == variable) {
+    NPObject* scriptable_object = NPP_GetScriptableInstance(instance);
+    if (scriptable_object == NULL)
+      return NPERR_INVALID_INSTANCE_ERROR;
+    *reinterpret_cast<NPObject**>(value) = scriptable_object;
+    return NPERR_NO_ERROR;
+  }
+  return NPERR_INVALID_PARAM;
+}
+
 int16_t NPP_HandleEvent(NPP instance, void* event) {
   return 0;
 }
@@ -157,6 +168,7 @@ NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
   plugin_funcs->destroy = NPP_Destroy;
   plugin_funcs->setwindow = NPP_SetWindow;
   plugin_funcs->event = NPP_HandleEvent;
+  plugin_funcs->getvalue = NPP_GetValue;
   return NPERR_NO_ERROR;
 }
 
