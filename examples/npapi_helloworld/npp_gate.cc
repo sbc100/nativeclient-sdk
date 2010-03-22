@@ -143,14 +143,23 @@ NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
   return NPERR_NO_ERROR;
 }
 
+// Some platforms, including Native Client, use the two-parameter version of
+// NP_Initialize(), and do not call NP_GetEntryPoints().  Others (Mac, e.g.)
+// use single-parameter version of NP_Initialize(), and then call
+// NP_GetEntryPoints() to get the NPP functions.  Also, the NPN entry points are
+// defined by the Native Client loader, but are not defined in the trusted
+// plugin loader (and must be filled in in NP_Initialize()).
+#if defined(__native_client__)
 NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
                       NPPluginFuncs* plugin_funcs) {
-#if !defined(__native_client__)
+  return NP_GetEntryPoints(plugin_funcs);
+}
+#else
+NPError NP_Initialize(NPNetscapeFuncs* browser_funcs) {
   memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
-#endif
-
   return NPERR_NO_ERROR;
 }
+#endif
 
 NPError NP_Shutdown() {
   return NPERR_NO_ERROR;
