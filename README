@@ -65,47 +65,66 @@ this means the Info.plist has to have one WebPluginMIMETypes entry).
 
 DEBUG YOUR MODULE
 
-You have to build a trusted Pepper plugin version of your module to debug it.
-The scons scripts already do this (./hammer.sh --mode=plugin).
+Some Terminology:
 
-Important: your trusted plugin (or .nexe) runs in a separate process than
-Chrome.  If you use gdb, this means you will have to run a separate gdb session
-and attach to the plugin process.
+"Trusted" means your module is loaded into the Chrome browser and can be
+debugged with your platofrm's native debugger.  The trusted version of
+your module normally looks like an NPAPI plugin, and needs to have all the
+normal browser plugin ornamentation (on the Mac, this means it is a bundle
+with an Info.plit that specifies the MIME type, etc.).
 
-To debug your plugin, follow these steps:
+"Untrusted" means your module is loaded into the verified module sandbox and
+not directly into the browser.  It communicates with the browser via a
+special channel that gets set up for you at load-time.  The untrusted version
+of your module is normally a single file with the '.nexe' extension.  This is
+the version of your module that you "ship".
 
-1. Create an HTML page that loads the trusted plugin when debugging, or the
-  untrusted module otherwise.  The examples come with HTML pages that show
+You have to build a trusted version of your module to debug it. The scons
+scripts already do this (./hammer.sh --mode=plugin).
+
+Important: your module (both trusted and untrusted versions) runs in a separate
+process than Chrome.  If you use gdb, this means you will have to run a separate
+gdb session and attach to the module's process.
+
+To debug your module, follow these steps:
+
+1. Create an HTML page that loads the trusted version when debugging, or the
+  untrusted version otherwise.  The examples come with HTML pages that show
   how to do this, using '#debug' in the URL.  For example, the URL that loads
-  the trusted npapi_helloworld plugin for debugging is (note the trailing
+  the trusted version of npapi_helloworld for debugging is (note the trailing
   '#debug'):
     file:///Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.html#debug
   which is given as a command-line parameter to Chrome.  The URL for the
   untrusted .nexe is (note the absence of #debug):
     http://localhost/scons-out/nacl/staging/npapi_helloworld.html
-  You type this into the Chromw browser once it is running, and you have
+  You type this into the Chrome browser once it is running, and you have
   started a local http server (see below).
 
 2. Launch Chrome with the --load-plugin= and --plugin-startup-dialog flags.
-  --load-plugin takes an absolute path to your trusted plugin.  The latter part
-  of this path will have scons-out/plugin/staging/my_plugin.  For example, on
-  the Mac this would be:
+  --load-plugin takes an absolute path to the trusted version of your module.
+  The latter part of this path will have scons-out/plugin/staging/my_plugin.
+  For example, on the Mac this would be:
     --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.plugin
 
   --plugin-startup-dialog causes Chrome to pause and wait for a debugger to
-  attach to the child plugin process.  It writes the PID of the child process
+  attach to the child module process.  It writes the PID of the child process
   to the console so you can tell which one it is.  For example, you will see
   this output:
     Plugin (12554) paused waiting for debugger to attach @ pid
     
-  An example launch line used to debug a trusted plugin on the Mac:
+  An example launch line used to debug a trusted version on the Mac:
     Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
         --internal-pepper --enable-gpu-plugin \
         --plugin-startup-dialog \
         --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.plugin \
         file:///Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.html#debug
-    
-2. Attach to the plugin process.
+  
+  --single-process is an alternative to --plugin-starup-dialog, and loads the
+  trusted module directly into the instance of Chrome you are debugging.  You
+  do not need to use a separate gdb session to debug your module with this flag.
+  This mode is great for debugging start-up functions such as NP_Initialize().
+
+2. Attach to the trusted module process.
   Run gdb in its own shell.  At the gdb prompt:
     attach <plugin_pid>
   For example (using the PID from step 1. above):
@@ -128,10 +147,10 @@ Note that this is an internal Google site.
 
 KNOWN ISSUES
 
-- [All, Debug]: To debug your .nexe you have to build it as a trusted Pepper
-  plugin.  Once you have a trusted plugin version of your module, you can run
-  Chrome in your favorite debugger (e.g. gdb); in addition to the list of flags
-  above, you can add the --load-plugin=/path/to/my/plugin (see above).
+- [All, Debug]: To debug your .nexe you have to build a trusted version.  Once
+  you have a trusted version of your module, you can run Chrome in your favorite
+  debugger (e.g. gdb); in addition to the list of flags above, you can add the
+  --load-plugin=/path/to/my/plugin (see above).
 
 - [All]: We use hammer & scons to build.  This should be migrated to Makefiles.
 
