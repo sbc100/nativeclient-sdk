@@ -100,15 +100,15 @@ PLATFORM_COLLAPSE = {
 
 PLATFORM_MAPPING = {
     'win32': [
-        ['win_x86', 'host_win/target_x86'],
-        ['win_x64', 'host_win/target_x64'],
+        ['win_x86-32', 'host_win/target-x86-32'],
+        ['win_x86-64', 'host_win/target-x86-64'],
     ],
     'linux': [
-        ['linux_x86', 'host_linux/target_x86'],
-        ['linux_x64', 'host_linux/target_x64'],
+        ['linux_x86-32', 'host_linux/target-x86-32'],
+        ['linux_x86-64', 'host_linux/target-x86-64'],
     ],
     'darwin': [
-        ['mac_x86', 'host_mac/target_x86'],
+        ['mac_x86-32', 'host_mac/target-x86-32'],
     ],
 }
 

@@ -1,32 +1,39 @@
 vars = {
-  "compiler_version": "2010_03_16",
+  "compiler_version": "1776",
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
   "hammer_trunk": "http://swtoolkit.googlecode.com/svn/trunk/",
-  "nixysa_trunk": "http://nixysa.googlecode.com/svn/trunk/",
+  # Note: make sure this is the same rev as the one used in native_client.
+  "chromium_version": "42043",
 }
 
 deps = {
   # Get the hammer, SCons and nixysa tools.
   "src/tools/hammer": Var("hammer_trunk"),
-  "src/tools/scons": Var("chromium_trunk") + "src/third_party/scons",
-  "src/tools/nixysa": Var("nixysa_trunk"),
+  "src/tools/scons": Var("chromium_trunk") + "src/third_party/scons@" +
+      Var("chromium_version"),
   # Pull in the trusted plugin headers from Chromium.
   # TODO(dspringer): remove these once we no longer need to build trusted
   # plugins for debugging.
   "src/third_party/npapi/bindings": Var("chromium_trunk") +
-      "src/third_party/npapi/bindings",
-  "src/third_party/include/GLES2": Var("chromium_trunk") + "src/gpu/GLES2",
-  "src/third_party/include/KHR": Var("chromium_trunk") + "src/gpu/KHR",
-  "src/third_party/include/pgl": Var("chromium_trunk") + "src/gpu/pgl",
+      "src/third_party/npapi/bindings@" + Var("chromium_version"),
+  "src/third_party/include/GLES2": Var("chromium_trunk") +
+      "src/gpu/GLES2@" + Var("chromium_version"),
+  "src/third_party/include/KHR": Var("chromium_trunk") +
+      "src/gpu/KHR@" + Var("chromium_version"),
+  "src/third_party/include/pgl": Var("chromium_trunk") +
+      "src/gpu/pgl@" + Var("chromium_version"),
   # The trusted plugins have to build a GPU client for rendering.
   # TODO(dspringer): remove these once we can debug .nexes directly.
-  "src/third_party/include/base": Var("chromium_trunk") + "src/base",
-  "src/third_party/include/build": Var("chromium_trunk") + "src/build",
+  "src/third_party/include/base": Var("chromium_trunk") +
+      "src/base@" + Var("chromium_version"),
+  "src/third_party/include/build": Var("chromium_trunk") +
+      "src/build@" + Var("chromium_version"),
   "src/third_party/gpu/command_buffer/common": Var("chromium_trunk") +
-      "src/gpu/command_buffer/common",
+      "src/gpu/command_buffer/common@" + Var("chromium_version"),
   "src/third_party/gpu/command_buffer/client": Var("chromium_trunk") +
-      "src/gpu/command_buffer/client",
-  "src/third_party/gpu/pgl": Var("chromium_trunk") + "src/gpu/pgl",
+      "src/gpu/command_buffer/client@" + Var("chromium_version"),
+  "src/third_party/gpu/pgl": Var("chromium_trunk") +
+      "src/gpu/pgl@" + Var("chromium_version"),
 }
 
 hooks = [
