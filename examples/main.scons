@@ -20,8 +20,8 @@ AddOption('--target',
           nargs = 1,
           action = 'store',
           metavar = 'TARGET',
-          default = 'x86',
-          help = 'target architecture (x64 or x86)')
+          default = 'x86-32',
+          help = 'target architecture (e.g. x86-32, x86-64)')
 
 base_env = Environment(
     tools = ['component_setup'],
@@ -35,7 +35,8 @@ base_env.Prepend(CPPDEFINES = ['XP_UNIX'])
 
 base_env.Append(BUILD_SCONSCRIPTS =
                 ['npapi_pi_generator/npapi_pi_generator.scons',
-                 'npapi_helloworld/npapi_helloworld.scons'])
+                 'npapi_helloworld/npapi_helloworld.scons',
+                 'pepper_3d/pepper_3d.scons'])
 
 
 #-----------------------------------------------------------------------------
@@ -47,7 +48,7 @@ if base_env['PLATFORM'] is 'posix':
     platform = 'linux'
 
 nacl_compiler_location = (
-    '%s/compilers/host_%s/target_%s/sdk/nacl-sdk/' %
+    '%s/compilers/host_%s/target-%s/sdk/nacl-sdk/' %
     (base_env['SOURCE_ROOT'], platform, GetOption('target')))
 
 # This header path is required for files like pgl.h, which include "npapi.h"
