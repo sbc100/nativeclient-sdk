@@ -53,7 +53,7 @@ elif env['BUILD_TYPE'] == 'plugin' and env.Bit('mac'):
       COMPONENT_LIBRARY_PUBLISH=True,
       COMPONENT_LIBRARY_LINK_SUFFIXES=[]
   )
-  RESOURCE_DIR = '%s/examples/pepper_3d/mac' % env['SOURCE_ROOT']
+  RESOURCE_DIR = '%s/examples/pepper_3d/debug_support/mac' % env['SOURCE_ROOT']
   # Create resource fork
   # TODO(dspringer): old-school resource files are no longer needed on the Mac,
   # but the Environment.Bundle() function requires it.
