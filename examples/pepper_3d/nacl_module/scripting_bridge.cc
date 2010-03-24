@@ -5,6 +5,7 @@
 #include "examples/pepper_3d/nacl_module/scripting_bridge.h"
 
 #include <assert.h>
+#include <string.h>
 
 #include "examples/pepper_3d/nacl_module/pepper_3d.h"
 
