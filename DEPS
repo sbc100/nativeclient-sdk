@@ -3,7 +3,7 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
   "hammer_trunk": "http://swtoolkit.googlecode.com/svn/trunk/",
   # Note: make sure this is the same rev as the one used in native_client.
-  "chromium_version": "42043",
+  "chromium_version": "42520",
 }
 
 deps = {
