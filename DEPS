@@ -1,16 +1,11 @@
 vars = {
   "compiler_version": "1776",
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
-  "hammer_trunk": "http://swtoolkit.googlecode.com/svn/trunk/",
   # Note: make sure this is the same rev as the one used in native_client.
   "chromium_version": "42520",
 }
 
 deps = {
-  # Get the hammer, SCons and nixysa tools.
-  "src/tools/hammer": Var("hammer_trunk"),
-  "src/tools/scons": Var("chromium_trunk") + "src/third_party/scons@" +
-      Var("chromium_version"),
   # Pull in the trusted plugin headers from Chromium.
   # TODO(dspringer): remove these once we no longer need to build trusted
   # plugins for debugging.
