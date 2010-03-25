@@ -1,6 +1,6 @@
 Welcome to the Native Client SDK.
 
-Revision date: March 18, 2010.
+Revision date: March 25, 2010.
 
 
 SETUP
@@ -11,19 +11,19 @@ Tarballs are available here:
 
 Note that they are platform-specific.
 
-The tarball comes with everything you need to build both a .nexe (untrusted
-module) and a trusted plugin suitable for debugging (mac only for now, linux
-hopefully by the end of the week).  It uses hammer & scons for building (also
-included).
+The tarball comes with everything you need to build both a .nexe (release
+module) and a debug version (Mac only for now, Linux hopefully by the end of
+the week).  It uses gnumake for building (normally included with Linux and
+Mac OS X, and you can get it for Windows).
 
-To build the examples, you use hammer (which is a scons wrapper), e.g.:
-  cd examples; ./hammer.sh
+To build the examples, you use gnumake, e.g.:
+  cd examples; make
 
-Other useful hammer switches:
-  ./hammer.sh -c # clean everything.
-  ./hammer.sh # build everything
-  ./hammer.sh --mode=nacl # build the untrusted .nexes (for release)
-  ./hammer.sh --mode=plugin # build the trusted plugins (for debug)
+Some useful make targets:
+  make clean # clean everything
+  make # build everything
+  make release # build the release version of your module (.nexe)
+  make debug # build the debug version
 
 It does not include a dev-channel version of Chrome.  You can get the dev-
 channel version of Chrome here:
@@ -41,6 +41,10 @@ For example, to run on a Mac from the command-line:
   Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
       --internal-pepper --enable-gpu-plugin
 
+On Linux:
+
+  ./chrome  --no-sandbox --internal-nacl --internal-pepper --enable-gpu-plugin
+
 To load the .nexes, you will need to run a local http server.  A python script
 is included in the examples directory, you can start it like this:
 
@@ -48,63 +52,55 @@ is included in the examples directory, you can start it like this:
   python httpd.py
 
 Note: this will serve everything under examples.  The root of the server is the
-examples dir; scons puts all built products in scons-out/{nacl,plugin}/staging.
+examples dir; make puts all built products in
+{debug,release}/staging/<platform_target>
 
-So to load an html page that references your .nexe, you would use this URL:
+So to load an html page that references your .nexe, you would use this URL on
+a Mac build:
 
-  http://localhost:5103/scons-out/nacl/staging/npapi_helloworld.html
+  http://localhost:5103/release/staging/mac_x86-32/npapi_helloworld.html
 
-A note about mime-types: Trusted plugins must have a mime-type that begins
-with 'pepper-'.  Native Client modules must have a mime type that is exactly
-'application/x-nacl-srpc'.  The HTML files bundles with the examples show how
-to specify a different mime type for the embedded object when you are debugging
-a trusted plugin versus running an untrusted module.  Be sure to set the mime
-type of your trusted plugin to match the mime type in the HTML (on the Mac,
+A note about MIME types: Debug plugins must have a MIME type that begins
+with 'pepper-'.  Release modules must have a MIME type that is exactly
+'application/x-nacl-srpc'.  The HTML files bundled with the examples show how
+to specify a different MIME type for the embedded object when you are debugging
+a module versus running a release module.  Be sure to set the MIME
+type of your debug version to match the MIME type in the HTML (on the Mac,
 this means the Info.plist has to have one WebPluginMIMETypes entry).
 
 
 DEBUG YOUR MODULE
 
-Some Terminology:
-
-"Trusted" means your module is loaded into the Chrome browser and can be
-debugged with your platofrm's native debugger.  The trusted version of
-your module normally looks like an NPAPI plugin, and needs to have all the
-normal browser plugin ornamentation (on the Mac, this means it is a bundle
-with an Info.plit that specifies the MIME type, etc.).
-
-"Untrusted" means your module is loaded into the verified module sandbox and
-not directly into the browser.  It communicates with the browser via a
-special channel that gets set up for you at load-time.  The untrusted version
-of your module is normally a single file with the '.nexe' extension.  This is
-the version of your module that you "ship".
-
-You have to build a trusted version of your module to debug it. The scons
-scripts already do this (./hammer.sh --mode=plugin).
-
-Important: your module (both trusted and untrusted versions) runs in a separate
+Important: your module (both debug and release versions) runs in a separate
 process than Chrome.  If you use gdb, this means you will have to run a separate
 gdb session and attach to the module's process.
 
 To debug your module, follow these steps:
 
-1. Create an HTML page that loads the trusted version when debugging, or the
-  untrusted version otherwise.  The examples come with HTML pages that show
+1. Create an HTML page that loads the debug version when debugging, or the
+  release version otherwise.  The examples come with HTML pages that show
   how to do this, using '#debug' in the URL.  For example, the URL that loads
-  the trusted version of npapi_helloworld for debugging is (note the trailing
+  the debug version of npapi_helloworld for debugging is (note the trailing
   '#debug'):
-    file:///Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.html#debug
+    file:///Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.html#debug
   which is given as a command-line parameter to Chrome.  The URL for the
-  untrusted .nexe is (note the absence of #debug):
-    http://localhost/scons-out/nacl/staging/npapi_helloworld.html
+  release .nexe is (note the absence of #debug):
+    http://localhost/examples/release/staging/mac_x86-32/npapi_helloworld.html
   You type this into the Chrome browser once it is running, and you have
   started a local http server (see below).
 
-2. Launch Chrome with the --load-plugin= and --plugin-startup-dialog flags.
-  --load-plugin takes an absolute path to the trusted version of your module.
-  The latter part of this path will have scons-out/plugin/staging/my_plugin.
+2. Create a symlink to your debug module from your platform's standard internet
+   plugin location.  On the Mac, this is ~/Library/Internet\ Plug-Ins.  For
+   example:
+    cd ~/Library/Internet\ Plug-Ins/
+    ln -s ~/nacl-sdk/src/examples/debug/staging/mac_x86-32/npapi_helloworld.plugin .
+
+3. Instead of creating a symlink, you can launch Chrome with the --load-plugin=
+  and --plugin-startup-dialog flags.  --load-plugin takes an absolute path to
+  the debug version of your module.  The latter part of this path will have
+  debug/staging/<platform,target> in it.
   For example, on the Mac this would be:
-    --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.plugin
+    --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.plugin
 
   --plugin-startup-dialog causes Chrome to pause and wait for a debugger to
   attach to the child module process.  It writes the PID of the child process
@@ -112,19 +108,19 @@ To debug your module, follow these steps:
   this output:
     Plugin (12554) paused waiting for debugger to attach @ pid
     
-  An example launch line used to debug a trusted version on the Mac:
+  An example launch line used to debug on the Mac:
     Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
         --internal-pepper --enable-gpu-plugin \
         --plugin-startup-dialog \
-        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.plugin \
-        file:///Users/sirhaxalot/nacl-sdk/examples/scons-out/plugin/staging/npapi_helloworld.html#debug
+        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.plugin \
+        file:///Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.html#debug
   
   --single-process is an alternative to --plugin-starup-dialog, and loads the
-  trusted module directly into the instance of Chrome you are debugging.  You
+  debug module directly into the instance of Chrome you are debugging.  You
   do not need to use a separate gdb session to debug your module with this flag.
   This mode is great for debugging start-up functions such as NP_Initialize().
 
-2. Attach to the trusted module process.
+4. Attach to the module process.
   Run gdb in its own shell.  At the gdb prompt:
     attach <plugin_pid>
   For example (using the PID from step 1. above):
@@ -147,11 +143,9 @@ Note that this is an internal Google site.
 
 KNOWN ISSUES
 
-- [All, Debug]: To debug your .nexe you have to build a trusted version.  Once
-  you have a trusted version of your module, you can run Chrome in your favorite
+- [All, Debug]: To debug your .nexe you have to build a special version.  Once
+  you have a debug version of your module, you can run Chrome in your favorite
   debugger (e.g. gdb); in addition to the list of flags above, you can add the
   --load-plugin=/path/to/my/plugin (see above).
-
-- [All]: We use hammer & scons to build.  This should be migrated to Makefiles.
 
 - [Linux]: you can only load .nexes in 32-bit Chrome.  64-bit doesn't yet work.
