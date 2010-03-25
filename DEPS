@@ -1,5 +1,5 @@
 vars = {
-  "compiler_version": "1776",
+  "compiler_version": "1824",
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
   # Note: make sure this is the same rev as the one used in native_client.
   "chromium_version": "42520",
