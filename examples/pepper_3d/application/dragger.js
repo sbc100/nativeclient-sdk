@@ -9,6 +9,8 @@
  * DRAG_START, DRAG and DRAG_END.
  */
 
+// Requires tumbler
+
 /**
  * Constructor for the Dragger.  Register for mousedown events that happen on
  * |opt_target|.  If |opt_target| is null or undefined, then this object observes
@@ -17,7 +19,7 @@
  *     document.
  * @constructor
  */
-pepper3d.Dragger = function(target) {
+tumbler.Dragger = function(target) {
   /**
    * The event target.
    * @type {Element}
@@ -59,7 +61,7 @@ pepper3d.Dragger = function(target) {
  * The ids used for drag event types.
  * @enum {string}
  */
-pepper3d.Dragger.DragEvents = {
+tumbler.Dragger.DragEvents = {
   DRAG_START: 'dragstart',  // Start a drag sequence
   DRAG: 'drag',  // Mouse moved during a drag sequence.
   DRAG_END: 'dragend'  // End a drag sewquence.
@@ -71,7 +73,7 @@ pepper3d.Dragger.DragEvents = {
  * that |listener| does not already exist in the array of listeners.
  * @param {!Object} listener The object that will listen to drag events.
  */
-pepper3d.Dragger.prototype.addDragListener = function(listener) {
+tumbler.Dragger.prototype.addDragListener = function(listener) {
   this.listeners_.push(listener);
 }
 
@@ -80,13 +82,13 @@ pepper3d.Dragger.prototype.addDragListener = function(listener) {
  * the target that is has a DRAG_START event.
  * @param {Event} event The mousedown event that triggered this method.
  */
-pepper3d.Dragger.prototype.onMouseDown = function(event) {
+tumbler.Dragger.prototype.onMouseDown = function(event) {
   this.boundMouseMove_ = this.onMouseMove.bind(this);
   this.boundMouseUp_ = this.onMouseUp.bind(this);
   this.target_.addEventListener('mousemove', this.boundMouseMove_);
   this.target_.addEventListener('mouseup', this.boundMouseUp_);
   this.isDragging_ = true;
-  var dragStartEvent = { type: pepper3d.Dragger.DragEvents.DRAG_START,
+  var dragStartEvent = { type: tumbler.Dragger.DragEvents.DRAG_START,
                          clientX: event.clientX,
                          clientY: event.clientY };
   var i;
@@ -99,10 +101,10 @@ pepper3d.Dragger.prototype.onMouseDown = function(event) {
  * Handle a mousemove event: tell the target that is has a DRAG event.
  * @param {Event} event The mousemove event that triggered this method.
  */
-pepper3d.Dragger.prototype.onMouseMove = function(event) {
+tumbler.Dragger.prototype.onMouseMove = function(event) {
   if (!this.isDragging_)
     return;
-  var dragEvent = { type: pepper3d.Dragger.DragEvents.DRAG,
+  var dragEvent = { type: tumbler.Dragger.DragEvents.DRAG,
                     clientX: event.clientX,
                     clientY: event.clientY};
   var i;
@@ -116,13 +118,13 @@ pepper3d.Dragger.prototype.onMouseMove = function(event) {
  * the target that is has a DRAG_END event.
  * @param {Event} event The mouseup event that triggered this method.
  */
-pepper3d.Dragger.prototype.onMouseUp = function(event) {
+tumbler.Dragger.prototype.onMouseUp = function(event) {
   this.target_.removeEventListener('mouseup', this.boundMouseUp_, false);
   this.target_.removeEventListener('mousemove', this.boundMouseMove_, false);
   this.boundMouseUp_ = null;
   this.boundMouseMove_ = null;
   this.isDragging_ = false;
-  var dragEndEvent = { type: pepper3d.Dragger.DragEvents.DRAG_END,
+  var dragEndEvent = { type: tumbler.Dragger.DragEvents.DRAG_END,
                        clientX: event.clientX,
                        clientY: event.clientY};
   var i;

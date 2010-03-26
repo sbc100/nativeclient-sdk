@@ -3,7 +3,7 @@
 // be found in the LICENSE file.
 
 /**
- * @fileoverview  Implement a virtual trackball in the pepper3d.Trackball
+ * @fileoverview  Implement a virtual trackball in the tumbler.Trackball
  * class.  This class maps 2D mouse events to 3D rotations by simulating a
  * trackball that you roll by dragging the mouse.  There are two principle
  * methods in the class: startAtPointInFrame which you use to begin a trackball
@@ -12,9 +12,9 @@
  */
 
 
-// Requires pepper3d.Application
-// Requires pepper3d.DragEvent
-// Requires pepper3d.Vector3
+// Requires tumbler.Application
+// Requires tumbler.DragEvent
+// Requires tumbler.Vector3
 
 /**
  * Constructor for the Trackball object.  This class maps 2D mouse drag events
@@ -29,7 +29,7 @@
  * the two vectors.
  * @constructor
  */
-pepper3d.Trackball = function() {
+tumbler.Trackball = function() {
   /**
    * The square of the trackball's radius.  The math never looks at the radius,
    * but looks at the radius squared.
@@ -44,7 +44,7 @@ pepper3d.Trackball = function() {
    * @type {Object}
    * @private
    */
-  this.rollStart_ = new pepper3d.Vector3(0, 0, 1);
+  this.rollStart_ = new tumbler.Vector3(0, 0, 1);
 
   /**
    * The 2D center of the frame that encloses the trackball.
@@ -71,7 +71,7 @@ pepper3d.Trackball = function() {
  *     element that encloses the virtual trackball.
  * @private
  */
-pepper3d.Trackball.prototype.initInFrame_ = function(frameSize) {
+tumbler.Trackball.prototype.initInFrame_ = function(frameSize) {
   // Compute the radius of the virtual trackball.  This is 1/2 of the smaller
   // of the frame's width and height.
   var halfFrameSize = 0.5 * Math.min(frameSize.width, frameSize.height);
@@ -94,7 +94,7 @@ pepper3d.Trackball.prototype.initInFrame_ = function(frameSize) {
  * @return {Object} the converted point.
  * @private
  */
-pepper3d.Trackball.prototype.convertClientPoint_ = function(clientPoint) {
+tumbler.Trackball.prototype.convertClientPoint_ = function(clientPoint) {
   var difference = { x: clientPoint.x - this.center_.x,
                      y: clientPoint.y - this.center_.y }
   return difference;
@@ -107,10 +107,10 @@ pepper3d.Trackball.prototype.convertClientPoint_ = function(clientPoint) {
  * is set to 0.
  * @param {!Object.<x, y>} point 2D-point in the coordinate space with origin
  *     in the center of the client view.
- * @return {pepper3d.Vector3} the 3D point on the virtual trackball.
+ * @return {tumbler.Vector3} the 3D point on the virtual trackball.
  * @private
  */
-pepper3d.Trackball.prototype.projectOnTrackball_ = function(point) {
+tumbler.Trackball.prototype.projectOnTrackball_ = function(point) {
   var sqrRadius2D = point.x * point.x + point.y * point.y;
   var zValue;
   if (sqrRadius2D > this.sqrRadius_) {
@@ -123,7 +123,7 @@ pepper3d.Trackball.prototype.projectOnTrackball_ = function(point) {
     // sqrt(r^2 - (x^2 + y^2)).
     zValue = Math.sqrt(this.sqrRadius_ - sqrRadius2D);
   }
-  var trackballPoint = new pepper3d.Vector3(point.x, point.y, zValue);
+  var trackballPoint = new tumbler.Vector3(point.x, point.y, zValue);
   return trackballPoint;
 };
 
@@ -139,7 +139,7 @@ pepper3d.Trackball.prototype.projectOnTrackball_ = function(point) {
  * @param {!Object.<width, height>} frameSize 2D-point representing the size of
  *     the element that encloses the virtual trackball.
  */
-pepper3d.Trackball.prototype.startAtPointInFrame =
+tumbler.Trackball.prototype.startAtPointInFrame =
     function(startPoint, frameSize) {
   this.initInFrame_(frameSize);
   // Compute the starting vector from the surface of the ball to its center.
@@ -161,12 +161,12 @@ pepper3d.Trackball.prototype.startAtPointInFrame =
  *     imaginary part of the quaternion and is computed as [x, y, z] *
  *     sin(angle/2).
  */
-pepper3d.Trackball.prototype.rollToPoint = function(dragPoint) {
+tumbler.Trackball.prototype.rollToPoint = function(dragPoint) {
   var rollTo = this.convertClientPoint_(dragPoint);
   if ((Math.abs(this.rollStart_.x - rollTo.x) <
-               pepper3d.Trackball.DOUBLE_EPSILON) &&
+               tumbler.Trackball.DOUBLE_EPSILON) &&
       (Math.abs(this.rollStart_.y, rollTo.y) <
-               pepper3d.Trackball.DOUBLE_EPSILON)) {
+               tumbler.Trackball.DOUBLE_EPSILON)) {
     // Not enough change in the vectors to roll the ball, return the identity
     // quaternion.
     return [0, 0, 0, 1];
@@ -204,12 +204,12 @@ pepper3d.Trackball.prototype.rollToPoint = function(dragPoint) {
 /**
  * Handle the drag START event: grab the current camera orientation from the
  * sending view and set up the virtual trackball.
- * @param {!pepper3d.Application} view The view controller that called
+ * @param {!tumbler.Application} view The view controller that called
  *     this method.
- * @param {!pepper3d.DragEvent} dragStartEvent The DRAG_START event that
+ * @param {!tumbler.DragEvent} dragStartEvent The DRAG_START event that
  *     triggered this handler.
  */
-pepper3d.Trackball.prototype.handleStartDrag =
+tumbler.Trackball.prototype.handleStartDrag =
     function(controller, dragStartEvent) {
   // Cache the camera orientation.  The orientations from the trackball as it
   // rolls are concatenated to this orientation and pushed back into the
@@ -227,12 +227,12 @@ pepper3d.Trackball.prototype.handleStartDrag =
  * Handle the drag DRAG event: concatenate the current orientation to the
  * cached orientation.  Send this final value through to the GSPlugin via the
  * setValueForKey() method.
- * @param {!pepper3d.Application} view The view controller that called
+ * @param {!tumbler.Application} view The view controller that called
  *     this method.
- * @param {!pepper3d.DragEvent} dragEvent The DRAG event that triggered
+ * @param {!tumbler.DragEvent} dragEvent The DRAG event that triggered
  *     this handler.
  */
-pepper3d.Trackball.prototype.handleDrag =
+tumbler.Trackball.prototype.handleDrag =
     function(controller, dragEvent) {
   // Flip the y-coordinate so that the 2D origin is in the lower-left corner.
   var frameSize = { width: controller.offsetWidth,
@@ -240,20 +240,20 @@ pepper3d.Trackball.prototype.handleDrag =
   var flippedY = { x: dragEvent.clientX,
                    y: frameSize.height - dragEvent.clientY };
   controller.setCameraOrientation(
-      pepper3d.multQuaternions(this.rollToPoint(flippedY),
-                               this.cameraOrientation_));
+      tumbler.multQuaternions(this.rollToPoint(flippedY),
+                              this.cameraOrientation_));
 };
 
 /**
  * Handle the drag END event: get the final orientation and concatenate it to
  * the cached orientation.  Send this final value through to the GSPlugin via
  * the setValueForKey() method.
- * @param {!pepper3d.Application} view The view controller that called
+ * @param {!tumbler.Application} view The view controller that called
  *     this method.
- * @param {!pepper3d.DragEvent} dragEndEvent The DRAG_END event that
+ * @param {!tumbler.DragEvent} dragEndEvent The DRAG_END event that
  *     triggered this handler.
  */
-pepper3d.Trackball.prototype.handleEndDrag =
+tumbler.Trackball.prototype.handleEndDrag =
     function(controller, dragEndEvent) {
   // Flip the y-coordinate so that the 2D origin is in the lower-left corner.
   var frameSize = { width: controller.offsetWidth,
@@ -261,8 +261,8 @@ pepper3d.Trackball.prototype.handleEndDrag =
   var flippedY = { x: dragEndEvent.clientX,
                    y: frameSize.height - dragEndEvent.clientY };
   controller.setCameraOrientation(
-      pepper3d.multQuaternions(this.rollToPoint(flippedY),
-                               this.cameraOrientation_));
+      tumbler.multQuaternions(this.rollToPoint(flippedY),
+                              this.cameraOrientation_));
 };
 
 /**
@@ -276,7 +276,7 @@ pepper3d.Trackball.prototype.handleEndDrag =
  *     quaternion.
  * @return {Array.<number>} A 4-element array representing the product q0 * q1.
  */
-pepper3d.multQuaternions = function(q0, q1) {
+tumbler.multQuaternions = function(q0, q1) {
   // Return q0 * q1 (note the order).
   var qMult = [
       q0[3] * q1[0] + q0[0] * q1[3] + q0[1] * q1[2] - q0[2] * q1[1],
@@ -294,17 +294,4 @@ pepper3d.multQuaternions = function(q0, q1) {
  * in Closure somewhere (goog.math?).
  * @type {number}
  */
-pepper3d.Trackball.DOUBLE_EPSILON = 1.0e-16;
-
-/**
- * A key with the same name as the corresponding property in the Grayskull
- * plugin code on the other side of the JavaScript bridge.
- * @type {string}
- */
-pepper3d.Trackball.CAMERA_ORIENTATION_KEY = 'camera_orientation';
-
-/**
- * Key to fetch the view class from the Ginsu plugin instance.
- * @type {string}
- */
-pepper3d.Trackball.VIEW_KEY = 'view';
+tumbler.Trackball.DOUBLE_EPSILON = 1.0e-16;

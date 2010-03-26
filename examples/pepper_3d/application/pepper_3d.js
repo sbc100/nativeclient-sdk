@@ -3,21 +3,22 @@
 // be found in the LICENSE file.
 
 /**
- * @fileoverview  The Pepper3D application object.  This object instantiates a
- * Trackball object and connects it to the element named |pepper_3d_content|.
+ * @fileoverview  The tumbler Application object.  This object instantiates a
+ * Trackball object and connects it to the element named |tumbler_content|.
  * It also conditionally embeds a debuggable module or a release module into
- * the |pepper_3d_content| element.
+ * the |tumbler_content| element.
  */
 
-// Requires pepper3d.Dragger
-// Requires pepper3d.Trackball
+// Requires tumbler
+// Requires tumbler.Dragger
+// Requires tumbler.Trackball
 
 /**
  * Constructor for the Application class.  Use the run() method to populate
  * the object with controllers and wire up the events.
  * @constructor
  */
-pepper3d.Application = function() {
+tumbler.Application = function() {
 }
 
 /**
@@ -26,21 +27,21 @@ pepper3d.Application = function() {
  * @type {Element}
  * @private
  */
-pepper3d.Application.prototype.module_ = null;
+tumbler.Application.prototype.module_ = null;
 
 /**
  * The trackball object.
- * @type {pepper3d.Trackball}
+ * @type {tumbler.Trackball}
  * @private
  */
-pepper3d.Application.prototype.trackball_ = null;
+tumbler.Application.prototype.trackball_ = null;
 
 /**
  * The mouse-drag event object.
- * @type {pepper3d.Dragger}
+ * @type {tumbler.Dragger}
  * @private
  */
-pepper3d.Application.prototype.dragger_ = null;
+tumbler.Application.prototype.dragger_ = null;
 
 /**
  * A timer used to retry loading the native client module; the application
@@ -48,16 +49,16 @@ pepper3d.Application.prototype.dragger_ = null;
  * @type {Number}
  * @private
  */
-pepper3d.Application.prototype.loadTimer_ = null;
+tumbler.Application.prototype.loadTimer_ = null;
 
 /**
  * Called by the module loading function once the module has been loaded.
  * @param {?Element} nativeModule The instance of the native module.
  */
-pepper3d.Application.prototype.moduleDidLoad = function(nativeModule) {
+tumbler.Application.prototype.moduleDidLoad = function(nativeModule) {
   this.module_ = nativeModule;
-  this.trackball_ = new pepper3d.Trackball();
-  this.dragger_ = new pepper3d.Dragger(this.module_);
+  this.trackball_ = new tumbler.Trackball();
+  this.dragger_ = new tumbler.Dragger(this.module_);
   this.dragger_.addDragListener(this.trackball_);
 }
 
@@ -66,8 +67,8 @@ pepper3d.Application.prototype.moduleDidLoad = function(nativeModule) {
  * is allocated and all the events get wired up.  Throws an error
  * if any of the required DOM elements are missing.
  */
-pepper3d.Application.prototype.run = function(opt_contentDivName) {
-  contentDivName = opt_contentDivName || pepper3d.Application.DEFAULT_DIV_NAME;
+tumbler.Application.prototype.run = function(opt_contentDivName) {
+  contentDivName = opt_contentDivName || tumbler.Application.DEFAULT_DIV_NAME;
   var contentDiv = document.getElementById(contentDivName);
   if (!contentDiv) {
     alert('missing ' + contentDivName);
@@ -77,13 +78,13 @@ pepper3d.Application.prototype.run = function(opt_contentDivName) {
   // Conditionally load the debug or release version of the module.
   if (window.location.hash == '#debug') {
     contentDiv.innerHTML = '<embed id="'
-                           + pepper3d.Application.PEPPER_MODULE_NAME + '" '
-                           + 'type="pepper-application/x-nacl-srpc" '
+                           + tumbler.Application.TUMBLER_MODULE_NAME + '" '
+                           + 'type="pepper-application/tumbler" '
                            + 'width="480" height="480" '
                            + 'dimensions="3" />'
   } else {
     contentDiv.innerHTML = '<embed id="'
-                           + pepper3d.Application.PEPPER_MODULE_NAME + '" '
+                           + tumbler.Application.TUMBLER_MODULE_NAME + '" '
                            + 'src="pepper_3d.nexe" '
                            + 'type="application/x-nacl-srpc" '
                            + 'width="480" height="480" '
@@ -98,7 +99,7 @@ pepper3d.Application.prototype.run = function(opt_contentDivName) {
   this.module_ = null;
   var thisref = this;
   LoadModule = function() {
-    module = document.getElementById(pepper3d.Application.PEPPER_MODULE_NAME);
+    module = document.getElementById(tumbler.Application.TUMBLER_MODULE_NAME);
     if (module == undefined || module.setCameraOrientation == undefined) {
       // Recursive call to the LoadModule function.
       thisref.loadTimer_ = setTimeout(arguments.callee, 500);
@@ -115,10 +116,10 @@ pepper3d.Application.prototype.run = function(opt_contentDivName) {
  * The name for the pepper module element.
  * @type {string}
  */
-pepper3d.Application.PEPPER_MODULE_NAME = 'pepper3d';
+tumbler.Application.TUMBLER_MODULE_NAME = 'tumbler';
 
 /**
  * The default name for the 3D content div element.
  * @type {string}
  */
-pepper3d.Application.DEFAULT_DIV_NAME = 'pepper_3d_content';
+tumbler.Application.DEFAULT_DIV_NAME = 'tumbler_content';

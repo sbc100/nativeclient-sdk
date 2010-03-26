@@ -9,8 +9,8 @@
   <head>
     <title>Interactive Cube Example</title>
     <script type="text/javascript">
-      // Provide the pepper3d namespace
-      pepper3d = {};
+      // Provide the tumbler namespace
+      tumbler = {};
     </script>
     <script type="text/javascript" src="dragger.js"></script>
     <script type="text/javascript" src="pepper_3d.js"></script>
@@ -23,11 +23,11 @@
       The Native Client module executed in this page draws a 3D cube
       and allows you to rotate it using a virtual trackball method.
     </p>
-    <!-- For debugging, use a #debug location, and load the trusted plugin -->
-    <div id="pepper_3d_content"></div>
+    <!-- For debugging, use a #debug location, and load the debug module -->
+    <div id="tumbler_content"></div>
     <script type="text/javascript">
-      var application = new pepper3d.Application();
-      application.run('pepper_3d_content');
+      var application = new tumbler.Application();
+      application.run('tumbler_content');
     </script>
   </body>
 </HTML>
