@@ -14,16 +14,32 @@ DEBUG_LIBS = trusted_gpu
 OS = $(shell uname -s)
 ifeq ($(OS), Darwin)
   PLATFORM = mac
+  # There is only support for 32-bit Native Client toolchain on mac.
+  CC = nacl-gcc
+  CPP = nacl-g++
+  TARGET = x86-32
+  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target-$(TARGET)/sdk/nacl-sdk
+  NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
 endif
 ifeq ($(OS), Linux)
   PLATFORM = linux
+  CC = nacl-gcc
+  CPP = nacl-g++
+  TARGET = x86-32
+  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target-$(TARGET)/sdk/nacl-sdk
+  NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
+  MACHINE = $(shell uname -m)
+  ifeq ($(MACHINE), x86_64)
+    CC = nacl64-gcc
+    CPP = nacl64-g++
+    TARGET = x86-64
+    NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target-$(TARGET)/sdk/nacl-sdk
+    NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
+  endif
 endif
-TARGET = x86-32
 SRCROOT = ..
 OBJROOT = .
 DSTROOT = .
-
-NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target-$(TARGET)/sdk/nacl-sdk
 
 all: debug release
 
@@ -43,18 +59,17 @@ debug:
 		TARGET=$(TARGET) \
 		OBJROOT=debug/$(PLATFORM)_$(TARGET) \
 		DSTROOT=../debug/$(PLATFORM)_$(TARGET) \
-		OPT_FLAGS="-O0 -g3" debug); \
+		OPT_FLAGS="-O0 -g3 -fPIC" debug); \
 	done
 
 release:
 	mkdir -p release/$(PLATFORM)_$(TARGET)
 	@for examp in $(EXAMPLES) ; do \
 	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) -w \
-	        CC=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/nacl-gcc \
-	        CPP=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++ \
+	        CC=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/$(CC) \
+	        CPP=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/$(CPP) \
 	        SRCROOT=`pwd`/../.. \
-	        INCLUDES="-I$$SRCROOT \
-		    -I$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl" \
+	        INCLUDES="-I$$SRCROOT -I$(NACL_INCLUDE)" \
 	        PLATFORM=$(PLATFORM) \
 	        TARGET=$(TARGET) \
 	        OBJROOT=release/$(PLATFORM)_$(TARGET) \
