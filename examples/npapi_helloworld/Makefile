@@ -4,7 +4,7 @@
 
 # Makefile for the Hello World example.
 
-.PHONY: debug debug_mac release publish
+.PHONY: debug debug_linux debug_mac release publish
 
 PROGRAM_NAME = npapi_helloworld
 
@@ -26,8 +26,13 @@ debug:
 	$(MAKE) -$(MAKEFLAGS) publish
 	$(MAKE) -$(MAKEFLAGS) debug_$(PLATFORM)
 
-debug_linux:
-	@echo Debug config does not build on Linux.
+debug_linux: $(OBJECTS)
+	$(MAKE) LDFLAGS='-shared' \
+	    -$(MAKEFLAGS) \
+	    CFLAGS="-DXP_UNIX -Werror -fPIC" \
+	    CXXFLAGS="-DXP_UNIX -Werror -fPIC" \
+	    $(OBJROOT)/$(PROGRAM_NAME)
+	cp $(OBJROOT)/$(PROGRAM_NAME) $(DSTROOT)/lib$(PROGRAM_NAME).so
 
 debug_mac:
 	$(MAKE) LDFLAGS='-bundle -framework Foundation' \
