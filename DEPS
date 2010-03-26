@@ -1,8 +1,8 @@
 vars = {
-  "compiler_version": "1824",
+  "compiler_version": "1837",
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
   # Note: make sure this is the same rev as the one used in native_client.
-  "chromium_version": "42520",
+  "chromium_version": "42751",
 }
 
 deps = {
@@ -33,7 +33,7 @@ deps = {
 
 hooks = [
   {
-    "pattern": "DEPS$",
+    "pattern": ".",
     "action": ["python", "src/scripts/download_compilers.py",
                "-v", Var("compiler_version")],
   }

@@ -35,8 +35,10 @@ This module downloads multiple tgz's and expands them.
 
 import optparse
 import os
+import shutil
 import sys
 import tarfile
+import tempfile
 import urllib
 
 
@@ -58,17 +60,14 @@ def DownloadCompiler(src, dst, base_url, version):
   compilers_dir = os.path.join(parent_dir, 'compilers')
   target = os.path.join(compilers_dir, dst)
 
-  # Pick filename.
-  tgz_dir = os.path.join(compilers_dir, '.download')
+  # Create a temp dir for the tarball.
+  try:
+    tgz_dir = tempfile.mkdtemp()
+  except OSError:
+    pass
   tgz_filename = os.path.join(tgz_dir, path)
 
   print 'Downloading "%s" to "%s"...' % (url, tgz_filename)
-
-  # Create output dir.
-  try:
-    os.makedirs(tgz_dir)
-  except OSError:
-    pass
 
   # Download it.
   urllib.urlretrieve(url, tgz_filename)
@@ -87,6 +86,9 @@ def DownloadCompiler(src, dst, base_url, version):
   tgz.close()
 
   print 'Extract complete.'
+  
+  # Clean up: remove the download dir.
+  shutil.rmtree(tgz_dir)
 
 
 PLATFORM_COLLAPSE = {
@@ -100,15 +102,23 @@ PLATFORM_COLLAPSE = {
 
 PLATFORM_MAPPING = {
     'win32': [
-        ['win_x86-32', 'host_win/target-x86-32'],
-        ['win_x86-64', 'host_win/target-x86-64'],
+        ['win_x86', 'host_win/target_x86'],  # Multilib toolchain
+        # TODO(dspringer): Remove these once they are fully deprecated.
+        ['win_x86-32', 'host_win/target_x86-32'],
+        ['win_x86-64', 'host_win/target_x86-64'],
     ],
     'linux': [
-        ['linux_x86-32', 'host_linux/target-x86-32'],
-        ['linux_x86-64', 'host_linux/target-x86-64'],
+        ['linux_x86', 'host_linux/target_x86'],  # Multilib toolchain
+        ['linux_arm-trusted', 'host_linux/target_arm-trusted'],
+        ['linux_arm-untrusted', 'host_linux/target_arm-trusted'],
+        # TODO(dspringer): Remove these once they are fully deprecated.
+        ['linux_x86-32', 'host_linux/target_x86-32'],
+        ['linux_x86-64', 'host_linux/target_x86-64'],
     ],
     'darwin': [
-        ['mac_x86-32', 'host_mac/target-x86-32'],
+        # TODO(dspringer): Add the multilib toolchain for Mac when available.
+        # TODO(dspringer): Remove these once they are fully deprecated.
+        ['mac_x86-32', 'host_mac/target_x86-32'],
     ],
 }
 
@@ -121,7 +131,7 @@ def main(argv):
       help='comma separated list of platform compilers to download')
   parser.add_option(
       '-b', '--base-url', dest='base_url',
-      default='http://build.chromium.org/buildbot/snapshots/nacl/compiler/',
+      default='http://build.chromium.org/buildbot/nacl_archive/nacl/compiler/',
       help='base url to download from')
   parser.add_option(
       '-v', '--version', dest='version',
