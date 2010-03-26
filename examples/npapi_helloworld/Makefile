@@ -23,16 +23,19 @@ PLUGIN_MACOS_DIR = $(PLUGIN_CONTENTS_DIR)/MacOS
 
 debug:
 	@echo make debug in `pwd`
-	$(MAKE) $(MAKEFLAGS) publish
-	$(MAKE) $(MAKEFLAGS) debug_$(PLATFORM)
+	$(MAKE) -$(MAKEFLAGS) publish
+	$(MAKE) -$(MAKEFLAGS) debug_$(PLATFORM)
+
+debug_linux:
+	@echo Debug config does not build on Linux.
 
 debug_mac:
 	$(MAKE) LDFLAGS='-bundle -framework Foundation' \
-	    $(MAKEFLAGS) \
-	    CFLAGS=-DXP_UNIX -Werror \
-	    CXXFLAGS=-DXP_UNIX -Werror \
+	    -$(MAKEFLAGS) \
+	    CFLAGS="-DXP_UNIX -Werror" \
+	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
-	$(MAKE) $(MAKEFLAGS) PLUGIN=$(DSTROOT)/$(PROGRAM_NAME).plugin \
+	$(MAKE) -$(MAKEFLAGS) PLUGIN=$(DSTROOT)/$(PROGRAM_NAME).plugin \
 	    mac_plugin_bundle
 
 mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
@@ -59,12 +62,12 @@ mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
 	
 release:
 	@echo make release in `pwd`
-	$(MAKE) $(MAKEFLAGS) publish
-	$(MAKE) $(MAKEFLAGS) \
+	$(MAKE) -$(MAKEFLAGS) publish
+	$(MAKE) -$(MAKEFLAGS) \
 	    LDFLAGS="$(LIBS)" \
 	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
-	    CFLAGS=-DXP_UNIX -Werror \
-	    CXXFLAGS=-DXP_UNIX -Werror \
+	    CFLAGS="-DXP_UNIX -Werror" \
+	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME).nexe
 	cp $(OBJROOT)/$(PROGRAM_NAME).nexe $(DSTROOT)
 

@@ -11,7 +11,13 @@
 EXAMPLES = npapi_helloworld npapi_pi_generator pepper_3d
 DEBUG_LIBS = trusted_gpu
 
-PLATFORM = mac
+OS = $(shell uname -s)
+ifeq ($(OS), Darwin)
+  PLATFORM = mac
+endif
+ifeq ($(OS), Linux)
+  PLATFORM = linux
+endif
 TARGET = x86-32
 SRCROOT = ..
 OBJROOT = .
@@ -25,7 +31,7 @@ all: debug release
 debug:
 	mkdir -p debug/$(PLATFORM)_$(TARGET)
 	@for examp in $(DEBUG_LIBS) $(EXAMPLES) ; do \
-	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) $(MAKEFLAGS) \
+	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) -w \
 	        CC=/usr/bin/gcc \
 		CPP=/usr/bin/g++ \
 		SRCROOT=`pwd`/../.. \
@@ -37,13 +43,13 @@ debug:
 		TARGET=$(TARGET) \
 		OBJROOT=debug/$(PLATFORM)_$(TARGET) \
 		DSTROOT=../debug/$(PLATFORM)_$(TARGET) \
-		OPT_FLAGS="-O0 -gfull" debug); \
+		OPT_FLAGS="-O0 -g3" debug); \
 	done
 
 release:
 	mkdir -p release/$(PLATFORM)_$(TARGET)
 	@for examp in $(EXAMPLES) ; do \
-	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) $(MAKEFLAGS) \
+	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) -w \
 	        CC=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/nacl-gcc \
 	        CPP=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++ \
 	        SRCROOT=`pwd`/../.. \

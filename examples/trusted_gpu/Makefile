@@ -31,8 +31,8 @@ OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 -include ../common.mk
 
 debug:
-	@echo make $(MAKEFLAGS) debug in `pwd`
-	$(MAKE) $(MAKEFLAGS) \
+	@echo make -$(MAKEFLAGS) debug in `pwd`
+	$(MAKE) -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
 	    CXXFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
 	    $(DSTROOT)/lib$(LIBRARY_NAME).a
