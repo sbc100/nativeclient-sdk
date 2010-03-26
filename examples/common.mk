@@ -11,6 +11,7 @@
 # standard debugging tools (gdb, KDbg, etc.)  The release versions (.nexe)
 # get loaded into the browser via a web server.
 
+.SUFFIXES:
 .SUFFIXES: .c .cc .cpp .o
 
 CC = /usr/bin/gcc
@@ -20,9 +21,17 @@ ALL_CFLAGS = $(CFLAGS) $(EXTRA_CFLAGS)
 ALL_CXXFLAGS = $(CXXFLAGS) $(EXTRA_CFLAGS)
 ALL_OPT_FLAGS = $(OPT_FLAGS)
 
-.c.o:
-	$(CC) $(ALL_CFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $(OBJROOT)/$@ $<
+$(OBJROOT)/%.o: %.c
+	mkdir -p $(OBJROOT)
+	$(CC) $(ALL_CFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $@ $<
 
-.cpp.o:
-.cc.o:
-	$(CPP) $(ALL_CXXFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $(OBJROOT)/$@ $<
+$(OBJROOT)/%.o: %.cc
+	mkdir -p $(OBJROOT)
+	$(CPP) $(ALL_CXXFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $@ $<
+
+$(OBJROOT)/%.o: %.cpp
+	mkdir -p $(OBJROOT)
+	$(CPP) $(ALL_CXXFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $@ $<
+
+clean::
+	-rm -rf debug release

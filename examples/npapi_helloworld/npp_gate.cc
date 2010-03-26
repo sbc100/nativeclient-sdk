@@ -17,36 +17,6 @@
 // Building a trusted plugin for debugging.
 #include "third_party/npapi/bindings/npapi.h"
 #include "third_party/npapi/bindings/nphostapi.h"
-
-// The trusted plugin needs to call through to the browser directly.  These
-// wrapper routines are not required whne making a Native Client module.
-
-static NPNetscapeFuncs kBrowserFuncs = { 0 };
-
-NPUTF8* NPN_UTF8FromIdentifier(NPIdentifier identifier) {
-  return kBrowserFuncs.utf8fromidentifier(identifier);
-}
-
-void* NPN_MemAlloc(uint32 size) {
-  return kBrowserFuncs.memalloc(size);
-}
-
-void NPN_MemFree(void* mem) {
-  kBrowserFuncs.memfree(mem);
-}
-
-NPObject* NPN_CreateObject(NPP npp, NPClass* np_class) {
-  return kBrowserFuncs.createobject(npp, np_class);
-}
-
-NPObject* NPN_RetainObject(NPObject* obj) {
-  return kBrowserFuncs.retainobject(obj);
-}
-
-NPError NPN_GetValue(NPP instance, NPNVariable variable, void* value) {
-  return kBrowserFuncs.getvalue(instance, variable, value);
-}
-
 #endif
 
 struct PlugIn {
@@ -127,12 +97,9 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   return NPERR_NO_ERROR;
 }
 
-// These functions are needed for both the trusted and untrused loader.  They
-// must use C-style linkage.
-
 extern "C" {
 
-NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
+NPError InitializePluginFunctions(NPPluginFuncs* plugin_funcs) {
   memset(plugin_funcs, 0, sizeof(*plugin_funcs));
   plugin_funcs->version = NPVERS_HAS_PLUGIN_THREAD_ASYNC_CALL;
   plugin_funcs->size = sizeof(*plugin_funcs);
@@ -140,28 +107,6 @@ NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
   plugin_funcs->destroy = NPP_Destroy;
   plugin_funcs->setwindow = NPP_SetWindow;
   plugin_funcs->getvalue = NPP_GetValue;
-  return NPERR_NO_ERROR;
-}
-
-// Some platforms, including Native Client, use the two-parameter version of
-// NP_Initialize(), and do not call NP_GetEntryPoints().  Others (Mac, e.g.)
-// use single-parameter version of NP_Initialize(), and then call
-// NP_GetEntryPoints() to get the NPP functions.  Also, the NPN entry points are
-// defined by the Native Client loader, but are not defined in the trusted
-// plugin loader (and must be filled in in NP_Initialize()).
-#if defined(__native_client__)
-NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
-                      NPPluginFuncs* plugin_funcs) {
-  return NP_GetEntryPoints(plugin_funcs);
-}
-#else
-NPError NP_Initialize(NPNetscapeFuncs* browser_funcs) {
-  memcpy(&kBrowserFuncs, browser_funcs, sizeof(kBrowserFuncs));
-  return NPERR_NO_ERROR;
-}
-#endif
-
-NPError NP_Shutdown() {
   return NPERR_NO_ERROR;
 }
 

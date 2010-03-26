@@ -25,6 +25,8 @@ Some useful make targets:
   make release # build the release version of your module (.nexe)
   make debug # build the debug version
 
+Build products all go in either the debug or release directory.
+
 It does not include a dev-channel version of Chrome.  You can get the dev-
 channel version of Chrome here:
 
@@ -53,12 +55,12 @@ is included in the examples directory, you can start it like this:
 
 Note: this will serve everything under examples.  The root of the server is the
 examples dir; make puts all built products in
-{debug,release}/staging/<platform_target>
+{debug,release}/<platform_target>
 
 So to load an html page that references your .nexe, you would use this URL on
 a Mac build:
 
-  http://localhost:5103/release/staging/mac_x86-32/npapi_helloworld.html
+  http://localhost:5103/release/mac_x86-32/npapi_helloworld.html
 
 A note about MIME types: Debug plugins must have a MIME type that begins
 with 'pepper-'.  Release modules must have a MIME type that is exactly
@@ -82,10 +84,10 @@ To debug your module, follow these steps:
   how to do this, using '#debug' in the URL.  For example, the URL that loads
   the debug version of npapi_helloworld for debugging is (note the trailing
   '#debug'):
-    file:///Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.html#debug
+    file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.html#debug
   which is given as a command-line parameter to Chrome.  The URL for the
   release .nexe is (note the absence of #debug):
-    http://localhost/examples/release/staging/mac_x86-32/npapi_helloworld.html
+    http://localhost/examples/release/mac_x86-32/npapi_helloworld.html
   You type this into the Chrome browser once it is running, and you have
   started a local http server (see below).
 
@@ -93,14 +95,14 @@ To debug your module, follow these steps:
    plugin location.  On the Mac, this is ~/Library/Internet\ Plug-Ins.  For
    example:
     cd ~/Library/Internet\ Plug-Ins/
-    ln -s ~/nacl-sdk/src/examples/debug/staging/mac_x86-32/npapi_helloworld.plugin .
+    ln -s ~/nacl-sdk/src/examples/debug/mac_x86-32/npapi_helloworld.plugin .
 
 3. Instead of creating a symlink, you can launch Chrome with the --load-plugin=
   and --plugin-startup-dialog flags.  --load-plugin takes an absolute path to
   the debug version of your module.  The latter part of this path will have
-  debug/staging/<platform,target> in it.
+  debug/<platform_target> in it.
   For example, on the Mac this would be:
-    --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.plugin
+    --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.plugin
 
   --plugin-startup-dialog causes Chrome to pause and wait for a debugger to
   attach to the child module process.  It writes the PID of the child process
@@ -112,8 +114,8 @@ To debug your module, follow these steps:
     Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
         --internal-pepper --enable-gpu-plugin \
         --plugin-startup-dialog \
-        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.plugin \
-        file:///Users/sirhaxalot/nacl-sdk/examples/debug/staging/mac_x86-32/npapi_helloworld.html#debug
+        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.plugin \
+        file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.html#debug
   
   --single-process is an alternative to --plugin-starup-dialog, and loads the
   debug module directly into the instance of Chrome you are debugging.  You

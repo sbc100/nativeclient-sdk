@@ -4,6 +4,8 @@
 
 # Makefile for the PI Generator example.
 
+.PHONY: debug release
+
 CCFILES = logging.cc \
           cmd_buffer_common.cc \
           gles2_cmd_format.cc \
@@ -23,21 +25,20 @@ VPATH = $(SRCROOT)/third_party/include/base \
         $(SRCROOT)/third_party/gpu/command_buffer/client \
         $(SRCROOT)/third_party/gpu/pgl
 
-OBJECTS = $(CCFILES:.cc=.o)
-
 LIBRARY_NAME = trusted_gpu
+OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
 -include ../common.mk
 
 debug:
-	@echo make debug in `pwd`
+	@echo make $(MAKEFLAGS) debug in `pwd`
 	$(MAKE) $(MAKEFLAGS) \
-      CFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
-      CXXFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
-      $(LIBRARY_NAME)
+	    CFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
+	    CXXFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
+	    $(DSTROOT)/lib$(LIBRARY_NAME).a
 
-release: $(PROGRAM_NAME)
+release:
 	@echo trusted_gpu does not make release
 
-$(LIBRARY_NAME): $(OBJECTS)
-	(cd $(OBJROOT); /usr/bin/ar -r -cs lib$@.a $^)
+$(DSTROOT)/lib$(LIBRARY_NAME).a: $(OBJECTS)
+	ar -r -cs $@ $?
