@@ -6,7 +6,7 @@
 # CC (the compiler) and some suffix rules such as .c.o.
 #
 # The main purpose of this makefile component is to demonstrate building
-# both release and debug versions of the esamples.  The debug versions
+# both release and debug versions of the examples.  The debug versions
 # can be loaded directly into the browser such that they can be debugged using
 # standard debugging tools (gdb, KDbg, etc.)  The release versions (.nexe)
 # get loaded into the browser via a web server.

@@ -34,6 +34,9 @@ debug_linux: $(OBJECTS)
 	    $(OBJROOT)/$(PROGRAM_NAME)
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(DSTROOT)/lib$(PROGRAM_NAME).so
 
+debug_win:
+	@echo Debug config does not build on Windows.
+
 debug_mac:
 	$(MAKE) LDFLAGS='-bundle -framework Foundation' \
 	    -$(MAKEFLAGS) \

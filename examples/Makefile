@@ -37,6 +37,22 @@ ifeq ($(OS), Linux)
     NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
   endif
 endif
+ifneq (,$(findstring CYGWIN,$(OS)))
+  PLATFORM = win
+  CC = nacl-gcc
+  CPP = nacl-g++
+  TARGET = x86-32
+  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
+  MACHINE = $(shell uname -m)
+  ifeq ($(MACHINE), x86_64)
+    CC = nacl64-gcc
+    CPP = nacl64-g++
+    TARGET = x86-64
+    NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target-$(TARGET)/sdk/nacl-sdk
+    NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
+  endif
+endif
 SRCROOT = ..
 OBJROOT = .
 DSTROOT = .

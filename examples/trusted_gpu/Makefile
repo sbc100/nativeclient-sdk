@@ -32,6 +32,12 @@ OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
 debug:
 	@echo make -$(MAKEFLAGS) debug in `pwd`
+	$(MAKE) -$(MAKEFLAGS) debug_$(PLATFORM)
+
+debug_win:
+	@echo Debug config does not build on Windows.
+
+debug_mac debug_linux:
 	$(MAKE) -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
 	    CXXFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
