@@ -33,6 +33,10 @@ You can get the Dev-channel version here:
 
   http://dev.chromium.org/getting-involved/dev-channel
 
+It's best to put the copy of Chromium in a well-known place so you can access
+it easily.  On the Mac, /Applications is a good place.  The Xcode projects in
+the examples expect to find Chromium in /Applications.
+
 
 RUN YOUR MODULE
 

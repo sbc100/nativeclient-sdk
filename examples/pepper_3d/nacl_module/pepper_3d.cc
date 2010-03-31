@@ -34,6 +34,7 @@ Pepper3D::Pepper3D(NPP npp)
     : npp_(npp),
       scriptable_object_(NULL),
       device3d_(NULL),
+      pgl_context_(NULL),
       cube_view_(NULL) {
   memset(&context3d_, 0, sizeof(context3d_));
   ScriptingBridge::InitializeIdentifiers();
