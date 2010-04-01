@@ -13,9 +13,9 @@
 #endif
 #include <new>
 
-#include "examples/pepper_3d/nacl_module/pepper_3d.h"
+#include "examples/pepper_3d/nacl_module/tumbler.h"
 
-using pepper_3d::Pepper3D;
+using tumbler::Tumbler;
 
 // Please refer to the Gecko Plugin API Reference for the description of
 // NPP_New.
@@ -33,12 +33,12 @@ NPError NPP_New(NPMIMEType mime_type,
 
   InitializePepperExtensions(instance);
 
-  Pepper3D* pepper_3d = new(std::nothrow) Pepper3D(instance);
-  if (pepper_3d == NULL) {
+  Tumbler* tumbler = new(std::nothrow) Tumbler(instance);
+  if (tumbler == NULL) {
     return NPERR_OUT_OF_MEMORY_ERROR;
   }
 
-  instance->pdata = pepper_3d;
+  instance->pdata = tumbler;
   return NPERR_NO_ERROR;
 }
 
@@ -50,9 +50,9 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
     return NPERR_INVALID_INSTANCE_ERROR;
   }
 
-  Pepper3D* pepper_3d = static_cast<Pepper3D*>(instance->pdata);
-  if (pepper_3d != NULL) {
-    delete pepper_3d;
+  Tumbler* tumbler = static_cast<Tumbler*>(instance->pdata);
+  if (tumbler != NULL) {
+    delete tumbler;
   }
   return NPERR_NO_ERROR;
 }
@@ -65,9 +65,9 @@ NPObject* NPP_GetScriptableInstance(NPP instance) {
   }
 
   NPObject* object = NULL;
-  Pepper3D* pepper_3d = static_cast<Pepper3D*>(instance->pdata);
-  if (pepper_3d) {
-    object = pepper_3d->GetScriptableObject();
+  Tumbler* tumbler = static_cast<Tumbler*>(instance->pdata);
+  if (tumbler) {
+    object = tumbler->GetScriptableObject();
   }
   return object;
 }
@@ -94,9 +94,9 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   if (window == NULL) {
     return NPERR_GENERIC_ERROR;
   }
-  Pepper3D* pepper_3d = static_cast<Pepper3D*>(instance->pdata);
-  if (pepper_3d != NULL) {
-    return pepper_3d->SetWindow(*window);
+  Tumbler* tumbler = static_cast<Tumbler*>(instance->pdata);
+  if (tumbler != NULL) {
+    return tumbler->SetWindow(*window);
   }
   return NPERR_GENERIC_ERROR;
 }

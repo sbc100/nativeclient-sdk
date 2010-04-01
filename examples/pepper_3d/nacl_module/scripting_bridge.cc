@@ -7,9 +7,9 @@
 #include <assert.h>
 #include <string.h>
 
-#include "examples/pepper_3d/nacl_module/pepper_3d.h"
+#include "examples/pepper_3d/nacl_module/tumbler.h"
 
-namespace pepper_3d {
+namespace tumbler {
 
 NPIdentifier ScriptingBridge::id_get_camera_orientation;
 NPIdentifier ScriptingBridge::id_set_camera_orientation;
@@ -116,10 +116,10 @@ void ScriptingBridge::Invalidate() {
 bool ScriptingBridge::GetCameraOrientation(const NPVariant* args,
                                            uint32_t arg_count,
                                            NPVariant* result) {
-  Pepper3D* pepper_3d = static_cast<Pepper3D*>(npp_->pdata);
-  if (pepper_3d && window_object_) {
+  Tumbler* tumbler = static_cast<Tumbler*>(npp_->pdata);
+  if (tumbler && window_object_) {
     float orientation[4];
-    if (!pepper_3d->GetCameraOrientation(orientation))
+    if (!tumbler->GetCameraOrientation(orientation))
       return false;
 
     // Initialize the return value.
@@ -154,8 +154,8 @@ bool ScriptingBridge::GetCameraOrientation(const NPVariant* args,
 bool ScriptingBridge::SetCameraOrientation(const NPVariant* args,
                                            uint32_t arg_count,
                                            NPVariant* value) {
-  Pepper3D* pepper_3d = static_cast<Pepper3D*>(npp_->pdata);
-  if (!pepper_3d || arg_count != 1 || !NPVARIANT_IS_OBJECT(*args))
+  Tumbler* tumbler = static_cast<Tumbler*>(npp_->pdata);
+  if (!tumbler || arg_count != 1 || !NPVARIANT_IS_OBJECT(*args))
     return false;
 
   // Unpack the array object.  This is done by enumerating the identifiers on
@@ -167,7 +167,7 @@ bool ScriptingBridge::SetCameraOrientation(const NPVariant* args,
   if (NPN_Enumerate(npp_, array_object, &identifier, &element_count)) {
     if (element_count == kQuaternionElementCount) {
       float orientation[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-      pepper_3d->GetCameraOrientation(orientation);
+      tumbler->GetCameraOrientation(orientation);
       for (uint32_t j = 0; j < element_count; ++j) {
         if (NPN_HasProperty(npp_, array_object, identifier[j])) {
           // Get each element out of the array by accessing the property whose
@@ -195,7 +195,7 @@ bool ScriptingBridge::SetCameraOrientation(const NPVariant* args,
           }
         }
       }
-      success = pepper_3d->SetCameraOrientation(orientation);
+      success = tumbler->SetCameraOrientation(orientation);
       NPN_MemFree(identifier);
     }
   }
@@ -250,18 +250,18 @@ void Deallocate(NPObject* object) {
   delete static_cast<ScriptingBridge*>(object);
 }
 
-}  // namespace pepper_3d
+}  // namespace tumbler
 
-NPClass pepper_3d::ScriptingBridge::np_class = {
+NPClass tumbler::ScriptingBridge::np_class = {
   NP_CLASS_STRUCT_VERSION,
-  pepper_3d::Allocate,
-  pepper_3d::Deallocate,
-  pepper_3d::Invalidate,
-  pepper_3d::HasMethod,
-  pepper_3d::Invoke,
-  pepper_3d::InvokeDefault,
-  pepper_3d::HasProperty,
-  pepper_3d::GetProperty,
-  pepper_3d::SetProperty,
-  pepper_3d::RemoveProperty
+  tumbler::Allocate,
+  tumbler::Deallocate,
+  tumbler::Invalidate,
+  tumbler::HasMethod,
+  tumbler::Invoke,
+  tumbler::InvokeDefault,
+  tumbler::HasProperty,
+  tumbler::GetProperty,
+  tumbler::SetProperty,
+  tumbler::RemoveProperty
 };

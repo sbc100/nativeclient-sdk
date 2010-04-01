@@ -9,6 +9,8 @@
 #include "examples/pepper_3d/nacl_module/shader_util.h"
 #include "examples/pepper_3d/nacl_module/transforms.h"
 
+namespace tumbler {
+
 static const size_t kVertexCount = 24;
 static const int kIndexCount = 36;
 
@@ -256,3 +258,5 @@ void CubeView::ComputeModelViewTransform(GLfloat* model_view) {
   model_view[14] = -eye_[2];
   model_view[15] = 1.0;
 }
+
+}  // namespace tumbler

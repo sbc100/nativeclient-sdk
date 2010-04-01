@@ -85,7 +85,7 @@ tumbler.Application.prototype.run = function(opt_contentDivName) {
   } else {
     contentDiv.innerHTML = '<embed id="'
                            + tumbler.Application.TUMBLER_MODULE_NAME + '" '
-                           + 'src="pepper_3d.nexe" '
+                           + 'src="tumbler.nexe" '
                            + 'type="application/x-nacl-srpc" '
                            + 'width="480" height="480" '
                            + 'dimensions="3" />'

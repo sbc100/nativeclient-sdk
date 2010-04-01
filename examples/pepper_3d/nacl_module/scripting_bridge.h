@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_PEPPER_3D_NACL_MODULE_SCRIPTING_BRIDGE_H_
-#define EXAMPLES_PEPPER_3D_NACL_MODULE_SCRIPTING_BRIDGE_H_
+#ifndef EXAMPLES_TUMBLER_NACL_MODULE_SCRIPTING_BRIDGE_H_
+#define EXAMPLES_TUMBLER_NACL_MODULE_SCRIPTING_BRIDGE_H_
 
 #include <map>
 
@@ -16,7 +16,7 @@
 #include "third_party/npapi/bindings/npruntime.h"
 #endif
 
-namespace pepper_3d {
+namespace tumbler {
 
 // This class represents the Pepper3D object that gets exposed to the browser
 // code.
@@ -82,6 +82,6 @@ class ScriptingBridge : public NPObject {
   static std::map<NPIdentifier, Property>* property_table;
 };
 
-}  // namespace pepper_3d
+}  // namespace tumbler
 
-#endif  // EXAMPLES_PEPPER_3D_NACL_MODULE_SCRIPTING_BRIDGE_H_
+#endif  // EXAMPLES_TUMBLER_NACL_MODULE_SCRIPTING_BRIDGE_H_

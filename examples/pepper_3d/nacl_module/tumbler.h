@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_PEPPER3D_NACL_MODULE_PEPPER_3D_H_
-#define EXAMPLES_PEPPER3D_NACL_MODULE_PEPPER_3D_H_
+#ifndef EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_
+#define EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_
 
 #include <pthread.h>
 #if defined(__native_client__)
@@ -25,17 +25,17 @@
 
 #include "examples/pepper_3d/nacl_module/basic_macros.h"
 
+namespace tumbler {
+
 class CubeView;
 
-namespace pepper_3d {
-
-class Pepper3D {
+class Tumbler {
  public:
-  explicit Pepper3D(NPP npp);
+  explicit Tumbler(NPP npp);
   
   // The dtor makes the 3D context current before deleting the cube view, then
   // destroys the 3D context both in the module and in the browser.
-  ~Pepper3D();
+  ~Tumbler();
 
   NPObject* GetScriptableObject();
 
@@ -71,9 +71,9 @@ class Pepper3D {
   PGLContext pgl_context_;
   CubeView* cube_view_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Pepper3D);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Tumbler);
 };
 
 }  // namespace pepper_3d
 
-#endif  // EXAMPLES_PEPPER3D_NACL_MODULE_PEPPER_3D_H_
+#endif  // EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include "examples/pepper_3d/nacl_module/pepper_3d.h"
+#include "examples/pepper_3d/nacl_module/tumbler.h"
 
 #include <assert.h>
 #include <string.h>
@@ -17,20 +17,20 @@ namespace {
 // Callback given to the browser for things like context repaint and draw
 // notifications.
 
-void DrawPepper3D(void* data) {
-    static_cast<pepper_3d::Pepper3D*>(data)->DrawSelf();
+void Draw3DCallback(void* data) {
+    static_cast<tumbler::Tumbler*>(data)->DrawSelf();
 }
 
 }  // namespace
 
 
-using pepper_3d::ScriptingBridge;
+using tumbler::ScriptingBridge;
 
-namespace pepper_3d {
+namespace tumbler {
 
 static const int32 kCommandBufferSize = 1024 * 1024;
 
-Pepper3D::Pepper3D(NPP npp)
+Tumbler::Tumbler(NPP npp)
     : npp_(npp),
       scriptable_object_(NULL),
       device3d_(NULL),
@@ -40,7 +40,7 @@ Pepper3D::Pepper3D(NPP npp)
   ScriptingBridge::InitializeIdentifiers();
 }
 
-Pepper3D::~Pepper3D() {
+Tumbler::~Tumbler() {
   if (scriptable_object_) {
     NPN_ReleaseObject(scriptable_object_);
   }
@@ -52,7 +52,7 @@ Pepper3D::~Pepper3D() {
   DestroyContext();
 }
 
-NPObject* Pepper3D::GetScriptableObject() {
+NPObject* Tumbler::GetScriptableObject() {
   if (scriptable_object_ == NULL) {
     scriptable_object_ =
       NPN_CreateObject(npp_, &ScriptingBridge::np_class);
@@ -63,7 +63,7 @@ NPObject* Pepper3D::GetScriptableObject() {
   return scriptable_object_;
 }
 
-NPError Pepper3D::SetWindow(const NPWindow& window) {
+NPError Tumbler::SetWindow(const NPWindow& window) {
   if (!pgl_context_) {
     CreateContext();
   }
@@ -78,11 +78,11 @@ NPError Pepper3D::SetWindow(const NPWindow& window) {
   return NPERR_NO_ERROR;
 }
 
-void Pepper3D::PostRedrawNotification() {
-  NPN_PluginThreadAsyncCall(npp_, DrawPepper3D, this);
+void Tumbler::PostRedrawNotification() {
+  NPN_PluginThreadAsyncCall(npp_, Draw3DCallback, this);
 }
 
-bool Pepper3D::DrawSelf() {
+bool Tumbler::DrawSelf() {
   if (cube_view_ == NULL)
     return false;
 
@@ -101,7 +101,7 @@ bool Pepper3D::DrawSelf() {
   return true;
 }
 
-bool Pepper3D::GetCameraOrientation(float* orientation) const {
+bool Tumbler::GetCameraOrientation(float* orientation) const {
   if (cube_view_ != NULL) {
     cube_view_->GetOrientation(orientation);
     return true;
@@ -109,7 +109,7 @@ bool Pepper3D::GetCameraOrientation(float* orientation) const {
   return false;
 }
 
-bool Pepper3D::SetCameraOrientation(const float* orientation) {
+bool Tumbler::SetCameraOrientation(const float* orientation) {
   if (cube_view_ != NULL) {
     cube_view_->SetOrientation(orientation);
     PostRedrawNotification();
@@ -118,7 +118,7 @@ bool Pepper3D::SetCameraOrientation(const float* orientation) {
   return false;
 }
 
-void Pepper3D::CreateContext() {
+void Tumbler::CreateContext() {
   if (pgl_context_ != NULL)
     return;
   // Create and initialize a 3D context.
@@ -132,7 +132,7 @@ void Pepper3D::CreateContext() {
   pgl_context_ = pglCreateContext(npp_, device3d_, &context3d_);
 }
 
-void Pepper3D::DestroyContext() {
+void Tumbler::DestroyContext() {
   if (pgl_context_ == NULL)
     return;
   pglDestroyContext(pgl_context_);

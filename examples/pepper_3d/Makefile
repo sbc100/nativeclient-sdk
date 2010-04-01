@@ -2,25 +2,25 @@
 # Use of this source code is governed by a BSD-style license that can
 # be found in the LICENSE file.
 
-# Makefile for the Pepper 3D example.
+# Makefile for the Tumbler example.
 
 .PHONY: debug debug_linux debug_mac release publish
 
-PROGRAM_NAME = pepper_3d
+PROGRAM_NAME = tumbler
 
 CCFILES = cube_view.cc \
           npn_bridge.cc \
           npp_gate.cc \
-          pepper_3d.cc \
-          pepper_module.cc \
+          tumbler.cc \
+          tumbler_module.cc \
           scripting_bridge.cc \
           shader_util.cc \
           transforms.cc
 VPATH = nacl_module
 
 APP_FILES = dragger.js \
-            pepper_3d.html \
-            pepper_3d.js \
+            tumbler.html \
+            tumbler.js \
             trackball.js \
             vector3.js
 APP_FILES := $(addprefix application/,${APP_FILES})
@@ -67,21 +67,18 @@ mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
 	-rm -rf $(PLUGIN)
 	mkdir -p $(PLUGIN_MACOS_DIR)
 	mkdir -p $(PLUGIN_RESOURCES_DIR)
-	/Developer/Tools/Rez \
-	    -o $(PLUGIN_RESOURCES_DIR)/pepper_3d.rsrc \
-	    debug_support/mac/pepper_3d.r -useDF
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(PLUGIN_MACOS_DIR)
-	cp debug_support/mac/pepper_3d-Info.plist \
+	cp debug_support/mac/tumbler-Info.plist \
 	    $(PLUGIN_INFO_PLIST)
 	chmod +w $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleExecutable pepper_3d' \
+	    -c 'Set :CFBundleExecutable tumbler' \
 	    $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleIdentifier com.google.pepper_3d' \
+	    -c 'Set :CFBundleIdentifier com.google.tumbler' \
 	    $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleName pepper_3d' \
+	    -c 'Set :CFBundleName tumbler' \
 	    $(PLUGIN_INFO_PLIST)
 	
 release:

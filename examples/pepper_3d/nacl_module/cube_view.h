@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_PEPPER3D_NACL_MODULE_CUBE_VIEW_H_
-#define EXAMPLES_PEPPER3D_NACL_MODULE_CUBE_VIEW_H_
+#ifndef EXAMPLES_TUMBLER_NACL_MODULE_CUBE_VIEW_H_
+#define EXAMPLES_TUMBLER_NACL_MODULE_CUBE_VIEW_H_
 
 #include <GLES2/gl2.h>
 
 #include "examples/pepper_3d/nacl_module/basic_macros.h"
+
+namespace tumbler {
 
 // The CubeView class provides a place to implement 3D rendering.  It has a 
 // frame that it occupies in a browser window.
@@ -88,4 +90,6 @@ class CubeView {
   DISALLOW_COPY_AND_ASSIGN(CubeView);
 };
 
-#endif  // EXAMPLES_PEPPER3D_NACL_MODULE_CUBE_VIEW_H_
+}  // namespace tumbler
+
+#endif  // EXAMPLES_TUMBLER_NACL_MODULE_CUBE_VIEW_H_
