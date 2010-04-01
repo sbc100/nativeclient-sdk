@@ -23,7 +23,7 @@
 
 #include <map>
 
-#include "examples/pepper_3d/nacl_module/basic_macros.h"
+#include "examples/tumbler/nacl_module/basic_macros.h"
 
 namespace tumbler {
 
@@ -74,6 +74,6 @@ class Tumbler {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Tumbler);
 };
 
-}  // namespace pepper_3d
+}  // namespace tumbler
 
 #endif  // EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_

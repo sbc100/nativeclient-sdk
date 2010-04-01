@@ -7,7 +7,7 @@
 
 #include <GLES2/gl2.h>
 
-#include "examples/pepper_3d/nacl_module/basic_macros.h"
+#include "examples/tumbler/nacl_module/basic_macros.h"
 
 namespace tumbler {
 

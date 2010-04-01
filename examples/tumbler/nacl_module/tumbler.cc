@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include "examples/pepper_3d/nacl_module/tumbler.h"
+#include "examples/tumbler/nacl_module/tumbler.h"
 
 #include <assert.h>
 #include <string.h>
 
-#include "examples/pepper_3d/nacl_module/cube_view.h"
-#include "examples/pepper_3d/nacl_module/scripting_bridge.h"
+#include "examples/tumbler/nacl_module/cube_view.h"
+#include "examples/tumbler/nacl_module/scripting_bridge.h"
 
 extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
 

@@ -53,7 +53,7 @@ class ScriptingBridge : public NPObject {
   // These methods are exposed via the scripting bridge to the browser.
   // Each one is mapped to a string id, which is the name of the method that
   // the broswer sees.  For example, Paint() has id 'paint', so in the browser
-  // JavaScript, you would write pepper_3d.paint() to invoke the Paint() method
+  // JavaScript, you would write tumbler.paint() to invoke the Paint() method
   // in this object.
   //
   // Each of these methods wraps a method in the associated Pepper3D object,

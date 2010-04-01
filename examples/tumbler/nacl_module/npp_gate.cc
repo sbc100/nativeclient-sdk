@@ -13,7 +13,7 @@
 #endif
 #include <new>
 
-#include "examples/pepper_3d/nacl_module/tumbler.h"
+#include "examples/tumbler/nacl_module/tumbler.h"
 
 using tumbler::Tumbler;
 

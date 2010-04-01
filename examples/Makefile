@@ -8,7 +8,7 @@
 
 .PHONY: all debug release clean
 
-EXAMPLES = npapi_helloworld npapi_pi_generator pepper_3d
+EXAMPLES = npapi_helloworld npapi_pi_generator tumbler
 DEBUG_LIBS = trusted_gpu
 
 OS = $(shell uname -s)
