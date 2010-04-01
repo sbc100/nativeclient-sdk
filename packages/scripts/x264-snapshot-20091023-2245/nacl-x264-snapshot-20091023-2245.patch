@@ -1,0 +1,23 @@
+diff -Naur x264-snapshot-20091023-2245/config.sub x264-snapshot-20091023-2245.nacl/config.sub
+--- x264-snapshot-20091023-2245/config.sub	2009-10-23 13:45:08.000000000 -0700
++++ x264-snapshot-20091023-2245.nacl/config.sub	2009-10-23 16:30:24.605326000 -0700
+@@ -772,6 +772,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1296,7 +1300,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)

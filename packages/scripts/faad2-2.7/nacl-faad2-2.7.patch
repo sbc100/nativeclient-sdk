@@ -1,0 +1,45 @@
+diff -Naur faad2-2.7/config.sub faad2-2.7.nacl/config.sub
+--- faad2-2.7/config.sub	2009-02-10 00:36:11.000000000 -0800
++++ faad2-2.7.nacl/config.sub	2009-10-22 10:49:06.672579000 -0700
+@@ -714,6 +714,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1214,7 +1218,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur faad2-2.7/configure faad2-2.7.nacl/configure
+--- faad2-2.7/configure	2009-02-10 00:36:08.000000000 -0800
++++ faad2-2.7.nacl/configure	2009-10-22 14:36:19.310002000 -0700
+@@ -22755,7 +22755,9 @@
+ else
+ 
+ lrintf_save_CFLAGS=$CFLAGS
+-CFLAGS="-O -lm"
++lrintf_save_LIBS=$LIBS
++CFLAGS="-O"
++LIBS="-lm"
+ cat >conftest.$ac_ext <<_ACEOF
+ /* confdefs.h.  */
+ _ACEOF
+@@ -22807,6 +22809,7 @@
+ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+       conftest$ac_exeext conftest.$ac_ext
+ 
++LIBS=$lrintf_save_LIBS
+ CFLAGS=$lrintf_save_CFLAGS
+ 
+ 

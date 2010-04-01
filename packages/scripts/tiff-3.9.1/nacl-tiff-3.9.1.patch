@@ -1,0 +1,35 @@
+diff -Naur tiff-3.9.1/config/config.sub tiff-3.9.1.nacl/config/config.sub
+--- tiff-3.9.1/config/config.sub	2007-07-15 18:55:25.000000000 -0700
++++ tiff-3.9.1.nacl/config/config.sub	2009-10-22 17:11:10.968845000 -0700
+@@ -715,6 +715,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1222,7 +1226,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur tiff-3.9.1/contrib/iptcutil/iptcutil.c tiff-3.9.1.nacl/contrib/iptcutil/iptcutil.c
+--- tiff-3.9.1/contrib/iptcutil/iptcutil.c	2004-09-21 06:34:39.000000000 -0700
++++ tiff-3.9.1.nacl/contrib/iptcutil/iptcutil.c	2009-10-22 17:16:48.087849000 -0700
+@@ -5,7 +5,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <memory.h>
++//#include <memory.h>
+ #include <ctype.h>
+ 
+ #ifdef HAVE_STRINGS_H

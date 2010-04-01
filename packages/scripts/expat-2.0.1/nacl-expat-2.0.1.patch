@@ -1,0 +1,23 @@
+diff -Naur expat-2.0.1/conftools/config.sub expat-2.0.1.nacl/conftools/config.sub
+--- expat-2.0.1/conftools/config.sub	2006-09-22 07:42:54.000000000 -0700
++++ expat-2.0.1.nacl/conftools/config.sub	2009-10-19 15:28:36.005194000 -0700
+@@ -715,6 +715,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1219,7 +1223,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)

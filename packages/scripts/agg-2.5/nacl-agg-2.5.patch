@@ -1,0 +1,63 @@
+diff -Naur agg-2.5/Makefile agg-2.5.nacl/Makefile
+--- agg-2.5/Makefile	2006-10-08 21:06:36.000000000 -0700
++++ agg-2.5.nacl/Makefile	2009-10-13 16:32:57.179819000 -0700
+@@ -3,7 +3,12 @@
+ src/libagg.a:
+ 	cd src; make
+ 
+-lib:	src/libagg.a
++font_freetype/libaggfontfreetype.a:
++	cd font_freetype; make
++
++lib:	src/libagg.a font_freetype/libaggfontfreetype.a
+ 
+ clean:
+ 	cd src; make clean
++	cd font_freetype; make clean
++
+diff -Naur agg-2.5/Makefile.in.NativeClient agg-2.5.nacl/Makefile.in.NativeClient
+--- agg-2.5/Makefile.in.NativeClient	1969-12-31 16:00:00.000000000 -0800
++++ agg-2.5.nacl/Makefile.in.NativeClient	2009-10-13 16:23:34.598139000 -0700
+@@ -0,0 +1,8 @@
++AGGLIBS= -lagg
++AGGCXXFLAGS = -O3 -mfpmath=sse -msse -fomit-frame-pointer
++CXX = $(NACL_BIN_PATH)/nacl-g++
++C = $(NACL_BIN_PATH)/nacl-gcc
++LIB = $(NACL_BIN_PATH)/nacl-ar cr
++
++.PHONY : clean
++
+diff -Naur agg-2.5/font_freetype/Makefile agg-2.5.nacl/font_freetype/Makefile
+--- agg-2.5/font_freetype/Makefile	1969-12-31 16:00:00.000000000 -0800
++++ agg-2.5.nacl/font_freetype/Makefile	2009-10-13 16:59:49.143370000 -0700
+@@ -0,0 +1,21 @@
++include ../Makefile.in.NativeClient
++
++CXXFLAGS= $(AGGCXXFLAGS) -I../include -L./ \
++  -DFT_FREETYPE_H="<freetype/freetype.h>"
++
++SRC_CXX=\
++agg_font_freetype.cpp 
++
++OBJ=$(SRC_CXX:.cpp=.o)
++
++all:	$(OBJ)
++	$(LIB) libaggfontfreetype.a $(OBJ) 
++
++clean:
++	rm -f *.o *.a
++
++%.o: %.cpp
++	$(CXX) -c $(CXXFLAGS) $*.cpp -o $@
++
++%.o: %.c
++	$(C) -c $(CXXFLAGS) $*.c -o $@
+diff -Naur agg-2.5/src/Makefile agg-2.5.nacl/src/Makefile
+--- agg-2.5/src/Makefile	2006-10-08 21:07:22.000000000 -0700
++++ agg-2.5.nacl/src/Makefile	2009-10-13 16:24:09.202208000 -0700
+@@ -1,4 +1,4 @@
+-include ../Makefile.in.$(shell uname)
++include ../Makefile.in.NativeClient
+ 
+ CXXFLAGS= $(AGGCXXFLAGS) -I../include -L./
+ 

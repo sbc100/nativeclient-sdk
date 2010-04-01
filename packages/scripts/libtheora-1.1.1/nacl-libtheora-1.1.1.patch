@@ -1,0 +1,50 @@
+diff -Naur libtheora-1.1.1/config.sub libtheora-1.1.1.nacl/config.sub
+--- libtheora-1.1.1/config.sub	2009-11-24 14:10:12.276470000 -0800
++++ libtheora-1.1.1.nacl/config.sub	2009-11-24 14:10:51.505096000 -0800
+@@ -648,6 +648,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++	nacl)
++		basic_machine=i686-pc
++		os=-nacl
++		;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1107,7 +1111,7 @@
+ 	      | -openstep* | -oskit* | -conix* | -pw32* | -nonstopux* \
+ 	      | -storm-chaos* | -tops10* | -tenex* | -tops20* | -its* \
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+-	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* | -powermax*)
++	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* | -powermax* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur libtheora-1.1.1/lib/cpu.c libtheora-1.1.1.nacl/lib/cpu.c
+--- libtheora-1.1.1/lib/cpu.c	2009-11-24 14:10:15.302192000 -0800
++++ libtheora-1.1.1.nacl/lib/cpu.c	2009-11-24 15:08:46.857500000 -0800
+@@ -20,6 +20,7 @@
+ 
+ #include "cpu.h"
+ 
++
+ #if !defined(OC_X86_ASM)
+ static ogg_uint32_t oc_cpu_flags_get(void){
+   return 0;
+@@ -130,6 +131,7 @@
+   ogg_uint32_t ebx;
+   ogg_uint32_t ecx;
+   ogg_uint32_t edx;
++# if !defined(__native_client__)
+ # if !defined(__amd64__)&&!defined(__x86_64__)
+   /*Not all x86-32 chips support cpuid, so we have to check.*/
+ #  if !defined(_MSC_VER)
+@@ -154,6 +156,7 @@
+   /*No cpuid.*/
+   if(eax==ebx)return 0;
+ # endif
++# endif
+   cpuid(0,eax,ebx,ecx,edx);
+   /*         l e t n          I e n i          u n e G*/
+   if(ecx==0x6C65746E&&edx==0x49656E69&&ebx==0x756E6547||
