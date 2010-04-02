@@ -188,6 +188,7 @@ void Plugin::DestroyContext() {
 // number of random points to get Pi/4.
 void* Plugin::pi(void* param) {
   const int kMaxPointCount = 1000000000;  // The total number of points to put.
+  const uint32_t kOpaqueColorMask = 0xff000000;  // Opaque pixels.
   const uint32_t kRedMask = 0xff0000;
   const uint32_t kBlueMask = 0xff;
   const unsigned kRedShift = 16;
@@ -215,7 +216,7 @@ void* Plugin::pi(void* param) {
       color += 4 << kRedShift;
       color &= kRedMask;
     }
-    pixel_bits[plugin->width() * py + px] = color;
+    pixel_bits[plugin->width() * py + px] = color | kOpaqueColorMask;
   }
   return 0;
 }
