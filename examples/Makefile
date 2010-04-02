@@ -14,10 +14,9 @@ DEBUG_LIBS = trusted_gpu
 OS = $(shell uname -s)
 ifeq ($(OS), Darwin)
   PLATFORM = mac
-  # There is only support for 32-bit Native Client toolchain on mac.
   CC = nacl-gcc
   CPP = nacl-g++
-  TARGET = x86-32
+  TARGET = x86
   NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
 endif

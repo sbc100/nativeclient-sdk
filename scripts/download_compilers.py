@@ -72,6 +72,9 @@ def DownloadCompiler(src, dst, base_url, version):
   # Download it.
   urllib.urlretrieve(url, tgz_filename)
 
+  # Make sure the old cruft in the target is gone.
+  shutil.rmtree(target, True)
+
   # Setup target directory.
   try:
     os.makedirs(target)
@@ -103,22 +106,15 @@ PLATFORM_COLLAPSE = {
 PLATFORM_MAPPING = {
     'win32': [
         ['win_x86', 'host_win/target_x86'],  # Multilib toolchain
-        # TODO(dspringer): Remove these once they are fully deprecated.
-        ['win_x86-32', 'host_win/target_x86-32'],
-        ['win_x86-64', 'host_win/target_x86-64'],
     ],
     'linux': [
         ['linux_x86', 'host_linux/target_x86'],  # Multilib toolchain
-        ['linux_arm-trusted', 'host_linux/target_arm-trusted'],
-        ['linux_arm-untrusted', 'host_linux/target_arm-trusted'],
-        # TODO(dspringer): Remove these once they are fully deprecated.
-        ['linux_x86-32', 'host_linux/target_x86-32'],
-        ['linux_x86-64', 'host_linux/target_x86-64'],
+        # TODO(dspringer): Add these in once they have stabilized.
+        # ['linux_arm-trusted', 'host_linux/target_arm-trusted'],
+        # ['linux_arm-untrusted', 'host_linux/target_arm-trusted'],
     ],
     'darwin': [
-        # TODO(dspringer): Add the multilib toolchain for Mac when available.
-        # TODO(dspringer): Remove these once they are fully deprecated.
-        ['mac_x86-32', 'host_mac/target_x86-32'],
+        ['mac_x86', 'host_mac/target_x86'],
     ],
 }
 
