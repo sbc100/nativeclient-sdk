@@ -17,6 +17,8 @@
 
 #include "examples/pi_generator/pi_generator.h"
 
+using pi_generator::PiGenerator;
+
 // Please refer to the Gecko Plugin API Reference for the description of
 // NPP_New.
 NPError NPP_New(NPMIMEType mime_type,

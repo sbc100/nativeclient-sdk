@@ -8,11 +8,11 @@
 
 PROGRAM_NAME = pi_generator
 
-CCFILES = base_object.cc \
-          npn_bridge.cc \
+CCFILES = npn_bridge.cc \
           npp_gate.cc \
           pi_generator.cc \
-          pi_generator_module.cc
+          pi_generator_module.cc \
+          scripting_bridge.cc
 
 OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 

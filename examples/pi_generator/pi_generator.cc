@@ -22,88 +22,19 @@
 #include "third_party/npapi/bindings/nphostapi.h"
 #endif
 
+#include "examples/pi_generator/scripting_bridge.h"
+
 extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
 
-NPIdentifier ScriptablePluginObject::id_paint;
+using pi_generator::ScriptingBridge;
 
-std::map<NPIdentifier, ScriptablePluginObject::Method>*
-    ScriptablePluginObject::method_table;
-
-std::map<NPIdentifier, ScriptablePluginObject::Property>*
-    ScriptablePluginObject::property_table;
-
-bool ScriptablePluginObject::InitializeIdentifiers() {
-  id_paint = NPN_GetStringIdentifier("paint");
-
-  method_table =
-    new(std::nothrow) std::map<NPIdentifier, Method>;
-  if (method_table == NULL) {
-    return false;
-  }
-  method_table->insert(
-    std::pair<NPIdentifier, Method>(id_paint,
-                                    &ScriptablePluginObject::Paint));
-
-  property_table =
-    new(std::nothrow) std::map<NPIdentifier, Property>;
-  if (property_table == NULL) {
-    return false;
-  }
-
-  return true;
-}
-
-bool ScriptablePluginObject::HasMethod(NPIdentifier name) {
-  std::map<NPIdentifier, Method>::iterator i;
-  i = method_table->find(name);
-  return i != method_table->end();
-}
-
-bool ScriptablePluginObject::HasProperty(NPIdentifier name) {
-  std::map<NPIdentifier, Property>::iterator i;
-  i = property_table->find(name);
-  return i != property_table->end();
-}
-
-bool ScriptablePluginObject::GetProperty(NPIdentifier name,
-                                         NPVariant *result) {
-  VOID_TO_NPVARIANT(*result);
-
-  std::map<NPIdentifier, Property>::iterator i;
-  i = property_table->find(name);
-  if (i != property_table->end()) {
-    return (this->*(i->second))(result);
-  }
-  return false;
-}
-
-bool ScriptablePluginObject::Invoke(NPIdentifier name,
-                                    const NPVariant* args, uint32_t arg_count,
-                                    NPVariant* result) {
-  std::map<NPIdentifier, Method>::iterator i;
-  i = method_table->find(name);
-  if (i != method_table->end()) {
-    return (this->*(i->second))(args, arg_count, result);
-  }
-  return false;
-}
-
-bool ScriptablePluginObject::Paint(const NPVariant* args,
-                                   uint32_t arg_count,
-                                   NPVariant* result) {
-  PiGenerator* pi_generator = static_cast<PiGenerator*>(npp_->pdata);
-  if (pi_generator) {
-    DOUBLE_TO_NPVARIANT(pi_generator->pi(), *result);
-    return pi_generator->Paint();
-  }
-  return false;
-}
-
-// This is called by the brower when the 2D context has been flused to the
+// This is called by the brower when the 2D context has been flushed to the
 // browser window.
 void FlushCallback(NPP instance, NPDeviceContext* context,
                    NPError err, void* user_data) {
 }
+
+namespace pi_generator {
 
 PiGenerator::PiGenerator(NPP npp)
     : npp_(npp),
@@ -113,7 +44,7 @@ PiGenerator::PiGenerator(NPP npp)
       quit_(false),
       thread_(0),
       pi_(0.0) {
-  ScriptablePluginObject::InitializeIdentifiers();
+  ScriptingBridge::InitializeIdentifiers();
 }
 
 PiGenerator::~PiGenerator() {
@@ -130,7 +61,7 @@ PiGenerator::~PiGenerator() {
 NPObject* PiGenerator::GetScriptableObject() {
   if (scriptable_object_ == NULL) {
     scriptable_object_ =
-      NPN_CreateObject(npp_, &ScriptablePluginObject::np_class);
+      NPN_CreateObject(npp_, &ScriptingBridge::np_class);
   }
   if (scriptable_object_) {
     NPN_RetainObject(scriptable_object_);
@@ -217,3 +148,5 @@ void* PiGenerator::pi(void* param) {
   }
   return 0;
 }
+
+}  // namespace pi_generator

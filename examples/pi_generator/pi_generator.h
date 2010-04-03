@@ -17,7 +17,7 @@
 #endif
 #include <map>
 
-#include "examples/pi_generator/base_object.h"
+namespace pi_generator {
 
 class PiGenerator {
  public:
@@ -66,36 +66,6 @@ class PiGenerator {
   static void* pi(void* param);
 };
 
-class ScriptablePluginObject : public BaseObject {
- public:
-  explicit ScriptablePluginObject(NPP npp)
-    : npp_(npp) {
-  }
-
-  virtual bool HasMethod(NPIdentifier name);
-  virtual bool Invoke(NPIdentifier name,
-                      const NPVariant* args, uint32_t arg_count,
-                      NPVariant* result);
-  virtual bool HasProperty(NPIdentifier name);
-  virtual bool GetProperty(NPIdentifier name, NPVariant* result);
-  static bool InitializeIdentifiers();
-
-  static NPClass np_class;
-
- private:
-  typedef bool (ScriptablePluginObject::*Method)(const NPVariant* args,
-                                                 uint32_t arg_count,
-                                                 NPVariant* result);
-  typedef bool (ScriptablePluginObject::*Property)(NPVariant* result);
-
-
-  bool Paint(const NPVariant* args, uint32_t arg_count, NPVariant* result);
-
-  NPP npp_;
-
-  static NPIdentifier id_paint;
-  static std::map<NPIdentifier, Method>* method_table;
-  static std::map<NPIdentifier, Property>* property_table;
-};
+}  // namespace pi_generator
 
 #endif  // EXAMPLES_PI_GENERATOR_H_
