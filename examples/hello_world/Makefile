@@ -4,16 +4,16 @@
 
 # Makefile for the Hello World example.
 
-.PHONY: debug debug_linux debug_mac release publish
+.PHONY: develop develop_linux develop_mac publish copy_files
 
-PROGRAM_NAME = npapi_helloworld
+PROGRAM_NAME = hello_world
 
-CCFILES = helloworld_module.cc npapi_helloworld.cc npn_bridge.cc npp_gate.cc
+CCFILES = hello_world_module.cc hello_world.cc npn_bridge.cc npp_gate.cc
 
 OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
 # Mac specific.  |PLUGIN| gets set in the call to $(MAKE) in the actions
-# for the debug_mac and release_mac targets.
+# for the develop_mac targets.
 PLUGIN_CONTENTS_DIR = $(PLUGIN)/Contents
 PLUGIN_INFO_PLIST = $(PLUGIN_CONTENTS_DIR)/Info.plist
 PLUGIN_RESOURCES_DIR = $(PLUGIN_CONTENTS_DIR)/Resources
@@ -21,12 +21,12 @@ PLUGIN_MACOS_DIR = $(PLUGIN_CONTENTS_DIR)/MacOS
 
 -include ../common.mk
 
-debug:
-	@echo make debug in `pwd`
-	$(MAKE) -$(MAKEFLAGS) publish
-	$(MAKE) -$(MAKEFLAGS) debug_$(PLATFORM)
+develop:
+	@echo make develop in `pwd`
+	$(MAKE) -$(MAKEFLAGS) develop_$(PLATFORM)
+	$(MAKE) -$(MAKEFLAGS) copy_files
 
-debug_linux: $(OBJECTS)
+develop_linux: $(OBJECTS)
 	$(MAKE) LDFLAGS='-shared' \
 	    -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -Werror -fPIC" \
@@ -34,10 +34,10 @@ debug_linux: $(OBJECTS)
 	    $(OBJROOT)/$(PROGRAM_NAME)
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(DSTROOT)/lib$(PROGRAM_NAME).so
 
-debug_win:
-	@echo Debug config does not build on Windows.
+develop_win:
+	@echo Develop config does not build on Windows.
 
-debug_mac:
+develop_mac:
 	$(MAKE) LDFLAGS='-bundle -framework Foundation' \
 	    -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -Werror" \
@@ -51,26 +51,21 @@ mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
 	-rm -rf $(PLUGIN)
 	mkdir -p $(PLUGIN_MACOS_DIR)
 	mkdir -p $(PLUGIN_RESOURCES_DIR)
-	/Developer/Tools/Rez \
-	    -o $(PLUGIN_RESOURCES_DIR)/npapi_helloworld.rsrc \
-	    debug_support/mac/npapi_helloworld.r -useDF
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(PLUGIN_MACOS_DIR)
-	cp debug_support/mac/npapi_helloworld-Info.plist \
-	    $(PLUGIN_INFO_PLIST)
+	cp debug_support/mac/hello_world-Info.plist $(PLUGIN_INFO_PLIST)
 	chmod +w $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleExecutable npapi_helloworld' \
+	    -c 'Set :CFBundleExecutable $(PROGRAM_NAME)' \
 	    $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleIdentifier com.google.npapi_helloworld' \
+	    -c 'Set :CFBundleIdentifier com.google.$(PROGRAM_NAME)' \
 	    $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleName npapi_helloworld' \
+	    -c 'Set :CFBundleName $(PROGRAM_NAME)' \
 	    $(PLUGIN_INFO_PLIST)
 	
-release:
-	@echo make release in `pwd`
-	$(MAKE) -$(MAKEFLAGS) publish
+publish:
+	@echo make publish in `pwd`
 	$(MAKE) -$(MAKEFLAGS) \
 	    LDFLAGS="$(LIBS)" \
 	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
@@ -78,9 +73,10 @@ release:
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME).nexe
 	cp $(OBJROOT)/$(PROGRAM_NAME).nexe $(DSTROOT)
+	$(MAKE) -$(MAKEFLAGS) copy_files
 
-publish:
-	cp npapi_helloworld.html $(DSTROOT)
+copy_files:
+	cp hello_world.html $(DSTROOT)
 	cp nacl_js_lib.js $(DSTROOT)
 
 $(OBJROOT)/$(PROGRAM_NAME): $(OBJECTS)

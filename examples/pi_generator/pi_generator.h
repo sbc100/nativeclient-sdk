@@ -1,12 +1,9 @@
-/*
- * Copyright 2010 The Native Client Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can
- * be found in the LICENSE file.
- */
+// Copyright 2010 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can
+// be found in the LICENSE file.
 
-
-#ifndef EXAMPLES_NPAPI_PI_GENERATOR_PLUGIN_H_
-#define EXAMPLES_NPAPI_PI_GENERATOR_PLUGIN_H_
+#ifndef EXAMPLES_PI_GENERATOR_H_
+#define EXAMPLES_PI_GENERATOR_H_
 
 #include <pthread.h>
 #if defined(__native_client__)
@@ -20,12 +17,12 @@
 #endif
 #include <map>
 
-#include "examples/npapi_pi_generator/base_object.h"
+#include "examples/pi_generator/base_object.h"
 
-class Plugin {
+class PiGenerator {
  public:
-  explicit Plugin(NPP npp);
-  ~Plugin();
+  explicit PiGenerator(NPP npp);
+  ~PiGenerator();
 
   NPObject* GetScriptableObject();
   NPError SetWindow(NPWindow* window);
@@ -101,4 +98,4 @@ class ScriptablePluginObject : public BaseObject {
   static std::map<NPIdentifier, Property>* property_table;
 };
 
-#endif  // EXAMPLES_NPAPI_PI_GENERATOR_PLUGIN_H_
+#endif  // EXAMPLES_PI_GENERATOR_H_

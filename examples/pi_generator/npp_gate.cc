@@ -1,8 +1,6 @@
-/*
- * Copyright 2010 The Native Client Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can
- * be found in the LICENSE file.
- */
+// Copyright 2010 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can
+// be found in the LICENSE file.
 
 #include <assert.h>
 #include <stdio.h>
@@ -17,7 +15,7 @@
 #endif
 #include <new>
 
-#include "examples/npapi_pi_generator/plugin.h"
+#include "examples/pi_generator/pi_generator.h"
 
 // Please refer to the Gecko Plugin API Reference for the description of
 // NPP_New.
@@ -35,12 +33,12 @@ NPError NPP_New(NPMIMEType mime_type,
 
   InitializePepperExtensions(instance);
 
-  Plugin* plugin = new(std::nothrow) Plugin(instance);
-  if (plugin == NULL) {
+  PiGenerator* pi_generator = new(std::nothrow) PiGenerator(instance);
+  if (pi_generator == NULL) {
     return NPERR_OUT_OF_MEMORY_ERROR;
   }
 
-  instance->pdata = plugin;
+  instance->pdata = pi_generator;
   return NPERR_NO_ERROR;
 }
 
@@ -52,9 +50,9 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
     return NPERR_INVALID_INSTANCE_ERROR;
   }
 
-  Plugin* plugin = static_cast<Plugin*>(instance->pdata);
-  if (plugin != NULL) {
-    delete plugin;
+  PiGenerator* pi_generator = static_cast<PiGenerator*>(instance->pdata);
+  if (pi_generator != NULL) {
+    delete pi_generator;
   }
   return NPERR_NO_ERROR;
 }
@@ -67,9 +65,9 @@ NPObject* NPP_GetScriptableInstance(NPP instance) {
   }
 
   NPObject* object = NULL;
-  Plugin* plugin = static_cast<Plugin*>(instance->pdata);
-  if (plugin) {
-    object = plugin->GetScriptableObject();
+  PiGenerator* pi_generator = static_cast<PiGenerator*>(instance->pdata);
+  if (pi_generator) {
+    object = pi_generator->GetScriptableObject();
   }
   return object;
 }
@@ -96,9 +94,9 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   if (window == NULL) {
     return NPERR_GENERIC_ERROR;
   }
-  Plugin* plugin = static_cast<Plugin*>(instance->pdata);
-  if (plugin != NULL) {
-    return plugin->SetWindow(window);
+  PiGenerator* pi_generator = static_cast<PiGenerator*>(instance->pdata);
+  if (pi_generator != NULL) {
+    return pi_generator->SetWindow(window);
   }
   return NPERR_GENERIC_ERROR;
 }

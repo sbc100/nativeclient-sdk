@@ -1,12 +1,9 @@
-/*
- * Copyright 2010 The Native Client Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can
- * be found in the LICENSE file.
- */
+// Copyright 2010 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can
+// be found in the LICENSE file.
 
-
-#ifndef EXAMPLES_NPAPI_PI_GENERATOR_BASE_OBJECT_H_
-#define EXAMPLES_NPAPI_PI_GENERATOR_BASE_OBJECT_H_
+#ifndef EXAMPLES_PI_GENERATOR_BASE_OBJECT_H_
+#define EXAMPLES_PI_GENERATOR_BASE_OBJECT_H_
 
 #if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
@@ -57,4 +54,4 @@ class BaseObject : public NPObject {
   }
 };
 
-#endif  // EXAMPLES_NPAPI_PI_GENERATOR_BASE_OBJECT_H_
+#endif  // EXAMPLES_PI_GENERATOR_BASE_OBJECT_H_

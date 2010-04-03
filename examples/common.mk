@@ -34,4 +34,4 @@ $(OBJROOT)/%.o: %.cpp
 	$(CPP) $(ALL_CXXFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $@ $<
 
 clean::
-	-rm -rf debug release
+	-rm -rf develop publish

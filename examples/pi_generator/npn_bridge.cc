@@ -13,8 +13,9 @@
 #endif
 
 #if !defined(__native_client__)
-// The trusted plugin needs to call through to the browser directly.  These
-// wrapper routines are not required when making a Native Client module.
+// The development version needs to call through to the browser directly.  These
+// wrapper routines are not required when making the version you publish to the
+// web.
 
 static NPNetscapeFuncs kBrowserFuncs = { 0 };
 

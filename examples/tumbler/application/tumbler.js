@@ -75,8 +75,8 @@ tumbler.Application.prototype.run = function(opt_contentDivName) {
     throw new Error('Application.run(): missing element ' + "'" +
         contentDivName + "'");
   }
-  // Conditionally load the debug or release version of the module.
-  if (window.location.hash == '#debug') {
+  // Conditionally load the develop or publish version of the module.
+  if (window.location.hash == '#develop') {
     contentDiv.innerHTML = '<embed id="'
                            + tumbler.Application.TUMBLER_MODULE_NAME + '" '
                            + 'type="pepper-application/tumbler" '

@@ -11,7 +11,7 @@
 #include "third_party/npapi/bindings/nphostapi.h"
 #endif
 
-// These functions are required by both the trusted and untrusted loaders,
+// These functions are required by both the develop and publish versions,
 // they are called when a module instance is first loaded, and when the module
 // instance is finally deleted.  They must use C-style linkage.
 
@@ -58,5 +58,13 @@ NPError NP_Shutdown() {
   pglTerminate();
   return NPERR_NO_ERROR;
 }
+
+#if !defined(__native_client__) && defined(OS_LINUX)
+// Note that this MIME type has to match the type in the <embed> tag used to
+// load the develop version of the module.
+char* NP_GetMIMEDescription(void) {
+  return "pepper-application/tumbler";
+}
+#endif
 
 }  // extern "C"

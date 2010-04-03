@@ -14,12 +14,12 @@
 #include <nacl/nacl_npapi.h>
 #include <nacl/npupp.h>
 #else
-// Building a trusted plugin for debugging.
+// Building a development version.
 #include "third_party/npapi/bindings/npapi.h"
 #include "third_party/npapi/bindings/nphostapi.h"
 #endif
 
-struct PlugIn {
+struct HelloWorld {
   NPP npp;
   NPObject *npobject;
 };
@@ -38,12 +38,12 @@ NPError NPP_New(NPMIMEType mime_type,
   if (instance == NULL)
     return NPERR_INVALID_INSTANCE_ERROR;
 
-  struct PlugIn *plugin = NULL;
-  plugin = new PlugIn;
-  plugin->npp = instance;
-  plugin->npobject = NULL;
+  struct HelloWorld *hello_world = NULL;
+  hello_world = new HelloWorld;
+  hello_world->npp = instance;
+  hello_world->npobject = NULL;
 
-  instance->pdata = plugin;
+  instance->pdata = hello_world;
   return NPERR_NO_ERROR;
 }
 
@@ -58,29 +58,29 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
   // free plugin
   if (NULL != instance->pdata) {
-    PlugIn* plugin = static_cast<PlugIn*>(instance->pdata);
-    delete plugin;
+    HelloWorld* hello_world = static_cast<HelloWorld*>(instance->pdata);
+    delete hello_world;
     instance->pdata = NULL;
   }
   return NPERR_NO_ERROR;
 }
 
 NPObject *NPP_GetScriptableInstance(NPP instance) {
-  struct PlugIn* plugin;
+  struct HelloWorld* hello_world;
 
   extern NPClass *GetNPSimpleClass();
 
   if (NULL == instance) {
     return NULL;
   }
-  plugin = (struct PlugIn *)instance->pdata;
-  if (NULL == plugin->npobject) {
-    plugin->npobject = NPN_CreateObject(instance, GetNPSimpleClass());
+  hello_world = static_cast<HelloWorld*>(instance->pdata);
+  if (NULL == hello_world->npobject) {
+    hello_world->npobject = NPN_CreateObject(instance, GetNPSimpleClass());
   }
-  if (NULL != plugin->npobject) {
-    NPN_RetainObject(plugin->npobject);
+  if (NULL != hello_world->npobject) {
+    NPN_RetainObject(hello_world->npobject);
   }
-  return plugin->npobject;
+  return hello_world->npobject;
 }
 
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void* ret_value) {

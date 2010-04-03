@@ -6,10 +6,10 @@
 # make variables and then call the descendant makefiles in each of the
 # examples.
 
-.PHONY: all debug release clean
+.PHONY: all develop publish clean
 
 EXAMPLES = hello_world pi_generator tumbler
-DEBUG_LIBS = trusted_gpu
+DEVELOP_LIBS = trusted_gpu
 
 OS = $(shell uname -s)
 ifeq ($(OS), Darwin)
@@ -56,12 +56,12 @@ SRCROOT = ..
 OBJROOT = .
 DSTROOT = .
 
-all: debug release
+all: develop publish
 
-# Make debug versions of all the modules.
-debug:
-	mkdir -p debug/$(PLATFORM)_$(TARGET)
-	@for examp in $(DEBUG_LIBS) $(EXAMPLES) ; do \
+# Make development versions of all the modules.
+develop:
+	mkdir -p develop/$(PLATFORM)_$(TARGET)
+	@for examp in $(DEVELOP_LIBS) $(EXAMPLES) ; do \
 	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) -w \
 	        CC=/usr/bin/gcc \
 		CPP=/usr/bin/g++ \
@@ -72,13 +72,13 @@ debug:
 		    -I$$SRCROOT/third_party/npapi/bindings" \
 		PLATFORM=$(PLATFORM) \
 		TARGET=$(TARGET) \
-		OBJROOT=debug/$(PLATFORM)_$(TARGET) \
-		DSTROOT=../debug/$(PLATFORM)_$(TARGET) \
-		OPT_FLAGS="-O0 -g3 -fPIC" debug); \
+		OBJROOT=develop/$(PLATFORM)_$(TARGET) \
+		DSTROOT=../develop/$(PLATFORM)_$(TARGET) \
+		OPT_FLAGS="-O0 -g3 -fPIC" develop); \
 	done
 
-release:
-	mkdir -p release/$(PLATFORM)_$(TARGET)
+publish:
+	mkdir -p publish/$(PLATFORM)_$(TARGET)
 	@for examp in $(EXAMPLES) ; do \
 	    (cd $$examp ; SRCROOT=`pwd`/../..; $(MAKE) -w \
 	        CC=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/$(CC) \
@@ -87,14 +87,14 @@ release:
 	        INCLUDES="-I$$SRCROOT -I$(NACL_INCLUDE)" \
 	        PLATFORM=$(PLATFORM) \
 	        TARGET=$(TARGET) \
-	        OBJROOT=release/$(PLATFORM)_$(TARGET) \
-	        DSTROOT=../release/$(PLATFORM)_$(TARGET) \
+	        OBJROOT=publish/$(PLATFORM)_$(TARGET) \
+	        DSTROOT=../publish/$(PLATFORM)_$(TARGET) \
 	        LIBS="-lgoogle_nacl_imc -lgoogle_nacl_npruntime -lpthread -lsrpc" \
-	        OPT_FLAGS="-O2" release); \
+	        OPT_FLAGS="-O2" publish); \
 	done
 
 clean:
-	-rm -rf debug release
-	@for examp in $(DEBUG_LIBS) $(EXAMPLES) ; do \
+	-rm -rf develop publish
+	@for examp in $(DEVELOP_LIBS) $(EXAMPLES) ; do \
 	    (cd $$examp ; $(MAKE) clean); \
 	done

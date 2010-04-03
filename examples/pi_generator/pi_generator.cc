@@ -1,11 +1,8 @@
-/*
- * Copyright 2010 The Native Client Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can
- * be found in the LICENSE file.
- */
+// Copyright 2010 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can
+// be found in the LICENSE file.
 
-
-#include "examples/npapi_pi_generator/plugin.h"
+#include "examples/pi_generator/pi_generator.h"
 
 #include <assert.h>
 #include <math.h>
@@ -19,7 +16,7 @@
 #include <nacl/npapi_extensions.h>
 #include <nacl/npruntime.h>
 #else
-// Building a trusted plugin for debugging.
+// Building the develop version.
 #include "third_party/npapi/bindings/npapi.h"
 #include "third_party/npapi/bindings/npapi_extensions.h"
 #include "third_party/npapi/bindings/nphostapi.h"
@@ -94,10 +91,10 @@ bool ScriptablePluginObject::Invoke(NPIdentifier name,
 bool ScriptablePluginObject::Paint(const NPVariant* args,
                                    uint32_t arg_count,
                                    NPVariant* result) {
-  Plugin* plugin = static_cast<Plugin*>(npp_->pdata);
-  if (plugin) {
-    DOUBLE_TO_NPVARIANT(plugin->pi(), *result);
-    return plugin->Paint();
+  PiGenerator* pi_generator = static_cast<PiGenerator*>(npp_->pdata);
+  if (pi_generator) {
+    DOUBLE_TO_NPVARIANT(pi_generator->pi(), *result);
+    return pi_generator->Paint();
   }
   return false;
 }
@@ -108,7 +105,7 @@ void FlushCallback(NPP instance, NPDeviceContext* context,
                    NPError err, void* user_data) {
 }
 
-Plugin::Plugin(NPP npp)
+PiGenerator::PiGenerator(NPP npp)
     : npp_(npp),
       scriptable_object_(NULL),
       window_(NULL),
@@ -119,7 +116,7 @@ Plugin::Plugin(NPP npp)
   ScriptablePluginObject::InitializeIdentifiers();
 }
 
-Plugin::~Plugin() {
+PiGenerator::~PiGenerator() {
   quit_ = true;
   if (thread_) {
     pthread_join(thread_, NULL);
@@ -130,7 +127,7 @@ Plugin::~Plugin() {
   DestroyContext();
 }
 
-NPObject* Plugin::GetScriptableObject() {
+NPObject* PiGenerator::GetScriptableObject() {
   if (scriptable_object_ == NULL) {
     scriptable_object_ =
       NPN_CreateObject(npp_, &ScriptablePluginObject::np_class);
@@ -141,7 +138,7 @@ NPObject* Plugin::GetScriptableObject() {
   return scriptable_object_;
 }
 
-NPError Plugin::SetWindow(NPWindow* window) {
+NPError PiGenerator::SetWindow(NPWindow* window) {
   if (!window)
     return NPERR_NO_ERROR;
   if (!IsContextValid())
@@ -154,7 +151,7 @@ NPError Plugin::SetWindow(NPWindow* window) {
   return Paint() ? NPERR_NO_ERROR : NPERR_GENERIC_ERROR;
 }
 
-bool Plugin::Paint() {
+bool PiGenerator::Paint() {
   if (IsContextValid()) {
     NPDeviceFlushContextCallbackPtr callback =
         reinterpret_cast<NPDeviceFlushContextCallbackPtr>(&FlushCallback);
@@ -164,7 +161,7 @@ bool Plugin::Paint() {
   return false;
 }
 
-void Plugin::CreateContext() {
+void PiGenerator::CreateContext() {
   if (IsContextValid())
     return;
   device2d_ = NPN_AcquireDevice(npp_, NPPepper2DDevice);
@@ -175,7 +172,7 @@ void Plugin::CreateContext() {
   assert(NPERR_NO_ERROR == init_err);
 }
 
-void Plugin::DestroyContext() {
+void PiGenerator::DestroyContext() {
   if (!IsContextValid())
     return;
   device2d_->destroyContext(npp_, &context2d_);
@@ -186,7 +183,7 @@ void Plugin::DestroyContext() {
 // square whose length of each side is 1.0, and calculates the ratio of the
 // number of points put inside the inscribed quadrant divided by the total
 // number of random points to get Pi/4.
-void* Plugin::pi(void* param) {
+void* PiGenerator::pi(void* param) {
   const int kMaxPointCount = 1000000000;  // The total number of points to put.
   const uint32_t kOpaqueColorMask = 0xff000000;  // Opaque pixels.
   const uint32_t kRedMask = 0xff0000;
@@ -195,20 +192,20 @@ void* Plugin::pi(void* param) {
   const unsigned kBlueShift = 0;
   int count = 0;  // The number of points put inside the inscribed quadrant.
   unsigned int seed = 1;
-  Plugin* plugin = static_cast<Plugin*>(param);
-  uint32_t* pixel_bits = static_cast<uint32_t*>(plugin->pixels());
+  PiGenerator* pi_generator = static_cast<PiGenerator*>(param);
+  uint32_t* pixel_bits = static_cast<uint32_t*>(pi_generator->pixels());
   srand(seed);
-  for (int i = 1; i <= kMaxPointCount && !plugin->quit(); ++i) {
+  for (int i = 1; i <= kMaxPointCount && !pi_generator->quit(); ++i) {
     double x = static_cast<double>(rand_r(&seed)) / RAND_MAX;
     double y = static_cast<double>(rand_r(&seed)) / RAND_MAX;
     double distance = sqrt(x * x + y * y);
-    int px = x * plugin->width();
-    int py = (1.0 - y) * plugin->height();
-    uint32_t color = pixel_bits[plugin->width() * py + px];
+    int px = x * pi_generator->width();
+    int py = (1.0 - y) * pi_generator->height();
+    uint32_t color = pixel_bits[pi_generator->width() * py + px];
     if (distance < 1.0) {
       // Set color to blue.
       ++count;
-      plugin->pi_ = 4.0 * count / i;
+      pi_generator->pi_ = 4.0 * count / i;
       color += 4 << kBlueShift;
       color &= kBlueMask;
     } else {
@@ -216,7 +213,7 @@ void* Plugin::pi(void* param) {
       color += 4 << kRedShift;
       color &= kRedMask;
     }
-    pixel_bits[plugin->width() * py + px] = color | kOpaqueColorMask;
+    pixel_bits[pi_generator->width() * py + px] = color | kOpaqueColorMask;
   }
   return 0;
 }

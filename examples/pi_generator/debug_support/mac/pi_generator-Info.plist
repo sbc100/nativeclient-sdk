@@ -21,7 +21,7 @@
 	<key>CSResourcesFileMapped</key>
 	<string>yes</string>
 	<key>WebPluginDescription</key>
-	<string>PI Generator Trusted Plug-in</string>
+	<string>PI Generator Develop Version</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
 		<key>pepper-application/pi-generator</key>
@@ -35,6 +35,6 @@
 		</dict>
 	</dict>
 	<key>WebPluginName</key>
-	<string>PI Generator Trusted Plug-in</string>
+	<string>PI Generator Develop Version</string>
 </dict>
 </plist>

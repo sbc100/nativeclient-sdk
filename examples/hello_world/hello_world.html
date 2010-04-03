@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NPAPI Simple Plug-in</title>
+  <title>Hello, World!</title>
 </head>
 <body onload="nacllib.waitForModulesAndRunTests();"
       onunload="nacllib.cleanUp();" >
@@ -9,7 +9,7 @@
 <script type="text/javascript">
 function fortytwo() {
   try {
-    alert(document.getElementById('pluginobj').fortytwo());
+    alert(document.getElementById('hello_world').fortytwo());
   } catch(e) {
     alert(e);
   }
@@ -17,35 +17,36 @@ function fortytwo() {
 
 function helloworld() {
   try {
-    alert(document.getElementById('pluginobj').helloworld());
+    alert(document.getElementById('hello_world').helloworld());
   } catch(e) {
     alert(e);
   }
 }
-//]]>
 </script>
 
-<h1>Native Client NPAPI Simple Plug-in</h1>
+<h1>Native Client Simple Module</h1>
 <p>
   <button onclick="fortytwo()">Call fortytwo()</button>
   <button onclick="helloworld()">Call helloworld()</button>
 
-  <!-- For debugging, use a #debug location, and load the trusted plugin -->
+  <!-- For development, use a #develop location, which loads the develop
+  version of the module.
+  -->
   <div id="nacl_helloworld_content"></div>
   <script type="text/javascript">
     contentDiv = document.getElementById('nacl_helloworld_content');
-    if (window.location.hash == '#debug') {
-      // Load the trusted plugin for debugging.
+    if (window.location.hash == '#develop') {
+      // Load the develop version of the module.
       contentDiv.innerHTML = '<embed name="nacl_module" '
-                             + 'id="pluginobj" '
+                             + 'id="hello_world" '
                              + 'width=0 height=0 '
-                             + 'type="pepper-application/helloworld-plugin" />';
+                             + 'type="pepper-application/hello_world-plugin" />';
     } else {
-      // Load the untrusted .nexe.
+      // Load the published .nexe.
       contentDiv.innerHTML = '<embed name="nacl_module" '
-                             + 'id="pluginobj" '
+                             + 'id="hello_world" '
                              + 'width=0 height=0 '
-                             + 'src="npapi_helloworld.nexe" '
+                             + 'src="hello_world.nexe" '
                              + 'type="application/x-nacl-srpc" />';
     }
   </script>
@@ -85,7 +86,7 @@ nacllib.areTherePluginProblems = function(modules) { return 0; };
 
 
 nacllib.test = function() {
-  var plugin = document.getElementById("pluginobj");
+  var plugin = document.getElementById("hello_world");
   if ('42' != plugin.fortytwo()) {
     return "expected 42";
   }
@@ -97,7 +98,6 @@ nacllib.test = function() {
   return "";
 };
 
-//]]>
 </script>
 
 </body>

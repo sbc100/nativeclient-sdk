@@ -4,7 +4,7 @@
 
 # Makefile for the Tumbler example.
 
-.PHONY: debug debug_linux debug_mac release publish
+.PHONY: develop develop_linux develop_mac release copy_files
 
 PROGRAM_NAME = tumbler
 
@@ -36,12 +36,12 @@ PLUGIN_MACOS_DIR = $(PLUGIN_CONTENTS_DIR)/MacOS
 
 -include ../common.mk
 
-debug:
-	@echo make debug in `pwd`
-	$(MAKE) -$(MAKEFLAGS) publish
-	$(MAKE) -$(MAKEFLAGS) debug_$(PLATFORM)
+develop:
+	@echo make develop in `pwd`
+	$(MAKE) -$(MAKEFLAGS) develop_$(PLATFORM)
+	$(MAKE) -$(MAKEFLAGS) copy_files
 
-debug_linux:
+develop_linux:
 	$(MAKE) LDFLAGS='-shared' \
 	    -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -Werror -fPIC" \
@@ -49,10 +49,10 @@ debug_linux:
 	    $(OBJROOT)/$(PROGRAM_NAME)
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(DSTROOT)/lib$(PROGRAM_NAME).so
 
-debug_win:
-	@echo Debug config does not build on Windows.
+develop_win:
+	@echo Develop config does not build on Windows.
 
-debug_mac:
+develop_mac:
 	$(MAKE) \
 	    LDFLAGS='-bundle -framework Foundation -L$(DSTROOT) -ltrusted_gpu' \
 	    -$(MAKEFLAGS) \
@@ -72,27 +72,27 @@ mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
 	    $(PLUGIN_INFO_PLIST)
 	chmod +w $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleExecutable tumbler' \
+	    -c 'Set :CFBundleExecutable $(PROGRAM_NAME)' \
 	    $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleIdentifier com.google.tumbler' \
+	    -c 'Set :CFBundleIdentifier com.google.$(PROGRAM_NAME)' \
 	    $(PLUGIN_INFO_PLIST)
 	/usr/libexec/PlistBuddy \
-	    -c 'Set :CFBundleName tumbler' \
+	    -c 'Set :CFBundleName $(PROGRAM_NAME)' \
 	    $(PLUGIN_INFO_PLIST)
 	
-release:
-	@echo make release in `pwd`
-	$(MAKE) -$(MAKEFLAGS) publish
+publish:
+	@echo make publish in `pwd`
 	$(MAKE) -$(MAKEFLAGS) \
 	    LDFLAGS="$(LIBS) -lgoogle_nacl_pgl -lgoogle_nacl_gpu" \
 	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
 	    CFLAGS="-DXP_UNIX -Werror" \
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME).nexe
+	$(MAKE) -$(MAKEFLAGS) copy_files
 	cp $(OBJROOT)/$(PROGRAM_NAME).nexe $(DSTROOT)
 
-publish:
+copy_files:
 	cp $(APP_FILES) $(DSTROOT)
 
 $(OBJROOT)/$(PROGRAM_NAME): $(OBJECTS)

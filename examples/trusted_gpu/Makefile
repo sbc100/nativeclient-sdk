@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can
 # be found in the LICENSE file.
 
-# Makefile for the PI Generator example.
+# Makefile for the development support library.
 
-.PHONY: debug release
+.PHONY: develop publish
 
 CCFILES = logging.cc \
           cmd_buffer_common.cc \
@@ -30,21 +30,21 @@ OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
 -include ../common.mk
 
-debug:
-	@echo make -$(MAKEFLAGS) debug in `pwd`
-	$(MAKE) -$(MAKEFLAGS) debug_$(PLATFORM)
+develop:
+	@echo make -$(MAKEFLAGS) develop in `pwd`
+	$(MAKE) -$(MAKEFLAGS) develop_$(PLATFORM)
 
-debug_win:
-	@echo Debug config does not build on Windows.
+develop_win:
+	@echo Develop config does not build on Windows.
 
-debug_mac debug_linux:
+develop_mac develop_linux:
 	$(MAKE) -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
 	    CXXFLAGS="-DXP_UNIX -DTRUSTED_GPU_LIBRARY_BUILD -DOMIT_DLOG_AND_DCHECK" \
 	    $(DSTROOT)/lib$(LIBRARY_NAME).a
 
-release:
-	@echo trusted_gpu does not make release
+publish:
+	@echo trusted_gpu does not make publish
 
 $(DSTROOT)/lib$(LIBRARY_NAME).a: $(OBJECTS)
 	ar -r -cs $@ $?

@@ -22,23 +22,25 @@
       The textbox under the square
       shows the current estimate of &pi;.
     </p>
-    <!-- For debugging, use a #debug location, and load the trusted plugin -->
+    <!-- For development, use a #develop location, which loads the develop
+    version of the module.
+    -->
     <div id="nacl_pi_generator_content"></div>
     <script type="text/javascript">
       contentDiv = document.getElementById('nacl_pi_generator_content');
-      if (window.location.hash == '#debug') {
-        // Load the trusted plugin for debugging.
+      if (window.location.hash == '#develop') {
+      // Load the develop version of the module.
         contentDiv.innerHTML = '<embed name="nacl_module" '
                                + 'id="pi_generator" '
                                + 'width=200 height=200 '
                                + 'type="pepper-application/pi-generator" '
                                + 'dimensions="2" />';
       } else {
-        // Load the untrusted .nexe.
+      // Load the published .nexe.
         contentDiv.innerHTML = '<embed name="nacl_module" '
                                + 'id="pi_generator" '
                                + 'width=200 height=200 '
-                               + 'src="npapi_pi_generator.nexe" '
+                               + 'src="pi_generator.nexe" '
                                + 'type="application/x-nacl-srpc" '
                                + 'dimensions="2" />';
       }

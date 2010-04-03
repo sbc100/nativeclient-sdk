@@ -1,6 +1,6 @@
 Welcome to the Native Client SDK.
 
-Revision date: March 26, 2010.
+Revision date: April 3, 2010.
 
 
 SETUP
@@ -11,11 +11,10 @@ Tarballs are available here:
 
 Note that each platform has its own tarball.
 
-The tarball comes with everything you need to build both a release
-module (a .nexe file) and a debug version (Mac only for now, Linux
-hopefully by the end of the week). It uses gnumake for building
-(normally included with Linux and Mac OS X, and you can get it for
-Windows).
+The tarball comes with everything you need to build a module you can publish
+on the web (a .nexe file) and a development version you can use for debugging.
+It uses gnumake for building (normally included with Linux and Mac OS X, and
+you can get it for Windows).
 
 To build the examples, you use gnumake. For example:
   cd examples; make
@@ -23,10 +22,10 @@ To build the examples, you use gnumake. For example:
 Some useful make targets:
   make clean   # clean everything
   make         # build everything
-  make release # build the release version of your module (.nexe)
-  make debug   # build the debug version
+  make publish # build the publish version of your module (.nexe)
+  make develop # build the develop version (you can debug this)
 
-Build products go in either the release or debug directory.
+Build products go in either the publish or develop directory.
 
 The tarball does not include a Dev-channel version of Google Chrome.
 You can get the Dev-channel version here:
@@ -34,65 +33,66 @@ You can get the Dev-channel version here:
   http://dev.chromium.org/getting-involved/dev-channel
 
 It's best to put the copy of Chromium in a well-known place so you can access
-it easily.  On the Mac, /Applications is a good place.  The Xcode projects in
-the examples expect to find Chromium in /Applications.
+it easily.  On the Mac, /Applications is a good place.
 
 
 RUN YOUR MODULE
 
 To run anything you build with the SDK, you'll need to supply these flags:
-  --no-sandbox --internal-nacl --internal-pepper --enable-gpu-plugin
+  --no-sandbox --enable-nacl --internal-pepper
 
 For example, to run on a Mac from the command-line:
 
-  Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
-      --internal-pepper --enable-gpu-plugin
+  Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-nacl \
+      --internal-pepper
 
 On Linux:
 
-  ./chrome  --no-sandbox --internal-nacl --internal-pepper --enable-gpu-plugin
+  ./chrome  --no-sandbox --enable-nacl --internal-pepper
 
-To load the .nexes, you will need to run a local HTTP server.  A python script
-is included in the examples directory, you can start it like this:
+To load the .nexes, you will need to have a web server.  There is a local HTTP
+server included in the examples directory, you can start it like this:
 
   cd examples
   python httpd.py
 
 Note: this will serve everything under examples.  The root of the server is the
 examples dir; make puts all built products in
-{debug,release}/<platform_target>
+{develop,publish}/<platform_target>
 
 So to load an HTML page that references your .nexe, you would use this URL on
 a Mac build:
 
-  http://localhost:5103/release/mac_x86-32/npapi_helloworld.html
+  http://localhost:5103/publish/mac_x86/hello_world.html
 
-A note about MIME types: Debug plugins must have a MIME type that begins
-with 'pepper-'.  Release modules must have a MIME type that is exactly
+A note about MIME types: Develop modules must have a MIME type that begins
+with 'pepper-'.  Publish modules must have a MIME type that is exactly
 'application/x-nacl-srpc'.  The HTML files bundled with the examples show how
 to specify a different MIME type for the embedded object when you are debugging
-a module versus running a release module.  Be sure to set the MIME
-type of your debug version to match the MIME type in the HTML (on the Mac,
-this means the Info.plist has to have one WebPluginMIMETypes entry).
+a module versus running a published module.  Be sure to set the MIME
+type of your development version to match the MIME type in the HTML.  On the
+Mac, this means the Info.plist has to have one WebPluginMIMETypes entry; on
+Linux, this means you have to implement the NP_GetMIMEDescription() entry
+point in your module code (see, for example, hello_world/hello_world_module.cc).
 
 
 DEBUG YOUR MODULE
 
-Important: Your module (both debug and release versions) runs in a different
-process than Google Chrome. If you use gdb, this means you will have to run
-a separate gdb session and attach to the module's process.
+Important: Your module (both develop and publish versions) runs in a different
+process than Google Chrome.  You can use the --single-process flag to
+override this.
 
 To debug your module, follow these steps:
 
-1. Create an HTML page that loads the debug version when debugging, or the
-  release version otherwise.  The examples come with HTML pages that show
-  how to do this, using '#debug' in the URL.  For example, the URL that loads
-  the debug version of npapi_helloworld for debugging is (note the trailing
-  '#debug'):
-    file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.html#debug
+1. Create an HTML page that loads the develop version when debugging, or the
+  publish version otherwise.  The examples come with HTML pages that show
+  how to do this, using '#develop' in the URL.  For example, the URL that loads
+  the development version of hello_world for debugging is (note the trailing
+  '#develop'):
+    file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.html#develop
   which is given as a command-line parameter to Google Chrome.  The URL for
-  the release .nexe is (note the absence of #debug):
-    http://localhost/examples/release/mac_x86-32/npapi_helloworld.html
+  the release .nexe is (note the absence of #develop):
+    http://localhost/examples/release/mac_x86-32/hello_world.html
   You type this into the Google Chrome browser once it is running, and you have
   started a local HTTP server (see below).
 
@@ -100,43 +100,24 @@ To debug your module, follow these steps:
   plugin location.  On the Mac, this is ~/Library/Internet\ Plug-Ins.  For
   example:
     cd ~/Library/Internet\ Plug-Ins/
-    ln -s ~/nacl-sdk/src/examples/debug/mac_x86-32/npapi_helloworld.plugin .
+    ln -s ~/nacl-sdk/src/examples/develop/mac_x86/hello_world.plugin .
 
 3. Instead of creating a symlink, you can launch Google Chrome with the
-  --load-plugin= and --plugin-startup-dialog flags.  --load-plugin takes
+  --load-plugin= and --single-process flags.  --load-plugin takes
   an absolute path to the debug version of your module.  The latter part
   of this path will have debug/<platform_target> in it.
   For example, on the Mac this would be:
-  --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.plugin
+  --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.plugin
 
-  --plugin-startup-dialog causes Google Chrome to pause and wait for a
-  debugger to attach to the child module process.  It writes the PID of the
-  child process to the console so you can tell which one it is.  For example,
-  you will see this output:
-    Plugin (12554) paused waiting for debugger to attach @ pid
-    
   An example launch line used to debug on the Mac:
-    Chromium.app/Contents/MacOS/Chromium --no-sandbox --internal-nacl \
-        --internal-pepper --enable-gpu-plugin \
-        --plugin-startup-dialog \
-        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.plugin \
-        file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/npapi_helloworld.html#debug
+    Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-nacl \
+        --internal-pepper \
+        --single-process \
+        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.plugin \
+        file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.html#debug
 
-  --single-process is an alternative to --plugin-starup-dialog, and loads the
-  debug module directly into the instance of Google Chrome you are debugging.
-  You do not need to use a separate gdb session to debug your module with this
-  flag.  This mode is great for debugging start-up functions such as
-  NP_Initialize().
-
-4. Attach to the module process.
-  Run gdb in its own shell.  At the gdb prompt:
-    attach <plugin_pid>
-  For example (using the PID from step 1. above):
-    % gdb
-    (gdb) attach 12554
-  Now you should be able to set break points and debug as you normally would.
-  
-  As soon as you continue in your gdb session, Google Chrome resumes execution.
+  --single-process loads the develop version of your module directly into the
+  instance of Google Chrome you are debugging.
 
 
 OTHER DEVELOPMENT
@@ -152,8 +133,15 @@ Note that this is an internal Google site.
 KNOWN ISSUES
 
 - [All, Debug]: To debug your .nexe you have to build a special version.  Once
-  you have a debug version of your module, you can run Google Chrome in your
-  favorite debugger (e.g. gdb); in addition to the list of flags above, you
+  you have a development version of your module, you can run Google Chrome in
+  your favorite debugger (e.g. gdb); in addition to the list of flags above, you
   can add --load-plugin=/path/to/my/plugin (see above).
 
 - [Linux]: Only 32-bit browsers can load .nexes. 64-bit doesn't work yet.
+
+TROUBLESHOOTING
+
+- [Mac]: If you see "Missing Plug-in", check that the symlinks in
+  ~/Library/Internet\ Plug-Ins are correct.  If you need to fix them, you will
+  have to quite and restart Chrome.  Make sure you started Chrome with the
+  --internal-pepper flag in addition to the --enable-nacl flag.

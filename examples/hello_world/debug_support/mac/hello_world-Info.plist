@@ -24,7 +24,7 @@
 	<string>Hello World Trusted Plug-in</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
-		<key>pepper-application/helloworld-plugin</key>
+		<key>pepper-application/hello_world-plugin</key>
 		<dict>
 			<key>WebPluginExtensions</key>
 			<array>
