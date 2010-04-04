@@ -28,11 +28,13 @@ VPATH = $(SRCROOT)/third_party/include/base \
 LIBRARY_NAME = trusted_gpu
 OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
+all: develop
+
 -include ../common.mk
 
 develop:
 	@echo make -$(MAKEFLAGS) develop in `pwd`
-	$(MAKE) -$(MAKEFLAGS) develop_$(PLATFORM)
+	$(MAKE) -w -$(MAKEFLAGS) develop_$(PLATFORM)
 
 develop_win:
 	@echo Develop config does not build on Windows.
@@ -47,4 +49,5 @@ publish:
 	@echo trusted_gpu does not make publish
 
 $(DSTROOT)/lib$(LIBRARY_NAME).a: $(OBJECTS)
+	mkdir -p $(DSTROOT)
 	ar -r -cs $@ $?

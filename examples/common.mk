@@ -14,8 +14,51 @@
 .SUFFIXES:
 .SUFFIXES: .c .cc .cpp .o
 
-CC = /usr/bin/gcc
-CPP = /usr/bin/g++
+OS = $(shell uname -s)
+ifeq ($(OS), Darwin)
+  PLATFORM = mac
+  CC = nacl-gcc
+  CPP = nacl-g++
+  TARGET = x86
+  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
+endif
+ifeq ($(OS), Linux)
+  PLATFORM = linux
+  CC = nacl-gcc
+  CPP = nacl-g++
+  TARGET = x86
+  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
+  MACHINE = $(shell uname -m)
+  ifeq ($(MACHINE), x86_64)
+    CC = nacl64-gcc
+    CPP = nacl64-g++
+    TARGET = x86
+    NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+    NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
+  endif
+endif
+ifneq (,$(findstring CYGWIN,$(OS)))
+  PLATFORM = win
+  CC = nacl-gcc
+  CPP = nacl-g++
+  TARGET = x86
+  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
+  MACHINE = $(shell uname -m)
+  ifeq ($(MACHINE), x86_64)
+    CC = nacl64-gcc
+    CPP = nacl64-g++
+    TARGET = x86
+    NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+    NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
+  endif
+endif
+
+OBJROOT = .
+DSTROOT = .
+
 EXTRA_CFLAGS = -Wall -Wno-long-long -pthread
 ALL_CFLAGS = $(CFLAGS) $(EXTRA_CFLAGS)
 ALL_CXXFLAGS = $(CXXFLAGS) $(EXTRA_CFLAGS)

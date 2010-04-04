@@ -19,16 +19,29 @@ PLUGIN_INFO_PLIST = $(PLUGIN_CONTENTS_DIR)/Info.plist
 PLUGIN_RESOURCES_DIR = $(PLUGIN_CONTENTS_DIR)/Resources
 PLUGIN_MACOS_DIR = $(PLUGIN_CONTENTS_DIR)/MacOS
 
+all: develop publish
+
 -include ../common.mk
 
 develop:
 	@echo make develop in `pwd`
-	$(MAKE) -$(MAKEFLAGS) develop_$(PLATFORM)
-	$(MAKE) -$(MAKEFLAGS) copy_files
+	(SRCROOT=`pwd`/../..; $(MAKE) SRCROOT=$$SRCROOT \
+            CC=/usr/bin/gcc \
+            CPP=/usr/bin/g++ \
+            INCLUDES="-I$$SRCROOT \
+                -I$$SRCROOT/third_party \
+                -I$$SRCROOT/third_party/include \
+                -I$$SRCROOT/third_party/npapi/bindings" \
+            OBJROOT=develop/$(PLATFORM)_$(TARGET) \
+            DSTROOT=../develop/$(PLATFORM)_$(TARGET) \
+            OPT_FLAGS="-O0 -g3 -fPIC" develop_$(PLATFORM))
+	$(MAKE) \
+	    SRCROOT=`pwd`/../.. \
+	    DSTROOT=../develop/$(PLATFORM)_$(TARGET) \
+	    copy_files
 
 develop_linux: $(OBJECTS)
 	$(MAKE) LDFLAGS='-shared' \
-	    -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -Werror -fPIC" \
 	    CXXFLAGS="-DXP_UNIX -Werror -fPIC" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
@@ -39,11 +52,10 @@ develop_win:
 
 develop_mac:
 	$(MAKE) LDFLAGS='-bundle -framework Foundation' \
-	    -$(MAKEFLAGS) \
 	    CFLAGS="-DXP_UNIX -Werror" \
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
-	$(MAKE) -$(MAKEFLAGS) PLUGIN=$(DSTROOT)/$(PROGRAM_NAME).plugin \
+	$(MAKE) PLUGIN=$(DSTROOT)/$(PROGRAM_NAME).plugin \
 	    mac_plugin_bundle
 
 mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
@@ -66,14 +78,22 @@ mac_plugin_bundle: $(OBJROOT)/$(PROGRAM_NAME)
 	
 publish:
 	@echo make publish in `pwd`
-	$(MAKE) -$(MAKEFLAGS) \
-	    LDFLAGS="$(LIBS)" \
-	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
+	(SRCROOT=`pwd`/../..; $(MAKE) SRCROOT=$$SRCROOT \
+	    CC=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/$(CC) \
+	    CPP=$$SRCROOT/$(NACL_TOOLCHAIN_DIR)/bin/$(CPP) \
 	    CFLAGS="-DXP_UNIX -Werror" \
 	    CXXFLAGS="-DXP_UNIX -Werror" \
-	    $(OBJROOT)/$(PROGRAM_NAME).nexe
-	cp $(OBJROOT)/$(PROGRAM_NAME).nexe $(DSTROOT)
-	$(MAKE) -$(MAKEFLAGS) copy_files
+	    INCLUDES="-I$$SRCROOT -I$(NACL_INCLUDE)" \
+	    OBJROOT=publish/$(PLATFORM)_$(TARGET) \
+	    DSTROOT=../publish/$(PLATFORM)_$(TARGET) \
+	    LDFLAGS="-lgoogle_nacl_imc -lgoogle_nacl_npruntime -lpthread -lsrpc" \
+	    OPT_FLAGS="-O2" \
+	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
+	    nacl_module copy_files)
+
+nacl_module: $(OBJROOT)/$(PROGRAM_NAME)
+	mkdir -p $(DSTROOT)
+	cp $< $(DSTROOT)
 
 copy_files:
 	cp hello_world.html $(DSTROOT)
