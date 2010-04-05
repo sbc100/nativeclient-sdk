@@ -20,7 +20,7 @@ ifeq ($(OS), Darwin)
   CC = nacl-gcc
   CPP = nacl-g++
   TARGET = x86
-  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
 endif
 ifeq ($(OS), Linux)
@@ -28,7 +28,7 @@ ifeq ($(OS), Linux)
   CC = nacl-gcc
   CPP = nacl-g++
   TARGET = x86
-  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
   MACHINE = $(shell uname -m)
   # TODO(dspringer): Enable this section when Linux supports a 64-bit runtime.
@@ -36,7 +36,7 @@ ifeq ($(OS), Linux)
     # CC = nacl64-gcc
     # CPP = nacl64-g++
     # TARGET = x86
-    # NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+    # NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
     # NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
   # endif
 endif
@@ -45,14 +45,14 @@ ifneq (,$(findstring CYGWIN,$(OS)))
   CC = nacl-gcc
   CPP = nacl-g++
   TARGET = x86
-  NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
   MACHINE = $(shell uname -m)
   ifeq ($(MACHINE), x86_64)
     CC = nacl64-gcc
     CPP = nacl64-g++
     TARGET = x86
-    NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+    NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
     NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
   endif
 endif

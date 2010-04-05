@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Download all Native Client compilers for this platform.
+"""Download all Native Client toolchains for this platform.
 
 This module downloads multiple tgz's and expands them.
 """
@@ -42,13 +42,13 @@ import tempfile
 import urllib
 
 
-def DownloadCompiler(src, dst, base_url, version):
-  """Download one Native Client compiler and extract it.
+def DownloadToolchain(src, dst, base_url, version):
+  """Download one Native Client toolchain and extract it.
 
   Arguments:
     src: name of the host + target platform to download
-    dst: destination directory under compilers/
-    base_url: base url to download compiler tarballs from
+    dst: destination directory under toolchain/
+    base_url: base url to download toolchain tarballs from
     version: version directory to select tarballs from
   """
   path = 'naclsdk_' + src + '.tgz'
@@ -57,8 +57,8 @@ def DownloadCompiler(src, dst, base_url, version):
   # Pick target directory.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   parent_dir = os.path.split(script_dir)[0]
-  compilers_dir = os.path.join(parent_dir, 'compilers')
-  target = os.path.join(compilers_dir, dst)
+  toolchain_dir = os.path.join(parent_dir, 'toolchain')
+  target = os.path.join(toolchain_dir, dst)
 
   # Create a temp dir for the tarball.
   try:
@@ -81,7 +81,7 @@ def DownloadCompiler(src, dst, base_url, version):
   except OSError:
     pass
 
-  # Extract compiler.
+  # Extract toolchain.
   tgz = tarfile.open(tgz_filename, 'r')
   for m in tgz:
     print 'Extracting "%s"' % m.name
@@ -105,16 +105,16 @@ PLATFORM_COLLAPSE = {
 
 PLATFORM_MAPPING = {
     'win32': [
-        ['win_x86', 'host_win/target_x86'],  # Multilib toolchain
+        ['win_x86', 'win_x86'],  # Multilib toolchain
     ],
     'linux': [
-        ['linux_x86', 'host_linux/target_x86'],  # Multilib toolchain
+        ['linux_x86', 'linux_x86'],  # Multilib toolchain
         # TODO(dspringer): Add these in once they have stabilized.
         # ['linux_arm-trusted', 'host_linux/target_arm-trusted'],
         # ['linux_arm-untrusted', 'host_linux/target_arm-trusted'],
     ],
     'darwin': [
-        ['mac_x86', 'host_mac/target_x86'],
+        ['mac_x86', 'mac_x86'], # Multilib toolchain
     ],
 }
 
@@ -124,15 +124,15 @@ def main(argv):
   parser.add_option(
       '-p', '--platforms', dest='platforms',
       default=sys.platform,
-      help='comma separated list of platform compilers to download')
+      help='comma separated list of platform toolchains to download')
   parser.add_option(
       '-b', '--base-url', dest='base_url',
-      default='http://build.chromium.org/buildbot/nacl_archive/nacl/compiler/',
+      default='http://build.chromium.org/buildbot/nacl_archive/nacl/toolchain/',
       help='base url to download from')
   parser.add_option(
       '-v', '--version', dest='version',
       default='latest',
-      help='which version of the compilers to download')
+      help='which version of the toolchain to download')
   parser.add_option(
       '-a', '--all-platforms', dest='platforms',
       action='store_const', const='win32,darwin,linux',
@@ -148,9 +148,9 @@ def main(argv):
     pfix = PLATFORM_COLLAPSE.get(p, p)
     if pfix in PLATFORM_MAPPING:
       for flavor in PLATFORM_MAPPING[pfix]:
-        DownloadCompiler(flavor[0], flavor[1],
-                         base_url=options.base_url,
-                         version=options.version)
+        DownloadToolchain(flavor[0], flavor[1],
+                          base_url=options.base_url,
+                          version=options.version)
     else:
       print 'ERROR: Unknown platform "%s"!' % p
       sys.exit(1)
