@@ -31,13 +31,14 @@ ifeq ($(OS), Linux)
   NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
   MACHINE = $(shell uname -m)
-  ifeq ($(MACHINE), x86_64)
-    CC = nacl64-gcc
-    CPP = nacl64-g++
-    TARGET = x86
-    NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
-    NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
-  endif
+  # TODO(dspringer): Enable this section when Linux supports a 64-bit runtime.
+  # ifeq ($(MACHINE), x86_64)
+    # CC = nacl64-gcc
+    # CPP = nacl64-g++
+    # TARGET = x86
+    # NACL_TOOLCHAIN_DIR = compilers/host_$(PLATFORM)/target_$(TARGET)/sdk/nacl-sdk
+    # NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
+  # endif
 endif
 ifneq (,$(findstring CYGWIN,$(OS)))
   PLATFORM = win
