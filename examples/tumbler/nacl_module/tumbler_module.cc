@@ -63,7 +63,7 @@ NPError NP_Shutdown() {
 // Note that this MIME type has to match the type in the <embed> tag used to
 // load the develop version of the module.
 char* NP_GetMIMEDescription(void) {
-  return "pepper-application/tumbler";
+  return const_cast<char*>("pepper-application/tumbler");
 }
 #endif
 
