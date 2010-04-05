@@ -15,8 +15,10 @@ all: develop publish
 
 -include common.mk
 
+CHROME_FLAGS = --enable-nacl --user-data-dir=~/nacl-chrome-profile
 ifeq ($(PLATFORM), mac)
   CHROME_APP = /Applications/Chromium.app/Contents/MacOS/Chromium
+  CHROME_FLAGS += --no-sandbox
 endif
 ifeq ($(PLATFORM), linux)
   CHROME_APP = ./chrome
@@ -49,8 +51,7 @@ run_hello_world run_pi_generator run_tumbler:
 	  echo "localhost HTTP server is running"; \
 	fi
 	@(target=`echo $@ | sed -e "s/^run_\(.*\)/\1.html/"`; \
-	    $(CHROME_APP) \
-	    --no-sandbox --enable-nacl --internal-pepper \
+	    $(CHROME_APP) $(CHROME_FLAGS) \
 	    http://localhost:5103/publish/$(PLATFORM)_$(TARGET)/$$target)
 
 clean::
