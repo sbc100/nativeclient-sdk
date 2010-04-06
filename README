@@ -24,6 +24,12 @@ Some useful make targets:
   make         # build everything
   make publish # build the publish version of your module (.nexe)
   make develop # build the develop version (you can debug this)
+  make run_hello_world # build and run the publish version of the
+                       # hello_world example - starts a local http server if
+                       # needed
+  make run_pi_generator # build and run the publish version of the
+                        # pi_generator example
+  make run_tumbler # build and run the publish version of the tumbler example
 
 Build products go in either the publish or develop directory.
 
@@ -38,17 +44,27 @@ it easily.  On the Mac, /Applications is a good place.
 
 RUN YOUR MODULE
 
-To run anything you build with the SDK, you'll need to supply these flags:
+To run the publish version of a module you build with the SDK, you'll need to
+supply these flags:
+  --no-sandbox --enable-nacl
+
+To run the development version of a module you build with the SDK, you also
+have to supply the --internal-pepper flag:
   --no-sandbox --enable-nacl --internal-pepper
 
-For example, to run on a Mac from the command-line:
+For example, to run a module on a Mac from the command-line:
 
-  Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-nacl \
-      --internal-pepper
+  # Run the publish version:
+  Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-nacl
+  # Run the development version:
+  Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-nacl --internal-pepper
 
 On Linux:
 
-  ./chrome  --no-sandbox --enable-nacl --internal-pepper
+  # Run the publish version:
+  ./chrome --no-sandbox --enable-nacl
+  # Run the development version:
+  ./chrome --no-sandbox --enable-nacl --internal-pepper
 
 To load the .nexes, you will need to have a web server.  There is a local HTTP
 server included in the examples directory, you can start it like this:
@@ -69,7 +85,7 @@ A note about MIME types: Develop modules must have a MIME type that begins
 with 'pepper-'.  Publish modules must have a MIME type that is exactly
 'application/x-nacl-srpc'.  The HTML files bundled with the examples show how
 to specify a different MIME type for the embedded object when you are debugging
-a module versus running a published module.  Be sure to set the MIME
+a module versus running a publish module.  Be sure to set the MIME
 type of your development version to match the MIME type in the HTML.  On the
 Mac, this means the Info.plist has to have one WebPluginMIMETypes entry; on
 Linux, this means you have to implement the NP_GetMIMEDescription() entry
@@ -89,32 +105,32 @@ To debug your module, follow these steps:
   how to do this, using '#develop' in the URL.  For example, the URL that loads
   the development version of hello_world for debugging is (note the trailing
   '#develop'):
-    file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.html#develop
-  which is given as a command-line parameter to Google Chrome.  The URL for
-  the release .nexe is (note the absence of #develop):
-    http://localhost/examples/release/mac_x86-32/hello_world.html
+    file:///Users/sirhaxalot/nacl-sdk/examples/develop/mac_x86/hello_world.html#develop
+  which is given as a command-line parameter to Google Chrome.  The URL that
+  loads the publish version of your module is (note the absence of #develop):
+    http://localhost/examples/publish/mac_x86/hello_world.html
   You type this into the Google Chrome browser once it is running, and you have
   started a local HTTP server (see below).
 
-2. Create a symlink to your debug module from your platform's standard internet
-  plugin location.  On the Mac, this is ~/Library/Internet\ Plug-Ins.  For
-  example:
+2. Create a symlink to the development version of your module from your
+  platform's standard internet plugin location.  On the Mac, this is
+  ~/Library/Internet\ Plug-Ins.  For example:
     cd ~/Library/Internet\ Plug-Ins/
     ln -s ~/nacl-sdk/src/examples/develop/mac_x86/hello_world.plugin .
 
 3. Instead of creating a symlink, you can launch Google Chrome with the
-  --load-plugin= and --single-process flags.  --load-plugin takes
-  an absolute path to the debug version of your module.  The latter part
-  of this path will have debug/<platform_target> in it.
+  --load-plugin= and --single-process flags.  --load-plugin takes an
+  absolute path to the development version of your module.  The latter part
+  of this path will have develop/<platform_target> in it.
   For example, on the Mac this would be:
-  --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.plugin
+  --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/develop/mac_x86/hello_world.plugin
 
   An example launch line used to debug on the Mac:
     Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-nacl \
         --internal-pepper \
         --single-process \
-        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.plugin \
-        file:///Users/sirhaxalot/nacl-sdk/examples/debug/mac_x86-32/hello_world.html#debug
+        --load-plugin=/Users/sirhaxalot/nacl-sdk/examples/develop/mac_x86/hello_world.plugin \
+        file:///Users/sirhaxalot/nacl-sdk/examples/develop/mac_x86/hello_world.html#develop
 
   --single-process loads the develop version of your module directly into the
   instance of Google Chrome you are debugging.
@@ -132,7 +148,7 @@ Note that this is an internal Google site.
 
 KNOWN ISSUES
 
-- [All, Debug]: To debug your .nexe you have to build a special version.  Once
+- [All, Develop]: To debug your .nexe you have to build a special version.  Once
   you have a development version of your module, you can run Google Chrome in
   your favorite debugger (e.g. gdb); in addition to the list of flags above, you
   can add --load-plugin=/path/to/my/plugin (see above).
@@ -143,5 +159,5 @@ TROUBLESHOOTING
 
 - [Mac]: If you see "Missing Plug-in", check that the symlinks in
   ~/Library/Internet\ Plug-Ins are correct.  If you need to fix them, you will
-  have to quite and restart Chrome.  Make sure you started Chrome with the
-  --internal-pepper flag in addition to the --enable-nacl flag.
+  have to quit and restart the browser.  Make sure you started the browser with
+  the --internal-pepper flag in addition to the --enable-nacl flag.

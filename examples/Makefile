@@ -15,7 +15,7 @@ all: develop publish
 
 -include common.mk
 
-CHROME_FLAGS = --enable-nacl --user-data-dir=~/nacl-chrome-profile
+CHROME_FLAGS = --enable-nacl --user-data-dir=$$HOME/nacl-chrome-profile
 ifeq ($(PLATFORM), mac)
   CHROME_APP = /Applications/Chromium.app/Contents/MacOS/Chromium
   CHROME_FLAGS += --no-sandbox
