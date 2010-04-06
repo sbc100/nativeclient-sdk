@@ -41,9 +41,9 @@ develop:
 	    copy_files
 
 develop_linux: $(OBJECTS)
-	$(MAKE) LDFLAGS='-shared' \
-	    CFLAGS="-DXP_UNIX -Werror -fPIC" \
-	    CXXFLAGS="-DXP_UNIX -Werror -fPIC" \
+	$(MAKE) LDFLAGS='-shared $(ARCH_FLAGS)' \
+	    CFLAGS="-DXP_UNIX -Werror -fPIC $(ARCH_FLAGS)" \
+	    CXXFLAGS="-DXP_UNIX -Werror -fPIC $(ARCH_FLAGS)" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(DSTROOT)/lib$(PROGRAM_NAME).so
 

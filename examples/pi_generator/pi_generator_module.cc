@@ -26,10 +26,17 @@ NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
 // NP_GetEntryPoints() to get the NPP functions.  Also, the NPN entry points are
 // defined by the Native Client loader, but are not defined in the trusted
 // plugin loader (and must be filled in in NP_Initialize()).
-#if defined(__native_client__) || defined(OS_LINUX)
-NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
-                      NPPluginFuncs* plugin_funcs) {
-  return NP_GetEntryPoints(plugin_funcs);
+#if defined(__native_client__)
+NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
+                      NPPluginFuncs* plugin_functions) {
+  return NP_GetEntryPoints(plugin_functions);
+}
+#elif defined(OS_LINUX)
+NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
+                      NPPluginFuncs* plugin_functions) {
+  extern void InitializeBrowserFunctions(NPNetscapeFuncs* browser_functions);
+  InitializeBrowserFunctions(browser_functions);
+  return NP_GetEntryPoints(plugin_functions);
 }
 #elif defined(OS_MACOSX)
 NPError NP_Initialize(NPNetscapeFuncs* browser_functions) {
@@ -51,12 +58,37 @@ NPError NP_Shutdown() {
   return NPERR_NO_ERROR;
 }
 
+
 #if !defined(__native_client__) && defined(OS_LINUX)
+NPError NP_GetValue(NPP instance, NPPVariable variable, void* value) {
+  extern NPError NPP_GetValue(NPP instance, NPPVariable variable, void* value);
+  NPError err = NPERR_NO_ERROR;
+  switch (variable) {
+    case NPPVpluginNameString:
+      *(static_cast<const char**>(value)) = "Pi Generator";
+      break;
+    case NPPVpluginDescriptionString:
+      *(static_cast<const char**>(value)) =
+          "Compute pi using a stochastic method.";
+      break;
+    case NPPVpluginNeedsXEmbed:
+      *(static_cast<NPBool*>(value)) = TRUE;
+      break;
+    default:
+      err = NPP_GetValue(instance, variable, value);
+      break;
+  }
+  return err;
+}
+
 // Note that this MIME type has to match the type in the <embed> tag used to
-// load the develop version of the module.
-char* NP_GetMIMEDescription(void) {
-  return const_cast<char*>("pepper-application/pi-generator");
+// load the develop version of the module.  See the Mozilla docs for more info
+// on the MIME type format:
+//   https://developer.mozilla.org/En/NP_GetMIMEDescription
+const char* NP_GetMIMEDescription(void) {
+  return "pepper-application/pi-generator:nexe:Pi Generator example";
 }
 #endif
 
 }  // extern "C"
+

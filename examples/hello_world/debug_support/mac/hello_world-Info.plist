@@ -21,7 +21,7 @@
 	<key>CSResourcesFileMapped</key>
 	<string>yes</string>
 	<key>WebPluginDescription</key>
-	<string>Hello World Trusted Plug-in</string>
+	<string>Simple Hello World example</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
 		<key>pepper-application/hello_world</key>
@@ -35,6 +35,6 @@
 		</dict>
 	</dict>
 	<key>WebPluginName</key>
-	<string>Hello World Trusted Plug-in</string>
+	<string>Hello World Example</string>
 </dict>
 </plist>

@@ -57,9 +57,9 @@ develop:
 
 develop_linux:
 	$(MAKE) $(DSTROOT)/libtrusted_gpu.a
-	$(MAKE) LDFLAGS='-shared' \
-	    CFLAGS="-DXP_UNIX -Werror -fPIC" \
-	    CXXFLAGS="-DXP_UNIX -Werror -fPIC" \
+	$(MAKE) LDFLAGS='-shared $(ARCH_FLAGS) -L$(DSTROOT) -ltrusted_gpu' \
+	    CFLAGS="-DXP_UNIX -Werror -fPIC $(ARCH_FLAGS)" \
+	    CXXFLAGS="-DXP_UNIX -Werror -fPIC $(ARCH_FLAGS)" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
 	cp $(OBJROOT)/$(PROGRAM_NAME) $(DSTROOT)/lib$(PROGRAM_NAME).so
 

@@ -28,10 +28,20 @@ NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
 // NP_GetEntryPoints() to get the NPP functions.  Also, the NPN entry points are
 // defined by the Native Client loader, but are not defined in the trusted
 // plugin loader (and must be filled in in NP_Initialize()).
-#if defined(__native_client__) || defined(OS_LINUX)
-NPError NP_Initialize(NPNetscapeFuncs* browser_funcs,
-                      NPPluginFuncs* plugin_funcs) {
-  NPError np_err = NP_GetEntryPoints(plugin_funcs);
+#if defined(__native_client__)
+NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
+                      NPPluginFuncs* plugin_functions) {
+  NPError np_err = NP_GetEntryPoints(plugin_functions);
+  if (NPERR_NO_ERROR == np_err)
+    pglInitialize();
+  return np_err;
+}
+#elif defined(OS_LINUX)
+NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
+                      NPPluginFuncs* plugin_functions) {
+  extern void InitializeBrowserFunctions(NPNetscapeFuncs* browser_functions);
+  InitializeBrowserFunctions(browser_functions);
+  NPError np_err = NP_GetEntryPoints(plugin_functions);
   if (NPERR_NO_ERROR == np_err)
     pglInitialize();
   return np_err;
@@ -60,10 +70,32 @@ NPError NP_Shutdown() {
 }
 
 #if !defined(__native_client__) && defined(OS_LINUX)
+NPError NP_GetValue(NPP instance, NPPVariable variable, void* value) {
+  extern NPError NPP_GetValue(NPP instance, NPPVariable variable, void* value);
+  NPError err = NPERR_NO_ERROR;
+  switch (variable) {
+    case NPPVpluginNameString:
+      *(static_cast<const char**>(value)) = "Tumbler Example";
+      break;
+    case NPPVpluginDescriptionString:
+      *(static_cast<const char**>(value)) = "Interactive 3D cube example";
+      break;
+    case NPPVpluginNeedsXEmbed:
+      *(static_cast<NPBool*>(value)) = TRUE;
+      break;
+    default:
+      err = NPP_GetValue(instance, variable, value);
+      break;
+  }
+  return err;
+}
+
 // Note that this MIME type has to match the type in the <embed> tag used to
-// load the develop version of the module.
-char* NP_GetMIMEDescription(void) {
-  return const_cast<char*>("pepper-application/tumbler");
+// load the develop version of the module.  See the Mozilla docs for more info
+// on the MIME type format:
+//   https://developer.mozilla.org/En/NP_GetMIMEDescription
+const char* NP_GetMIMEDescription(void) {
+  return "pepper-application/tumbler:nexe:Interactive 3D cube example";
 }
 #endif
 

@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can
 # be found in the LICENSE file.
 
-# Common makefile for the examples.  This hase some basic variables, such as
+# Common makefile for the examples.  This has some basic variables, such as
 # CC (the compiler) and some suffix rules such as .c.o.
 #
 # The main purpose of this makefile component is to demonstrate building
@@ -27,6 +27,7 @@ ifeq ($(OS), Linux)
   PLATFORM = linux
   CC = nacl-gcc
   CPP = nacl-g++
+  ARCH_FLAGS = -m32
   TARGET = x86
   NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
@@ -35,6 +36,7 @@ ifeq ($(OS), Linux)
   # ifeq ($(MACHINE), x86_64)
     # CC = nacl64-gcc
     # CPP = nacl64-g++
+    # ARCH_FLAGS = -m64
     # TARGET = x86
     # NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
     # NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
@@ -60,9 +62,9 @@ endif
 OBJROOT = .
 DSTROOT = .
 
-EXTRA_CFLAGS = -Wall -Wno-long-long -pthread
-ALL_CFLAGS = $(CFLAGS) $(EXTRA_CFLAGS)
-ALL_CXXFLAGS = $(CXXFLAGS) $(EXTRA_CFLAGS)
+EXTRA_CFLAGS += -Wall -Wno-long-long -pthread
+ALL_CFLAGS = $(CFLAGS) $(EXTRA_CFLAGS) $(ARCH_FLAGS)
+ALL_CXXFLAGS = $(CXXFLAGS) $(EXTRA_CFLAGS) $(ARCH_FLAGS)
 ALL_OPT_FLAGS = $(OPT_FLAGS)
 
 $(OBJROOT)/%.o: %.c
