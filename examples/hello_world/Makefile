@@ -51,7 +51,7 @@ develop_win:
 	@echo Develop config does not build on Windows.
 
 develop_mac:
-	$(MAKE) LDFLAGS='-bundle -framework Foundation' \
+	$(MAKE) LDFLAGS='-bundle -framework Foundation $(ARCH_FLAGS)' \
 	    CFLAGS="-DXP_UNIX -Werror" \
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
@@ -86,7 +86,11 @@ publish:
 	    INCLUDES="-I$$SRCROOT -I$(NACL_INCLUDE)" \
 	    OBJROOT=publish/$(PLATFORM)_$(TARGET) \
 	    DSTROOT=../publish/$(PLATFORM)_$(TARGET) \
-	    LDFLAGS="-lgoogle_nacl_imc -lgoogle_nacl_npruntime -lpthread -lsrpc" \
+	    LDFLAGS="-lgoogle_nacl_imc \
+	        -lgoogle_nacl_npruntime \
+	        -lpthread \
+	        -lsrpc \
+	        $(ARCH_FLAGS)" \
 	    OPT_FLAGS="-O2" \
 	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
 	    nacl_module copy_files)

@@ -69,7 +69,8 @@ develop_win:
 develop_mac:
 	$(MAKE) $(DSTROOT)/libtrusted_gpu.a
 	$(MAKE) \
-	    LDFLAGS='-bundle -framework Foundation -L$(DSTROOT) -ltrusted_gpu' \
+	    LDFLAGS='-bundle -framework Foundation \
+	        $(ARCH_FLAGS) -L$(DSTROOT) -ltrusted_gpu' \
 	    CFLAGS="-DXP_UNIX -Werror" \
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
@@ -110,7 +111,8 @@ publish:
 	             -lpthread \
 	             -lsrpc \
 	             -lgoogle_nacl_pgl \
-	             -lgoogle_nacl_gpu" \
+	             -lgoogle_nacl_gpu \
+	             $(ARCH_FLAGS)" \
 	    OPT_FLAGS="-O2" \
 	    PROGRAM_NAME=$(PROGRAM_NAME).nexe \
 	    nacl_module copy_files)
