@@ -35,9 +35,10 @@ At this time this is just a tarball.
 
 import os
 import re
+import shutil
 import subprocess
 import sys
-import tarfile
+import tempfile
 
 EXCLUDE_DIRS = ['.svn', '.download', 'scons-out', 'packages']
 
@@ -48,12 +49,12 @@ def ExcludeFile(file):
           file == 'DEPS')
 
 
+# Note that this function has to be run from within a subversion working copy.
 def SVNRevision():
   p = subprocess.Popen(['svn', 'info'],
-                       stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE, shell=True)
-  (stdout, stderr) = p.communicate()
-  m = re.search('Revision: ([0-9]+)', stdout)
+                       stdout=subprocess.PIPE)
+  svn_info = p.communicate()[0]
+  m = re.search('Revision: ([0-9]+)', svn_info)
   if m:
     return int(m.group(1))
   else:
@@ -67,19 +68,69 @@ def VersionString():
 
 
 def main(argv):
+  # Cache the current location so we can return here before removing the
+  # temporary dirs.
+  home_dir = os.path.realpath(os.curdir)
+
   os.chdir('src')
-  version = VersionString()
-  tar = tarfile.open('../nacl-sdk.tgz', 'w:gz')
+
+  version_dir = VersionString()
+
+  # Create a temporary directory using the version string, then move the
+  # contents of src to that directory, clean the directory of unwanted
+  # stuff and finally tar it all up using the platform's tar.  There seems to
+  # be a problem with python's tarfile module and symlinks.
+  temp_dir = tempfile.mkdtemp();
+  installer_dir = os.path.join(temp_dir, version_dir)
+  try:
+    os.makedirs(installer_dir)
+  except OSError:
+    pass
+
+  # Use native tar to copy the SDK into the build location; this preserves
+  # symlinks.
+  tar_src_dir = os.path.realpath(os.curdir)
+  tar_cf = subprocess.Popen(['tar', 'cf', '-', '.'],
+                            cwd=tar_src_dir,
+                            stdout=subprocess.PIPE)
+  tar_xf = subprocess.Popen(['tar', 'xf', '-'],
+                            cwd=installer_dir,
+                            stdin=tar_cf.stdout)
+  tar_copy_err = tar_xf.communicate()[1]
+
+  # Clean out the cruft.
+  os.chdir(installer_dir)
+  # This loop prunes the result of os.walk() at each excluded dir, so that it
+  # doesn't descend into the excluded dir.
+  rm_dirs = []
   for root, dirs, files in os.walk('.'):
     for excl in EXCLUDE_DIRS:
       if excl in dirs:
         dirs.remove(excl)
-    files = [f for f in files if not ExcludeFile(f)]
-    for name in files:
-      path = os.path.join(root, name)
-      arcname = os.path.join(version, path)
-      tar.add(path, arcname=arcname)
-  tar.close()
+        rm_dirs.append(os.path.realpath(os.path.join(root, excl)))
+    for rm_dir in rm_dirs:
+      try:
+        shutil.rmtree(rm_dir);
+      except OSError:
+        pass
+    rm_files = [os.path.realpath(os.path.join(root, f))
+        for f in files if ExcludeFile(f)]
+    for rm_file in rm_files:
+      try:
+        os.unlink(rm_file);
+      except OSError:
+        pass
+
+  # Now that the SDK directory is copied and cleaned out, tar it all up using
+  # the native platform tar.
+  os.chdir(temp_dir)
+  archive = os.path.join(home_dir, 'nacl-sdk.tgz')
+  tarball = subprocess.Popen(['tar', 'czf', archive, version_dir])
+  tarball_err = tarball.communicate()[1]
+
+  # Clean up.
+  os.chdir(home_dir)
+  shutil.rmtree(temp_dir)
 
 
 if __name__ == '__main__':
