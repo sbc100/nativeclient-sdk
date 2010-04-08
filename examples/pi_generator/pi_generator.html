@@ -4,8 +4,22 @@
   <!-- Copyright 2008 Google Inc.  All rights reserved. -->
   <head>
     <title>Monte Carlo Estimate for Pi</title>
+    <script type="text/javascript">
+      var pi_generator = null;
+      var paintInterval = null;
+
+      function moduleDidLoad() {
+        pi_generator = document.getElementById('pi_generator');
+        paintInterval = setInterval(
+            "document.form.pi.value = pi_generator.paint()", 5);
+      }
+
+      function pageDidUnload() {
+        clearInterval(paintInterval);
+      }
+    </script>
   </head>
-    <body id="bodyId" onload="doOnLoad()" onunload="doOnUnload()">
+    <body id="bodyId" onunload="pageDidUnload()">
     <h1>Monte Carlo Estimate for Pi</h1>
     <p>
       The Native Client module executed in this page creates a thread
@@ -29,55 +43,28 @@
     <script type="text/javascript">
       contentDiv = document.getElementById('nacl_pi_generator_content');
       if (window.location.hash == '#develop') {
-      // Load the develop version of the module.
+        // Load the develop version of the module.
         contentDiv.innerHTML = '<embed name="nacl_module" '
                                + 'id="pi_generator" '
                                + 'width=200 height=200 '
                                + 'type="pepper-application/pi-generator" '
                                + 'dimensions="2" />';
+        moduleDidLoad();
       } else {
-      // Load the published .nexe.
+        // Load the published .nexe.  Note that this uses the onload event
+        // sent by the Native Client module.
         contentDiv.innerHTML = '<embed name="nacl_module" '
                                + 'id="pi_generator" '
                                + 'width=200 height=200 '
                                + 'src="pi_generator.nexe" '
                                + 'type="application/x-nacl-srpc" '
-                               + 'dimensions="2" />';
+                               + 'dimensions="2" '
+                               + 'onload=moduleDidLoad(); />';
       }
     </script>
     <br />
     <form name="form">
       <input type="text" size="15" name="pi" />
     </form>
-    <script type="text/javascript">
-      <!--
-var pi_generator = null;
-var paintInterval = null;
-var loadTimer = null;
-
-var PostInit = function() {
-  if (pi_generator == undefined) {
-    alert('Unable to load, try reloading page (or missing plugins?)');
-    return;
-  }
-  if (pi_generator.paint == undefined) {
-    loadTimer = setTimeout(PostInit, 100);
-  } else {
-    paintInterval = setInterval("document.form.pi.value = pi_generator.paint()",
-                                5);
-  }
-}
-
-function doOnLoad() {
-  pi_generator = document.getElementById('pi_generator');
-  PostInit();
-}
-
-function doOnUnload() {
-  clearInterval(paintInterval);
-  clearTimeout(loadTimer);
-}
-      -->
-    </script>
   </body>
 </HTML>

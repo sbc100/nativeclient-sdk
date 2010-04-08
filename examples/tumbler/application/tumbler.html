@@ -28,8 +28,15 @@
     -->
     <div id="tumbler_content"></div>
     <script type="text/javascript">
-      var application = new tumbler.Application();
-      application.run('tumbler_content');
+      // This function is called when the tumbler module is loaded.
+      function moduleDidLoad() {
+        var module =
+            document.getElementById(tumbler.Application.TUMBLER_MODULE_NAME);
+        tumbler.application.moduleDidLoad(module);
+      }
+
+      tumbler.application = new tumbler.Application();
+      tumbler.application.run('tumbler_content');
     </script>
   </body>
 </HTML>

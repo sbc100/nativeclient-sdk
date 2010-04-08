@@ -101,7 +101,6 @@ nacl_module: $(OBJROOT)/$(PROGRAM_NAME)
 
 copy_files:
 	cp hello_world.html $(DSTROOT)
-	cp nacl_js_lib.js $(DSTROOT)
 
 $(OBJROOT)/$(PROGRAM_NAME): $(OBJECTS)
 	$(CPP) $^ $(LDFLAGS) -o $@

@@ -82,34 +82,16 @@ tumbler.Application.prototype.run = function(opt_contentDivName) {
                            + 'type="pepper-application/tumbler" '
                            + 'width="480" height="480" '
                            + 'dimensions="3" />'
+    moduleDidLoad();
   } else {
     contentDiv.innerHTML = '<embed id="'
                            + tumbler.Application.TUMBLER_MODULE_NAME + '" '
                            + 'src="tumbler.nexe" '
                            + 'type="application/x-nacl-srpc" '
                            + 'width="480" height="480" '
-                           + 'dimensions="3" />'
+                           + 'dimensions="3" '
+                           + 'onload="moduleDidLoad()" />'
   }
-
-  /**
-   * Class function that loads the module.  If the module is not available,
-   * this function starts a timer with itself as the argument.  As soon as the
-   * module is loaded, it sends the OnModuleLoaded() message.
-   */
-  this.module_ = null;
-  var thisref = this;
-  LoadModule = function() {
-    module = document.getElementById(tumbler.Application.TUMBLER_MODULE_NAME);
-    if (module == undefined || module.setCameraOrientation == undefined) {
-      // Recursive call to the LoadModule function.
-      thisref.loadTimer_ = setTimeout(arguments.callee, 500);
-    } else {
-      clearTimeout(thisref.loadTimer_);
-      thisref.moduleDidLoad(module);
-    }
-  }
-
-  LoadModule();
 }
 
 /**
