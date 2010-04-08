@@ -26,18 +26,12 @@ else
   readonly OS_SUBDIR_SHORT="win"
 fi
 
-# Decide if we're being run inside the SDK or a source tree.
-# locate default nacl_sdk (location of nacl-gcc, nacl-g++, etc.)
-if [ -d ${NACL_NATIVE_CLIENT_SDK}/sdk.DEPS ]; then
-  readonly NACL_TOP=$NACL_NATIVE_CLIENT_SDK
-  readonly NACL_SDK_BASE=${NACL_SDK_BASE:-\
-${NACL_NATIVE_CLIENT_SDK}/compiler/host_$OS_SUBDIR_SHORT/target_x86}
-else
-  readonly NACL_TOP=$(cd $NACL_NATIVE_CLIENT_SDK/.. ; pwd)
-  readonly NACL_NATIVE_CLIENT=${NACL_TOP}/native_client
-  readonly NACL_SDK_BASE=${NACL_SDK_BASE:-\
-${NACL_TOP}/native_client/src/third_party/nacl_sdk/$OS_SUBDIR/sdk/nacl-sdk}
-fi
+# locate default nacl_sdk toolchain
+# TODO: x86 only at the moment
+readonly NACL_TOP=$(cd $NACL_NATIVE_CLIENT_SDK/.. ; pwd)
+readonly NACL_NATIVE_CLIENT=${NACL_TOP}/native_client
+readonly NACL_SDK_BASE=${NACL_SDK_BASE:-\
+${NACL_NATIVE_CLIENT_SDK}/toolchain/${OS_SUBDIR_SHORT}_x86/sdk/nacl-sdk}
 
 # packages subdirectories
 readonly NACL_PACKAGES_REPOSITORY=${NACL_PACKAGES}/repository
@@ -55,7 +49,7 @@ readonly NACLRANLIB=${NACL_SDK_BASE}/bin/nacl-ranlib
 readonly NACLLD=${NACL_SDK_BASE}/bin/nacl-ld
 
 # NACL_SDK_GCC_SPECS_PATH is where nacl-gcc 'specs' file will be installed
-readonly NACL_SDK_GCC_SPECS_PATH=${NACL_SDK_BASE}/lib/gcc/nacl/4.2.2
+readonly NACL_SDK_GCC_SPECS_PATH=${NACL_SDK_BASE}/lib/gcc/nacl64/4.4.3
 
 # NACL_SDK_USR is where the headers, libraries, etc. will be installed
 readonly NACL_SDK_USR=${NACL_SDK_BASE}/nacl/usr
