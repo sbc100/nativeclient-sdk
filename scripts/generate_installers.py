@@ -87,14 +87,21 @@ def main(argv):
   except OSError:
     pass
 
+  # Decide environment to run in per platform.
+  # This adds the assumption that cygwin is installed in the default location
+  # when cooking the sdk for windows.
+  env = os.environ.copy()
+  if sys.platform == 'win32':
+    env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+
   # Use native tar to copy the SDK into the build location; this preserves
   # symlinks.
   tar_src_dir = os.path.realpath(os.curdir)
   tar_cf = subprocess.Popen(['tar', 'cf', '-', '.'],
-                            cwd=tar_src_dir,
+                            cwd=tar_src_dir, env=env,
                             stdout=subprocess.PIPE)
   tar_xf = subprocess.Popen(['tar', 'xf', '-'],
-                            cwd=installer_dir,
+                            cwd=installer_dir, env=env,
                             stdin=tar_cf.stdout)
   tar_copy_err = tar_xf.communicate()[1]
 
@@ -125,7 +132,7 @@ def main(argv):
   # the native platform tar.
   os.chdir(temp_dir)
   archive = os.path.join(home_dir, 'nacl-sdk.tgz')
-  tarball = subprocess.Popen(['tar', 'czf', archive, version_dir])
+  tarball = subprocess.Popen(['tar', 'czf', archive, version_dir], env=env)
   tarball_err = tarball.communicate()[1]
 
   # Clean up.
