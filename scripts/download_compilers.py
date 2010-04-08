@@ -36,8 +36,9 @@ This module downloads multiple tgz's and expands them.
 import optparse
 import os
 import shutil
+import stat
+import subprocess
 import sys
-import tarfile
 import tempfile
 import urllib
 
@@ -68,11 +69,19 @@ def DownloadToolchain(src, dst, base_url, version):
   tgz_filename = os.path.join(tgz_dir, path)
 
   print 'Downloading "%s" to "%s"...' % (url, tgz_filename)
+  sys.stdout.flush()
 
   # Download it.
   urllib.urlretrieve(url, tgz_filename)
 
   # Make sure the old cruft in the target is gone.
+  # Special handling for windows.
+  if sys.platform == 'win32':
+    for root, dirs, files in os.walk(target):
+      for d in dirs:
+        os.chmod(os.path.join(root, d), stat.S_IWRITE | stat.S_IREAD)
+      for f in files:
+        os.chmod(os.path.join(root, f), stat.S_IWRITE | stat.S_IREAD)
   shutil.rmtree(target, True)
 
   # Setup target directory.
@@ -81,12 +90,22 @@ def DownloadToolchain(src, dst, base_url, version):
   except OSError:
     pass
 
+  # Decide environment to run in per platform.
+  # This adds the assumption that cygwin is installed in the default location
+  # when cooking the sdk for windows.
+  env = os.environ.copy()
+  if sys.platform == 'win32':
+    env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+
   # Extract toolchain.
-  tgz = tarfile.open(tgz_filename, 'r')
-  for m in tgz:
-    print 'Extracting "%s"' % m.name
-    tgz.extract(m, target)
-  tgz.close()
+  old_cwd = os.getcwd()
+  os.chdir(tgz_dir)
+  p = subprocess.Popen(
+      'tar xfzv "%s" && mv sdk "%s"' % (path, target.replace('\\', '/')),
+      env=env, shell=True) 
+  p.communicate()
+  assert p.returncode == 0
+  os.chdir(old_cwd)
 
   print 'Extract complete.'
   

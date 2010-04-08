@@ -36,6 +36,7 @@ At this time this is just a tarball.
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -51,8 +52,7 @@ def ExcludeFile(file):
 
 # Note that this function has to be run from within a subversion working copy.
 def SVNRevision():
-  p = subprocess.Popen(['svn', 'info'],
-                       stdout=subprocess.PIPE)
+  p = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE)
   svn_info = p.communicate()[0]
   m = re.search('Revision: ([0-9]+)', svn_info)
   if m:
@@ -97,42 +97,47 @@ def main(argv):
   # Use native tar to copy the SDK into the build location; this preserves
   # symlinks.
   tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen(['tar', 'cf', '-', '.'],
-                            cwd=tar_src_dir, env=env,
+  tar_cf = subprocess.Popen('tar cfv - .',
+                            cwd=tar_src_dir, env=env, shell=True,
                             stdout=subprocess.PIPE)
-  tar_xf = subprocess.Popen(['tar', 'xf', '-'],
-                            cwd=installer_dir, env=env,
+  tar_xf = subprocess.Popen('tar xfv -',
+                            cwd=installer_dir, env=env, shell=True,
                             stdin=tar_cf.stdout)
   tar_copy_err = tar_xf.communicate()[1]
 
   # Clean out the cruft.
   os.chdir(installer_dir)
+
+  # Make everything read/write (windows needs this).
+  if sys.platform == 'win32':
+    for root, dirs, files in os.walk('.'):
+      for d in dirs:
+        os.chmod(os.path.join(root, d), stat.S_IWRITE | stat.S_IREAD)
+      for f in files:
+        os.chmod(os.path.join(root, f), stat.S_IWRITE | stat.S_IREAD)
+
   # This loop prunes the result of os.walk() at each excluded dir, so that it
   # doesn't descend into the excluded dir.
-  rm_dirs = []
   for root, dirs, files in os.walk('.'):
+    rm_dirs = []
     for excl in EXCLUDE_DIRS:
       if excl in dirs:
         dirs.remove(excl)
-        rm_dirs.append(os.path.realpath(os.path.join(root, excl)))
+        rm_dirs.append(os.path.join(root, excl))
     for rm_dir in rm_dirs:
-      try:
-        shutil.rmtree(rm_dir);
-      except OSError:
-        pass
-    rm_files = [os.path.realpath(os.path.join(root, f))
-        for f in files if ExcludeFile(f)]
+      shutil.rmtree(rm_dir);
+    rm_files = [os.path.join(root, f) for f in files if ExcludeFile(f)]
     for rm_file in rm_files:
-      try:
-        os.unlink(rm_file);
-      except OSError:
-        pass
+      os.remove(rm_file);
 
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
   os.chdir(temp_dir)
   archive = os.path.join(home_dir, 'nacl-sdk.tgz')
-  tarball = subprocess.Popen(['tar', 'czf', archive, version_dir], env=env)
+  tarball = subprocess.Popen(
+      'tar cvzf nacl-sdk.tgz %s && cp nacl-sdk.tgz %s' % (
+           version_dir, archive.replace('\\', '/')),
+      env=env, shell=True)
   tarball_err = tarball.communicate()[1]
 
   # Clean up.
