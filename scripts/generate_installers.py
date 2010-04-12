@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 
-EXCLUDE_DIRS = ['.svn', '.download', 'scons-out', 'packages']
+EXCLUDE_DIRS = ['.download', '.svn', 'scons-out', 'packages', 'scripts']
 
 # Return True if |file| should be excluded from the tarball.
 def ExcludeFile(file):
