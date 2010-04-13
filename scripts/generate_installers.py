@@ -133,12 +133,29 @@ def main(argv):
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
   os.chdir(temp_dir)
-  archive = os.path.join(home_dir, 'nacl-sdk.tgz')
+
+  # Set the default shell command and output name.
+  ar_cmd = 'tar cvzf %(ar_name)s %(input)s && cp %(ar_name)s %(output)s'
+  ar_name = 'nacl-sdk.tgz'
+
+  # Windows only: change the command and output filename--we want to create
+  # a self-extracting 7zip archive, not a tarball.
+  if sys.platform == 'cygwin':
+    ar_cmd = os.path.join(
+        home_dir, 'src/scripts/7za' + \
+        ' a -sfx7z.sfx %(ar_name)s %(input)s '
+        '&& cp %(ar_name)s %(output)s')
+    ar_name = 'nacl-sdk.exe'
+
+  archive = os.path.join(home_dir, ar_name)
   tarball = subprocess.Popen(
-      'tar cvzf nacl-sdk.tgz %s && cp nacl-sdk.tgz %s' % (
-           version_dir, archive.replace('\\', '/')),
+      ar_cmd % (
+           {'ar_name':ar_name,
+            'input':version_dir,
+            'output':archive.replace('\\', '/')}),
       env=env, shell=True)
   tarball_err = tarball.communicate()[1]
+
 
   # Clean up.
   os.chdir(home_dir)
