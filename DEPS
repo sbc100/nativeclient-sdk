@@ -34,7 +34,7 @@ deps = {
 hooks = [
   {
     "pattern": ".",
-    "action": ["python", "src/scripts/download_compilers.py",
+    "action": ["python", "src/build_tools/download_compilers.py",
                "-v", Var("compiler_version")],
   }
 ]

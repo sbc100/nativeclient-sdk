@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 
-EXCLUDE_DIRS = ['.download', '.svn', 'scons-out', 'packages', 'scripts']
+EXCLUDE_DIRS = ['.download', '.svn', 'build_tools', 'packages', 'scons-out']
 
 # Return True if |file| should be excluded from the tarball.
 def ExcludeFile(file):
@@ -142,7 +142,7 @@ def main(argv):
   # a self-extracting 7zip archive, not a tarball.
   if sys.platform == 'cygwin':
     ar_cmd = os.path.join(
-        home_dir, 'src/scripts/7za' + \
+        home_dir, 'src/build_tools/7za' + \
         ' a -sfx7z.sfx %(ar_name)s %(input)s '
         '&& cp %(ar_name)s %(output)s')
     ar_name = 'nacl-sdk.exe'
