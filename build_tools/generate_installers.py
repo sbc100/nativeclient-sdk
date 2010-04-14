@@ -83,7 +83,7 @@ def main(argv):
   temp_dir = tempfile.mkdtemp();
   installer_dir = os.path.join(temp_dir, version_dir)
   try:
-    os.makedirs(installer_dir)
+    os.makedirs(installer_dir, mode=0777)
   except OSError:
     pass
 
@@ -97,7 +97,7 @@ def main(argv):
   # Use native tar to copy the SDK into the build location; this preserves
   # symlinks.
   tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen('tar cfv - .',
+  tar_cf = subprocess.Popen('tar cf - .',
                             cwd=tar_src_dir, env=env, shell=True,
                             stdout=subprocess.PIPE)
   tar_xf = subprocess.Popen('tar xfv -',
