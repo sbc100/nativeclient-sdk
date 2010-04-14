@@ -43,6 +43,12 @@ import tempfile
 
 EXCLUDE_DIRS = ['.download', '.svn', 'build_tools', 'packages', 'scons-out']
 
+
+# A list of all platforms that should use the Windows-based build strategy
+# (which makes a self-extracting zip instead of a tarball).
+WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
+
+
 # Return True if |file| should be excluded from the tarball.
 def ExcludeFile(file):
   return (file.startswith('.DS_Store') or
@@ -140,7 +146,7 @@ def main(argv):
 
   # Windows only: change the command and output filename--we want to create
   # a self-extracting 7zip archive, not a tarball.
-  if sys.platform == 'cygwin':
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
     ar_cmd = os.path.join(
         home_dir, 'src/build_tools/7za' + \
         ' a -sfx7z.sfx %(ar_name)s %(input)s '
