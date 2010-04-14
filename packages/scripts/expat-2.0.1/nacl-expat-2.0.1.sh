@@ -18,6 +18,7 @@ readonly PACKAGE_NAME=expat-2.0.1
 
 source ../common.sh
 
+export LDFLAGS=-lnosys
 
 DefaultPackageInstall
 exit 0

@@ -23,7 +23,7 @@ CustomConfigureStep() {
   Banner "Configuring ${PACKAGE_NAME}"
   ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
   # TODO: side-by-side install
-  CC=${NACLCC} AR="${NACLAR} -r" RANLIB=${NACLRANLIB} ./configure\
+  CC=${NACLCC} AR="${NACLAR} -r" RANLIB=${NACLRANLIB} CFLAGS="-Dunlink=puts" ./configure\
      --prefix=${NACL_SDK_USR}
 }
 

@@ -18,6 +18,8 @@ readonly PACKAGE_NAME=libpng-1.2.40
 
 source ../common.sh
 
+export LIBS=-lnosys
+
 DefaultPackageInstall
 exit 0
 

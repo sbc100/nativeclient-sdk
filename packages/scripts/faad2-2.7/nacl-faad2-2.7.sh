@@ -18,6 +18,7 @@ readonly PACKAGE_NAME=faad2-2.7
 
 source ../common.sh
 
+export LIBS=-lnosys
 
 DefaultPackageInstall
 exit 0

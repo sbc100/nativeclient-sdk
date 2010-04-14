@@ -18,6 +18,7 @@ readonly PACKAGE_NAME=lame-398-2
 
 source ../common.sh
 
+export LIBS=-lnosys
 
 DefaultPackageInstall
 exit 0

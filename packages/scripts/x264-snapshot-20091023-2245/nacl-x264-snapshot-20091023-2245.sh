@@ -18,7 +18,6 @@ readonly PACKAGE_NAME=x264-snapshot-20091023-2245
 
 source ../common.sh
 
-
 CustomExtractStep() {
   Banner "Untaring ${PACKAGE_NAME}"
   ChangeDir ${NACL_PACKAGES_REPOSITORY}
@@ -44,7 +43,8 @@ CustomConfigureStep() {
     --disable-pthread \
     --prefix=${NACL_SDK_USR} \
     --exec-prefix=${NACL_SDK_USR} \
-    --libdir=${NACL_SDK_USR_LIB}
+    --libdir=${NACL_SDK_USR_LIB} \
+    --extra-ldflags=-lnosys
 }
 
 
