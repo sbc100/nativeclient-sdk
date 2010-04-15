@@ -2,7 +2,7 @@ vars = {
   "compiler_version": "latest",
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
   # Note: make sure this is the same rev as the one used in native_client.
-  "chromium_version": "42751",
+  "chromium_version": "44518",
 }
 
 deps = {
