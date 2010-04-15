@@ -36,7 +36,7 @@ help_message = '''
 
 
 DEFAULT_CHROME_INSTALL_PATH_MAP = {
-    'win32': r'c:\AppData\Local\Chromium\Application',
+    'win32': r'c:\Program Files\chrome-win32',
     'cygwin': r'c:\cygwin\bin',
     'linux': '/opt/google/chrome',
     'linux2': '/opt/google/chrome',
@@ -144,27 +144,28 @@ def main(argv=None):
   env = os.environ.copy()
   if sys.platform == 'win32':
     env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+  home_dir = os.path.realpath(os.curdir)
 
   # Build the examples.
-  make = subprocess.Popen('make publish', env=env, shell=True)
+  make = subprocess.Popen('make publish', env=env, cwd=home_dir, shell=True)
   make_err = make.communicate()[1]
 
   # Run the local http server, if it isn't already running.
   if not IsHTTPServerRunning():
-    home_dir = os.path.realpath(os.curdir)
-    subprocess.Popen('python ./httpd.py', cwd=home_dir, shell=True)
+    subprocess.Popen('python ./httpd.py', cwd=home_dir, env=env, shell=True)
   else:
     print 'localhost HTTP server is running.'
 
   # Launch Google Chrome with the desired example.
   example_url = 'http://localhost:%(server_port)s/publish/' \
       '%(platform)s_%(target)s/%(example)s.html'
-  subprocess.Popen(chrome_exec + ' --enable-nacl ' +
+  subprocess.Popen('"' + chrome_exec + '"' + ' --enable-nacl ' +
                    example_url % ({'server_port':SERVER_PORT,
                                    'platform':PLATFORM_COLLAPSE[sys.platform],
                                    'target':'x86',
                                    'example':example}),
                    env=env,
+                   cwd=home_dir,
                    shell=True)
 
 
