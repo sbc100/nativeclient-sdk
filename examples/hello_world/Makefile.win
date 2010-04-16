@@ -56,4 +56,3 @@ copy_files:
 
 clean:
 	-rmdir /Q /S publish
-

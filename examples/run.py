@@ -36,11 +36,19 @@ help_message = '''
 
 
 DEFAULT_CHROME_INSTALL_PATH_MAP = {
-    'win32': r'c:\Program Files\chrome-win32',
-    'cygwin': r'c:\cygwin\bin',
-    'linux': '/opt/google/chrome',
-    'linux2': '/opt/google/chrome',
-    'darwin': '/Applications'
+    'win32': [
+              '%s\\chrome-win32' % os.environ.get('ProgramFiles'),
+              '%s\\chrome-win32' % os.environ.get('ProgramFiles(x86)'),
+              '%s\\Google\\Chrome\\Application' % os.environ.get('APPDATA'),
+              '%s\\AppData\\Local\\Google\\Chrome\\Application' \
+                % os.environ.get('USERPROFILE'),
+              '%s\\AppData\\LocalLow\\Google\\Chrome\\Application' \
+                % os.environ.get('USERPROFILE'),
+             ],
+    'cygwin': [r'c:\cygwin\bin'],
+    'linux': ['/opt/google/chrome'],
+    'linux2': ['/opt/google/chrome'],
+    'darwin': ['/Applications']
 }
 
 
@@ -54,8 +62,8 @@ CHROME_EXECUTABLE_MAP = {
 
 
 PLATFORM_COLLAPSE = {
-    'win32': 'win32',
-    'cygwin': 'win32',
+    'win32': 'win',
+    'cygwin': 'win',
     'linux': 'linux',
     'linux2': 'linux',
     'darwin': 'mac',
@@ -79,14 +87,19 @@ class Usage(Exception):
 #     the actual install path searched
 #     None
 def FindChrome(chrome_install_path=None):
+  chrome_exec = CHROME_EXECUTABLE_MAP[sys.platform]
+
   if chrome_install_path is None:
     # Use the platform-specific default path for Chrome.
-    chrome_install_path = DEFAULT_CHROME_INSTALL_PATH_MAP[sys.platform]
-  chrome_exec = CHROME_EXECUTABLE_MAP[sys.platform]
+    for candidate in DEFAULT_CHROME_INSTALL_PATH_MAP[sys.platform]:
+      chrome_install_path = candidate
+      if os.path.exists(os.path.join(candidate, chrome_exec)):
+        break
+
   full_chrome_path = os.path.join(chrome_install_path, chrome_exec)
   if os.path.exists(full_chrome_path):
     return chrome_install_path, full_chrome_path
-  return chrome_install_path, None
+  return DEFAULT_CHROME_INSTALL_PATH_MAP[sys.platform], None
 
 
 # Checks to see if there is a simple HTTP server running on |SERVER_PORT|.  Do
@@ -114,7 +127,7 @@ def main(argv=None):
                                  ['help', 'example=', 'chrome-path='])
     except getopt.error, msg:
       raise Usage(msg)
-  
+
     # option processing
     for option, value in opts:
       if option == '-v':
@@ -125,7 +138,7 @@ def main(argv=None):
         example = value
       if option in ('-p', '--chrome-path'):
         chrome_install_path = value
-  
+
   except Usage, err:
     print >> sys.stderr, sys.argv[0].split('/')[-1] + ': ' + str(err.msg)
     print >> sys.stderr, '--help Print this help message.'
@@ -135,10 +148,12 @@ def main(argv=None):
   # is platform-dependent, and can be set with the --chrome-path= option.
   chrome_install_path, chrome_exec = FindChrome(chrome_install_path)
   if chrome_exec is None:
-    print >> sys.stderr, 'Can\'t find Google Chrome in path \"%s\"' % \
+    print >> sys.stderr, 'Can\'t find Google Chrome in %s' % \
         chrome_install_path
+    print >> sys.stderr, 'use --chrome-path option to specify path to ' + \
+                         'chrome executable'
     return 2
-  
+
   print 'Using Google Chrome found at: ', chrome_exec
 
   env = os.environ.copy()
