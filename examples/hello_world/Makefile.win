@@ -49,10 +49,10 @@ publish: nacl_module copy_files
 
 nacl_module: $(OBJROOT)\$(PROGRAM_NAME).nexe
 	$(MKDIR_CMD) $(DSTROOT)
-	copy $< $(DSTROOT)
+	cmd /C "copy /Y $< $(DSTROOT)"
 
 copy_files:
-	copy $(PROGRAM_NAME).html $(DSTROOT)
+	cmd /C "copy /Y $(PROGRAM_NAME).html $(DSTROOT)"
 
 clean:
 	-rmdir /Q /S publish

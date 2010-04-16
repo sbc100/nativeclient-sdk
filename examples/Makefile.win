@@ -6,7 +6,7 @@
 # make variables and then call the descendant makefiles in each of the
 # examples.
 
-.PHONY: all publish clean tewst
+.PHONY: all publish clean
 
 -include common.win
 
@@ -25,7 +25,7 @@ $(1)_publish:
 	$(MAKE) -C $(1) -f Makefile.win publish
 
 # Run target for each example
-run_$(1): $(1)_publish $(CHOME_PATH)
+run_$(1): $(1)_publish $(CHROME_PATH)
 	$(HTTPD)
 	$(CHROME_PATH) $(CHROME_FLAGS) \
 	    "http://localhost:5103/publish/$(PLATFORM)_$(TARGET)/$(1).html"
@@ -44,6 +44,7 @@ run:	 $(foreach examp,$(EXAMPLES),run_$(examp))
 
 # Target to clean all the examples
 clean: $(foreach examp,$(EXAMPLES),$(examp)_clean)
+	-rmdir /Q /S publish develop
 
 # Define targets for each module
 $(foreach examp,$(EXAMPLES),$(eval $(call EXAMPLE_TARGETS,$(examp))))

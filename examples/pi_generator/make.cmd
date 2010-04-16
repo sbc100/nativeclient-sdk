@@ -2,6 +2,7 @@
 
 REM Relative path of Third Party tools
 set THIRD_PARTY=%CD%\..\..\third_party
+set SRCROOT=%CD%\..\..
 
 
 REM
