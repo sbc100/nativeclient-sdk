@@ -1,0 +1,86 @@
+# Copyright 2010, The Native Client SDK Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can
+# be found in the LICENSE file.
+
+# Makefile for the Tumbler example.
+
+.PHONY: develop publish copy_files
+
+PROGRAM_NAME = tumbler
+
+
+CCFILES = cube_view.cc \
+          npn_bridge.cc \
+          npp_gate.cc \
+          tumbler.cc \
+          tumbler_module.cc \
+          scripting_bridge.cc \
+          shader_util.cc \
+          transforms.cc
+
+VPATH = nacl_module
+
+
+
+APP_FILES = dragger.js \
+            tumbler.html \
+            tumbler.js \
+            trackball.js \
+            vector3.js
+
+APP_FILES := $(addprefix application\,${APP_FILES})
+
+
+
+-include ..\common.win
+
+all: publish
+
+OBJECTS = $(patsubst %,${OBJROOT}\\%,${CCFILES:%.cc=%.o})
+
+LDFLAGS = -lgoogle_nacl_imc \
+	  -lgoogle_nacl_npruntime \
+          -lpthread \
+          -lsrpc \
+          -lgoogle_nacl_pgl \
+          -lgoogle_nacl_gpu \
+          $(ARCH_FLAGS)
+
+CFLAGS  = -DXP_UNIX -Werror
+CXXFLAGS= -DXP_UNIX -Werror
+INCLUDES= -I$(SRCROOT) -I$(NACL_INCLUDE)
+
+EXTRA_CFLAGS += -Wall -Wno-long-long -pthread
+ALL_CFLAGS = $(CFLAGS) $(EXTRA_CFLAGS) $(ARCH_FLAGS)
+ALL_CXXFLAGS = $(CXXFLAGS) $(EXTRA_CFLAGS) $(ARCH_FLAGS)
+ALL_OPT_FLAGS = $(OPT_FLAGS)
+
+
+$(OBJROOT)\$(PROGRAM_NAME).nexe: $(OBJECTS)
+	@echo LINK $@
+	$(PREFIX)$(CPP) $^ $(LDFLAGS) -o $@
+
+$(OBJROOT)\\%.o: %.cc
+	@echo COMPILE $@
+	$(MKDIR_CMD) $(OBJROOT)
+	$(PREFIX)$(CPP) $(ALL_CXXFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $@ $<
+	@echo off
+	
+$(OBJROOT)\\%.o: %.cpp
+	@echo COMPILE $@
+	$(MKDIR_CMD) $(OBJROOT)
+	$(PREFIX)$(CPP) $(ALL_CXXFLAGS) $(INCLUDES) $(ALL_OPT_FLAGS) -c -o $@ $<
+	@echo off   
+
+publish: nacl_module copy_files 
+
+nacl_module: $(OBJROOT)\$(PROGRAM_NAME).nexe
+	$(MKDIR_CMD) $(DSTROOT)
+	cmd /C "copy /Y $< $(DSTROOT)"
+
+copy_files:
+	cmd /C "for %%G in ($(APP_FILES)) do copy /Y %%G $(DSTROOT)"
+
+clean:
+	-rmdir /Q /S publish
+
