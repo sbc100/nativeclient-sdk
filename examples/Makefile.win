@@ -32,7 +32,7 @@ run_$(1): $(1)_publish $(CHROME_PATH)
 endef
 
 
-EXAMPLES = hello_world pi_generator
+EXAMPLES = hello_world pi_generator tumbler
 all: publish
 
 

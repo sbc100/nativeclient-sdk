@@ -79,7 +79,7 @@ nacl_module: $(OBJROOT)\$(PROGRAM_NAME).nexe
 	cmd /C "copy /Y $< $(DSTROOT)"
 
 copy_files:
-	cmd /C "for %%G in ($(APP_FILES)) do copy /Y %%G $(DSTROOT)"
+	cmd /C "$(foreach src,$(APP_FILES),copy /Y $(src) $(DSTROOT) &&) @echo DONE"
 
 clean:
 	-rmdir /Q /S publish
