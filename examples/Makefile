@@ -9,7 +9,6 @@
 .PHONY: all develop publish clean run_hello_world run_pi_generator run_tumbler
 
 EXAMPLES = hello_world pi_generator tumbler
-DEVELOP_LIBS = trusted_gpu
 
 all: develop publish
 
@@ -30,7 +29,7 @@ endif
 # Make development versions of all the modules.
 develop:
 	mkdir -p develop/$(PLATFORM)_$(TARGET)
-	@for examp in $(DEVELOP_LIBS) $(EXAMPLES) ; do \
+	@for examp in $(EXAMPLES) ; do \
 	    (cd $$examp; $(MAKE) -w develop); \
 	done
 
@@ -55,6 +54,6 @@ run_hello_world run_pi_generator run_tumbler:
 	    http://localhost:5103/publish/$(PLATFORM)_$(TARGET)/$$target)
 
 clean::
-	@for examp in $(DEVELOP_LIBS) $(EXAMPLES) ; do \
+	@for examp in $(EXAMPLES) ; do \
 	    (cd $$examp; $(MAKE) clean); \
 	done
