@@ -57,7 +57,7 @@ CHROME_EXECUTABLE_MAP = {
     'cygwin': 'chrome.exe',
     'linux': 'chrome',
     'linux2': 'chrome',
-    'darwin': 'Chromium.app/Contents/MacOS/Chromium'
+    'darwin': 'Google Chrome.app/Contents/MacOS/Google Chrome'
 }
 
 
@@ -174,7 +174,13 @@ def main(argv=None):
   # Launch Google Chrome with the desired example.
   example_url = 'http://localhost:%(server_port)s/publish/' \
       '%(platform)s_%(target)s/%(example)s.html'
-  subprocess.Popen('"' + chrome_exec + '"' + ' --enable-nacl ' +
+  # TODO(dspringer): Remove the --no-sandbox flag on the Mac when the sandbox is
+  # fully enabled.
+  chrome_flags = ['--enable-nacl']
+  if PLATFORM_COLLAPSE[sys.platform] =='mac':
+    chrome_flags.append('--no-sandbox')
+  subprocess.Popen('"' + chrome_exec + '"' + 
+                   ' ' + ' '.join(chrome_flags) + ' ' +
                    example_url % ({'server_port':SERVER_PORT,
                                    'platform':PLATFORM_COLLAPSE[sys.platform],
                                    'target':'x86',
