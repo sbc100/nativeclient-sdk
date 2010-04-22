@@ -105,7 +105,7 @@ publish:
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    INCLUDES="-I$$SRCROOT -I$(NACL_INCLUDE)" \
 	    OBJROOT=publish/$(PLATFORM)_$(TARGET) \
-	    DSTROOT=../publish/$(PLATFORM)_$(TARGET) \
+	    DSTROOT=../publish/$(NACL_ARCH) \
 	    LDFLAGS="-lgoogle_nacl_imc \
 	             -lgoogle_nacl_npruntime \
 	             -lpthread \

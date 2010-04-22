@@ -6,9 +6,9 @@
 # CC (the compiler) and some suffix rules such as .c.o.
 #
 # The main purpose of this makefile component is to demonstrate building
-# both release and debug versions of the examples.  The debug versions
+# both publish and develop versions of the examples.  The develop versions
 # can be loaded directly into the browser such that they can be debugged using
-# standard debugging tools (gdb, KDbg, etc.)  The release versions (.nexe)
+# standard debugging tools (gdb, KDbg, etc.)  The publish versions (.nexe)
 # get loaded into the browser via a web server.
 
 .SUFFIXES:
@@ -23,38 +23,35 @@ ARCH_FLAGS = -m$(WORD_SIZE)
 OS = $(shell uname -s)
 ifeq ($(OS), Darwin)
   PLATFORM = mac
+  TARGET = x86
+  NACL_ARCH = x86_$(WORD_SIZE)
   CC = nacl64-gcc
   CPP = nacl64-g++
-  TARGET = x86
   NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
 endif
 ifeq ($(OS), Linux)
   PLATFORM = linux
+  TARGET = x86
+  NACL_ARCH = x86_$(WORD_SIZE)
   CC = nacl64-gcc
   CPP = nacl64-g++
-  TARGET = x86
   NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
-  MACHINE = $(shell uname -m)
   # TODO(dspringer): Enable this section when Linux supports a 64-bit runtime.
   # ifeq ($(WORD_SIZE), 64)
-    # TARGET = x86
-    # NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
     # NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
   # endif
 endif
 ifneq (,$(findstring CYGWIN,$(OS)))
   PLATFORM = win
+  TARGET = x86
+  NACL_ARCH = x86_$(WORD_SIZE)
   CC = nacl64-gcc
   CPP = nacl64-g++
-  TARGET = x86
   NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
-  MACHINE = $(shell uname -m)
   ifeq ($(WORD_SIZE), 64)
-    TARGET = x86
-    NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
     NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
   endif
 endif

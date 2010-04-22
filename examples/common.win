@@ -33,9 +33,10 @@ endif
 #
 PLATFORM = win
 TARGET = x86
+NACL_ARCH = x86_$(WORD_SIZE)
 PREFIX?=$(SRCROOT)\$(NACL_TOOLCHAIN_DIR)\bin\nacl$(WIDE)-
 OBJROOT?=publish\$(PLATFORM)_$(TARGET)
-DSTROOT?=..\publish\$(PLATFORM)_$(TARGET)
+DSTROOT?=..\publish\$(NACL_ARCH)
 CC=gcc
 CPP=g++
 

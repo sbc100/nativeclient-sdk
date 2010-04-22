@@ -28,14 +28,12 @@ endif
 
 # Make development versions of all the modules.
 develop:
-	mkdir -p develop/$(PLATFORM)_$(TARGET)
 	@for examp in $(EXAMPLES) ; do \
 	    (cd $$examp; $(MAKE) -w develop); \
 	done
 
 # Make publish versions of all the modules.
 publish:
-	mkdir -p publish/$(PLATFORM)_$(TARGET)
 	@for examp in $(EXAMPLES) ; do \
 	    (cd $$examp; $(MAKE) -w publish); \
 	done
@@ -51,7 +49,7 @@ run_hello_world run_pi_generator run_tumbler:
 	fi
 	@(target=`echo $@ | sed -e "s/^run_\(.*\)/\1.html/"`; \
 	    $(CHROME_APP) $(CHROME_FLAGS) \
-	    http://localhost:5103/publish/$(PLATFORM)_$(TARGET)/$$target)
+	    http://localhost:5103/publish/$(NACL_ARCH)/$$target)
 
 clean::
 	@for examp in $(EXAMPLES) ; do \

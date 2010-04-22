@@ -18,6 +18,8 @@ Options:
       the examples.
   --example=<example> Run |example|.  Possible values are: hello_world,
       pi_generator and tumbler.
+  --user-data-dir=<path> Path to Google Chrome's user data cache dir.  This
+      defaults to $(HOME)/nacl-chrome
 """
 
 import getopt
@@ -32,6 +34,9 @@ help_message = '''
 
 --example=<example> Runs the selected example.  Possible values are:
     hello_world, pi_generator, tumbler.
+
+--user-data-dir=<abs_path> Sets the user profile directory that Google Chrome
+    will use to cache browsing data.
 '''
 
 
@@ -104,10 +109,10 @@ def FindChrome(chrome_install_path=None):
 
 # Checks to see if there is a simple HTTP server running on |SERVER_PORT|.  Do
 # this by attempting to open a URL socket on localhost:|SERVER_PORT|.
-def IsHTTPServerRunning():
+def IsHTTPServerRunning(port=SERVER_PORT):
   is_running = False
   try:
-    url = urllib.urlopen('http://localhost:%d' % SERVER_PORT)
+    url = urllib.urlopen('http://localhost:%d' % port)
     is_running = True
 
   except IOError:
@@ -121,10 +126,15 @@ def main(argv=None):
     argv = sys.argv
   chrome_install_path = os.environ.get('CHROME_INSTALL_PATH', None)
   example = 'hello_world'
+  user_data_dir = None
   try:
     try:
-      opts, args = getopt.getopt(argv[1:], 'ho:p:v',
-                                 ['help', 'example=', 'chrome-path='])
+      opts, args = getopt.getopt(argv[1:],
+                                 'ho:p:u:v',
+                                 ['help',
+                                  'example=',
+                                  'chrome-path=',
+                                  'user-data-dir='])
     except getopt.error, msg:
       raise Usage(msg)
 
@@ -138,6 +148,8 @@ def main(argv=None):
         example = value
       if option in ('-p', '--chrome-path'):
         chrome_install_path = value
+      if option in ('-u', '--user-data-dir'):
+        user_data_dir = value
 
   except Usage, err:
     print >> sys.stderr, sys.argv[0].split('/')[-1] + ': ' + str(err.msg)
@@ -159,35 +171,50 @@ def main(argv=None):
   env = os.environ.copy()
   if sys.platform == 'win32':
     env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+    if not user_data_dir:
+      user_data_dir = os.path.join(env['USERPROFILE'], 'nacl-chrome-profile')
+
+  if not user_data_dir:
+      user_data_dir = os.path.join(env['HOME'], 'nacl-chrome-profile')
+
   home_dir = os.path.realpath(os.curdir)
 
-  # Build the examples.
-  make = subprocess.Popen('make publish', env=env, cwd=home_dir, shell=True)
-  make_err = make.communicate()[1]
+  # If there is a service already running on |SERVER_PORT|, print an error and
+  # exit.
+  if IsHTTPServerRunning(SERVER_PORT):
+    print >> sys.stderr, 'There is a server already running on port %d' % \
+        SERVER_PORT
+    print >> sys.stderr, 'Please shut it down before running this script.'
+    return 2
 
-  # Run the local http server, if it isn't already running.
-  if not IsHTTPServerRunning():
-    subprocess.Popen('python ./httpd.py', cwd=home_dir, env=env, shell=True)
-  else:
-    print 'localhost HTTP server is running.'
+  example_server = subprocess.Popen('python ./httpd.py %d' % SERVER_PORT,
+                                    cwd=home_dir,
+                                    env=env,
+                                    shell=True)
 
   # Launch Google Chrome with the desired example.
   example_url = 'http://localhost:%(server_port)s/publish/' \
-      '%(platform)s_%(target)s/%(example)s.html'
+      '%(nacl_arch)s/%(example)s.html'
   # TODO(dspringer): Remove the --no-sandbox flag on the Mac when the sandbox is
   # fully enabled.
-  chrome_flags = ['--enable-nacl']
+  chrome_flags = ['--enable-nacl', '--user-data-dir=%s' % user_data_dir]
   if PLATFORM_COLLAPSE[sys.platform] =='mac':
     chrome_flags.append('--no-sandbox')
-  subprocess.Popen('"' + chrome_exec + '"' + 
-                   ' ' + ' '.join(chrome_flags) + ' ' +
-                   example_url % ({'server_port':SERVER_PORT,
-                                   'platform':PLATFORM_COLLAPSE[sys.platform],
-                                   'target':'x86',
-                                   'example':example}),
-                   env=env,
-                   cwd=home_dir,
-                   shell=True)
+  chrome_proc = subprocess.Popen('"' + chrome_exec + '"' + 
+                                 ' ' + ' '.join(chrome_flags) + ' ' +
+                                 example_url % ({'server_port':SERVER_PORT,
+                                                 'nacl_arch':'x86_32',
+                                                 'example':example}),
+                                 env=env,
+                                 cwd=home_dir,
+                                 shell=True)
+  chrome_proc.communicate()[0]
+
+  # Shut down the server.
+  try:
+    urllib.urlopen('http://localhost:%d/?quit=1' % SERVER_PORT)
+  except:
+    pass
 
 
 if __name__ == '__main__':
