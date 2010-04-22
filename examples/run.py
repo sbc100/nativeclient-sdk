@@ -44,10 +44,10 @@ DEFAULT_CHROME_INSTALL_PATH_MAP = {
     'win32': [
               '%s\\chrome-win32' % os.environ.get('ProgramFiles'),
               '%s\\chrome-win32' % os.environ.get('ProgramFiles(x86)'),
-              '%s\\Google\\Chrome\\Application' % os.environ.get('APPDATA'),
-              '%s\\AppData\\Local\\Google\\Chrome\\Application' \
+              '%s\\Chromium\\Application' % os.environ.get('APPDATA'),
+              '%s\\AppData\\Local\\Chromium\\Application' \
                 % os.environ.get('USERPROFILE'),
-              '%s\\AppData\\LocalLow\\Google\\Chrome\\Application' \
+              '%s\\AppData\\LocalLow\\Chromium\\Application' \
                 % os.environ.get('USERPROFILE'),
              ],
     'cygwin': [r'c:\cygwin\bin'],
@@ -62,7 +62,7 @@ CHROME_EXECUTABLE_MAP = {
     'cygwin': 'chrome.exe',
     'linux': 'chrome',
     'linux2': 'chrome',
-    'darwin': 'Google Chrome.app/Contents/MacOS/Google Chrome'
+    'darwin': 'Chromium.app/Contents/MacOS/Chromium'
 }
 
 
@@ -215,7 +215,7 @@ def main(argv=None):
     urllib.urlopen('http://localhost:%d/?quit=1' % SERVER_PORT)
   except:
     pass
-
+  example_server.wait()
 
 if __name__ == '__main__':
   sys.exit(main())

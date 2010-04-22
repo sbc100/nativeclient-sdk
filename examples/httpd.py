@@ -18,6 +18,7 @@ import os
 import SimpleHTTPServer
 import SocketServer
 import sys
+import urlparse
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -44,17 +45,40 @@ def SanityCheckDirectory():
   logging.error('We are currently in %s', os.getcwd())
   sys.exit(1)
 
-# the sole purpose of this class is to make the BaseHTTPServer threaded
-class ThreadedServer(SocketServer.ThreadingMixIn,
-                     BaseHTTPServer.HTTPServer):
-  pass
+
+# An HTTP server that will quit when |is_running| is set to False.
+class QuittableHTTPServer(BaseHTTPServer.HTTPServer):
+  def serve_forever(self):
+    self.is_running = True
+    while self.is_running:
+      self.handle_request()
+
+  def shutdown(self):
+    self.is_running = False
+    return 1
+
+
+# A small handler that looks for '?quit' query in the path and shuts itself
+# down if it finds that parameter.
+class QuittableHTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+  def do_GET(self):
+    url = urlparse.urlsplit(self.path)
+    if 'quit' in url.query:
+      self.send_response(200, 'OK')
+      self.send_header('Content-type', 'text/html')
+      self.send_header('Content-length', '0')
+      self.end_headers()
+      self.wfile.write("Server shut down")
+      self.server.shutdown()
+      return
+
+    SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 
 
 def Run(server_address,
-        server_class=ThreadedServer,
-        handler_class=SimpleHTTPServer.SimpleHTTPRequestHandler):
+        server_class=QuittableHTTPServer,
+        handler_class=QuittableHTTPHandler):
   httpd = server_class(server_address, handler_class)
-  logging.info('started server on port %d', httpd.server_address[1])
   httpd.serve_forever()
 
 
@@ -64,3 +88,4 @@ if __name__ == '__main__':
     Run((SERVER_HOST, int(sys.argv[1])))
   else:
     Run((SERVER_HOST, SERVER_PORT))
+  sys.exit(0)
