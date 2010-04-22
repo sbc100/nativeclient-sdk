@@ -100,6 +100,13 @@ def main(argv):
   if sys.platform == 'win32':
     env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
 
+  # Build the examples.
+  make = subprocess.Popen('make publish',
+                          env=env,
+                          cwd=os.path.join(home_dir, 'src/examples'),
+                          shell=True)
+  make_err = make.communicate()[1]
+
   # Use native tar to copy the SDK into the build location; this preserves
   # symlinks.
   tar_src_dir = os.path.realpath(os.curdir)
