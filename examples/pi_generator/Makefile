@@ -88,7 +88,7 @@ publish:
 	    CFLAGS="-DXP_UNIX -Werror" \
 	    CXXFLAGS="-DXP_UNIX -Werror" \
 	    INCLUDES="-I$$SRCROOT -I$(NACL_INCLUDE)" \
-	    OBJROOT=publish/$(PLATFORM)_$(TARGET) \
+	    OBJROOT=publish/$(NACL_ARCH) \
 	    DSTROOT=../publish/$(NACL_ARCH) \
 	    LDFLAGS="-lgoogle_nacl_imc \
 	        -lgoogle_nacl_npruntime \

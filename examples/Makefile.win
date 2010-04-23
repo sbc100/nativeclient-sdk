@@ -21,14 +21,14 @@ $(1)_clean:
 
 # Publish target for each example
 $(1)_publish:
-	$(MKDIR_CMD) publish\$(PLATFORM)_$(TARGET)
+	$(MKDIR_CMD) publish\$(NACL_ARCH)
 	$(MAKE) -C $(1) -f Makefile.win publish
 
 # Run target for each example
 run_$(1): $(1)_publish $(CHROME_PATH)
 	$(HTTPD)
 	$(CHROME_PATH) $(CHROME_FLAGS) \
-	    "http://localhost:5103/publish/$(PLATFORM)_$(TARGET)/$(1).html"
+	    "http://localhost:5103/publish/$(NACL_ARCH)/$(1).html"
 endef
 
 

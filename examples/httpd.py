@@ -62,13 +62,12 @@ class QuittableHTTPServer(BaseHTTPServer.HTTPServer):
 # down if it finds that parameter.
 class QuittableHTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def do_GET(self):
-    url = urlparse.urlsplit(self.path)
-    if 'quit' in url.query:
+    (_, _, _, query, _) = urlparse.urlsplit(self.path)
+    if 'quit' in query:
       self.send_response(200, 'OK')
       self.send_header('Content-type', 'text/html')
       self.send_header('Content-length', '0')
       self.end_headers()
-      self.wfile.write("Server shut down")
       self.server.shutdown()
       return
 
