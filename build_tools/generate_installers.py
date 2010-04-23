@@ -148,7 +148,8 @@ def main(argv):
   os.chdir(temp_dir)
 
   # Set the default shell command and output name.
-  ar_cmd = 'tar cvzf %(ar_name)s %(input)s && cp %(ar_name)s %(output)s'
+  ar_cmd = ('tar cvzf %(ar_name)s %(input)s && cp %(ar_name)s %(output)s'
+            ' && chmod 644 %(output)s')
   ar_name = 'nacl-sdk.tgz'
 
   # Windows only: change the command and output filename--we want to create
