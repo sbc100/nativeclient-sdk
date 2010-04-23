@@ -51,8 +51,8 @@ DEFAULT_CHROME_INSTALL_PATH_MAP = {
                 % os.environ.get('USERPROFILE'),
              ],
     'cygwin': [r'c:\cygwin\bin'],
-    'linux': ['/opt/google/chrome'],
-    'linux2': ['/opt/google/chrome'],
+    'linux': ['/opt/google/chromium'],
+    'linux2': ['/opt/google/chromium'],
     'darwin': ['/Applications']
 }
 
@@ -166,8 +166,6 @@ def main(argv=None):
                          'chrome executable'
     return 2
 
-  print 'Using Google Chrome found at: ', chrome_exec
-
   env = os.environ.copy()
   if sys.platform == 'win32':
     env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
@@ -193,18 +191,14 @@ def main(argv=None):
                                     shell=True)
 
   # Launch Google Chrome with the desired example.
-  example_url = 'http://localhost:%(server_port)s/publish/' \
-      '%(nacl_arch)s/%(example)s.html'
-  # TODO(dspringer): Remove the --no-sandbox flag on the Mac when the sandbox is
-  # fully enabled.
   chrome_flags = ['--enable-nacl', '--user-data-dir=%s' % user_data_dir]
-  if PLATFORM_COLLAPSE[sys.platform] =='mac':
-    chrome_flags.append('--no-sandbox')
-  chrome_proc = subprocess.Popen('"' + chrome_exec + '"' + 
-                                 ' ' + ' '.join(chrome_flags) + ' ' +
-                                 example_url % ({'server_port':SERVER_PORT,
-                                                 'nacl_arch':'x86_32',
-                                                 'example':example}),
+  example_url = 'http://localhost:%d/publish/%s/%s.html' % \
+                (SERVER_PORT, 'x86_32', example)
+  chrome_launch_line = '%s %s %s' % \
+                       (chrome_exec, ' '.join(chrome_flags), example_url)
+  print 'Launching Google Chrome:'
+  print chrome_launch_line
+  chrome_proc = subprocess.Popen(chrome_launch_line,
                                  env=env,
                                  cwd=home_dir,
                                  shell=True)

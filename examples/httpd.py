@@ -58,12 +58,24 @@ class QuittableHTTPServer(BaseHTTPServer.HTTPServer):
     return 1
 
 
-# A small handler that looks for '?quit' query in the path and shuts itself
+# "Safely" split a string at |sep| into a [key, value] pair.  If |sep| does not
+# exist in |str|, then the entire |str| is the key and the value is set to an
+# empty string.
+def KeyValuePair(str, sep='='):
+  if sep in str:
+    return str.split(sep)
+  else:
+    return [str, '']
+
+
+# A small handler that looks for '?quit=1' query in the path and shuts itself
 # down if it finds that parameter.
 class QuittableHTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def do_GET(self):
     (_, _, _, query, _) = urlparse.urlsplit(self.path)
-    if 'quit' in query:
+    url_params = dict([KeyValuePair(key_value)
+                      for key_value in query.split('&')])
+    if 'quit' in url_params and '1' in url_params['quit']:
       self.send_response(200, 'OK')
       self.send_header('Content-type', 'text/html')
       self.send_header('Content-length', '0')
