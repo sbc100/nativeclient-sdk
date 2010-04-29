@@ -131,7 +131,7 @@ def InstallCygWin(cygwin_url):
     setup_dir = tempfile.mkdtemp()
   except OSError:
     pass
-  setup_filename = os.path.join(setup_dir, 'CygWinSetup.exe')
+  setup_filename = os.path.join(setup_dir, 'CygSetup.exe')
 
   print 'Downloading "%s" to "%s"...' % (cygwin_url, setup_filename)
   sys.stdout.flush()
@@ -142,11 +142,20 @@ def InstallCygWin(cygwin_url):
   print 'Installing CygWin to "%s"...' % (cygwin_dir)
   sys.stdout.flush()
 
+  # Decide environment to run in per platform.
+  # This adds the assumption that cygwin is installed in the default location
+  # when cooking the sdk for windows.
+  env = os.environ.copy()
+  if sys.platform == 'win32':
+    env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+
   # Extract cygwin.
   old_cwd = os.getcwd()
   os.chdir(setup_dir)
   p = subprocess.Popen(
-      'cmd /WAIT /c CygWinSetup.exe /MINIMAL /S /D=%s' % (cygwin_dir)) 
+      'chmod a+x CygSetup.exe;cmd /WAIT /c CygSetup.exe /MINIMAL /S /D=%s' %
+          (cygwin_dir),
+      env=env, shell=True)
   p.communicate()
   assert p.returncode == 0
   os.chdir(old_cwd)
