@@ -114,6 +114,49 @@ def DownloadToolchain(src, dst, base_url, version):
   shutil.rmtree(tgz_dir)
 
 
+def InstallCygWin(cygwin_url):
+  """Download Hermetic SDK and install it.
+
+  Arguments:
+    cygwin_url: cygwin url to download hermetic cygwin from
+  """
+  
+  # Pick target directory.
+  script_dir = os.path.abspath(os.path.dirname(__file__))
+  parent_dir = os.path.split(script_dir)[0]
+  cygwin_dir = os.path.join(parent_dir, 'cygwin')
+
+  # Create a temp dir for the tarball.
+  try:
+    setup_dir = tempfile.mkdtemp()
+  except OSError:
+    pass
+  setup_filename = os.path.join(setup_dir, 'CygWinSetup.exe')
+
+  print 'Downloading "%s" to "%s"...' % (cygwin_url, setup_filename)
+  sys.stdout.flush()
+
+  # Download it.
+  urllib.urlretrieve(cygwin_url, setup_filename)
+
+  print 'Installing CygWin to "%s"...' % (cygwin_dir)
+  sys.stdout.flush()
+
+  # Extract cygwin.
+  old_cwd = os.getcwd()
+  os.chdir(setup_dir)
+  p = subprocess.Popen(
+      'cmd /WAIT /c CygWinSetup.exe /MINIMAL /S /D=%s' % (cygwin_dir)) 
+  p.communicate()
+  assert p.returncode == 0
+  os.chdir(old_cwd)
+
+  print 'Extract complete.'
+  
+  # Clean up: remove the download dir.
+  shutil.rmtree(setup_dir)
+
+
 PLATFORM_COLLAPSE = {
     'win32': 'win32',
     'cygwin': 'win32',
@@ -171,6 +214,8 @@ def main(argv):
   for p in platforms:
     pfix = PLATFORM_COLLAPSE.get(p, p)
     if pfix in PLATFORM_MAPPING:
+      if pfix == 'win32':
+        InstallCygWin(cygwin_url=options.cygwin_url)
       for flavor in PLATFORM_MAPPING[pfix]:
         DownloadToolchain(flavor[0], flavor[1],
                           base_url=options.base_url,
