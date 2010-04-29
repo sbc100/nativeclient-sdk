@@ -156,8 +156,8 @@ def InstallCygWin(cygwin_url):
   
   # Clean up: remove the download dir.
   for i in xrange(100):
-    try
-      print "Trying to remove dir %i..." % i
+    try:
+      print "Trying to remove dir %i..." % (i)
       shutil.rmtree(setup_dir)
       break
     except WindowsError:
