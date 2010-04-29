@@ -101,7 +101,8 @@ def DownloadToolchain(src, dst, base_url, version):
   old_cwd = os.getcwd()
   os.chdir(tgz_dir)
   p = subprocess.Popen(
-      'tar xfzv "%s" && mv sdk "%s"' % (path, target.replace('\\', '/')),
+      'tar xfzv "%s" && ( mv sdk/nacl-sdk/* "%s" || mv */* "%s" )' %
+          (path, target.replace('\\', '/'), target.replace('\\', '/')),
       env=env, shell=True) 
   p.communicate()
   assert p.returncode == 0
@@ -148,6 +149,10 @@ def main(argv):
       '-b', '--base-url', dest='base_url',
       default='http://build.chromium.org/buildbot/nacl_archive/nacl/toolchain/',
       help='base url to download from')
+  parser.add_option(
+      '-c', '--cygwin-url', dest='cygwin_url',
+      default='http://build.chromium.org/mirror/nacl/cygwin_mirror/hermetic_cygwin_1_7_5-1_0.exe',
+      help='cygwin installer url to download from')
   parser.add_option(
       '-v', '--version', dest='version',
       default='latest',

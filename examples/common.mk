@@ -17,7 +17,13 @@
 # To make a 64-bit build, set WORD_SIZE=64 on the command line.  For example:
 #   make develop WORD_SIZE=64
 # Note that 64-bit builds are not supported on Mac or Linux.
-WORD_SIZE ?= 32
+ifeq ($(origin WORD_SIZE), undefined)
+  ifeq (,$(findstring Intel64,$(PROCESSOR_IDENTIFIER)))
+	WORD_SIZE = 32
+  else
+	WORD_SIZE = 64
+  endif
+endif
 ARCH_FLAGS = -m$(WORD_SIZE)
 
 OS = $(shell uname -s)
@@ -27,7 +33,7 @@ ifeq ($(OS), Darwin)
   NACL_ARCH = x86_$(WORD_SIZE)
   CC = nacl64-gcc
   CPP = nacl64-g++
-  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
+  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
 endif
 ifeq ($(OS), Linux)
@@ -36,7 +42,7 @@ ifeq ($(OS), Linux)
   NACL_ARCH = x86_$(WORD_SIZE)
   CC = nacl64-gcc
   CPP = nacl64-g++
-  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
+  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
   # TODO(dspringer): Enable this section when Linux supports a 64-bit runtime.
   # ifeq ($(WORD_SIZE), 64)
@@ -49,11 +55,8 @@ ifneq (,$(findstring CYGWIN,$(OS)))
   NACL_ARCH = x86_$(WORD_SIZE)
   CC = nacl64-gcc
   CPP = nacl64-g++
-  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)/sdk/nacl-sdk
+  NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
   NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
-  ifeq ($(WORD_SIZE), 64)
-    NACL_INCLUDE = $$SRCROOT/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
-  endif
 endif
 
 OBJROOT = .
