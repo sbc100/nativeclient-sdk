@@ -221,8 +221,8 @@ def main(argv):
   for p in platforms:
     pfix = PLATFORM_COLLAPSE.get(p, p)
     if pfix in PLATFORM_MAPPING:
-      if pfix == 'win32':
-        InstallCygWin(cygwin_url=options.cygwin_url)
+      # if pfix == 'win32':
+      #  InstallCygWin(cygwin_url=options.cygwin_url)
       for flavor in PLATFORM_MAPPING[pfix]:
         DownloadToolchain(flavor[0], flavor[1],
                           base_url=options.base_url,
