@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include "examples/tumbler/nacl_module/scripting_bridge.h"
+#include "examples/tumbler/scripting_bridge.h"
 
 #include <assert.h>
 #include <string.h>
 
-#include "examples/tumbler/nacl_module/tumbler.h"
+#include "examples/tumbler/tumbler.h"
 
 namespace tumbler {
 

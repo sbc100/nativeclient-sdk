@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef EXAMPLES_PEPPER3D_NACL_MODULE_BASIC_MACROS_H_
-#define EXAMPLES_PEPPER3D_NACL_MODULE_BASIC_MACROS_H_
+#ifndef EXAMPLES_TUMBLER_BASIC_MACROS_H_
+#define EXAMPLES_TUMBLER_BASIC_MACROS_H_
 
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
@@ -21,4 +21,4 @@
   TypeName();                                    \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 
-#endif  // EXAMPLES_PEPPER3D_NACL_MODULE_BASIC_MACROS_H_
+#endif  // EXAMPLES_TUMBLER_BASIC_MACROS_H_

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_
-#define EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_
+#ifndef EXAMPLES_TUMBLER_TUMBLER_H_
+#define EXAMPLES_TUMBLER_TUMBLER_H_
 
 #include <pthread.h>
 #if defined(__native_client__)
@@ -23,7 +23,7 @@
 
 #include <map>
 
-#include "examples/tumbler/nacl_module/basic_macros.h"
+#include "examples/tumbler/basic_macros.h"
 
 namespace tumbler {
 
@@ -76,4 +76,4 @@ class Tumbler {
 
 }  // namespace tumbler
 
-#endif  // EXAMPLES_TUMBLER_NACL_MODULE_TUMBLER_H_
+#endif  // EXAMPLES_TUMBLER_TUMBLER_H_

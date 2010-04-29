@@ -4,8 +4,8 @@
 
 // Some simple helper functions that load shaders and create program objects.
 
-#ifndef EXAMPLES_PEPPER3D_NACL_MODULE_SHADER_UTIL_H_
-#define EXAMPLES_PEPPER3D_NACL_MODULE_SHADER_UTIL_H_
+#ifndef EXAMPLES_TUMBLER_SHADER_UTIL_H_
+#define EXAMPLES_TUMBLER_SHADER_UTIL_H_
 
 #include <GLES2/gl2.h>
 
@@ -26,4 +26,4 @@ GLuint CreateProgramFromVertexAndFragmentShaders(
 
 }  // namespace shader_util
 
-#endif  // EXAMPLES_PEPPER3D_NACL_MODULE_SHADER_UTIL_H_
+#endif  // EXAMPLES_TUMBLER_SHADER_UTIL_H_

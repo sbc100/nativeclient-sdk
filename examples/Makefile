@@ -5,53 +5,43 @@
 # Main makefile for the Native Client SDK examples.  These targets set certain
 # make variables and then call the descendant makefiles in each of the
 # examples.
+#
+# Please refer to the individual makefiles in each example for details on how
+# to build the native Client modules.
 
-.PHONY: all develop publish clean run_hello_world run_pi_generator run_tumbler
+
+.PHONY: all publish clean install_prebuilt
 
 EXAMPLES = hello_world pi_generator tumbler
 
-all: develop publish
-
--include common.mk
-
-CHROME_FLAGS = --enable-nacl --user-data-dir=$$HOME/nacl-chrome-profile
-ifeq ($(PLATFORM), mac)
-  CHROME_APP = /Applications/Chromium.app/Contents/MacOS/Chromium
-  CHROME_FLAGS += --no-sandbox
-endif
-ifeq ($(PLATFORM), linux)
-  CHROME_APP = ./chrome
-endif
-ifeq ($(PLATFORM), win)
-  CHROME_APP = ./chrome
-endif
-
-# Make development versions of all the modules.
-develop:
-	@for examp in $(EXAMPLES) ; do \
-	    (cd $$examp; $(MAKE) -w develop); \
-	done
+all: publish
 
 # Make publish versions of all the modules.
-publish:
-	@for examp in $(EXAMPLES) ; do \
-	    (cd $$examp; $(MAKE) -w publish); \
-	done
+publish: $(foreach examp,$(EXAMPLES),publish_$(examp))
 
-# Run the published versions of a specific module.
-run_hello_world run_pi_generator run_tumbler:
-	$(MAKE) publish
-	@is_running=`ps -ef | grep httpd.py | grep -v grep`; \
-	if [ -z "$$is_running" ] ; then \
-	  (python httpd.py &) ; \
-	else \
-	  echo "localhost HTTP server is running"; \
-	fi
-	@(target=`echo $@ | sed -e "s/^run_\(.*\)/\1.html/"`; \
-	    $(CHROME_APP) $(CHROME_FLAGS) \
-	    http://localhost:5103/publish/$(NACL_ARCH)/$$target)
+clean: $(foreach examp,$(EXAMPLES),clean_$(examp))
 
-clean::
-	@for examp in $(EXAMPLES) ; do \
-	    (cd $$examp; $(MAKE) clean); \
-	done
+install_prebuilt: $(foreach examp,$(EXAMPLES),install_prebuilt_$(examp))
+
+# Auto-generate all the publish and clean targets.
+define EXAMPLE_TARGETS
+
+.PHONY: publish_$(1) clean_$(1) install_prebuilt_$(1)
+
+# Publish target for each example
+publish_$(1):
+	$(MAKE) -C $(1) -f Makefile
+
+# Clean target for each example
+clean_$(1):
+	$(MAKE) -C $(1) -f Makefile clean
+
+# Target used by the SDK build system to make pre=built versions of the .nexes.
+# You do not need to call this target.
+install_prebuilt_$(1):
+	$(MAKE) -C $(1) -f Makefile clean
+	$(MAKE) -C $(1) -f Makefile install_prebuilt
+
+endef
+
+$(foreach examp,$(EXAMPLES),$(eval $(call EXAMPLE_TARGETS,$(examp))))

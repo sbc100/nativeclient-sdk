@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_TUMBLER_NACL_MODULE_SCRIPTING_BRIDGE_H_
-#define EXAMPLES_TUMBLER_NACL_MODULE_SCRIPTING_BRIDGE_H_
+#ifndef EXAMPLES_TUMBLER_SCRIPTING_BRIDGE_H_
+#define EXAMPLES_TUMBLER_SCRIPTING_BRIDGE_H_
 
 #include <map>
 
@@ -84,4 +84,4 @@ class ScriptingBridge : public NPObject {
 
 }  // namespace tumbler
 
-#endif  // EXAMPLES_TUMBLER_NACL_MODULE_SCRIPTING_BRIDGE_H_
+#endif  // EXAMPLES_TUMBLER_SCRIPTING_BRIDGE_H_

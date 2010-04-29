@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_PEPPER3D_NACL_MODULE_TRANSFORMS_H_
-#define EXAMPLES_PEPPER3D_NACL_MODULE_TRANSFORMS_H_
+#ifndef EXAMPLES_TUMBLER_TRANSFORMS_H_
+#define EXAMPLES_TUMBLER_TRANSFORMS_H_
 
 #include <GLES2/gl2.h>
 
@@ -41,4 +41,5 @@ void Perspective(GLfloat* m,
 void Translate(GLfloat* m, GLfloat tx, GLfloat ty, GLfloat tz);
 
 }  // transform_4x4
-#endif  // EXAMPLES_PEPPER3D_NACL_MODULE_TRANSFORMS_H_
+
+#endif  // EXAMPLES_TUMBLERTRANSFORMS_H_

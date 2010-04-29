@@ -30,17 +30,14 @@ OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
 all: develop
 
--include ../common.mk
+-include ../develop_common.mk
 
 develop:
 	@echo make -$(MAKEFLAGS) develop in `pwd`
-	$(MAKE) -w -$(MAKEFLAGS) develop_$(PLATFORM)
+	$(MAKE) -f develop.mk -w -$(MAKEFLAGS) develop_$(PLATFORM)
 
-develop_win:
-	@echo Develop config does not build on Windows.
-
-develop_mac develop_linux:
-	$(MAKE) -w -$(MAKEFLAGS) \
+develop_linux:
+	$(MAKE) -f develop.mk -w -$(MAKEFLAGS) \
 	    CFLAGS="$(ARCH_FLAGS) \
 	        -DXP_UNIX \
 	        -DTRUSTED_GPU_LIBRARY_BUILD \
@@ -50,9 +47,6 @@ develop_mac develop_linux:
 	        -DTRUSTED_GPU_LIBRARY_BUILD \
 	        -DOMIT_DLOG_AND_DCHECK" \
 	    $(DSTROOT)/lib$(LIBRARY_NAME).a
-
-publish:
-	@echo trusted_gpu does not make publish
 
 $(DSTROOT)/lib$(LIBRARY_NAME).a: $(OBJECTS)
 	mkdir -p $(DSTROOT)

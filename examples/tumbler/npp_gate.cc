@@ -13,7 +13,7 @@
 #endif
 #include <new>
 
-#include "examples/tumbler/nacl_module/tumbler.h"
+#include "examples/tumbler/tumbler.h"
 
 using tumbler::Tumbler;
 

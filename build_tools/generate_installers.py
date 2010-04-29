@@ -101,9 +101,10 @@ def main(argv):
     env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
 
   # Build the examples.
-  make = subprocess.Popen('make publish',
+  example_path = os.path.join(home_dir, 'src/examples')
+  make = subprocess.Popen('make install_prebuilt',
                           env=env,
-                          cwd=os.path.join(home_dir, 'src/examples'),
+                          cwd=example_path,
                           shell=True)
   make_err = make.communicate()[1]
 

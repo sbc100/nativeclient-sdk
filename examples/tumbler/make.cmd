@@ -2,7 +2,6 @@
 
 REM Relative path of Third Party tools
 set THIRD_PARTY=%CD%\..\..\third_party
-set SRCROOT=%CD%\..\..
 
 
 REM
@@ -18,4 +17,4 @@ IF NOT EXIST %THIRD_PARTY%\make\bin\make.exe (
 
 
 REM Now reissue the make request on the local version of GNU make
-%THIRD_PARTY%\make\bin\make.exe -f Makefile.win %*
+%THIRD_PARTY%\make\bin\make.exe -f Makefile OS=win %*

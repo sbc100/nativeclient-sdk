@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "examples/tumbler/nacl_module/cube_view.h"
+#include "examples/tumbler/cube_view.h"
 
 #include <algorithm>
 
-#include "examples/tumbler/nacl_module/shader_util.h"
-#include "examples/tumbler/nacl_module/transforms.h"
+#include "examples/tumbler/shader_util.h"
+#include "examples/tumbler/transforms.h"
 
 namespace tumbler {
 
