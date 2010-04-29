@@ -109,8 +109,6 @@ def DownloadToolchain(src, dst, base_url, version):
   assert p.returncode == 0
   os.chdir(old_cwd)
 
-  # Make sure AV tools leave the file alone...
-  time.sleep(30)
   print 'Extract complete.'
   
   # Clean up: remove the download dir.
@@ -145,20 +143,11 @@ def InstallCygWin(cygwin_url):
   print 'Installing CygWin to "%s"...' % (cygwin_dir)
   sys.stdout.flush()
 
-  # Decide environment to run in per platform.
-  # This adds the assumption that cygwin is installed in the default location
-  # when cooking the sdk for windows.
-  env = os.environ.copy()
-  if sys.platform == 'win32':
-    env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
-
   # Extract cygwin.
   old_cwd = os.getcwd()
   os.chdir(setup_dir)
   p = subprocess.Popen(
-      'chmod a+x CygSetup.exe && cmd /WAIT /c CygSetup.exe /MINIMAL /S /D=%s' %
-          (cygwin_dir),
-      env=env, shell=True)
+      'cmd /WAIT /c CygSetup.exe /MINIMAL /S /D=%s' % (cygwin_dir))
   p.communicate()
   assert p.returncode == 0
   os.chdir(old_cwd)
@@ -166,7 +155,13 @@ def InstallCygWin(cygwin_url):
   print 'Extract complete.'
   
   # Clean up: remove the download dir.
-  shutil.rmtree(setup_dir)
+  for i in xrange(100):
+    try
+      print "Trying to remove dir %i..." % i
+      shutil.rmtree(setup_dir)
+      break
+    except WindowsError:
+      time.sleep(5)
 
 
 PLATFORM_COLLAPSE = {
