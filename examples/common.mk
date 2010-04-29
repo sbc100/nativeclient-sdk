@@ -23,10 +23,14 @@ endif
 # for you automatically.
 ifeq ($(OS), win)
   ifeq ($(origin WORD_SIZE), undefined)
-    ifeq (,$(findstring Intel64,$(PROCESSOR_IDENTIFIER)))
+    ifneq (,$(findstring Intel64,$(PROCESSOR_IDENTIFIER)))
       WORD_SIZE = 64
     else
-      WORD_SIZE = 32
+      ifneq (,$(findstring AMD64,$(PROCESSOR_IDENTIFIER)))
+        WORD_SIZE = 64
+      else
+        WORD_SIZE = 32
+      endif
     endif
   endif
 else
