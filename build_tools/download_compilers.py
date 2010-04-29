@@ -40,6 +40,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import urllib
 
 
@@ -108,6 +109,8 @@ def DownloadToolchain(src, dst, base_url, version):
   assert p.returncode == 0
   os.chdir(old_cwd)
 
+  # Make sure AV tools leave the file alone...
+  time.sleep(30)
   print 'Extract complete.'
   
   # Clean up: remove the download dir.
@@ -153,7 +156,7 @@ def InstallCygWin(cygwin_url):
   old_cwd = os.getcwd()
   os.chdir(setup_dir)
   p = subprocess.Popen(
-      'chmod a+x CygSetup.exe;cmd /WAIT /c CygSetup.exe /MINIMAL /S /D=%s' %
+      'chmod a+x CygSetup.exe && cmd /WAIT /c CygSetup.exe /MINIMAL /S /D=%s' %
           (cygwin_dir),
       env=env, shell=True)
   p.communicate()
