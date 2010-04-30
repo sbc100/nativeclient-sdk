@@ -16,14 +16,12 @@ CCFILES = cube_view.cc \
           scripting_bridge.cc \
           shader_util.cc \
           transforms.cc
-VPATH = nacl_module
 
 APP_FILES = dragger.js \
             tumbler.html \
             tumbler.js \
             trackball.js \
             vector3.js
-APP_FILES := $(addprefix application/,${APP_FILES})
 
 OBJECTS = $(patsubst %,${OBJROOT}/%,${CCFILES:%.cc=%.o})
 
