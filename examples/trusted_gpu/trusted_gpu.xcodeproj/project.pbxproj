@@ -1,0 +1,300 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DF608CD1115C85240068A191 /* cmd_buffer_common.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CCE115C85240068A191 /* cmd_buffer_common.cc */; };
+		DF608CD2115C85240068A191 /* gles2_cmd_format.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CCF115C85240068A191 /* gles2_cmd_format.cc */; };
+		DF608CD3115C85240068A191 /* gles2_cmd_utils.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CD0115C85240068A191 /* gles2_cmd_utils.cc */; };
+		DF608CD8115C85790068A191 /* logging.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CD7115C85790068A191 /* logging.cc */; };
+		DF608CE0115C85AB0068A191 /* cmd_buffer_helper.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CD9115C85AB0068A191 /* cmd_buffer_helper.cc */; };
+		DF608CE1115C85AB0068A191 /* fenced_allocator.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CDA115C85AB0068A191 /* fenced_allocator.cc */; };
+		DF608CE2115C85AB0068A191 /* gles2_c_lib.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CDB115C85AB0068A191 /* gles2_c_lib.cc */; };
+		DF608CE3115C85AB0068A191 /* gles2_cmd_helper.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CDC115C85AB0068A191 /* gles2_cmd_helper.cc */; };
+		DF608CE4115C85AB0068A191 /* gles2_implementation.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CDD115C85AB0068A191 /* gles2_implementation.cc */; };
+		DF608CE5115C85AB0068A191 /* gles2_lib.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CDE115C85AB0068A191 /* gles2_lib.cc */; };
+		DF608CE6115C85AB0068A191 /* id_allocator.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CDF115C85AB0068A191 /* id_allocator.cc */; };
+		DF608CEA115C85CB0068A191 /* command_buffer_pepper.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CE8115C85CB0068A191 /* command_buffer_pepper.cc */; };
+		DF608CEB115C85CB0068A191 /* pgl.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF608CE9115C85CB0068A191 /* pgl.cc */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D2AAC046055464E500DB518D /* libtrusted_gpu.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrusted_gpu.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF608CCE115C85240068A191 /* cmd_buffer_common.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cmd_buffer_common.cc; path = ../../third_party/gpu/command_buffer/common/cmd_buffer_common.cc; sourceTree = SOURCE_ROOT; };
+		DF608CCF115C85240068A191 /* gles2_cmd_format.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gles2_cmd_format.cc; path = ../../third_party/gpu/command_buffer/common/gles2_cmd_format.cc; sourceTree = SOURCE_ROOT; };
+		DF608CD0115C85240068A191 /* gles2_cmd_utils.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gles2_cmd_utils.cc; path = ../../third_party/gpu/command_buffer/common/gles2_cmd_utils.cc; sourceTree = SOURCE_ROOT; };
+		DF608CD7115C85790068A191 /* logging.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = logging.cc; path = ../../third_party/include/base/logging.cc; sourceTree = SOURCE_ROOT; };
+		DF608CD9115C85AB0068A191 /* cmd_buffer_helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cmd_buffer_helper.cc; path = ../../third_party/gpu/command_buffer/client/cmd_buffer_helper.cc; sourceTree = SOURCE_ROOT; };
+		DF608CDA115C85AB0068A191 /* fenced_allocator.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fenced_allocator.cc; path = ../../third_party/gpu/command_buffer/client/fenced_allocator.cc; sourceTree = SOURCE_ROOT; };
+		DF608CDB115C85AB0068A191 /* gles2_c_lib.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gles2_c_lib.cc; path = ../../third_party/gpu/command_buffer/client/gles2_c_lib.cc; sourceTree = SOURCE_ROOT; };
+		DF608CDC115C85AB0068A191 /* gles2_cmd_helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gles2_cmd_helper.cc; path = ../../third_party/gpu/command_buffer/client/gles2_cmd_helper.cc; sourceTree = SOURCE_ROOT; };
+		DF608CDD115C85AB0068A191 /* gles2_implementation.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gles2_implementation.cc; path = ../../third_party/gpu/command_buffer/client/gles2_implementation.cc; sourceTree = SOURCE_ROOT; };
+		DF608CDE115C85AB0068A191 /* gles2_lib.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gles2_lib.cc; path = ../../third_party/gpu/command_buffer/client/gles2_lib.cc; sourceTree = SOURCE_ROOT; };
+		DF608CDF115C85AB0068A191 /* id_allocator.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = id_allocator.cc; path = ../../third_party/gpu/command_buffer/client/id_allocator.cc; sourceTree = SOURCE_ROOT; };
+		DF608CE8115C85CB0068A191 /* command_buffer_pepper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = command_buffer_pepper.cc; path = ../../third_party/gpu/pgl/command_buffer_pepper.cc; sourceTree = SOURCE_ROOT; };
+		DF608CE9115C85CB0068A191 /* pgl.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pgl.cc; path = ../../third_party/gpu/pgl/pgl.cc; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D289987405E68DCB004EDB86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* trusted_gpu */ = {
+			isa = PBXGroup;
+			children = (
+				08FB7795FE84155DC02AAC07 /* Source */,
+				C6A0FF2B0290797F04C91782 /* Documentation */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = trusted_gpu;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				DF608CD6115C855B0068A191 /* base */,
+				DF608CD5115C85470068A191 /* gpu_client */,
+				DF608CD4115C852C0068A191 /* gpu_common */,
+				DF608CE7115C85B40068A191 /* pgl */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC046055464E500DB518D /* libtrusted_gpu.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C6A0FF2B0290797F04C91782 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Documentation;
+			sourceTree = "<group>";
+		};
+		DF608CD4115C852C0068A191 /* gpu_common */ = {
+			isa = PBXGroup;
+			children = (
+				DF608CCE115C85240068A191 /* cmd_buffer_common.cc */,
+				DF608CCF115C85240068A191 /* gles2_cmd_format.cc */,
+				DF608CD0115C85240068A191 /* gles2_cmd_utils.cc */,
+			);
+			name = gpu_common;
+			sourceTree = "<group>";
+		};
+		DF608CD5115C85470068A191 /* gpu_client */ = {
+			isa = PBXGroup;
+			children = (
+				DF608CD9115C85AB0068A191 /* cmd_buffer_helper.cc */,
+				DF608CDA115C85AB0068A191 /* fenced_allocator.cc */,
+				DF608CDB115C85AB0068A191 /* gles2_c_lib.cc */,
+				DF608CDC115C85AB0068A191 /* gles2_cmd_helper.cc */,
+				DF608CDD115C85AB0068A191 /* gles2_implementation.cc */,
+				DF608CDE115C85AB0068A191 /* gles2_lib.cc */,
+				DF608CDF115C85AB0068A191 /* id_allocator.cc */,
+			);
+			name = gpu_client;
+			sourceTree = "<group>";
+		};
+		DF608CD6115C855B0068A191 /* base */ = {
+			isa = PBXGroup;
+			children = (
+				DF608CD7115C85790068A191 /* logging.cc */,
+			);
+			name = base;
+			sourceTree = "<group>";
+		};
+		DF608CE7115C85B40068A191 /* pgl */ = {
+			isa = PBXGroup;
+			children = (
+				DF608CE8115C85CB0068A191 /* command_buffer_pepper.cc */,
+				DF608CE9115C85CB0068A191 /* pgl.cc */,
+			);
+			name = pgl;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D2AAC043055464E500DB518D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D2AAC045055464E500DB518D /* trusted_gpu */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "trusted_gpu" */;
+			buildPhases = (
+				D2AAC043055464E500DB518D /* Headers */,
+				D2AAC044055464E500DB518D /* Sources */,
+				D289987405E68DCB004EDB86 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = trusted_gpu;
+			productName = trusted_gpu;
+			productReference = D2AAC046055464E500DB518D /* libtrusted_gpu.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "trusted_gpu" */;
+			compatibilityVersion = "Xcode 3.1";
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* trusted_gpu */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D2AAC045055464E500DB518D /* trusted_gpu */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D2AAC044055464E500DB518D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF608CD1115C85240068A191 /* cmd_buffer_common.cc in Sources */,
+				DF608CD2115C85240068A191 /* gles2_cmd_format.cc in Sources */,
+				DF608CD3115C85240068A191 /* gles2_cmd_utils.cc in Sources */,
+				DF608CD8115C85790068A191 /* logging.cc in Sources */,
+				DF608CE0115C85AB0068A191 /* cmd_buffer_helper.cc in Sources */,
+				DF608CE1115C85AB0068A191 /* fenced_allocator.cc in Sources */,
+				DF608CE2115C85AB0068A191 /* gles2_c_lib.cc in Sources */,
+				DF608CE3115C85AB0068A191 /* gles2_cmd_helper.cc in Sources */,
+				DF608CE4115C85AB0068A191 /* gles2_implementation.cc in Sources */,
+				DF608CE5115C85AB0068A191 /* gles2_lib.cc in Sources */,
+				DF608CE6115C85AB0068A191 /* id_allocator.cc in Sources */,
+				DF608CEA115C85CB0068A191 /* command_buffer_pepper.cc in Sources */,
+				DF608CEB115C85CB0068A191 /* pgl.cc in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB91EC08733DB70010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = trusted_gpu;
+			};
+			name = Debug;
+		};
+		1DEB91ED08733DB70010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = trusted_gpu;
+			};
+			name = Release;
+		};
+		1DEB91F008733DB70010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					OMIT_DLOG_AND_DCHECK,
+					TRUSTED_GPU_LIBRARY_BUILD,
+					XP_UNIX,
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SDK_ROOT)/third_party/npapi/bindings",
+					"$(SDK_ROOT)/third_party/include",
+					"$(SDK_ROOT)/third_party",
+					"$(SDK_ROOT)",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+				SDK_ROOT = ../..;
+			};
+			name = Debug;
+		};
+		1DEB91F108733DB70010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					OMIT_DLOG_AND_DCHECK,
+					TRUSTED_GPU_LIBRARY_BUILD,
+					XP_UNIX,
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SDK_ROOT)/third_party/npapi/bindings",
+					"$(SDK_ROOT)/third_party/include",
+					"$(SDK_ROOT)/third_party",
+					"$(SDK_ROOT)",
+				);
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+				SDK_ROOT = ../..;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "trusted_gpu" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91EC08733DB70010E9CD /* Debug */,
+				1DEB91ED08733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "trusted_gpu" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91F008733DB70010E9CD /* Debug */,
+				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
