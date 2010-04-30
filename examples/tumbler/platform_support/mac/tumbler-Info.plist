@@ -21,9 +21,9 @@
 	<key>CSResourcesFileMapped</key>
 	<string>yes</string>
 	<key>WebPluginDescription</key>
-	<string>Tumbler module debug version</string>
+	<string>Tumbler 3D graphics example</string>
 	<key>WebPluginName</key>
-	<string>Tumbler module debug version</string>
+	<string>Tumbler</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
 		<key>pepper-application/tumbler</key>
@@ -33,7 +33,7 @@
 				<string>nexe</string>
 			</array>
 			<key>WebPluginTypeDescription</key>
-			<string>Tumbler Example</string>
+			<string>Tumbler</string>
 		</dict>
 	</dict>
 </dict>

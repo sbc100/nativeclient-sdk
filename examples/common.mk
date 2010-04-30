@@ -45,7 +45,7 @@ ifeq ($(OS), win)
   TARGET = x86
   RM = CMD /C DEL /Q
 endif
-ifeq ($(OS), Darwin)
+ifeq ($(OS), $(filter $(OS),Darwin MACOS))
   PLATFORM = mac
   TARGET = x86
   RM = rm -f
