@@ -73,11 +73,19 @@ def VersionString():
   return 'native_client_sdk_0_1_%d_%s' % (rev, build_number)
 
 
+def RawVersion():
+  rev = SVNRevision()
+  build_number = os.environ.get('BUILD_NUMBER', '0')
+  return '0.1.%d.%s' % (rev, build_number)
+
+
 def main(argv):
   # Cache the current location so we can return here before removing the
   # temporary dirs.
-  home_dir = os.path.realpath(os.curdir)
+  script_dir = os.path.abspath(os.path.dirname(__file__))
+  home_dir = os.path.realpath(os.path.join(script_dir, '..', '..'))
 
+  os.chdir(home_dir)
   os.chdir('src')
 
   version_dir = VersionString()
@@ -92,6 +100,11 @@ def main(argv):
     os.makedirs(installer_dir, mode=0777)
   except OSError:
     pass
+
+  # Windows only: remove toolchain and cygwin. They will be added by
+  # make_native_client_sdk.sh
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
+    EXCLUDE_DIRS.extend(['cygwin', 'toolchain'])
 
   # Decide environment to run in per platform.
   # This adds the assumption that cygwin is installed in the default location
@@ -155,14 +168,13 @@ def main(argv):
 
   # Windows only: change the command and output filename--we want to create
   # a self-extracting 7zip archive, not a tarball.
-  if sys.platform in WINDOWS_BUILD_PLATFORMS:
-    ar_cmd = os.path.join(
-        home_dir, 'src/build_tools/7za' + \
-        ' a -sfx7z.sfx %(ar_name)s %(input)s '
-        '&& cp %(ar_name)s %(output)s')
-    ar_name = 'nacl-sdk.exe'
 
-  archive = os.path.join(home_dir, ar_name)
+  # Windows only: archive will be created in src\build_tools,
+  # make_native_client_sdk.sh will create the real nacl-sdk.exe
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
+    archive = os.path.join(home_dir, 'src', 'build_tools', ar_name)
+  else:
+    archive = os.path.join(home_dir, ar_name)
   tarball = subprocess.Popen(
       ar_cmd % (
            {'ar_name':ar_name,
@@ -171,6 +183,14 @@ def main(argv):
       env=env, shell=True)
   tarball_err = tarball.communicate()[1]
 
+
+  # Windows only: use make_native_client_sdk.sh to create installer
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
+    os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
+    exefile = subprocess.Popen([
+        os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
+        'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
+    exefile_err = exefile.communicate()[1]
 
   # Clean up.
   os.chdir(home_dir)

@@ -11,7 +11,7 @@ OBJECTS = $(CCFILES:%.cc=%.o)
 SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
-INCLUDES = -I$(SDK_ROOT) -I$(NACL_ROOT)
+INCLUDES =
 LDFLAGS = -lgoogle_nacl_imc \
           -lgoogle_nacl_npruntime \
           -lpthread \

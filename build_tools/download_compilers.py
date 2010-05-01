@@ -62,11 +62,15 @@ def DownloadToolchain(src, dst, base_url, version):
   toolchain_dir = os.path.join(parent_dir, 'toolchain')
   target = os.path.join(toolchain_dir, dst)
 
-  # Create a temp dir for the tarball.
-  try:
-    tgz_dir = tempfile.mkdtemp()
-  except OSError:
-    pass
+  # Under Windows we need the tarballs for the make_native_client_sdk.sh
+  if sys.platform == 'win32':
+    tgz_dir = os.path.join(script_dir, 'packages')
+  else:
+    # Create a temp dir for the tarball.
+    try:
+      tgz_dir = tempfile.mkdtemp()
+    except OSError:
+      pass
   tgz_filename = os.path.join(tgz_dir, path)
 
   print 'Downloading "%s" to "%s"...' % (url, tgz_filename)
@@ -112,7 +116,8 @@ def DownloadToolchain(src, dst, base_url, version):
   print 'Extract complete.'
   
   # Clean up: remove the download dir.
-  shutil.rmtree(tgz_dir)
+  if sys.platform != 'win32':
+    shutil.rmtree(tgz_dir)
 
 
 def InstallCygWin(cygwin_url):
@@ -125,7 +130,7 @@ def InstallCygWin(cygwin_url):
   # Pick target directory.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   parent_dir = os.path.split(script_dir)[0]
-  cygwin_dir = os.path.join(parent_dir, 'cygwin')
+  cygwin_dir = os.path.join(parent_dir, 'third_party', 'cygwin')
 
   # Create a temp dir for the tarball.
   try:
@@ -147,7 +152,8 @@ def InstallCygWin(cygwin_url):
   old_cwd = os.getcwd()
   os.chdir(setup_dir)
   p = subprocess.Popen(
-      'cmd /WAIT /c CygSetup.exe /MINIMAL /S /D=%s' % (cygwin_dir))
+      ['cmd', '/WAIT', '/C', 'CygSetup.exe', '/NACLSDKMAKE', '/S', '/D=%s' %
+          (cygwin_dir)])
   p.communicate()
   assert p.returncode == 0
   os.chdir(old_cwd)
@@ -157,7 +163,7 @@ def InstallCygWin(cygwin_url):
   # Clean up: remove the download dir.
   for i in xrange(100):
     try:
-      print "Trying to remove dir %i..." % (i)
+      print "Trying to remove dir: try %i..." % (i+1)
       shutil.rmtree(setup_dir)
       break
     except WindowsError:
@@ -221,12 +227,12 @@ def main(argv):
   for p in platforms:
     pfix = PLATFORM_COLLAPSE.get(p, p)
     if pfix in PLATFORM_MAPPING:
-      # if pfix == 'win32':
-      #  InstallCygWin(cygwin_url=options.cygwin_url)
       for flavor in PLATFORM_MAPPING[pfix]:
         DownloadToolchain(flavor[0], flavor[1],
                           base_url=options.base_url,
                           version=options.version)
+      if pfix == 'win32':
+        InstallCygWin(cygwin_url=options.cygwin_url)
     else:
       print 'ERROR: Unknown platform "%s"!' % p
       sys.exit(1)

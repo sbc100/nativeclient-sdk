@@ -11,26 +11,38 @@
 .SUFFIXES:
 .SUFFIXES: .c .cc .cpp .o
 
-# Note that on Windows builds, OS has to be defined by the calling shell.
 ifeq ($(origin OS), undefined)
-  OS := $(shell uname -s)
+  ifeq ($(shell uname -s), Darwin)
+    OS=Darwin
+  else
+    OS=$(shell uname -o)
+  endif
+endif
+
+ifeq ($(OS), $(filter $(OS), Windows_NT Cygwin))
+  PLATFORM = win
+  TARGET = x86
+endif
+ifeq ($(OS), $(filter $(OS), Darwin MACOS))
+  PLATFORM = mac
+  TARGET = x86
+endif
+ifeq ($(OS), Linux)
+  PLATFORM = linux
+  TARGET = x86
 endif
 
 # To make a 64-bit build, you can set WORD_SIZE=64 on the command line.
 #   make WORD_SIZE=64
-# Note that 64-bit builds are not supported on Mac or Linux.
+# Note that 64-bit builds are not supported on Mac.
 # If you are running on an x86_64 Windows computer, WORD_SIZE should be set
 # for you automatically.
-ifeq ($(OS), win)
+ifeq ($(PLATFORM), win)
   ifeq ($(origin WORD_SIZE), undefined)
-    ifneq (,$(findstring Intel64,$(PROCESSOR_IDENTIFIER)))
+    ifneq (, $(filter Intel64 AMD64, $(PROCESSOR_IDENTIFIER)))
       WORD_SIZE = 64
     else
-      ifneq (,$(findstring AMD64,$(PROCESSOR_IDENTIFIER)))
-        WORD_SIZE = 64
-      else
-        WORD_SIZE = 32
-      endif
+      WORD_SIZE = 32
     endif
   endif
 else
@@ -40,44 +52,10 @@ endif
 ARCH_FLAGS = -m$(WORD_SIZE)
 SDK_ROOT ?= .
 
-ifeq ($(OS), win)
-  PLATFORM = win
-  TARGET = x86
-  RM = CMD /C DEL /Q
-endif
-ifeq ($(OS), $(filter $(OS),Darwin MACOS))
-  PLATFORM = mac
-  TARGET = x86
-  RM = rm -f
-endif
-ifeq ($(OS), Linux)
-  PLATFORM = linux
-  TARGET = x86
-  RM = rm -f
-endif
-ifneq (,$(findstring CYGWIN,$(OS)))
-  PLATFORM = win
-  TARGET = x86
-  RM = CMD /C DEL /Q
-endif
-
-NACL_ARCH = x86_$(WORD_SIZE)
-
 NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
 
-ifeq ($(WORD_SIZE), 64)
-  NACL_INCLUDE = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/nacl64/include/nacl
-else
-  NACL_INCLUDE = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/nacl/include/nacl
-endif
-
-CC = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl64-gcc
-CPP = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl64-g++
-
-ifeq ($(OS), win)
-  CC := $(subst /,\,$(CC))
-  CPP := $(subst /,\,$(CPP))
-endif
+CC = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-gcc
+CPP = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(ARCH_FLAGS) $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
