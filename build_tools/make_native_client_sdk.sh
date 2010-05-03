@@ -263,6 +263,8 @@ END
   -e s"|\"/oname=native_client_sdk_${SDK_VERSION//./_}\\\\|\"/oname=|"g \
   -e s"|\\\$INSTDIR\\\\native_client_sdk_${SDK_VERSION//./_}\\\\|\$INSTDIR\\\\|"g \
   > make_native_client_sdk.nsi
+# Don't try to patch file right away - give the AV software chance to scan it
+sleep 5
 if ! patch --no-backup-if-mismatch <<END
 --- make_native_client_sdk.nsi
 +++ make_native_client_sdk.nsi
