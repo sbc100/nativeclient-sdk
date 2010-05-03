@@ -117,6 +117,11 @@ rm -rf packages.unpacked/{nacl-sdk.tgz,naclsdk_win_x86.tgz}
 CYGWIN_PREFIX="third_party\\cygwin\\"
 
 parse_setup_ini
+download_package_dependences bash 0
+reqpackages=()
+sectionin=()
+allinstpackages=()
+allinstalledpackages=()
 fix_setup_inf_info
 mv "`dirname \"$0\"`"/nacl-sdk.tgz packages
 version["native_client_sdk"]="$SDK_VERSION"
@@ -226,6 +231,10 @@ Section "" sec_PostInstall
   SetOutPath \$INSTDIR
   nsExec::ExecToLog '"${CYGWIN_PREFIX}bin\\bash" -c ./postinstall.sh'
   Delete \$INSTDIR\\postinstall.sh
+  Delete \$INSTDIR\\${CYGWIN_PREFIX}bin\\bash.exe
+  Rename \$INSTDIR\\${CYGWIN_PREFIX}bin\\bash4.exe \$INSTDIR\\${CYGWIN_PREFIX}bin\\bash.exe
+  Delete \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh.exe
+  Rename \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh4.exe \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh.exe
   FileOpen \$R0 \$INSTDIR\\${CYGWIN_PREFIX}CygWin.bat w
   StrCpy \$R1 \$INSTDIR 1
   FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\n\$R1:$\r\$\nchdir \$INSTDIR\\${CYGWIN_PREFIX//\//\\}bin\$\r\$\nbash --login -i$\r\$\n"
@@ -256,18 +265,26 @@ END
 if ! patch --no-backup-if-mismatch <<END
 --- make_native_client_sdk.nsi
 +++ make_native_client_sdk.nsi
-@@ -1669,4 +1669,4 @@
+@@ -430 +429,0 @@
+-  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
+@@ -1269,2 +1266,0 @@
+-  CreateDirectory "\$INSTDIR\\sdk"
+-  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
+@@ -4052,3 +4049,5 @@
+-  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
++  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\bash.exe"
++  File "/oname=${CYGWIN_PREFIX}bin\\bash4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
+   File "/oname=${CYGWIN_PREFIX}bin\\bashbug" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bashbug"
+-  File "/oname=${CYGWIN_PREFIX}bin\\sh.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
++  File "/oname=${CYGWIN_PREFIX}bin\\sh.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\sh.exe"
++  File "/oname=${CYGWIN_PREFIX}bin\\sh4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
+@@ -4301,4 +4298,4 @@
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk-3.1.7.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.7.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1" "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\pgawk.1"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "gawk.exe"
-@@ -4639 +4638,0 @@
--  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
-@@ -5455,2 +5453,0 @@
--  CreateDirectory "\$INSTDIR\\sdk"
--  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
-@@ -8545,3 +8545,3 @@
+@@ -8990,3 +8987,3 @@
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "python2.5.exe"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "python2.5-config"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython2.5.dll.a" "python2.5\\config\\libpython2.5.dll.a"
