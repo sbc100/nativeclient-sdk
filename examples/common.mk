@@ -29,7 +29,7 @@ ifeq ($(OS), $(filter $(OS), Darwin MACOS))
 endif
 
 # Look for 'Linux' in the $(OS) string.  $(OS) is assumed to be a Linux
-# variant if the reuslt of $(findstring) is not empty.
+# variant if the result of $(findstring) is not empty.
 ifneq (, $(findstring Linux, $(OS)))
   PLATFORM = linux
   TARGET = x86

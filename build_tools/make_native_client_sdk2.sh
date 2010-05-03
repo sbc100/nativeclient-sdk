@@ -180,7 +180,7 @@ if ! patch --no-backup-if-mismatch <<END
 -  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} ""
    !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_sdk} "Native Client SDK - examples and documentation"
    !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_toolchain} "Native Client SDK - toolchain"
-+  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} "Small POSIX-like environment. Disable if you already have POSIX-like environment installed and know how to use it."
++  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} "Small POSIX-like environment. Disable if you have POSIX-like environment installed and know how to use it."
 END
   then
     exit 1
