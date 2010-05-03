@@ -257,6 +257,7 @@ Function ShowReleaseNotes
   ExecShell "open" "http://code.google.com/p/nativeclient-sdk/wiki/GettingStarted"
 FunctionEnd
 END
+  echo "NSIS configuration file is created successfully..." >&2
 ) | sed \
   -e s"|\"/oname=sdk\\\\nacl-sdk\\\\|\"/oname=toolchain\\\\win_x86\\\\|"g \
   -e s"|\\\$INSTDIR\\\\sdk\\\\nacl-sdk\\\\|\\\$INSTDIR\\\\toolchain\\\\win_x86\\\\|"g \
@@ -264,6 +265,7 @@ END
   -e s"|\\\$INSTDIR\\\\native_client_sdk_${SDK_VERSION//./_}\\\\|\$INSTDIR\\\\|"g \
   > make_native_client_sdk.nsi
 # Don't try to patch file right away - give the AV software chance to scan it
+echo "Wait before using patch..." >&2
 sleep 5
 if ! patch --no-backup-if-mismatch <<END
 --- make_native_client_sdk.nsi
