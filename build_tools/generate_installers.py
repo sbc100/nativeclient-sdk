@@ -191,6 +191,10 @@ def main(argv):
         os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
         'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
     exefile_err = exefile.communicate()[1]
+    exefile2 = subprocess.Popen([
+        os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
+        'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
+    exefile_err2 = exefile2.communicate()[1]
 
   # Clean up.
   os.chdir(home_dir)
