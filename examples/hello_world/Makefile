@@ -4,11 +4,13 @@
 
 # Makefile for the Hello World example.
 
+.PHONY: all clean
+
 CCFILES = hello_world_module.cc hello_world.cc npn_bridge.cc npp_gate.cc
 
 OBJECTS = $(CCFILES:%.cc=%.o)
 
-SDK_ROOT = ../..
+NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
 INCLUDES =
@@ -19,7 +21,7 @@ LDFLAGS = -lgoogle_nacl_imc \
           $(ARCH_FLAGS)
 OPT_FLAGS = -O2
 
-all: hello_world.nexe
+all: check_variables hello_world.nexe
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk

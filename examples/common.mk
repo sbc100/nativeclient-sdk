@@ -11,6 +11,8 @@
 .SUFFIXES:
 .SUFFIXES: .c .cc .cpp .o
 
+.PHONY: check_variables
+
 ifeq ($(origin OS), undefined)
   ifeq ($(shell uname -s), Darwin)
     OS=Darwin
@@ -53,12 +55,12 @@ else
 endif
 
 ARCH_FLAGS = -m$(WORD_SIZE)
-SDK_ROOT ?= .
+NACL_SDK_ROOT ?= .
 
 NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
 
-CC = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-gcc
-CPP = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++
+CC = $(NACL_SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-gcc
+CPP = $(NACL_SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(ARCH_FLAGS) $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
@@ -68,3 +70,19 @@ CPP = $(SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++
 
 %.o: %.cpp
 	$(CPP) $(CFLAGS) $(ARCH_FLAGS) $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+
+# Make sure certain variables are defined.  This rule is set as a dependency
+# for all the .nexe builds in the examples.
+check_variables:
+ifeq ($(origin OS), undefined)
+	@echo "Error: OS is undefined" ; exit 42
+endif
+ifeq ($(origin PLATFORM), undefined)
+	@echo "Error: PLATFORM is undefined (OS = $(OS))" ; exit 42
+endif
+ifeq ($(origin TARGET), undefined)
+	@echo "Error: TARGET is undefined (OS = $(OS))" ; exit 42
+endif
+ifeq ($(origin NACL_SDK_ROOT), undefined)
+	@echo "Error: NACL_SDK_ROOT is undefined" ; exit 42
+endif

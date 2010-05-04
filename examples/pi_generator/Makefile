@@ -4,6 +4,8 @@
 
 # Makefile for the PI Generator example.
 
+.PHONY: all clean
+
 CCFILES = npn_bridge.cc \
           npp_gate.cc \
           pi_generator.cc \
@@ -12,10 +14,10 @@ CCFILES = npn_bridge.cc \
 
 OBJECTS = $(CCFILES:%.cc=%.o)
 
-SDK_ROOT = ../..
+NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
-INCLUDES = -I$(SDK_ROOT)
+INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lgoogle_nacl_imc \
           -lgoogle_nacl_npruntime \
           -lpthread \
@@ -23,7 +25,7 @@ LDFLAGS = -lgoogle_nacl_imc \
           $(ARCH_FLAGS)
 OPT_FLAGS = -O2
 
-all: pi_generator.nexe
+all: check_variables pi_generator.nexe
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk

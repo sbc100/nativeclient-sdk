@@ -4,6 +4,8 @@
 
 # Makefile for the Tumbler example.
 
+.PHONY: all clean
+
 CCFILES = cube_view.cc \
           npn_bridge.cc \
           npp_gate.cc \
@@ -22,10 +24,10 @@ APP_FILES = dragger.js \
 
 OBJECTS = $(CCFILES:%.cc=%.o)
 
-SDK_ROOT = ../..
+NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
-INCLUDES = -I$(SDK_ROOT)
+INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lgoogle_nacl_imc \
           -lgoogle_nacl_npruntime \
           -lpthread \
@@ -35,7 +37,7 @@ LDFLAGS = -lgoogle_nacl_imc \
           $(ARCH_FLAGS)
 OPT_FLAGS = -O2
 
-all: tumbler.nexe
+all: check_variables tumbler.nexe
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
