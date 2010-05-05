@@ -67,6 +67,14 @@ def SVNRevision():
     return 0
 
 
+def BuildDebugLibs(debug_lib_dir, env):
+  make = subprocess.Popen('make install_prebuilt',
+                          env=env,
+                          cwd=debug_lib_dir,
+                          shell=True)
+  make_err = make.communicate()[1]
+
+
 def VersionString():
   rev = SVNRevision()
   build_number = os.environ.get('BUILD_NUMBER', '0')
@@ -112,6 +120,8 @@ def main(argv):
   env = os.environ.copy()
   if sys.platform == 'win32':
     env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+
+  BuildDebugLibs(os.path.join(home_dir, 'src/debug_libs'), env)
 
   # Build the examples.
   example_path = os.path.join(home_dir, 'src/examples')
@@ -187,14 +197,32 @@ def main(argv):
   # Windows only: use make_native_client_sdk.sh to create installer
   if sys.platform in WINDOWS_BUILD_PLATFORMS:
     os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
-    exefile = subprocess.Popen([
-        os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
-        'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
-    exefile_err = exefile.communicate()[1]
-    exefile2 = subprocess.Popen([
-        os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
-        'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
-    exefile_err2 = exefile2.communicate()[1]
+    if os.path.exists('done1'):
+      os.remove('done1')
+    for i in xrange(100):
+      print "Trying to make a script: try %i..." % (i+1)
+      exefile = subprocess.Popen([
+          os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
+          'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
+      exefile_err = exefile.communicate()[1]
+      if os.path.exists('done1'):
+        print "NSIS script created - time to run makensis!"
+        if os.path.exists('done2'):
+          os.remove('done2')
+        for i in xrange(100):
+          print "Trying to make a script: try %i..." % (i+1)
+          exefile2 = subprocess.Popen([
+              os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
+              'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
+          exefile_err2 = exefile2.communicate()[1]
+          if os.path.exists('done2'):
+            print "Installer created!"
+            break
+        else:
+          print "Can not create installer (even after 100 tries)"
+        break
+    else:
+      print "Can not create NSIS script (even after 100 tries)"
 
   # Clean up.
   os.chdir(home_dir)

@@ -258,6 +258,7 @@ Function ShowReleaseNotes
 FunctionEnd
 END
   echo "NSIS configuration file is created successfully..." >&2
+  touch done1
   exit 0
 ) | sed \
   -e s"|\"/oname=sdk\\\\nacl-sdk\\\\|\"/oname=toolchain\\\\win_x86\\\\|"g \

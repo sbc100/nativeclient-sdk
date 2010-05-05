@@ -192,3 +192,4 @@ if ((NSIS)) ; then
     makensis /V2 make_native_client_sdk.nsi
   fi
 fi
+touch done2
