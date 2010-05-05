@@ -53,7 +53,8 @@ WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
 def ExcludeFile(file):
   return (file.startswith('.DS_Store') or
           re.search('^\._', file) or
-          file == 'DEPS' or file == 'codereview.settings')
+          file == 'DEPS' or file == 'codereview.settings' or
+          (not sys.platform in WINDOWS_BUILD_PLATFORMS and file == "make.cmd"))
 
 
 # Note that this function has to be run from within a subversion working copy.

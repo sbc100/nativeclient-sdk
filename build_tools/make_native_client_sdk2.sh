@@ -115,6 +115,10 @@ if ! patch --no-backup-if-mismatch <<END
 -  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
 @@ -1742 +1739,0 @@
 -  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
+@@ -1809 +1807,0 @@
+-  File "/oname=debug_libs\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\debug_libs\\make.cmd"
+@@ -1812 +1809,0 @@
+-  File "/oname=debug_libs\\trusted_gpu\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_0_1_303_0\\debug_libs\\trusted_gpu\\make.cmd"
 @@ -1815 +1811,0 @@
 -  File "/oname=examples\\hello_world\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\hello_world\\make.cmd"
 @@ -1823 +1818,0 @@

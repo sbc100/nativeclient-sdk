@@ -166,6 +166,7 @@ OutFile ../../nacl-sdk.exe
 Var SVV_CmdLineParameters
 Var SVV_SelChangeInProgress
 
+!include "x64.nsh"
 !include "FileFunc.nsh"
 END
   declare_nsis_variables
@@ -225,6 +226,7 @@ Section "" sec_PostInstall
   SectionIn `seq -s ' ' $((${#packages[@]}+3))`
   Push \$R0
   Push \$R1
+  Push \$R2
   FileOpen \$R0 \$INSTDIR\\postinstall.sh a
   FileSeek \$R0 0 END
   FileWrite \$R0 "/bin/sort /etc/setup/installed.log -o /etc/setup/installed.db\$\nrm /etc/setup/installed.log\$\n"
@@ -240,9 +242,78 @@ Section "" sec_PostInstall
   StrCpy \$R1 \$INSTDIR 1
   FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\n\$R1:$\r\$\nchdir \$INSTDIR\\${CYGWIN_PREFIX//\//\\}bin\$\r\$\nbash --login -i$\r\$\n"
   FileClose \$R0
-  SetOutPath \$INSTDIR\examples
-  CreateDirectory "\$SMPROGRAMS\\Native Client SDK"
-  CreateShortCut "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "run.py"
+  ;SetOutPath \$INSTDIR\examples
+  ;CreateDirectory "\$SMPROGRAMS\\Native Client SDK"
+  ;CreateShortCut "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "run.py"
+
+  ; Find vcvars.bat and create make.cmd for native compilation
+  StrCpy \$R2 1
+  \${EnableX64FSRedirection}
+  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VC" "ProductDir"
+  IfErrors 0 DirFound
+  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VC" "ProductDir"
+  IfErrors 0 DirFound
+  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VC" "ProductDir"
+  IfErrors 0 DirFound
+  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\7.1\\Setup\\VC" "ProductDir"
+  IfErrors 0 DirFound
+  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\7.0\\Setup\\VC" "ProductDir"
+  IfErrors 0 DirFound
+  MessageBox MB_OK "Can not find Microsoft Visual Studio location. Native compilation is not supported."
+  StrCpy \$R0 ""
+  StrCpy \$R2 0
+DirFound:
+  \${If} \${RunningX64}
+    IfFileExists "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat" 0 +3
+    StrCpy \$R1 "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat"
+    GoTo WriteFiles
+    IfFileExists "\$R0bin\\amd64\\vcvarsamd64.bat" 0 +3
+    StrCpy \$R1 "\$R0bin\\amd64\\vcvarsamd64.bat"
+    GoTo WriteFiles
+    IfFileExists "\$R0bin\\vcvarsx86_amd64.bat" 0 +3
+    StrCpy \$R1 "\$R0bin\\vcvarsx86_amd64.bat"
+    GoTo WriteFiles
+    IfFileExists "\$R0bin\\vcvarsamd64.bat" 0 +3
+    StrCpy \$R1 "\$R0bin\\vcvarsamd64.bat"
+    GoTo WriteFiles
+    IfFileExists "\$R0bin\\vcvars64.bat" 0 +3
+    StrCpy \$R1 "\$R0bin\\vcvars64.bat"
+    GoTo WriteFiles
+    ; Test and use vcvarsall.bat last since it may be present but broken
+    IfFileExists "\$R0vcvarsall.bat" 0 +3
+    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
+    GoTo WriteFiles
+    IntCmp \$R2 0 +2
+    MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed with \$\\"X64 Compilers and Tools\$\\" option selected"
+    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
+    GoTo WriteFiles
+  \${Else}
+    IfFileExists "\$R0bin\\vcvars32.bat" 0 +3
+    StrCpy \$R1 "\$R0bin\\vcvars32.bat"
+    GoTo WriteFiles
+    IfFileExists "\$R0vcvars32.bat" 0 +3
+    StrCpy \$R1 "\$R0vcvars32.bat"
+    GoTo WriteFiles
+    ; Test and use vcvarsall.bat last since it may be present but broken
+    IfFileExists "\$R0vcvarsall.bat" 0 +3
+    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
+    GoTo WriteFiles
+    IntCmp \$R2 0 +2
+    MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed"
+    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
+  \${EndIf}
+WriteFiles:
+  IfFileExists \$INSTDIR\\${CYGWIN_PREFIX}bin\\make.exe 0 Skip_all_libs
+  IfFileExists \$INSTDIR\\debug_libs\\*.* 0 Skip_debug_libs
+  FileOpen \$R0 \$INSTDIR\\debug_libs\\make.cmd w
+  FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\ncall \$\"\$R1\$\"\$\r\$\n\$\r\$\nREM Relative path of CygWin\$\r\$\nset CYGWIN=%~dp0%..\\third_party\\cygwin\\bin\$\r\$\n\$\r\$\nPATH=%CYGWIN%;%PATH%\$\r\$\n\$\r\$\nmake.exe %*\$\r\$\n"
+  FileClose \$R0
+  FileOpen \$R0 \$INSTDIR\\debug_libs\\trusted_gpu\\make.cmd w
+  FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\ncall \$\"\$R1\$\"\$\r\$\n\$\r\$\nREM Relative path of CygWin\$\r\$\nset CYGWIN=%~dp0%..\\..\\third_party\\cygwin\\bin\$\r\$\n\$\r\$\nPATH=%CYGWIN%;%PATH%\$\r\$\n\$\r\$\nmake.exe %*\$\r\$\n"
+  FileClose \$R0
+Skip_debug_libs:
+Skip_all_libs:
+  Pop \$R2
   Pop \$R1
   Pop \$R0
 SectionEnd
