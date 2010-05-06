@@ -89,8 +89,8 @@ tumbler.Dragger.prototype.onMouseDown = function(event) {
   this.target_.addEventListener('mouseup', this.boundMouseUp_);
   this.isDragging_ = true;
   var dragStartEvent = { type: tumbler.Dragger.DragEvents.DRAG_START,
-                         clientX: event.clientX,
-                         clientY: event.clientY };
+                         clientX: event.offsetX,
+                         clientY: event.offsetY };
   var i;
   for (i = 0; i < this.listeners_.length; ++i) {
     this.listeners_[i].handleStartDrag(this.target_, dragStartEvent);
@@ -105,8 +105,8 @@ tumbler.Dragger.prototype.onMouseMove = function(event) {
   if (!this.isDragging_)
     return;
   var dragEvent = { type: tumbler.Dragger.DragEvents.DRAG,
-                    clientX: event.clientX,
-                    clientY: event.clientY};
+                    clientX: event.offsetX,
+                    clientY: event.offsetY};
   var i;
   for (i = 0; i < this.listeners_.length; ++i) {
     this.listeners_[i].handleDrag(this.target_, dragEvent);
@@ -125,8 +125,8 @@ tumbler.Dragger.prototype.onMouseUp = function(event) {
   this.boundMouseMove_ = null;
   this.isDragging_ = false;
   var dragEndEvent = { type: tumbler.Dragger.DragEvents.DRAG_END,
-                       clientX: event.clientX,
-                       clientY: event.clientY};
+                       clientX: event.offsetX,
+                       clientY: event.offsetY};
   var i;
   for (i = 0; i < this.listeners_.length; ++i) {
     this.listeners_[i].handleEndDrag(this.target_, dragEndEvent);
