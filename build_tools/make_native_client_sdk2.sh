@@ -115,10 +115,12 @@ if ! patch --no-backup-if-mismatch <<END
 -  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
 @@ -1742 +1739,0 @@
 -  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
-@@ -1809 +1807,0 @@
+@@ -1806 +1805,0 @@
 -  File "/oname=debug_libs\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\debug_libs\\make.cmd"
-@@ -1812 +1809,0 @@
+@@ -1809 +1807,0 @@
 -  File "/oname=debug_libs\\trusted_gpu\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\debug_libs\\trusted_gpu\\make.cmd"
+@@ -1812 +1809,0 @@
+-  File "/oname=examples\\contrib\\life\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\contrib\\life\\make.cmd"
 @@ -1815 +1811,0 @@
 -  File "/oname=examples\\hello_world\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\hello_world\\make.cmd"
 @@ -1823 +1818,0 @@
@@ -154,8 +156,11 @@ if ! patch --no-backup-if-mismatch <<END
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share"
-@@ -7101,2 +7099,6 @@
+@@ -7101,2 +7099,9 @@
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1"
++  File "/oname=debug_libs\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\debug_libs\\make.cmd"
++  File "/oname=debug_libs\\trusted_gpu\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\debug_libs\\trusted_gpu\\make.cmd"
++  File "/oname=examples\\contrib\\life\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\contrib\\life\\make.cmd"
 +  File "/oname=examples\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\make.cmd"
 +  File "/oname=examples\\hello_world\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\hello_world\\make.cmd"
 +  File "/oname=examples\\pi_generator\\make.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\pi_generator\\make.cmd"
@@ -170,16 +175,16 @@ if ! patch --no-backup-if-mismatch <<END
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\include"
 @@ -7471,2 +7474,3 @@
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1"
+   CreateDirectory "\$INSTDIR\\third_party\\cygwin\\usr\\share\\man\\man1"
 +  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
-   File "/oname=${CYGWIN_PREFIX}bin\\libpython2.5.dll" "packages.unpacked\\python-2.5.5-1.tar.bz2\\usr\\bin\\libpython2.5.dll"
+   File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python-2.6.5-1.tar.bz2\\usr\\bin\\2to3"
 @@ -8992,3 +8996,3 @@
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "python2.5.exe"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "python2.5-config"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython2.5.dll.a" "python2.5\\config\\libpython2.5.dll.a"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.5.exe"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.5-config"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python2.5.dll.a" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python2.5\\config\\libpython2.5.dll.a"
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "python2.6.exe"
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "python2.6-config"
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython2.6.dll.a" "python2.6\\config\\libpython2.6.dll.a"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.6.exe"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.6-config"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python2.6.dll.a" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python2.6\\config\\libpython2.6.dll.a"
 @@ -9032,3 +9035,3 @@
 -  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} ""
    !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_sdk} "Native Client SDK - examples and documentation"

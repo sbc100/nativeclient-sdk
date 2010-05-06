@@ -93,6 +93,8 @@ def main(argv):
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   home_dir = os.path.realpath(os.path.join(script_dir, '..', '..'))
+  if sys.platform == 'win32':
+    cygwin_dir = os.path.join(script_dir, '..', 'third_party', 'cygwin', 'bin')
 
   os.chdir(home_dir)
   os.chdir('src')
@@ -120,7 +122,7 @@ def main(argv):
   # when cooking the sdk for windows.
   env = os.environ.copy()
   if sys.platform == 'win32':
-    env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+    env['PATH'] = cygwin_dir + ';' + env['PATH']
 
   BuildDebugLibs(os.path.join(home_dir, 'src/debug_libs'), env)
 

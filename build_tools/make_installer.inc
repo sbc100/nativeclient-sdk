@@ -53,7 +53,10 @@ parse_setup_ini() {
       ldescmode=0
       if ((verbose)) ; then echo "Package: \"$package\"..." >&2 ; fi
     elif [[ "$line" = "[prev]" ]] || [[ "$line" = "[test]" ]] ; then
-      acceptmode=0
+      # Grab python 2.6.5 package, not python 2.5.5
+      if [[ "$package" != "python" ]] ; then
+        acceptmode=0
+      fi
     elif ((acceptmode)) ; then
       if ((sdescmode)) ; then
         sdesc["$package"]="${sdesc[$package]} $line"

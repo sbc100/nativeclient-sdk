@@ -59,6 +59,8 @@ def DownloadToolchain(src, dst, base_url, version):
   # Pick target directory.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   parent_dir = os.path.split(script_dir)[0]
+  if sys.platform == 'win32':
+    cygwin_dir = os.path.join(parent_dir, 'third_party', 'cygwin', 'bin')
   toolchain_dir = os.path.join(parent_dir, 'toolchain')
   target = os.path.join(toolchain_dir, dst)
 
@@ -100,7 +102,7 @@ def DownloadToolchain(src, dst, base_url, version):
   # when cooking the sdk for windows.
   env = os.environ.copy()
   if sys.platform == 'win32':
-    env['PATH'] = r'c:\cygwin\bin;' + env['PATH']
+    env['PATH'] = cygwin_dir + ';' + env['PATH']
 
   # Extract toolchain.
   old_cwd = os.getcwd()
