@@ -31,25 +31,26 @@ all: develop
 
 develop:
 	@echo make develop in `pwd`
-	(SRCROOT=`pwd`/../..; $(MAKE) -f develop.mk \
-            SRCROOT=$$SRCROOT \
-            INCLUDES="-I$$SRCROOT \
-                -I$$SRCROOT/third_party \
-                -I$$SRCROOT/third_party/include \
-                -I$$SRCROOT/third_party/npapi/bindings" \
+	(NACL_SDK_ROOT=`pwd`/../..; $(MAKE) -f develop.mk \
+            NACL_SDK_ROOT=$$NACL_SDK_ROOT \
+            INCLUDES="-I$$NACL_SDK_ROOT \
+                -I$$NACL_SDK_ROOT/third_party \
+                -I$$NACL_SDK_ROOT/third_party/include \
+                -I$$NACL_SDK_ROOT/third_party/npapi/bindings" \
             OBJROOT=develop/$(PLATFORM)_$(TARGET) \
             DSTROOT=../develop/$(PLATFORM)_$(TARGET) \
             OPT_FLAGS="-O0 -g3 -fPIC" develop_linux)
 	$(MAKE) -f develop.mk \
-	    SRCROOT=`pwd`/../.. \
+	    NACL_SDK_ROOT=`pwd`/../.. \
 	    DSTROOT=../develop/$(PLATFORM)_$(TARGET) \
 	    copy_files
 
 develop_linux:
 	mkdir -p $(DSTROOT)
-	$(MAKE) -f develop.mk $(DSTROOT)/libtrusted_gpu.a
 	$(MAKE) -f develop.mk \
-      LDFLAGS='-shared $(ARCH_FLAGS) -L$(DSTROOT) -ltrusted_gpu' \
+      LDFLAGS="-shared $(ARCH_FLAGS) \
+               -L$(NACL_SDK_ROOT)/debug_libs/$(PLATFORM)_$(TARGET)_$(WORD_SIZE) \
+               -ltrusted_gpu" \
 	    CFLAGS="-DXP_UNIX -Werror -fPIC $(ARCH_FLAGS)" \
 	    CXXFLAGS="-DXP_UNIX -Werror -fPIC $(ARCH_FLAGS)" \
 	    $(OBJROOT)/$(PROGRAM_NAME)
@@ -61,13 +62,3 @@ copy_files:
 
 $(OBJROOT)/$(PROGRAM_NAME): $(OBJECTS)
 	$(CPP) $^ $(LDFLAGS) -o $@
-
-$(DSTROOT)/libtrusted_gpu.a:
-	(cd ../trusted_gpu; $(MAKE) -f develop.mk -w \
-            INCLUDES="-I$$SRCROOT \
-                -I$$SRCROOT/third_party \
-                -I$$SRCROOT/third_party/include \
-                -I$$SRCROOT/third_party/npapi/bindings" \
-            OBJROOT=develop/$(PLATFORM)_$(TARGET) \
-            DSTROOT=../develop/$(PLATFORM)_$(TARGET) \
-            OPT_FLAGS="-O0 -g3 -fPIC" develop_$(PLATFORM))
