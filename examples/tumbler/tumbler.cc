@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "examples/tumbler/cube_view.h"
+#include "examples/tumbler/cube.h"
 #include "examples/tumbler/scripting_bridge.h"
 
 extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
@@ -35,7 +35,7 @@ Tumbler::Tumbler(NPP npp)
       scriptable_object_(NULL),
       device3d_(NULL),
       pgl_context_(NULL),
-      cube_view_(NULL) {
+      cube_(NULL) {
   memset(&context3d_, 0, sizeof(context3d_));
   ScriptingBridge::InitializeIdentifiers();
 }
@@ -46,7 +46,7 @@ Tumbler::~Tumbler() {
   }
   // Destroy the cube view while GL context is current.
   pglMakeCurrent(pgl_context_);
-  delete cube_view_;
+  delete cube_;
   pglMakeCurrent(PGL_NO_CONTEXT);
 
   DestroyContext();
@@ -69,11 +69,11 @@ NPError Tumbler::SetWindow(const NPWindow& window) {
   }
   if (!pglMakeCurrent(pgl_context_))
     return NPERR_INVALID_INSTANCE_ERROR;
-  if (cube_view_ == NULL) {
-    cube_view_ = new CubeView();
-    cube_view_->PrepareOpenGL();
+  if (cube_ == NULL) {
+    cube_ = new Cube();
+    cube_->PrepareOpenGL();
   }
-  cube_view_->Resize(window.width, window.height);
+  cube_->Resize(window.width, window.height);
   PostRedrawNotification();
   return NPERR_NO_ERROR;
 }
@@ -83,35 +83,35 @@ void Tumbler::PostRedrawNotification() {
 }
 
 bool Tumbler::DrawSelf() {
-  if (cube_view_ == NULL)
+  if (cube_ == NULL)
     return false;
 
   if (!pglMakeCurrent(pgl_context_) && pglGetError() == PGL_CONTEXT_LOST) {
     DestroyContext();
     CreateContext();
     pglMakeCurrent(pgl_context_);
-    delete cube_view_;
-    cube_view_ = new CubeView();
-    cube_view_->PrepareOpenGL();
+    delete cube_;
+    cube_ = new Cube();
+    cube_->PrepareOpenGL();
   }
 
-  cube_view_->Draw();
+  cube_->Draw();
   pglSwapBuffers();
   pglMakeCurrent(PGL_NO_CONTEXT);
   return true;
 }
 
 bool Tumbler::GetCameraOrientation(float* orientation) const {
-  if (cube_view_ != NULL) {
-    cube_view_->GetOrientation(orientation);
+  if (cube_ != NULL) {
+    cube_->GetOrientation(orientation);
     return true;
   }
   return false;
 }
 
 bool Tumbler::SetCameraOrientation(const float* orientation) {
-  if (cube_view_ != NULL) {
-    cube_view_->SetOrientation(orientation);
+  if (cube_ != NULL) {
+    cube_->SetOrientation(orientation);
     PostRedrawNotification();
     return true;
   }

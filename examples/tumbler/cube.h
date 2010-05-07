@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#ifndef EXAMPLES_TUMBLER_CUBE_VIEW_H_
-#define EXAMPLES_TUMBLER_CUBE_VIEW_H_
+#ifndef EXAMPLES_TUMBLER_CUBE_H_
+#define EXAMPLES_TUMBLER_CUBE_H_
 
 #include <GLES2/gl2.h>
 
@@ -11,12 +11,12 @@
 
 namespace tumbler {
 
-// The CubeView class provides a place to implement 3D rendering.  It has a 
+// The Cube class provides a place to implement 3D rendering.  It has a 
 // frame that it occupies in a browser window.
-class CubeView {
+class Cube {
  public:
-  CubeView();
-  ~CubeView();
+  Cube();
+  ~Cube();
   
   // Called once when a new RenderContext is first bound to the view.  The
   // bound context is guaranteed to be current and valid before calling this
@@ -87,9 +87,9 @@ class CubeView {
   GLfloat perspective_proj_[16];
   GLfloat mvp_matrix_[16];
 
-  DISALLOW_COPY_AND_ASSIGN(CubeView);
+  DISALLOW_COPY_AND_ASSIGN(Cube);
 };
 
 }  // namespace tumbler
 
-#endif  // EXAMPLES_TUMBLER_CUBE_VIEW_H_
+#endif  // EXAMPLES_TUMBLER_CUBE_H_

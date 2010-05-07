@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		5088180A09F0CE0A0071BF1A /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5088180909F0CE0A0071BF1A /* CoreFoundation.framework */; };
 		DF113860117C0823001E9C92 /* tumbler.plugin in Install Develop */ = {isa = PBXBuildFile; fileRef = 508817D409F0C9AD0071BF1A /* tumbler.plugin */; };
-		DFCB749A118B1FCC002695B1 /* cube_view.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB748D118B1FCC002695B1 /* cube_view.cc */; };
+		DF3E3A3D119458DD00842B32 /* cube.cc in Sources */ = {isa = PBXBuildFile; fileRef = DF3E3A3B119458DD00842B32 /* cube.cc */; };
 		DFCB749B118B1FCC002695B1 /* npn_bridge.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB748F118B1FCC002695B1 /* npn_bridge.cc */; };
 		DFCB749C118B1FCC002695B1 /* npp_gate.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB7490118B1FCC002695B1 /* npp_gate.cc */; };
 		DFCB749D118B1FCC002695B1 /* scripting_bridge.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB7491118B1FCC002695B1 /* scripting_bridge.cc */; };
@@ -17,10 +17,6 @@
 		DFCB749F118B1FCC002695B1 /* transforms.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB7495118B1FCC002695B1 /* transforms.cc */; };
 		DFCB74A0118B1FCC002695B1 /* tumbler.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB7497118B1FCC002695B1 /* tumbler.cc */; };
 		DFCB74A1118B1FCC002695B1 /* tumbler_module.cc in Sources */ = {isa = PBXBuildFile; fileRef = DFCB7499118B1FCC002695B1 /* tumbler_module.cc */; };
-		DFCB74A7118B1FEC002695B1 /* dragger.js in Sources */ = {isa = PBXBuildFile; fileRef = DFCB74A2118B1FEC002695B1 /* dragger.js */; };
-		DFCB74A8118B1FEC002695B1 /* trackball.js in Sources */ = {isa = PBXBuildFile; fileRef = DFCB74A3118B1FEC002695B1 /* trackball.js */; };
-		DFCB74A9118B1FEC002695B1 /* tumbler.js in Sources */ = {isa = PBXBuildFile; fileRef = DFCB74A5118B1FEC002695B1 /* tumbler.js */; };
-		DFCB74AA118B1FEC002695B1 /* vector3.js in Sources */ = {isa = PBXBuildFile; fileRef = DFCB74A6118B1FEC002695B1 /* vector3.js */; };
 		DFCB74AD118B201E002695B1 /* tumbler.html in Install App Files */ = {isa = PBXBuildFile; fileRef = DFCB74A4118B1FEC002695B1 /* tumbler.html */; };
 		DFCB74AE118B201E002695B1 /* dragger.js in Install App Files */ = {isa = PBXBuildFile; fileRef = DFCB74A2118B1FEC002695B1 /* dragger.js */; };
 		DFCB74AF118B201E002695B1 /* trackball.js in Install App Files */ = {isa = PBXBuildFile; fileRef = DFCB74A3118B1FEC002695B1 /* trackball.js */; };
@@ -60,12 +56,12 @@
 /* Begin PBXFileReference section */
 		508817D409F0C9AD0071BF1A /* tumbler.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tumbler.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		5088180909F0CE0A0071BF1A /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
+		DF3E3A3B119458DD00842B32 /* cube.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cube.cc; sourceTree = "<group>"; };
+		DF3E3A3C119458DD00842B32 /* cube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube.h; sourceTree = "<group>"; };
 		DF6288C8117C35EE005CE52A /* naclProj.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = naclProj.xcconfig; path = platform_support/mac/naclProj.xcconfig; sourceTree = "<group>"; };
 		DF6293B9117F95BE005CE52A /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		DFCB747F118B1EF8002695B1 /* tumbler-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "tumbler-Info.plist"; path = "platform_support/mac/tumbler-Info.plist"; sourceTree = "<group>"; };
 		DFCB748C118B1FCC002695B1 /* basic_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basic_macros.h; sourceTree = "<group>"; };
-		DFCB748D118B1FCC002695B1 /* cube_view.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cube_view.cc; sourceTree = "<group>"; };
-		DFCB748E118B1FCC002695B1 /* cube_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube_view.h; sourceTree = "<group>"; };
 		DFCB748F118B1FCC002695B1 /* npn_bridge.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = npn_bridge.cc; sourceTree = "<group>"; };
 		DFCB7490118B1FCC002695B1 /* npp_gate.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = npp_gate.cc; sourceTree = "<group>"; };
 		DFCB7491118B1FCC002695B1 /* scripting_bridge.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scripting_bridge.cc; sourceTree = "<group>"; };
@@ -130,8 +126,8 @@
 			isa = PBXGroup;
 			children = (
 				DFCB748C118B1FCC002695B1 /* basic_macros.h */,
-				DFCB748D118B1FCC002695B1 /* cube_view.cc */,
-				DFCB748E118B1FCC002695B1 /* cube_view.h */,
+				DF3E3A3B119458DD00842B32 /* cube.cc */,
+				DF3E3A3C119458DD00842B32 /* cube.h */,
 				DFCB748F118B1FCC002695B1 /* npn_bridge.cc */,
 				DFCB7490118B1FCC002695B1 /* npp_gate.cc */,
 				DFCB7491118B1FCC002695B1 /* scripting_bridge.cc */,
@@ -237,7 +233,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DFCB749A118B1FCC002695B1 /* cube_view.cc in Sources */,
 				DFCB749B118B1FCC002695B1 /* npn_bridge.cc in Sources */,
 				DFCB749C118B1FCC002695B1 /* npp_gate.cc in Sources */,
 				DFCB749D118B1FCC002695B1 /* scripting_bridge.cc in Sources */,
@@ -245,10 +240,7 @@
 				DFCB749F118B1FCC002695B1 /* transforms.cc in Sources */,
 				DFCB74A0118B1FCC002695B1 /* tumbler.cc in Sources */,
 				DFCB74A1118B1FCC002695B1 /* tumbler_module.cc in Sources */,
-				DFCB74A7118B1FEC002695B1 /* dragger.js in Sources */,
-				DFCB74A8118B1FEC002695B1 /* trackball.js in Sources */,
-				DFCB74A9118B1FEC002695B1 /* tumbler.js in Sources */,
-				DFCB74AA118B1FEC002695B1 /* vector3.js in Sources */,
+				DF3E3A3D119458DD00842B32 /* cube.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

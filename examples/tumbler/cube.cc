@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "examples/tumbler/cube_view.h"
+#include "examples/tumbler/cube.h"
 
 #include <algorithm>
 
@@ -14,7 +14,7 @@ namespace tumbler {
 static const size_t kVertexCount = 24;
 static const int kIndexCount = 36;
 
-CubeView::CubeView() : width_(1), height_(1) {
+Cube::Cube() : width_(1), height_(1) {
   eye_[0] = eye_[1] = 0.0f;
   eye_[2] = 2.0f;
   orientation_[0] = 0.0f;
@@ -23,19 +23,19 @@ CubeView::CubeView() : width_(1), height_(1) {
   orientation_[3] = 1.0f;
 }
 
-CubeView::~CubeView() {
+Cube::~Cube() {
   glDeleteBuffers(3, cube_vbos_);
   glDeleteProgram(shader_program_object_);
 }
 
-void CubeView::PrepareOpenGL() {
+void Cube::PrepareOpenGL() {
   CreateShaders();
   CreateCube();
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
 }
 
-void CubeView::Resize(int width, int height) {
+void Cube::Resize(int width, int height) {
   width_ = std::max(width, 1);
   height_ = std::max(height, 1);
   // Set the viewport
@@ -46,7 +46,7 @@ void CubeView::Resize(int width, int height) {
   transform_4x4::Perspective(perspective_proj_, 60.0f, aspect, 1.0f, 20.0f);
 }
 
-void CubeView::Draw() {
+void Cube::Draw() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Compute a new model-view matrix, then use that to make the composite
@@ -79,7 +79,7 @@ void CubeView::Draw() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-bool CubeView::CreateShaders() {
+bool Cube::CreateShaders() {
   const char vertex_shader_src[] =  
     "uniform mat4 u_mvpMatrix;                   \n"
     "attribute vec4 a_position;                  \n"
@@ -110,7 +110,7 @@ bool CubeView::CreateShaders() {
   return true;
 }
 
-void CubeView::CreateCube() {
+void Cube::CreateCube() {
   static const GLfloat cube_vertices[] = {
     // Vertex coordinates interleaved with color values
     // Bottom
@@ -221,7 +221,7 @@ void CubeView::CreateCube() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void CubeView::ComputeModelViewTransform(GLfloat* model_view) {
+void Cube::ComputeModelViewTransform(GLfloat* model_view) {
   // This method takes into account the possiblity that |orientation_|
   // might not be normalized.
   double sqrx = orientation_[0] * orientation_[0];

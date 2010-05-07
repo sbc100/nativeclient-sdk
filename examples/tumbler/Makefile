@@ -6,7 +6,7 @@
 
 .PHONY: all clean
 
-CCFILES = cube_view.cc \
+CCFILES = cube.cc \
           npn_bridge.cc \
           npp_gate.cc \
           tumbler.cc \

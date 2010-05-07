@@ -27,7 +27,7 @@
 
 namespace tumbler {
 
-class CubeView;
+class Cube;
 
 class Tumbler {
  public:
@@ -50,7 +50,7 @@ class Tumbler {
   // Called to draw the contents of the module's browser area.
   bool DrawSelf();
 
-  // Accessor/mutators for the camera orientation in |cube_view_|.
+  // Accessor/mutators for the camera orientation in |cube_|.
   bool GetCameraOrientation(float* orientation) const;
   bool SetCameraOrientation(const float* orientation);
 
@@ -69,7 +69,7 @@ class Tumbler {
   NPDevice* device3d_;
   NPDeviceContext3D context3d_;
   PGLContext pgl_context_;
-  CubeView* cube_view_;
+  Cube* cube_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Tumbler);
 };
