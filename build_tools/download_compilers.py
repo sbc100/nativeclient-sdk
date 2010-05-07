@@ -120,7 +120,7 @@ def DownloadToolchain(src, dst, base_url, version):
   if sys.platform == 'win32':
     # Create make.cmd files for trusted compilation
     p = subprocess.Popen(
-        'bash create_make_cmds.sh ', env=env, shell=True)
+        'bash %s/create_make_cmds.sh ' % (script_dir), env=env, shell=True)
     p.communicate()
     assert p.returncode == 0
   else:
