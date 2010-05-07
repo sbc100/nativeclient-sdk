@@ -3,10 +3,12 @@
 // be found in the LICENSE file.
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <algorithm>
+#include <string>
 
 #if defined (__native_client__)
 #include <nacl/nacl_npapi.h>
@@ -16,6 +18,46 @@
 #include "third_party/npapi/bindings/npapi.h"
 #include "third_party/npapi/bindings/nphostapi.h"
 #endif
+
+#define JS_LOG(msg) \
+    const size_t line_number = __LINE__; \
+    size_t len = floor(line_number) + 1; \
+    len = std::string(msg).size() + strlen(__FILE__) + len + 5; \
+    char buffer[len]; \
+    memset(buffer, 0, len); \
+    snprintf(buffer, len, "%s:%i - ", __FILE__, line_number); \
+    strncat(buffer, std::string(msg).c_str(), len - strlen(buffer)); \
+    Log(npp_, buffer);
+
+namespace {
+// Log given message to javascript console.
+bool Log(NPP npp, const char* msg, ...) {
+  bool rv = false;
+  NPObject* window = NULL;
+  if (NPERR_NO_ERROR == NPN_GetValue(npp, NPNVWindowNPObject, &window)) {
+    const char buffer[] = "top.console";
+    NPString console_stript = { 0 };
+    console_stript.UTF8Length = strlen(buffer);
+    console_stript.UTF8Characters = buffer;
+    NPVariant console;
+    if (NPN_Evaluate(npp, window, &console_stript, &console)) {
+      if (NPVARIANT_IS_OBJECT(console)) {
+        // Convert the message to NPString;
+        NPVariant text;
+        STRINGN_TO_NPVARIANT(msg, static_cast<uint32_t>(strlen(msg)),
+                             text);
+        NPVariant result;
+        if (NPN_Invoke(npp, NPVARIANT_TO_OBJECT(console),
+                       NPN_GetStringIdentifier("log"), &text, 1, &result)) {
+          NPN_ReleaseVariantValue(&result);
+          rv = true;
+        }
+      }
+      NPN_ReleaseVariantValue(&console);
+    }
+  }
+  return rv;
+}
 
 // seed for rand_r() - we only call rand_r from main thread.
 static unsigned int gSeed = 0xC0DE533D;
@@ -109,6 +151,7 @@ void Life::HandleEvent(NPPepperEvent* event) {
     plot = true;
   }
   if (event->type ==  NPEventType_MouseUp) {
+    JS_LOG("MouseUp event");
     scribble_ = false;
   }
   if (event->type == NPEventType_MouseMove) {
@@ -405,12 +448,30 @@ void InitializeBrowserFunctions(NPNetscapeFuncs* browser_functions) {
   memcpy(&kBrowserFuncs, browser_functions, sizeof(kBrowserFuncs));
 }
 
+bool NPN_Evaluate(NPP npp, NPObject *obj, NPString *script,
+                  NPVariant *result) {
+  return kBrowserFuncs.evaluate(npp, obj, script, result);
+}
+
+NPIdentifier NPN_GetStringIdentifier(const NPUTF8 *name) {
+  return kBrowserFuncs.getstringidentifier(name);
+}
+
 NPError NPN_GetValue(NPP instance, NPNVariable variable, void* value) {
   return kBrowserFuncs.getvalue(instance, variable, value);
 }
 
+bool NPN_Invoke(NPP npp, NPObject *obj, NPIdentifier name,
+                const NPVariant *args, uint32_t argc, NPVariant *result) {
+  return kBrowserFuncs.invoke(npp, obj, name, args, argc, result);
+}
+
 void NPN_MemFree(void* ptr) {
   kBrowserFuncs.memfree(ptr);
+}
+
+void NPN_ReleaseVariantValue(NPVariant* value) {
+  kBrowserFuncs.releasevariantvalue(value);
 }
 
 NPUTF8* NPN_UTF8FromIdentifier(NPIdentifier identifier) {
@@ -504,3 +565,4 @@ const char* NP_GetMIMEDescription(void) {
 #endif
 
 }  // extern "C"
+}

@@ -44,7 +44,7 @@
 		5088180909F0CE0A0071BF1A /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		DF6288C8117C35EE005CE52A /* naclProj.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = naclProj.xcconfig; path = platform_support/mac/naclProj.xcconfig; sourceTree = "<group>"; };
 		DF6293B9117F95BE005CE52A /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		DFCB74AB118B2011002695B1 /* common.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = common.mk; path = ../common.mk; sourceTree = SOURCE_ROOT; };
+		DFCB74AB118B2011002695B1 /* common.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = common.mk; path = ../../common.mk; sourceTree = SOURCE_ROOT; };
 		DFCB74CD118B2164002695B1 /* life-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "life-Info.plist"; path = "platform_support/mac/life-Info.plist"; sourceTree = "<group>"; };
 		DFCB74DC118B21B7002695B1 /* life.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = life.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -253,7 +253,7 @@
 					"$(SDK_ROOT)",
 				);
 				INFOPLIST_FILE = "platform_support/mac/life-Info.plist";
-				SDK_ROOT = ../../../src;
+				SDK_ROOT = ../../../../src;
 				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
 			};
 			name = Debug;
