@@ -212,10 +212,10 @@ Section "" sec_Preinstall
   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}etc"
   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}etc\\setup"
   FileOpen \$R0 \$INSTDIR\\postinstall.sh w
-  FileWrite \$R0 'export PATH=/usr/local/bin:/usr/bin:/bin\$\nexport CYGWIN="\$\$CYGWIN nodosfilewarning"\$\n'
+  FileWrite \$R0 'export PATH=/usr/local/bin:/usr/bin:/bin\$\\nexport CYGWIN="\$\$CYGWIN nodosfilewarning"\$\\n'
   FileClose \$R0
   FileOpen \$R0 \$INSTDIR\\etc\\setup\\installed.log w
-  FileWrite \$R0 "INSTALLED.DB 2\$\n"
+  FileWrite \$R0 "INSTALLED.DB 2\$\\n"
   FileClose \$R0
   Pop \$R0
 SectionEnd
@@ -229,7 +229,7 @@ Section "" sec_PostInstall
   Push \$R2
   FileOpen \$R0 \$INSTDIR\\postinstall.sh a
   FileSeek \$R0 0 END
-  FileWrite \$R0 "/bin/sort /etc/setup/installed.log -o /etc/setup/installed.db\$\nrm /etc/setup/installed.log\$\n"
+  FileWrite \$R0 "/bin/sort /etc/setup/installed.log -o /etc/setup/installed.db\$\\nrm /etc/setup/installed.log\$\\n"
   FileClose \$R0
   SetOutPath \$INSTDIR
   nsExec::ExecToLog '"${CYGWIN_PREFIX}bin\\bash" -c ./postinstall.sh'
@@ -240,7 +240,7 @@ Section "" sec_PostInstall
   Rename \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh4.exe \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh.exe
   FileOpen \$R0 \$INSTDIR\\${CYGWIN_PREFIX}CygWin.bat w
   StrCpy \$R1 \$INSTDIR 1
-  FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\n\$R1:$\r\$\nchdir \$INSTDIR\\${CYGWIN_PREFIX//\//\\}bin\$\r\$\nbash --login -i$\r\$\n"
+  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\n\$R1:$\r\$\\nchdir \$INSTDIR\\${CYGWIN_PREFIX//\//\\}bin\$\\r\$\\nbash --login -i$\r\$\\n"
   FileClose \$R0
   ;SetOutPath \$INSTDIR\examples
   ;CreateDirectory "\$SMPROGRAMS\\Native Client SDK"
@@ -303,13 +303,14 @@ DirFound:
     StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
   \${EndIf}
 WriteFiles:
-  IfFileExists \$INSTDIR\\${CYGWIN_PREFIX}bin\\make.exe 0 Skip_all_libs
-  IfFileExists \$INSTDIR\\debug_libs\\*.* 0 Skip_debug_libs
+  IntCmp \$PKV_make 0 Skip_all_libs
+  IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs
+  ; Please keep this list and list in create_make_cmds.sh synchronyzed
   FileOpen \$R0 \$INSTDIR\\debug_libs\\make.cmd w
-  FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\ncall \$\"\$R1\$\"\$\r\$\n\$\r\$\nREM Relative path of CygWin\$\r\$\nset CYGWIN=%~dp0%..\\third_party\\cygwin\\bin\$\r\$\n\$\r\$\nPATH=%CYGWIN%;%PATH%\$\r\$\n\$\r\$\nmake.exe %*\$\r\$\n"
+  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nset TMP_PATH=%PATH%\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nREM Relative path of CygWin\$\\r\$\\nset CYGWIN=%~dp0%..\\third_party\\cygwin\\bin\$\\r\$\\n\$\\r\$\\nPATH=%CYGWIN%;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n\$\\r\$\\nPATH=%TMP_PATH%\$\\r\$\\n"
   FileClose \$R0
   FileOpen \$R0 \$INSTDIR\\debug_libs\\trusted_gpu\\make.cmd w
-  FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\ncall \$\"\$R1\$\"\$\r\$\n\$\r\$\nREM Relative path of CygWin\$\r\$\nset CYGWIN=%~dp0%..\\..\\third_party\\cygwin\\bin\$\r\$\n\$\r\$\nPATH=%CYGWIN%;%PATH%\$\r\$\n\$\r\$\nmake.exe %*\$\r\$\n"
+  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nset TMP_PATH=%PATH%\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nREM Relative path of CygWin\$\\r\$\\nset CYGWIN=%~dp0%..\\..\\third_party\\cygwin\\bin\$\\r\$\\n\$\\r\$\\nPATH=%CYGWIN%;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n\$\\r\$\\nPATH=%TMP_PATH%\$\\r\$\\n"
   FileClose \$R0
 Skip_debug_libs:
 Skip_all_libs:

@@ -117,8 +117,14 @@ def DownloadToolchain(src, dst, base_url, version):
 
   print 'Extract complete.'
   
-  # Clean up: remove the download dir.
-  if sys.platform != 'win32':
+  if sys.platform == 'win32':
+    # Create make.cmd files for trusted compilation
+    p = subprocess.Popen(
+        'bash create_make_cmds.sh ', env=env, shell=True)
+    p.communicate()
+    assert p.returncode == 0
+  else:
+    # Clean up: remove the download dir.
     shutil.rmtree(tgz_dir)
 
 
