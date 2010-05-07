@@ -263,31 +263,31 @@ Section "" sec_PostInstall
   StrCpy \$R0 ""
   StrCpy \$R2 0
 DirFound:
-  \${If} \${RunningX64}
-    IfFileExists "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat" 0 +3
-    StrCpy \$R1 "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat"
-    GoTo WriteFiles
-    IfFileExists "\$R0bin\\amd64\\vcvarsamd64.bat" 0 +3
-    StrCpy \$R1 "\$R0bin\\amd64\\vcvarsamd64.bat"
-    GoTo WriteFiles
-    IfFileExists "\$R0bin\\vcvarsx86_amd64.bat" 0 +3
-    StrCpy \$R1 "\$R0bin\\vcvarsx86_amd64.bat"
-    GoTo WriteFiles
-    IfFileExists "\$R0bin\\vcvarsamd64.bat" 0 +3
-    StrCpy \$R1 "\$R0bin\\vcvarsamd64.bat"
-    GoTo WriteFiles
-    IfFileExists "\$R0bin\\vcvars64.bat" 0 +3
-    StrCpy \$R1 "\$R0bin\\vcvars64.bat"
-    GoTo WriteFiles
-    ; Test and use vcvarsall.bat last since it may be present but broken
-    IfFileExists "\$R0vcvarsall.bat" 0 +3
-    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
-    GoTo WriteFiles
-    IntCmp \$R2 0 +2
-    MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed with \$\\"X64 Compilers and Tools\$\\" option selected"
-    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
-    GoTo WriteFiles
-  \${Else}
+  ;\${If} \${RunningX64}
+  ;  IfFileExists "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat" 0 +3
+  ;  StrCpy \$R1 "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat"
+  ;  GoTo WriteFiles
+  ;  IfFileExists "\$R0bin\\amd64\\vcvarsamd64.bat" 0 +3
+  ;  StrCpy \$R1 "\$R0bin\\amd64\\vcvarsamd64.bat"
+  ;  GoTo WriteFiles
+  ;  IfFileExists "\$R0bin\\vcvarsx86_amd64.bat" 0 +3
+  ;  StrCpy \$R1 "\$R0bin\\vcvarsx86_amd64.bat"
+  ;  GoTo WriteFiles
+  ;  IfFileExists "\$R0bin\\vcvarsamd64.bat" 0 +3
+  ;  StrCpy \$R1 "\$R0bin\\vcvarsamd64.bat"
+  ;  GoTo WriteFiles
+  ;  IfFileExists "\$R0bin\\vcvars64.bat" 0 +3
+  ;  StrCpy \$R1 "\$R0bin\\vcvars64.bat"
+  ;  GoTo WriteFiles
+  ;  ; Test and use vcvarsall.bat last since it may be present but broken
+  ;  IfFileExists "\$R0vcvarsall.bat" 0 +3
+  ;  StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
+  ;  GoTo WriteFiles
+  ;  IntCmp \$R2 0 +2
+  ;  MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed with \$\\"X64 Compilers and Tools\$\\" option selected"
+  ;  StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
+  ;  GoTo WriteFiles
+  ;\${Else}
     IfFileExists "\$R0bin\\vcvars32.bat" 0 +3
     StrCpy \$R1 "\$R0bin\\vcvars32.bat"
     GoTo WriteFiles
@@ -301,16 +301,16 @@ DirFound:
     IntCmp \$R2 0 +2
     MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed"
     StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
-  \${EndIf}
+  ;\${EndIf}
 WriteFiles:
   IntCmp \$PKV_make 0 Skip_all_libs
   IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs
   ; Please keep this list and list in create_make_cmds.sh synchronyzed
   FileOpen \$R0 \$INSTDIR\\debug_libs\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nset TMP_PATH=%PATH%\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nREM Relative path of CygWin\$\\r\$\\nset CYGWIN=%~dp0%..\\third_party\\cygwin\\bin\$\\r\$\\n\$\\r\$\\nPATH=%CYGWIN%;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n\$\\r\$\\nPATH=%TMP_PATH%\$\\r\$\\n"
+  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nset TMP_PATH=%PATH%\$\\r\$\\nset TMP_INCLUDE=%INCLUDE%\$\\r\$\\nset TMP_LIB=%LIB%\$\\r\$\\nset TMP_LIBPATH=%LIBPATH%\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nREM Relative path of CygWin\$\\r\$\\nset CYGWIN=%~dp0%..\\third_party\\cygwin\\bin\$\\r\$\\n\$\\r\$\\nPATH=%CYGWIN%;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n\$\\r\$\\nset PATH=%TMP_PATH%\$\\r\$\\nset INCLUDE=%TMP_INCLUDE%\$\\r\$\\nset LIB=%TMP_LIB%\$\\r\$\\nset LIBPATH=%TMP_LIBPATH%\$\\r\$\\n"
   FileClose \$R0
   FileOpen \$R0 \$INSTDIR\\debug_libs\\trusted_gpu\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nset TMP_PATH=%PATH%\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nREM Relative path of CygWin\$\\r\$\\nset CYGWIN=%~dp0%..\\..\\third_party\\cygwin\\bin\$\\r\$\\n\$\\r\$\\nPATH=%CYGWIN%;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n\$\\r\$\\nPATH=%TMP_PATH%\$\\r\$\\n"
+  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nset TMP_PATH=%PATH%\$\\r\$\\nset TMP_INCLUDE=%INCLUDE%\$\\r\$\\nset TMP_LIB=%LIB%\$\\r\$\\nset TMP_LIBPATH=%LIBPATH%\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nREM Relative path of CygWin\$\\r\$\\nset CYGWIN=%~dp0%..\\..\\third_party\\cygwin\\bin\$\\r\$\\n\$\\r\$\\nPATH=%CYGWIN%;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n\$\\r\$\\nset PATH=%TMP_PATH%\$\\r\$\\nset INCLUDE=%TMP_INCLUDE%\$\\r\$\\nset LIB=%TMP_LIB%\$\\r\$\\nset LIBPATH=%TMP_LIBPATH%\$\\r\$\\n"
   FileClose \$R0
 Skip_debug_libs:
 Skip_all_libs:
