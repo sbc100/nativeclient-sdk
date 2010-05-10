@@ -90,7 +90,11 @@ def Run(server_address,
         server_class=QuittableHTTPServer,
         handler_class=QuittableHTTPHandler):
   httpd = server_class(server_address, handler_class)
+  logging.info("Starting local server on port %d", server_address[1])
+  logging.info("To shut down send http://localhost:%d?quit=1",
+               server_address[1])
   httpd.serve_forever()
+  logging.info("Shutting down local server on port %d", server_address[1])
 
 
 if __name__ == '__main__':
