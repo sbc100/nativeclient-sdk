@@ -9,7 +9,7 @@
 
 .PHONY: all develop clean
 
-EXAMPLES = hello_world pi_generator tumbler
+EXAMPLES = hello_world pi_generator sine_synth tumbler
 
 all: develop
 
