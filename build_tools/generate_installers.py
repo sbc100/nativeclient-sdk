@@ -41,7 +41,12 @@ import subprocess
 import sys
 import tempfile
 
-EXCLUDE_DIRS = ['.download', '.svn', 'build_tools', 'packages', 'scons-out']
+EXCLUDE_DIRS = ['.download', 
+                '.svn',
+                'build_tools',
+                'contrib',
+                'packages',
+                'scons-out']
 
 
 # A list of all platforms that should use the Windows-based build strategy
