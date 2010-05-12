@@ -59,9 +59,11 @@
         // shows how to load multi-architecture modules.  The relative URLs in
         // the following table should be matched with a similar directory
         // structure on your server.
-        var nexes = 'x86-32: pi_generator.nacl/x86_32/pi_generator.nexe; '
-                    + 'x86-64: pi_generator.nacl/x86_64/pi_generator.nexe; '
-                    + 'ARM: pi_generator.nacl/arm/pi_generator.nexe; ';
+        // TODO(dspringer): This feature is not yet supported in Chrome.  Pull
+        // the src= attrib when this becomes available.
+        var nexes = 'x86-32: pi_generator.nacl/x86_32/pi_generator.nexe\n'
+                    + 'x86-64: pi_generator.nacl/x86_64/pi_generator.nexe\n'
+                    + 'ARM: pi_generator.nacl/arm/pi_generator.nexe ';
         contentDiv.innerHTML = '<embed name="nacl_module" '
                                + 'id="pi_generator" '
                                + 'width=200 height=200 '
