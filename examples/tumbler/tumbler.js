@@ -63,18 +63,29 @@ tumbler.Application.prototype.moduleDidLoad = function(nativeModule) {
 }
 
 /**
+ * Asserts that cond is true; issues an alert and throws an Error otherwise.
+ * @param {bool} cond The condition.
+ * @param {String} message The error message issued if cond is false.
+ */
+tumbler.Application.prototype.assert = function(cond, message) {
+  if (!cond) {
+    message = "Assertion failed: " + message;
+    alert(message);
+    throw new Error(message);
+  }
+}
+
+/**
  * The run() method starts and 'runs' the application.  The trackball object
- * is allocated and all the events get wired up.  Throws an error
- * if any of the required DOM elements are missing.
+ * is allocated and all the events get wired up.
+ * @param {?String} opt_contentDivName The id of a DOM element in which to
+ *     embed the Native Client module.  If unspecified, defaults to
+ *     DEFAULT_DIV_NAME.  The DOM element must exist.
  */
 tumbler.Application.prototype.run = function(opt_contentDivName) {
   contentDivName = opt_contentDivName || tumbler.Application.DEFAULT_DIV_NAME;
   var contentDiv = document.getElementById(contentDivName);
-  if (!contentDiv) {
-    alert('missing ' + contentDivName);
-    throw new Error('Application.run(): missing element ' + "'" +
-        contentDivName + "'");
-  }
+  this.assert(contentDiv, "Missing DOM element '" + contentDivName + "'");
   // Conditionally load the develop or publish version of the module.
   if (window.location.hash == '#develop') {
     contentDiv.innerHTML = '<embed id="'
