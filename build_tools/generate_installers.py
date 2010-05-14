@@ -57,9 +57,9 @@ WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
 # Return True if |file| should be excluded from the tarball.
 def ExcludeFile(file):
   return (file.startswith('.DS_Store') or
-          re.search('^\._', file) or
+          re.search('^\._', file) or file == "make.cmd" or
           file == 'DEPS' or file == 'codereview.settings' or
-          (not sys.platform in WINDOWS_BUILD_PLATFORMS and file == "make.cmd"))
+          (not sys.platform in WINDOWS_BUILD_PLATFORMS and file == "httpd.cmd"))
 
 
 # Note that this function has to be run from within a subversion working copy.
