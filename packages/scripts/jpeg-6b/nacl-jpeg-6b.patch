@@ -20,3 +20,14 @@
  	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
  	-linux*)
+--- jpeg-6b/makefile.cfg	1998-03-21 22:08:57.000000000 -0800
++++ jpeg-6b.new/makefile.new.cfg	2009-04-28 16:54:16.738799000 -0700
+@@ -60,7 +60,7 @@
+ # directory creation command
+ MKDIR= mkdir
+ # library (.a) file creation command
+-AR= ar rc
++AR= nacl-ar rc
+ # second step in .a creation (use "touch" if not needed)
+ AR2= @RANLIB@
+ # installation program

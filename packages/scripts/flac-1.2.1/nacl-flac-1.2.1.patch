@@ -21,6 +21,17 @@ diff -Naur flac-1.2.1/config.sub flac-1.2.1.nacl/config.sub
  	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
  	-qnx*)
+diff -Naur flac-1.2.1/examples/cpp/encode/file/main.cpp flac-1.2.1.nacl/examples/cpp/encode/file/main.cpp
+--- flac-1.2.1/examples/cpp/encode/file/main.cpp	2007-09-13 19:58:03.000000000 -0700
++++ flac-1.2.1.nacl/examples/cpp/encode/file/main.cpp	2009-10-23 14:43:06.012399000 -0700
+@@ -29,6 +29,7 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <string.h>
+ #include <stdlib.h>
+ #include "FLAC++/metadata.h"
+ #include "FLAC++/encoder.h"
 diff -Naur flac-1.2.1/src/test_libFLAC++/metadata_manip.cpp flac-1.2.1.nacl/src/test_libFLAC++/metadata_manip.cpp
 --- flac-1.2.1/src/test_libFLAC++/metadata_manip.cpp	2007-07-31 15:41:53.000000000 -0700
 +++ flac-1.2.1.nacl/src/test_libFLAC++/metadata_manip.cpp	2009-10-23 14:43:06.012399000 -0700

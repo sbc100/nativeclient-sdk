@@ -44,3 +44,42 @@ diff -Naur cairo-1.8.8/config.sub cairo-1.8.8.nacl/config.sub
  	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
  	-qnx*)
+diff -uNr cairo-1.8.8/configure cairo-1.8.8.nacl/configure
+--- cairo-1.8.8/configure	2009-06-16 16:25:50.000000000 -0700
++++ cairo-1.8.8.nacl/configure	2009-10-14 18:04:16.014691000 -0700
+@@ -12104,18 +12104,22 @@
+ 
+ 
+ cat >>confdefs.h <<\_ACEOF
++#undef PACKAGE_VERSION
+ #define PACKAGE_VERSION USE_cairo_version_OR_cairo_version_string_INSTEAD
+ _ACEOF
+ 
+ cat >>confdefs.h <<\_ACEOF
++#undef PACKAGE_STRING
+ #define PACKAGE_STRING USE_cairo_version_OR_cairo_version_string_INSTEAD
+ _ACEOF
+ 
+ cat >>confdefs.h <<\_ACEOF
++#undef PACKAGE_NAME
+ #define PACKAGE_NAME USE_cairo_INSTEAD
+ _ACEOF
+ 
+ cat >>confdefs.h <<\_ACEOF
++#undef PACKAGE_TARNAME
+ #define PACKAGE_TARNAME USE_cairo_INSTEAD
+ _ACEOF
+ 
+@@ -18179,10 +18179,10 @@
+        } && test -s conftest.$ac_objext; then
+ 
+ 
+-if strings - conftest.$ac_objext | grep noonsees >/dev/null ; then
++if nacl-strings - conftest.$ac_objext | grep noonsees >/dev/null ; then
+   ax_cv_c_float_words_bigendian=yes
+ fi
+-if strings - conftest.$ac_objext | grep seesnoon >/dev/null ; then
++if nacl-strings - conftest.$ac_objext | grep seesnoon >/dev/null ; then
+   if test "$ax_cv_c_float_words_bigendian" = unknown; then
+     ax_cv_c_float_words_bigendian=no
+   else

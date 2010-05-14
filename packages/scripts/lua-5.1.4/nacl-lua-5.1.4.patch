@@ -15,3 +15,17 @@ diff -Naur lua-5.1.4/Makefile lua-5.1.4.nacl/Makefile
  INSTALL_BIN= $(INSTALL_TOP)/bin
  INSTALL_INC= $(INSTALL_TOP)/include
  INSTALL_LIB= $(INSTALL_TOP)/lib
+diff -Naur lua-5.1.4/src/Makefile lua-5.1.4.nacl/src/Makefile
+--- lua-5.1.4/src/Makefile	2008-01-19 22:37:58.000000000 +0700
++++ lua-5.1.4.nacl/src/Makefile	2009-10-20 17:48:46.622628000 -0700
+@@ -9,8 +9,8 @@
+ 
+ CC= gcc
+ CFLAGS= -O2 -Wall $(MYCFLAGS)
+-AR= ar rcu
+-RANLIB= ranlib
++AR= nacl-ar rcu
++RANLIB= nacl-ranlib
+ RM= rm -f
+ LIBS= -lm $(MYLIBS)
+ 

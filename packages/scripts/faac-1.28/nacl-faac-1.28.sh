@@ -11,7 +11,7 @@
 # this script downloads, patches, and builds faac for Native Client 
 #
 
-readonly URL=http://build.chromium.org/mirror/nacl/faac-src/faac-1.28/faac-1.28.tar.gz
+readonly URL=http://build.chromium.org/mirror/nacl/faac-1.28.tar.gz
 #readonly URL=http://sourceforge.net/projects/faac/files/faac-src/faac-1.28/faac-1.28.tar.gz/download
 readonly PATCH_FILE=faac-1.28/nacl-faac-1.28.patch
 readonly PACKAGE_NAME=faac-1.28

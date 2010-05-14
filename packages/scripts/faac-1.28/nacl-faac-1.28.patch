@@ -41,6 +41,34 @@ diff -Naur faac-1.28/frontend/main.c faac-1.28.nacl/frontend/main.c
                  if (getrusage(RUSAGE_SELF, &usage) == 0) {
                      timeused = (double)usage.ru_utime.tv_sec +
                          (double)usage.ru_utime.tv_usec * 1e-6;
+diff -Naur faac-1.28/frontend/Makefile.am faac-1.28.nacl/frontend/Makefile.am
+--- faac-1.28/frontend/Makefile.am	2009-01-23 17:10:20.000000000 -0800
++++ faac-1.28.nacl/frontend/Makefile.am	2009-10-22 15:40:25.955500000 -0700
+@@ -5,8 +5,8 @@
+ 
+ if WITH_MP4V2
+ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/common/mp4v2
+-LDADD = $(top_builddir)/libfaac/libfaac.la $(top_srcdir)/common/mp4v2/libmp4v2.a -lm -lstdc++
++LDADD = $(top_builddir)/libfaac/libfaac.la $(top_srcdir)/common/mp4v2/libmp4v2.a -lm -lstdc++ -lnosys
+ else
+ INCLUDES = -I$(top_srcdir)/include 
+-LDADD = $(top_builddir)/libfaac/libfaac.la -lm
++LDADD = $(top_builddir)/libfaac/libfaac.la -lm -lnosys
+ endif
+diff -Naur faac-1.28/frontend/Makefile.in faac-1.28.nacl/frontend/Makefile.in
+--- faac-1.28/frontend/Makefile.in	2009-01-23 17:10:20.000000000 -0800
++++ faac-1.28.nacl/frontend/Makefile.in	2009-10-22 15:40:25.955500000 -0700
+@@ -185,8 +185,8 @@
+ faac_SOURCES = main.c input.c
+ @WITH_MP4V2_FALSE@INCLUDES = -I$(top_srcdir)/include 
+ @WITH_MP4V2_TRUE@INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/common/mp4v2
+-@WITH_MP4V2_FALSE@LDADD = $(top_builddir)/libfaac/libfaac.la -lm
+-@WITH_MP4V2_TRUE@LDADD = $(top_builddir)/libfaac/libfaac.la $(top_srcdir)/common/mp4v2/libmp4v2.a -lm -lstdc++
++@WITH_MP4V2_FALSE@LDADD = $(top_builddir)/libfaac/libfaac.la -lm -lnosys
++@WITH_MP4V2_TRUE@LDADD = $(top_builddir)/libfaac/libfaac.la $(top_srcdir)/common/mp4v2/libmp4v2.a -lm -lstdc++ -lnosys
+ all: all-am
+ 
+ .SUFFIXES:
 diff -Naur faac-1.28/libfaac/kiss_fft/kiss_fft.h faac-1.28.nacl/libfaac/kiss_fft/kiss_fft.h
 --- faac-1.28/libfaac/kiss_fft/kiss_fft.h	2005-02-04 06:57:12.000000000 -0800
 +++ faac-1.28.nacl/libfaac/kiss_fft/kiss_fft.h	2009-10-22 14:57:52.082873000 -0700

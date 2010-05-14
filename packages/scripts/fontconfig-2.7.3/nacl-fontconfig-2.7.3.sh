@@ -24,12 +24,45 @@ export with_arch=i686
 
 
 CustomPatchStep() {
-  # fontconfig doesn't have config.sub, so we need to run autoconf.sh first,
-  ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
-  ./autogen.sh --without-subdirs
-  make distclean
+  ############################################################################
+  # Recreation of configure/Makefile.in/config.sub/etc.
+  # Will ask for autotools.
+  ############################################################################
+  # ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
+  # ./autogen.sh --without-subdirs
+  # make distclean
+  ############################################################################
   # apply a small patch to generated config.sub to add nacl host type
   DefaultPatchStep
+  chmod a+x ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}/{pseudo-gcc,configure,ltmain.sh}
+}
+
+
+CustomConfigureStep() {
+  Banner "Configuring ${PACKAGE_NAME}"
+  # export the nacl tools
+  export CC=${NACLCC}
+  export CXX=${NACLCXX}
+  export AR=${NACLAR}
+  export RANLIB=${NACLRANLIB}
+  export PKG_CONFIG_PATH=${NACL_SDK_USR_LIB}/pkgconfig
+  export PKG_CONFIG_LIBDIR=${NACL_SDK_USR_LIB}
+  export PATH=${NACL_BIN_PATH}:${PATH};
+  ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
+  cd ${PACKAGE_NAME}-build
+  # We'll not build host anyway
+  CC_FOR_BUILD=${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}/pseudo-gcc \
+  ../configure \
+    --host=nacl \
+    --disable-shared \
+    --prefix=${NACL_SDK_USR} \
+    --exec-prefix=${NACL_SDK_USR} \
+    --libdir=${NACL_SDK_USR_LIB} \
+    --oldincludedir=${NACL_SDK_USR_INCLUDE} \
+    --with-http=off \
+    --with-html=off \
+    --with-ftp=off \
+    --with-x=no
 }
 
 
@@ -47,7 +80,7 @@ CustomPackageInstall() {
   DefaultDownloadStep
   DefaultExtractStep
   CustomPatchStep
-  DefaultConfigureStep
+  CustomConfigureStep
   CustomPatchMakefileStep
   DefaultBuildStep
   DefaultInstallStep

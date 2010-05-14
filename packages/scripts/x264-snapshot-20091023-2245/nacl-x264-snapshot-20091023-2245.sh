@@ -44,7 +44,7 @@ CustomConfigureStep() {
     --prefix=${NACL_SDK_USR} \
     --exec-prefix=${NACL_SDK_USR} \
     --libdir=${NACL_SDK_USR_LIB} \
-    --extra-ldflags=-lnosys
+    --extra-ldflags="-lnosys -lm"
 }
 
 

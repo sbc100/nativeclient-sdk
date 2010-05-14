@@ -30,7 +30,7 @@ CustomConfigureStep() {
   export PKG_CONFIG_PATH=${NACL_SDK_USR}/lib/pkgconfig
   export PKG_CONFIG_LIBDIR=${NACL_SDK_USR}/lib
   export PATH=${NACL_BIN_PATH}:${PATH};
-  export LIBS="-lunimpl"
+  export LIBS="-lnosys"
   ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
   Remove ${PACKAGE_NAME}-build
   MakeDir ${PACKAGE_NAME}-build
