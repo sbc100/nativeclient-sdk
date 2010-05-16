@@ -47,7 +47,7 @@ CustomConfigureStep() {
   export RANLIB=${NACLRANLIB}
   export PKG_CONFIG_PATH=${NACL_SDK_USR_LIB}/pkgconfig
   export PKG_CONFIG_LIBDIR=${NACL_SDK_USR_LIB}
-  export PATH=${NACL_BIN_PATH}:${PATH};
+  export PATH=${NACL_BIN_PATH}:${NACL_SDK_USR}/bin:${PATH};
   ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
   cd ${PACKAGE_NAME}-build
   # We'll not build host anyway

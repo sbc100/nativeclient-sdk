@@ -22,6 +22,7 @@ source ../common.sh
 CustomBuildStep() {
   ChangeDir ${NACL_PACKAGES_REPOSITORY}/${PACKAGE_NAME}
   make "CC=${NACLCC}" "PLAT=generic" "INSTALL_TOP=${NACL_SDK_USR}" clean
+  PATH=${NACL_BIN_PATH}:${PATH} \
   make "CC=${NACLCC}" "PLAT=generic" "INSTALL_TOP=${NACL_SDK_USR}" "MYLIBS=-lnosys"
   # TODO: side-by-side install
   make "CC=${NACLCC}" "PLAT=generic" "INSTALL_TOP=${NACL_SDK_USR}" install
