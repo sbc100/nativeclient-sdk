@@ -1,0 +1,167 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="http://code.google.com/css/codesite.css" rel="stylesheet" type="text/css" />
+<title>Native Client Samples Gallery</title>
+<script type="text/javascript">
+  tumbler = {};
+</script>
+</script>
+<script type="text/javascript"
+  src="http://nativeclient-sdk.googlecode.com/svn/trunk/src/examples/tumbler/tumbler.js">
+</script>
+<script type="text/javascript"
+    src="http://nativeclient-sdk.googlecode.com/svn/trunk/src/examples/tumbler/dragger.js">
+</script>
+<script type="text/javascript"
+  src="http://nativeclient-sdk.googlecode.com/svn/trunk/src/examples/tumbler/trackball.js">
+</script>
+<script
+  src="http://nativeclient-sdk.googlecode.com/svn/trunk/src/examples/tumbler/vector3.js">
+</script>
+<script type="text/javascript">
+  var pi_generator = null;
+  var paintInterval = null;
+  function piGenDidLoad() {
+    pi_generator = document.getElementById('pi_generator');
+    paintInterval = setInterval(
+        "pi_generator.paint()", 100);
+  }
+  var life = null;
+  var lifeInterval = null;
+  function lifeDidLoad() {
+    life = document.getElementById('life');
+    lifeInterval = setInterval("life.update()", 300);
+  }
+  function pageDidUnload() {
+    clearInterval(paintInterval);
+    clearInterval(lifeInterval);
+  }
+</script>
+</head>
+
+<body onunload="pageDidUnload();">
+<h2>Native Client Samples</h2>
+<p>This page lists the current Native Client (NaCl) examples included with the <a href="http://code.google.com/p/nativeclient-sdk">download file</a>.</p>
+<p>Run these examples using Chromium or Dev-channel version of Google Chrome with the <code>--enable-nacl</code> flags. Refer to <a href="#Running">Running Examples</a> for further information.</p>
+<table>
+<tbody>
+
+<tr>
+
+<td style="width: 3000px;"><b>Pi Generator</b>
+<a
+  href="http://code.google.com/p/nativeclient-sdk/source/browse/#svn/trunk/src/examples/pi_generator">View source</a>
+
+<!--><p><b>Author:</b> Google</p> -->
+
+<p><b>Overview: </b>The Pi Generator example combines HTML, JavaScript, and C++ (the C++ is compiled to create a .nexe file). The .nexe code creates a thread that estimate pi using the Monte Carlo method while randomly putting 1,000,000,000 points inside a 2D square that shares two sides with a quarter circle. The 2D square is generated using the Pepper 2D API. Pepper is an extension of the NPAPI or Netscape Plugin Application Programming API.</p>
+<p></p>
+</td>
+
+<td style="width: 60px;">
+  <div style="display: block; text-align: left" id="pi_generator_content">
+  </div>
+  <script type="text/javascript">
+    var contentDiv = document.getElementById("pi_generator_content")
+    contentDiv.innerHTML = '<embed id="pi_generator" '
+    + 'dimensions="2" '
+    + 'width="200" height="200" '
+    + 'nexes="x86-32:x86_32/pi_generator.nexe '
+    + 'x86-64:x86_64/pi_generator.nexe" '
+    + 'type="application/x-nacl-srpc" '
+    + 'onload="piGenDidLoad();" />'
+  </script>
+</td>
+</tr>
+
+<tr>
+<td style="width: 3000px;"><b>Tumbler</b>
+  <a
+    href="http://code.google.com/p/nativeclient-sdk/source/browse/#svn/trunk/src/examples/tumbler">View source</a>
+<!-- ><p><b>Author: </b>Google</p> -->
+<p><b>Overview: </b> The Tumbler example combines HTML, JavaScript, and C++ (the C++ is compiled to create a .nexe file). The .nexe code uses the Pepper 3D API to create a 3 dimensional cube that can be rotated using the left mouse button.</p>
+<p></p>
+</td>
+<td style="width: 60px;">
+  <div style="display: block; text-align: left;" id="tumbler_content">
+  </div>
+  <script type="text/javascript">
+      function moduleDidLoad() {
+          var module =
+              document.getElementById(tumbler.Application.TUMBLER_MODULE_NAME);
+          tumbler.application.moduleDidLoad(module);
+      }
+      tumbler.application = new tumbler.Application();
+      var contentDiv = document.getElementById("tumbler_content");
+      contentDiv.innerHTML = '<embed id="'
+      + tumbler.Application.TUMBLER_MODULE_NAME + '" '
+      + 'nexes ="x86-32:x86_32/tumbler.nexe '
+      + 'x86-64:x86_64/tumbler.nexe" '
+      + 'type="application/x-nacl-srpc" '
+      + 'width="200" height="200" '
+      + 'dimensions="3" '
+      + 'onload="moduleDidLoad()" />'
+  </script>
+</td>
+</tr>
+<tr>
+<td style="width: 300px;"><b>Conway's Life</b>
+<a
+  href="http://code.google.com/p/nativeclient-sdk/source/browse/#svn/trunk/src/examples/contrib/life">View source</a>
+<!-- ><p><b>Author: </b>Google</p> -->
+<p><b>Overview: </b>Life is a cellular automaton invented by British
+mathematiciaion John Horton Conway.  Use the mouse to paint extra life into the simulation.</p>
+</td>
+<td style="width: 60px;">
+  <div style="display: block; text-align: left;" id="life_content">
+  </div>
+  <script type="text/javascript">
+    var contentDiv = document.getElementById("life_content");
+    contentDiv.innerHTML = '<embed id="life" '
+    + 'dimensions="2" '
+    + 'width="200" height="200" '
+    + 'nexes="x86-32:x86_32/life.nexe '
+    + ' x86-64:x86_64/life.nexe" '
+    + 'type="application/x-nacl-srpc" '
+    + 'onload="lifeDidLoad();" />'
+  </script>
+</td>
+</tr>
+
+</tbody> 
+</table> 
+</body> 
+</html>
