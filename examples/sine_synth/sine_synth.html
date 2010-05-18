@@ -69,20 +69,23 @@
         moduleDidLoad();
       } else {
         // Load the published .nexe.  This includes the 'nexes' attribute which
-        // shows how to load multi-architecture modules.  The relative URLs in
-        // the following table should be matched with a similar directory
-        // structure on your server.
-        var nexes = 'x86-32: sine_synth.nacl/x86_32/sine_synth.nexe; '
-                    + 'x86-64: sine_synth.nacl/x86_64/sine_synth.nexe; '
-                    + 'ARM: sine_synth.nacl/arm/sine_synth.nexe; ';
+        // shows how to load multi-architecture modules.  Each entry in the
+        // table is a key-value pair: the key is the runtime ('x86-32',
+        // 'x86-64', etc.); the value is a URL for the desired NaCl module.
+        var nexes = 'x86-32: sine_synth_x86_32.nexe\n'
+                    + 'x86-64: sine_synth_x86_64.nexe\n'
+                    + 'arm: sine_synth_arm.nexe ';
         contentDiv.innerHTML = '<embed name="nacl_module" '
                                + 'id="sine_synth" '
                                + 'width=0 height=0 '
-                               + 'src="sine_synth.nexe" '
-                               + nexes
+                            // + 'nexes="' + nexes + '" '
                                + 'type="application/x-nacl-srpc" '
                                + 'dimensions="2" '
                                + 'onload=moduleDidLoad(); />';
+        // Note: this code is here to work around a bug in Chromium build
+        // #47357.  See also
+        // http://code.google.com/p/nativeclient/issues/detail?id=500
+        document.getElementById('sine_synth').nexes = nexes;
       }
     </script>
   </body>

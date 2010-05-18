@@ -22,7 +22,8 @@ APP_FILES = dragger.js \
             trackball.js \
             vector3.js
 
-OBJECTS = $(CCFILES:%.cc=%.o)
+OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
+OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
 
 NACL_SDK_ROOT = ../..
 
@@ -33,22 +34,25 @@ LDFLAGS = -lgoogle_nacl_imc \
           -lpthread \
           -lsrpc \
           -lgoogle_nacl_pgl \
-          -lgoogle_nacl_gpu \
-          $(ARCH_FLAGS)
+          -lgoogle_nacl_gpu
 OPT_FLAGS = -O2
 
-all: check_variables tumbler.nexe
+all: check_variables tumbler_x86_32.nexe tumbler_x86_64.nexe
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
 
-tumbler.nexe: $(OBJECTS)
-	$(CPP) $^ $(LDFLAGS) -o $@
+tumbler_x86_32.nexe: $(OBJECTS_X86_32)
+	$(CPP) $^ $(LDFLAGS) -m32 -o $@
+
+tumbler_x86_64.nexe: $(OBJECTS_X86_64)
+	$(CPP) $^ $(LDFLAGS) -m64 -o $@
 
 clean:
-	-$(RM) $(OBJECTS) tumbler.nexe
+	-$(RM) $(OBJECTS_X86_32) $(OBJECTS_X86_64) \
+	    tumbler_x86_32.nexe tumbler_x86_64.nexe
 
 # This target is used by the SDK build system to produce a pre-built version
 # of the .nexe.  You do not need to call this target.
-install_prebuilt: tumbler.nexe
-	-$(RM) $(OBJECTS)
+install_prebuilt: tumbler_x86_32.nexe tumbler_x86_64.nexe
+	-$(RM) $(OBJECTS_X86_32) $(OBJECTS_X86_64)

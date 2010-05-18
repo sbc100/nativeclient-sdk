@@ -37,24 +37,6 @@ ifneq (, $(findstring Linux, $(OS)))
   TARGET = x86
 endif
 
-# To make a 64-bit build, you can set WORD_SIZE=64 on the command line.
-#   make WORD_SIZE=64
-# Note that 64-bit builds are not supported on Mac.
-# If you are running on an x86_64 Windows computer, WORD_SIZE should be set
-# for you automatically.
-ifeq ($(PLATFORM), win)
-  ifeq ($(origin WORD_SIZE), undefined)
-    ifneq (, $(filter Intel64 AMD64, $(PROCESSOR_IDENTIFIER)))
-      WORD_SIZE = 64
-    else
-      WORD_SIZE = 32
-    endif
-  endif
-else
-  WORD_SIZE ?= 32
-endif
-
-ARCH_FLAGS = -m$(WORD_SIZE)
 NACL_SDK_ROOT ?= .
 
 NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
@@ -62,14 +44,23 @@ NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
 CC = $(NACL_SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-gcc
 CPP = $(NACL_SDK_ROOT)/$(NACL_TOOLCHAIN_DIR)/bin/nacl-g++
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(ARCH_FLAGS) $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+%_x86_32.o: %.c
+	$(CC) $(CFLAGS) -m32 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%.o: %.cc
-	$(CPP) $(CFLAGS) $(ARCH_FLAGS) $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+%_x86_32.o: %.cc
+	$(CPP) $(CFLAGS) -m32 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%.o: %.cpp
-	$(CPP) $(CFLAGS) $(ARCH_FLAGS) $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+%_x86_32.o: %.cpp
+	$(CPP) $(CFLAGS) -m32 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+
+%_x86_64.o: %.c
+	$(CC) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+
+%_x86_64.o: %.cc
+	$(CPP) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
+
+%_x86_64.o: %.cpp
+	$(CPP) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
 # Make sure certain variables are defined.  This rule is set as a dependency
 # for all the .nexe builds in the examples.
