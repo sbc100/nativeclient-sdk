@@ -99,10 +99,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     contentDiv.innerHTML = '<embed id="pi_generator" '
     + 'dimensions="2" '
     + 'width="200" height="200" '
-    + 'nexes="x86-32:x86_32/pi_generator.nexe '
-    + 'x86-64:x86_64/pi_generator.nexe" '
     + 'type="application/x-nacl-srpc" '
     + 'onload="piGenDidLoad();" />'
+    document.getElementById('pi_generator').nexes =
+        "x86-32: x86_32/pi_generator.nexe\nx86-64: x86_64/pi_generator.nexe";
   </script>
 </td>
 </tr>
@@ -128,12 +128,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       var contentDiv = document.getElementById("tumbler_content");
       contentDiv.innerHTML = '<embed id="'
       + tumbler.Application.TUMBLER_MODULE_NAME + '" '
-      + 'nexes ="x86-32:x86_32/tumbler.nexe '
-      + 'x86-64:x86_64/tumbler.nexe" '
       + 'type="application/x-nacl-srpc" '
       + 'width="200" height="200" '
       + 'dimensions="3" '
       + 'onload="moduleDidLoad()" />'
+      document.getElementById(tumbler.Application.TUMBLER_MODULE_NAME).nexes =
+          "x86-32: x86_32/tumbler.nexe\nx86-64: x86_64/tumbler.nexe";
   </script>
 </td>
 </tr>
@@ -153,10 +153,10 @@ mathematiciaion John Horton Conway.  Use the mouse to paint extra life into the 
     contentDiv.innerHTML = '<embed id="life" '
     + 'dimensions="2" '
     + 'width="200" height="200" '
-    + 'nexes="x86-32:x86_32/life.nexe '
-    + ' x86-64:x86_64/life.nexe" '
     + 'type="application/x-nacl-srpc" '
     + 'onload="lifeDidLoad();" />'
+    document.getElementById('life').nexes =
+        "x86-32: x86_32/life.nexe\nx86-64: x86_64/life.nexe";
   </script>
 </td>
 </tr>
