@@ -55,6 +55,9 @@ def DownloadToolchain(src, dst, base_url, version):
   """
   path = 'naclsdk_' + src + '.tgz'
   url = base_url + version + '/' + path
+  # ToDo(BradN): fix that when situation with buildbots will be resolved
+  if sys.platform == 'win32':
+    url = base_url + version + '/naclsdk_win_x86a.tgz/naclsdk.tgz'
 
   # Pick target directory.
   script_dir = os.path.abspath(os.path.dirname(__file__))
