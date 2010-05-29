@@ -44,7 +44,6 @@ import tempfile
 EXCLUDE_DIRS = ['.download', 
                 '.svn',
                 'build_tools',
-                'contrib',
                 'packages',
                 'scons-out']
 
