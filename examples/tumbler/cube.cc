@@ -84,17 +84,19 @@ bool Cube::CreateShaders() {
     "uniform mat4 u_mvpMatrix;                   \n"
     "attribute vec4 a_position;                  \n"
     "attribute vec3 a_color;                     \n"
+    "varying lowp vec4 v_color;                  \n"
     "void main()                                 \n"
     "{                                           \n"
-    "   gl_FrontColor.rgb = a_color.xyz;         \n"
-    "   gl_FrontColor.a = 1.0;                   \n"
+    "   v_color.xyz = a_color;                   \n"
+    "   v_color.w = 1.0;                         \n"
     "   gl_Position = u_mvpMatrix * a_position;  \n"
     "}                                           \n";
   
   const char fragment_shader_src[] =
+    "varying lowp vec4 v_color;                   \n"
     "void main()                                  \n"
     "{                                            \n"
-    "  gl_FragColor = gl_Color;                   \n"
+    "  gl_FragColor = v_color;                    \n"
     "}                                            \n";
   
   // Load the shaders and get a linked program object
