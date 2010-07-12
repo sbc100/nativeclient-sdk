@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 
-EXCLUDE_DIRS = ['.download', 
+EXCLUDE_DIRS = ['.download',
                 '.svn',
                 'build_tools',
                 'packages',

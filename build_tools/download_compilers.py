@@ -55,9 +55,6 @@ def DownloadToolchain(src, dst, base_url, version):
   """
   path = 'naclsdk_' + src + '.tgz'
   url = base_url + version + '/' + path
-  # ToDo(BradN): fix that when situation with buildbots will be resolved
-  if sys.platform == 'win32':
-    url = base_url + version + '/naclsdk_win_x86a.tgz/naclsdk.tgz'
 
   # Pick target directory.
   script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -113,13 +110,13 @@ def DownloadToolchain(src, dst, base_url, version):
   p = subprocess.Popen(
       'tar xfzv "%s" && ( mv sdk/nacl-sdk/* "%s" || mv */* "%s" )' %
           (path, target.replace('\\', '/'), target.replace('\\', '/')),
-      env=env, shell=True) 
+      env=env, shell=True)
   p.communicate()
   assert p.returncode == 0
   os.chdir(old_cwd)
 
   print 'Extract complete.'
-  
+
   if sys.platform == 'win32':
     # Create make.cmd files for trusted compilation
     p = subprocess.Popen(
@@ -137,7 +134,7 @@ def InstallCygWin(cygwin_url):
   Arguments:
     cygwin_url: cygwin url to download hermetic cygwin from
   """
-  
+
   # Pick target directory.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   parent_dir = os.path.split(script_dir)[0]
@@ -170,7 +167,7 @@ def InstallCygWin(cygwin_url):
   os.chdir(old_cwd)
 
   print 'Extract complete.'
-  
+
   # Clean up: remove the download dir.
   for i in xrange(100):
     try:
@@ -218,7 +215,8 @@ def main(argv):
       help='base url to download from')
   parser.add_option(
       '-c', '--cygwin-url', dest='cygwin_url',
-      default='http://build.chromium.org/mirror/nacl/cygwin_mirror/hermetic_cygwin_1_7_5-1_0.exe',
+      default=('http://build.chromium.org/mirror/nacl/'
+               'cygwin_mirror/hermetic_cygwin_1_7_5-1_0.exe'),
       help='cygwin installer url to download from')
   parser.add_option(
       '-v', '--version', dest='version',
