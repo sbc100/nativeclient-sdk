@@ -45,15 +45,23 @@ static bool HelloWorld(NPVariant *result) {
   return true;
 }
 
+// Creates the plugin-side instance of NPObject.
+// Called by NPN_CreateObject, declared in npruntime.h
+// Documentation URL: https://developer.mozilla.org/en/NPClass
 static NPObject* Allocate(NPP npp, NPClass* npclass) {
   return new NPObject;
 }
 
+// Cleans up the plugin-side instance of an NPObject.
+// Called by NPN_ReleaseObject, declared in npruntime.h
+// Documentation URL: https://developer.mozilla.org/en/NPClass
 static void Deallocate(NPObject* object) {
   delete object;
 }
 
-// Return |true| if |method_name| is a recognized method.
+// Returns |true| if |method_name| is a recognized method.
+// Called by NPN_HasMethod, declared in npruntime.h
+// Documentation URL: https://developer.mozilla.org/en/NPClass
 static bool HasMethod(NPObject* obj, NPIdentifier method_name) {
   char *name = NPN_UTF8FromIdentifier(method_name);
   bool is_method = false;
@@ -66,6 +74,12 @@ static bool HasMethod(NPObject* obj, NPIdentifier method_name) {
   return is_method;
 }
 
+// Called by the browser to invoke the default method on an NPObject.
+// Returns null.
+// Apparently the plugin won't load properly if we simply
+// tell the browser we don't have this method.
+// Called by NPN_InvokeDefault, declared in npruntime.h
+// Documentation URL: https://developer.mozilla.org/en/NPClass
 static bool InvokeDefault(NPObject *obj, const NPVariant *args,
                           uint32_t argCount, NPVariant *result) {
   if (result) {
@@ -74,8 +88,10 @@ static bool InvokeDefault(NPObject *obj, const NPVariant *args,
   return true;
 }
 
-// Invoke() is called by the browser to invoke a function object whose name
+// Called by the browser to invoke a function object whose name
 // is |method_name|.
+// Called by NPN_Invoke, declared in npruntime.h
+// Documentation URL: https://developer.mozilla.org/en/NPClass
 static bool Invoke(NPObject* obj,
                    NPIdentifier method_name,
                    const NPVariant *args,
@@ -100,8 +116,10 @@ static bool Invoke(NPObject* obj,
   return rval;
 }
 
-// The class structure that gets passed back to the browser.  This structure
-// provides funtion pointers that the browser calls.
+// Represents a class's interface, so that the browser knows what functions it
+// can call on this plugin object.  The browser can use the methods in this
+// class to discover the rest of the plugin's interface.
+// Documentation URL: https://developer.mozilla.org/en/NPClass
 static NPClass kHelloWorldClass = {
   NP_CLASS_STRUCT_VERSION,
   Allocate,
@@ -115,6 +133,8 @@ static NPClass kHelloWorldClass = {
   NULL,  // SetProperty is not implemented
 };
 
+// Called by NPP_GetScriptableInstance to get the scripting interface for
+// this plugin.
 NPClass *GetNPSimpleClass() {
   return &kHelloWorldClass;
 }
