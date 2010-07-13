@@ -41,6 +41,8 @@ import subprocess
 import sys
 import tempfile
 
+SEL_LDR_REVISION = 2663
+
 EXCLUDE_DIRS = ['.download',
                 '.svn',
                 'build_tools',
@@ -109,7 +111,7 @@ def main(argv):
   # contents of src to that directory, clean the directory of unwanted
   # stuff and finally tar it all up using the platform's tar.  There seems to
   # be a problem with python's tarfile module and symlinks.
-  temp_dir = tempfile.mkdtemp();
+  temp_dir = tempfile.mkdtemp()
   installer_dir = os.path.join(temp_dir, version_dir)
   try:
     os.makedirs(installer_dir, mode=0777)
@@ -129,6 +131,28 @@ def main(argv):
     env['PATH'] = cygwin_dir + ';' + env['PATH']
 
   BuildDebugLibs(os.path.join(home_dir, 'src/debug_libs'), env)
+
+  # Build sel_ldr.
+  make_sel_ldr = os.path.join(home_dir, 'src', 'build_tools', 'make_sel_ldr.py')
+  if sys.platform == 'win32':
+    exe_suffix = '.exe'
+  else:
+    exe_suffix = ''
+  if sys.platform in ['win32', 'cygwin']:
+    variant = 'win_x86'
+  elif sys.platform == 'darwin':
+    variant = 'mac_x86'
+  elif sys.platform in ['linux', 'linux2']:
+    variant = 'linux_x86'
+  sel_ldr = subprocess.Popen([sys.executable, make_sel_ldr,
+                              '--target',
+                              'toolchain/%s/bin/sel_ldr%s' % (
+                                  variant, exe_suffix,
+                                  ),
+                              '--revision',
+                              str(SEL_LDR_REVISION),
+                              ])
+  assert sel_ldr.wait() == 0
 
   # Build the examples.
   example_path = os.path.join(home_dir, 'src/examples')
@@ -169,10 +193,10 @@ def main(argv):
         dirs.remove(excl)
         rm_dirs.append(os.path.join(root, excl))
     for rm_dir in rm_dirs:
-      shutil.rmtree(rm_dir);
+      shutil.rmtree(rm_dir)
     rm_files = [os.path.join(root, f) for f in files if ExcludeFile(f)]
     for rm_file in rm_files:
-      os.remove(rm_file);
+      os.remove(rm_file)
 
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
