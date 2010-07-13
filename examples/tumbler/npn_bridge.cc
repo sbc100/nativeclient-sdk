@@ -42,21 +42,21 @@ void InitializeBrowserFunctions(NPNetscapeFuncs* browser_functions) {
 // |variable| is the question being asked.  |value| is populated by the
 // browser.  Returns NPERR_NO_ERROR if successfull, an error otherwise.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Browser Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPN_GetValue
 NPError NPN_GetValue(NPP instance, NPNVariable variable, void* value) {
   return kBrowserFuncs.getvalue(instance, variable, value);
 }
 
 // Returns an opaque identifier for the string that is passed in.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_GetStringIdentifier
 NPIdentifier NPN_GetStringIdentifier(const NPUTF8* name) {
   return kBrowserFuncs.getstringidentifier(name);
 }
 
 // Frees the memory referenced by |mem|
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPN_MemFree
 void NPN_MemFree(void* mem) {
   kBrowserFuncs.memfree(mem);
 }
@@ -65,7 +65,7 @@ void NPN_MemFree(void* mem) {
 // The object is then associated with |npp|, the plugin that is requesting it.
 // Returns a reference counted point to an |NPObject|.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_CreateObject
 NPObject* NPN_CreateObject(NPP npp, NPClass* np_class) {
   return kBrowserFuncs.createobject(npp, np_class);
 }
@@ -73,14 +73,14 @@ NPObject* NPN_CreateObject(NPP npp, NPClass* np_class) {
 // Increments the reference count for |obj| and returns a pointer to the same
 // object.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_RetainObject
 NPObject* NPN_RetainObject(NPObject* obj) {
   return kBrowserFuncs.retainobject(obj);
 }
 
 // Decrements the reference count for |obj| and cleans up if count hits 0.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_ReleaseObject
 void NPN_ReleaseObject(NPObject* obj) {
   kBrowserFuncs.releaseobject(obj);
 }
@@ -89,7 +89,7 @@ void NPN_ReleaseObject(NPObject* obj) {
 // |identifier|  Identifier will have |count| members.
 // Returns true if npobj was successfully enumerate it.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/En/NPN_Enumerate
 bool NPN_Enumerate(NPP npp, NPObject *npobj, NPIdentifier **identifier,
                    uint32_t *count) {
   return kBrowserFuncs.enumerate(npp, npobj, identifier, count);
@@ -98,7 +98,7 @@ bool NPN_Enumerate(NPP npp, NPObject *npobj, NPIdentifier **identifier,
 // Populates |result| with the value of |property_name| on |npobj|.
 // Returns true if the value was found.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_GetProperty
 bool NPN_GetProperty(NPP npp, NPObject *npobj, NPIdentifier property_name,
                      NPVariant *result) {
   return kBrowserFuncs.getproperty(npp, npobj, property_name, result);
@@ -106,7 +106,7 @@ bool NPN_GetProperty(NPP npp, NPObject *npobj, NPIdentifier property_name,
 
 // Sets |property_name| on |npobj| equal to |value|.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_SetProperty
 bool NPN_SetProperty(NPP npp, NPObject *npobj, NPIdentifier property_name,
                      const NPVariant *value) {
   return kBrowserFuncs.setproperty(npp, npobj, property_name, value);
@@ -114,7 +114,7 @@ bool NPN_SetProperty(NPP npp, NPObject *npobj, NPIdentifier property_name,
 
 // Returns true iff |npobj| has a property called |property_name|
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_HasProperty
 bool NPN_HasProperty(NPP npp, NPObject *npobj, NPIdentifier property_name) {
   return kBrowserFuncs.hasproperty(npp, npobj, property_name);
 }
@@ -125,7 +125,7 @@ bool NPN_HasProperty(NPP npp, NPObject *npobj, NPIdentifier property_name) {
 // returned in |result| (to be preallocated).
 // Returns false if any of this fails.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_Evaluate
 bool NPN_Evaluate(NPP npp, NPObject *npobj, NPString *script,
                   NPVariant *result) {
   return kBrowserFuncs.evaluate(npp, npobj, script, result);
@@ -133,7 +133,7 @@ bool NPN_Evaluate(NPP npp, NPObject *npobj, NPString *script,
 
 // Returns an opaque identifier for |intid|
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_GetIntIdentifier
 NPIdentifier NPN_GetIntIdentifier(int32_t intid) {
   return kBrowserFuncs.getintidentifier(intid);
 }
@@ -141,7 +141,8 @@ NPIdentifier NPN_GetIntIdentifier(int32_t intid) {
 // Requests that the browser call |func| on a separate thread.  Func should
 // take |user_data| as an argument like with any callback.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Browser Side Plug-in API
+// Documentation URL:
+//   https://developer.mozilla.org/en/NPN_PluginThreadAsyncCall
 void NPN_PluginThreadAsyncCall(NPP npp,
                                void (*func)(void *),
                                void *user_data) {

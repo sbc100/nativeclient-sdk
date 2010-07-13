@@ -28,8 +28,8 @@
 // these functions lack comments.
 // For each function, the declaring header is listed.  The NPN functions are
 // declared in npapi.h and npruntime.h
-// Also, a searchable location in the appropriate reference material is
-// included (example: "Gecko Plugin API Reference->Scripting Plugins")
+// Also, the URL of the function in the Gecko Plugin API Reference is
+// included.
 
 static NPNetscapeFuncs kBrowserFuncs = { 0 };
 
@@ -49,21 +49,21 @@ void InitializeBrowserFunctions(NPNetscapeFuncs* browser_functions) {
 // Translates between browser and machine repesentations of |identifier|.
 // Declaration: npruntime.h
 // Included via npupp.h (if native client) or nphostapi.h in trusted build.
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_UTF8FromIdentifier
 NPUTF8* NPN_UTF8FromIdentifier(NPIdentifier identifier) {
   return kBrowserFuncs.utf8fromidentifier(identifier);
 }
 
 // Allocates |size| bytes in the browser's memory pool and returns a pointer.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPN_MemAlloc
 void* NPN_MemAlloc(uint32 size) {
   return kBrowserFuncs.memalloc(size);
 }
 
 // Frees the memory referenced by |mem|
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPN_MemFree
 void NPN_MemFree(void* mem) {
   kBrowserFuncs.memfree(mem);
 }
@@ -72,7 +72,7 @@ void NPN_MemFree(void* mem) {
 // The object is then associated with |npp|, the plugin that is requesting it.
 // Returns a reference counted point to an |NPObject|.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_CreateObject
 NPObject* NPN_CreateObject(NPP npp, NPClass* np_class) {
   return kBrowserFuncs.createobject(npp, np_class);
 }
@@ -80,7 +80,7 @@ NPObject* NPN_CreateObject(NPP npp, NPClass* np_class) {
 // Increments the reference count for |obj| and returns a pointer to the same
 // object.
 // Declaration: npruntime.h
-// Web Reference: Gecko Plugin API Reference->Scripting Plugins
+// Documentation URL: https://developer.mozilla.org/en/NPN_RetainObject
 NPObject* NPN_RetainObject(NPObject* obj) {
   return kBrowserFuncs.retainobject(obj);
 }

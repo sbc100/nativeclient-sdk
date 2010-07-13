@@ -25,7 +25,7 @@ using tumbler::Tumbler;
 // Called after NP_Initialize with a Plugin Instance Pointer and context
 // information for the plugin instance that is being allocated.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPP_New
 NPError NPP_New(NPMIMEType mime_type,
                 NPP instance,
                 uint16_t mode,
@@ -55,7 +55,7 @@ NPError NPP_New(NPMIMEType mime_type,
 // note that browser may choose to throw it away.
 // In the NaCl module, NPP_Destroy is called from NaClNP_MainLoop().
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPP_Destroy
 NPError NPP_Destroy(NPP instance, NPSavedData** save) {
   if (instance == NULL) {
     return NPERR_INVALID_INSTANCE_ERROR;
@@ -74,7 +74,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 // |instance| is this plugin's representation in the browser.  Returns the new
 // NPObject or NULL.
 // Declaration: local
-// Web Reference: N/A
+// Documentation URL: N/A (not actually an NPAPI function)
 NPObject* NPP_GetScriptableInstance(NPP instance) {
   if (instance == NULL) {
     return NULL;
@@ -90,7 +90,7 @@ NPObject* NPP_GetScriptableInstance(NPP instance) {
 
 // Implemented so the browser can get a scriptable instance from this plugin.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPP_GetValue
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
   if (NPPVpluginScriptableNPObject == variable) {
     NPObject* scriptable_object = NPP_GetScriptableInstance(instance);
@@ -106,7 +106,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 // function should return true if the event was handled, false if it was
 // ignored.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPP_HandleEvent
 int16_t NPP_HandleEvent(NPP instance, void* event) {
   return 0;
 }
@@ -114,7 +114,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 // |window| contains the current state of the window in the browser.  If this
 // is called, that state has probably changed recently.
 // Declaration: npapi.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NPP_SetWindow
 NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   if (instance == NULL) {
     return NPERR_INVALID_INSTANCE_ERROR;

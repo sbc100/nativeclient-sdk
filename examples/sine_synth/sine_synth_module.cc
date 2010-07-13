@@ -37,7 +37,7 @@ NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
 // be cleaned up by NP_Shutdown.
 // returns an NPError if anything went wrong.
 // Declaration: npupp.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NP_Initialize
 NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
                       NPPluginFuncs* plugin_functions) {
   return NP_GetEntryPoints(plugin_functions);
@@ -68,7 +68,7 @@ NPError NP_Initialize(NPNetscapeFuncs* browser_functions) {
 // Called just before the plugin itself is completely unloaded from the
 // browser.  Should clean up anything allocated by NP_Initialize.
 // Declaration: npupp.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NP_Shutdown
 NPError NP_Shutdown() {
   return NPERR_NO_ERROR;
 }
@@ -78,7 +78,7 @@ NPError NP_Shutdown() {
 // Usually called early by the browser to ask the plugin for its name or
 // description.  Calls to other properties are forwarded to NPP_GetValue.
 // Declaration: npupp.h
-// Web Reference: Gecko Plugin API Reference->Plug-in Side Plug-in API
+// Documentation URL: https://developer.mozilla.org/en/NP_GetValue
 NPError NP_GetValue(NPP instance, NPPVariable variable, void* value) {
   extern NPError NPP_GetValue(NPP instance, NPPVariable variable, void* value);
   NPError err = NPERR_NO_ERROR;
@@ -106,7 +106,7 @@ NPError NP_GetValue(NPP instance, NPPVariable variable, void* value) {
 // on the MIME type format:
 //   https://developer.mozilla.org/En/NP_GetMIMEDescription
 // Declaration: npupp.h
-// Web Reference: Mozilla Developer Network->NP GetMIMEDescription
+// Documentation URL: https://developer.mozilla.org/En/NP_GetMIMEDescription
 const char* NP_GetMIMEDescription(void) {
   return "pepper-application/pi-generator:nexe:Pi Generator example";
 }
