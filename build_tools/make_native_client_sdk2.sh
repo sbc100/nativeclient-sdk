@@ -113,6 +113,12 @@ if ! patch --no-backup-if-mismatch <<END
 @@ -431,2 +430,0 @@
 -  CreateDirectory "\$INSTDIR\\sdk"
 -  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
+@@ -734,4 +745,5 @@
+   File "/oname=toolchain\\win_x86\\bin\\nacl-addr2line.exe" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-addr2line.exe"
+   File "/oname=toolchain\\win_x86\\bin\\nacl-gccbug" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-gccbug"
++  File "/oname=toolchain\\win_x86\\bin\\sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\sel_ldr.exe"
+   File "/oname=toolchain\\win_x86\\COPYING" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING"
+   File "/oname=toolchain\\win_x86\\COPYING.LIB" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING.LIB"
 @@ -1742 +1739,0 @@
 -  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
 @@ -4054,3 +4046,5 @@
@@ -125,9 +131,9 @@ if ! patch --no-backup-if-mismatch <<END
 +  File "/oname=${CYGWIN_PREFIX}bin\\sh4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
 @@ -4303,4 +4299,4 @@
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
-   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk-3.1.7.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
-   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.7.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk.exe"
-   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1" "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\pgawk.1"
+   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
+   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk.exe"
+   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1.gz" "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\pgawk.1.gz"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "gawk.exe"
 @@ -7046,6 +7040,10 @@
  Section "" sec_PKG_make
@@ -151,9 +157,10 @@ if ! patch --no-backup-if-mismatch <<END
 @@ -7471,2 +7474,3 @@
    CreateDirectory "\$INSTDIR\\third_party\\cygwin\\usr\\share\\man\\man1"
 +  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
-   File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python-2.6.5-1.tar.bz2\\usr\\bin\\2to3"
-@@ -8992,3 +8996,3 @@
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "python2.6.exe"
+   File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python-2.6.5-2.tar.bz2\\usr\\bin\\2to3"
+@@ -8534 +8533,0 @@
+-  File "/oname=third_party\\cygwin\\bin\\python2.6.exe" "packages.unpacked\\python-2.6.5-2.tar.bz2\\usr\\bin\\python2.6.exe"
+@@ -8992,2 +8996,3 @@
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "python2.6-config"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython2.6.dll.a" "python2.6\\config\\libpython2.6.dll.a"
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.6.exe"

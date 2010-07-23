@@ -39,7 +39,7 @@ fi
 #    VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86_amd64"
 #  else
 #    echo "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed with \"X64 Compilers and Tools\" option selected." >&2
-#    VCSCRIT="${VCROOTDIR}vcvarsall.bat\" \"x86_amd64"
+#    VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86_amd64"
 #  fi
 #else
   if [ -f "$(cygpath "$VCROOTDIR")bin/vcvars32.bat" ] ; then
@@ -51,7 +51,7 @@ fi
     VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86"
   else
     echo "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed." >&2
-    VCSCRIT="${VCROOTDIR}vcvarsall.bat\" \"x86"
+    VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86"
   fi
 #fi
 # Please keep this list and list in make_native_client_sdk.sh synchronyzed
