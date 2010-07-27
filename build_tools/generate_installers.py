@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 
-SEL_LDR_REVISION = 2663
+SEL_LDR_REVISION = 2271
 
 EXCLUDE_DIRS = ['.download',
                 '.svn',
