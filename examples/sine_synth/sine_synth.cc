@@ -88,18 +88,18 @@ void SineSynth::SynthesizeSineWave(NPDeviceContextAudio *context) {
   const size_t sample_count  = context->config.sampleFrameCount;
   const size_t channel_count = context->config.outputChannelMap;
   const double theta = 2 * kPi * frequency_ / context->config.sampleRate;
-  int16* buf = reinterpret_cast<int16*>(context->outBuffer);
+  int16_t* buf = reinterpret_cast<int16_t*>(context->outBuffer);
   if (play_sound_) {
     for (size_t sample = 0; sample < sample_count; ++sample) {
-      int16 value = static_cast<int16>(sin(theta * time_value_) *
-                                       std::numeric_limits<int16>::max());
+      int16_t value = static_cast<int16_t>(sin(theta * time_value_) *
+                                       std::numeric_limits<int16_t>::max());
       ++time_value_;  // Just let this wrap.
       for (size_t channel = 0; channel < channel_count; ++channel) {
         *buf++ = value;
       }
     }
   } else {
-    memset(buf, 0, sample_count * channel_count * sizeof(int16));
+    memset(buf, 0, sample_count * channel_count * sizeof(int16_t));
   }
 }
 

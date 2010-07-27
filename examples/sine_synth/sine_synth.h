@@ -6,6 +6,10 @@
 #define EXAMPLES_SINE_SYNTH_H_
 
 #include <pthread.h>
+#include <algorithm>
+#include <limits>
+#include <map>
+
 #if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
 #include <nacl/npapi_extensions.h>
@@ -15,8 +19,6 @@
 #include "third_party/npapi/bindings/npapi_extensions.h"
 #include "third_party/npapi/bindings/nphostapi.h"
 #endif
-#include <limits>
-#include <map>
 
 namespace sine_synth {
 
@@ -38,11 +40,11 @@ class SineSynth {
 
   // Accessor/.mutators for the frequency property.  Frequency is clamped to
   // (20, 22000) Hz.
-  int32 frequency() const {
+  int32_t frequency() const {
     return frequency_;
   }
-  void set_frequency(int32 freq) {
-    frequency_ = std::max<int32>(std::min<int32>(22000, freq), 20);
+  void set_frequency(int32_t freq) {
+    frequency_ = std::max<int32_t>(std::min<int32_t>(22000, freq), 20);
   }
 
   int width() const {
@@ -69,9 +71,9 @@ class SineSynth {
   NPDeviceContextAudio context_audio_;  // The PINPAPI audio context.
 
   bool play_sound_;
-  int32 frequency_;
+  int32_t frequency_;
   // Store the time value to avoid clicks at buffer boundaries.
-  uint32 time_value_;
+  uint32_t time_value_;
 };
 
 }  // namespace sine_synth

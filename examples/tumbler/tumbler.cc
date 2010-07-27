@@ -28,7 +28,7 @@ using tumbler::ScriptingBridge;
 
 namespace tumbler {
 
-static const int32 kCommandBufferSize = 1024 * 1024;
+static const int32_t kCommandBufferSize = 1024 * 1024;
 
 Tumbler::Tumbler(NPP npp)
     : npp_(npp),
@@ -142,4 +142,3 @@ void Tumbler::DestroyContext() {
 }
 
 }  // namespace pinpapi_bridge
-

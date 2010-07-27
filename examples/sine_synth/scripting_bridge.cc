@@ -174,13 +174,13 @@ bool ScriptingBridge::SetFrequency(const NPVariant* value) {
   SineSynth* sine_synth = static_cast<SineSynth*>(npp_->pdata);
   if (!sine_synth)
     return false;
-  int32 freq = -1;
+  int32_t freq = -1;
   switch (value->type) {
   case NPVariantType_Int32:
     freq = NPVARIANT_TO_INT32(*value);
     break;
   case NPVariantType_Double:
-    freq = static_cast<int32>(floor(NPVARIANT_TO_DOUBLE(*value) + 0.5));
+    freq = static_cast<int32_t>(floor(NPVARIANT_TO_DOUBLE(*value) + 0.5));
     break;
   case NPVariantType_String:
     freq = atol(value->value.stringValue.UTF8Characters);
