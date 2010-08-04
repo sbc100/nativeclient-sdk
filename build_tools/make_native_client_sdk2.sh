@@ -142,6 +142,7 @@ if ! patch --no-backup-if-mismatch <<END
 +  CreateDirectory "\$INSTDIR\\examples"
 +  CreateDirectory "\$INSTDIR\\examples\\hello_world"
 +  CreateDirectory "\$INSTDIR\\examples\\pi_generator"
++  CreateDirectory "\$INSTDIR\\examples\\sine_synth"
 +  CreateDirectory "\$INSTDIR\\examples\\tumbler"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"

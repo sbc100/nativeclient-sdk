@@ -46,6 +46,7 @@ SEL_LDR_REVISION = 2271
 EXCLUDE_DIRS = ['.download',
                 '.svn',
                 'build_tools',
+                'experimental',
                 'packages',
                 'scons-out']
 
@@ -72,14 +73,6 @@ def SVNRevision():
     return int(m.group(1))
   else:
     return 0
-
-
-def BuildDebugLibs(debug_lib_dir, env):
-  make = subprocess.Popen('make install_prebuilt',
-                          env=env,
-                          cwd=debug_lib_dir,
-                          shell=True)
-  make_err = make.communicate()[1]
 
 
 def VersionString():
@@ -129,8 +122,6 @@ def main(argv):
   env = os.environ.copy()
   if sys.platform == 'win32':
     env['PATH'] = cygwin_dir + ';' + env['PATH']
-
-  BuildDebugLibs(os.path.join(home_dir, 'src/debug_libs'), env)
 
   # Build sel_ldr.
   make_sel_ldr = os.path.join(home_dir, 'src', 'build_tools', 'make_sel_ldr.py')
