@@ -2,20 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
 #include <nacl/npupp.h>
-#else
-// Building a development version.
-#include "third_party/npapi/bindings/npapi.h"
-#include "third_party/npapi/bindings/nphostapi.h"
-#endif
 
 struct HelloWorld {
   NPP npp;

@@ -316,12 +316,6 @@ WriteFiles:
   IntCmp \$PKV_make 0 Skip_all_libs
   IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs1
   ; Please keep this list and list in create_make_cmds.sh synchronyzed
-  FileOpen \$R0 \$INSTDIR\\debug_libs\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\debug_libs\\trusted_gpu\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
   FileOpen \$R0 \$INSTDIR\\examples\\make.cmd w
   FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
   FileClose \$R0
@@ -342,12 +336,6 @@ Skip_debug_libs1:
 Skip_all_libs:
   IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs2
   ; Please keep this list and list in create_make_cmds.sh synchronyzed
-  FileOpen \$R0 \$INSTDIR\\debug_libs\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\debug_libs\\trusted_gpu\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\ncall \$\"\$R1\$\"\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
   FileOpen \$R0 \$INSTDIR\\examples\\make.cmd w
   FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
   FileClose \$R0

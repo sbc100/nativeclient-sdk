@@ -10,17 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__native_client__)
 #include <nacl/nacl_imc.h>
 #include <nacl/nacl_npapi.h>
 #include <nacl/npapi_extensions.h>
 #include <nacl/npruntime.h>
-#else
-// Building the develop version.
-#include "third_party/npapi/bindings/npapi.h"
-#include "third_party/npapi/bindings/npapi_extensions.h"
-#include "third_party/npapi/bindings/nphostapi.h"
-#endif
 
 #include "examples/pi_generator/scripting_bridge.h"
 

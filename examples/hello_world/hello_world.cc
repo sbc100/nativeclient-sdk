@@ -7,13 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__native_client__)
 #include <nacl/nacl_npapi.h>
-#else
-// Building a develop version for debugging.
-#include "third_party/npapi/bindings/npapi.h"
-#include "third_party/npapi/bindings/nphostapi.h"
-#endif
 
 // These are the method names as JavaScript sees them.
 static const char* kHelloWorldMethodId = "helloworld";

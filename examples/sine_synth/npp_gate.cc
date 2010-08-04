@@ -5,14 +5,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#if defined (__native_client__)
 #include <nacl/npapi_extensions.h>
 #include <nacl/npupp.h>
-#else
-// Building a trusted plugin for debugging.
-#include "third_party/npapi/bindings/npapi_extensions.h"
-#include "third_party/npapi/bindings/nphostapi.h"
-#endif
 #include <new>
 
 #include "examples/sine_synth/sine_synth.h"

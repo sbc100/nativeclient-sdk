@@ -5,12 +5,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#if defined (__native_client__)
 #include <nacl/npupp.h>
-#else
-#include "third_party/npapi/bindings/npapi.h"
-#include "third_party/npapi/bindings/nphostapi.h"
-#endif
+
 #include <new>
 
 #include "examples/tumbler/tumbler.h"

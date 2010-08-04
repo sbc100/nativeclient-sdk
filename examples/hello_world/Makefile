@@ -6,7 +6,7 @@
 
 .PHONY: all clean
 
-CCFILES = hello_world_module.cc hello_world.cc npn_bridge.cc npp_gate.cc
+CCFILES = hello_world_module.cc hello_world.cc npp_gate.cc
 
 OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
 OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
