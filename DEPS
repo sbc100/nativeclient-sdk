@@ -3,6 +3,8 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk/",
   # Note: make sure this is the same rev as the one used in native_client.
   "chromium_version": "51400",
+  "valgrind_path": "http://nativeclient.googlecode.com/svn/trunk/src/native_client/src/third_party/valgrind/bin",
+  "valgrind_version": "2878",
 }
 
 deps = {
@@ -29,6 +31,9 @@ deps = {
       "src/gpu/command_buffer/client@" + Var("chromium_version"),
   "src/third_party/gpu/pgl": Var("chromium_trunk") +
       "src/gpu/pgl@" + Var("chromium_version"),
+
+  "src/third_party/valgrind": Var("valgrind_path") + "@" +
+       Var("valgrind_version"),
 }
 
 hooks = [
