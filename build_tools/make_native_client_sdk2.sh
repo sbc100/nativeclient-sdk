@@ -135,7 +135,7 @@ if ! patch --no-backup-if-mismatch <<END
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1.gz" "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\pgawk.1.gz"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "gawk.exe"
-@@ -7046,6 +7040,10 @@
+@@ -7046,6 +7040,11 @@
  Section "" sec_PKG_make
    SectionIn 1 2
    SetOutPath \$INSTDIR
