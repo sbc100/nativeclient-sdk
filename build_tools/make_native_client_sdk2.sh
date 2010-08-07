@@ -121,6 +121,8 @@ if ! patch --no-backup-if-mismatch <<END
    File "/oname=toolchain\\win_x86\\COPYING.LIB" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING.LIB"
 @@ -1742 +1739,0 @@
 -  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
+@@ -2001 +2000,0 @@
+-  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
 @@ -4054,3 +4046,5 @@
 -  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
 +  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\bash.exe"
@@ -158,15 +160,18 @@ if ! patch --no-backup-if-mismatch <<END
 @@ -7471,2 +7474,3 @@
    CreateDirectory "\$INSTDIR\\third_party\\cygwin\\usr\\share\\man\\man1"
 +  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
-   File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python-2.6.5-2.tar.bz2\\usr\\bin\\2to3"
-@@ -8534 +8533,0 @@
--  File "/oname=third_party\\cygwin\\bin\\python2.6.exe" "packages.unpacked\\python-2.6.5-2.tar.bz2\\usr\\bin\\python2.6.exe"
-@@ -8992,2 +8996,3 @@
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "python2.6-config"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython2.6.dll.a" "python2.6\\config\\libpython2.6.dll.a"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.6.exe"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python-config" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python2.6-config"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python2.6.dll.a" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python2.6\\config\\libpython2.6.dll.a"
+   File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python3-3.1.2-1.tar.bz2\\usr\\bin\\2to3"
+@@ -9789,4 +9789,6 @@
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.exe" "python3.1.exe"
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3-config" "python3.1-config"
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython3.1.dll.a" "python3.1\\config\\libpython3.1.dll.a"
+-  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python3.pc" "python-3.1.pc"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.1.exe"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.1.exe"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3-config" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.1-config"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython3.1.dll.a" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python3.1\\config\\libpython3.1.dll.a"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python.pc" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python-3.1.pc"
++  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python3.pc" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python-3.1.pc"
 @@ -9032,3 +9035,3 @@
 -  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} ""
    !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_sdk} "Native Client SDK - examples and documentation"

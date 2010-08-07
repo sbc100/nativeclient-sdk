@@ -92,7 +92,7 @@ fi
 if ((NSIS)) && ((CygWin)) && ! [ -d NSIS ] ; then
   7z -oNSIS x "`dirname \"$0\"`"/nsis-2.46-Unicode-setup.exe
   ln -sfn NSIS AccessControl
-  7z x AccessControl.zip
+  7z x "`dirname \"$0\"`"/AccessControl.zip
   rm AccessControl
   mkdir -p NSIS/Contrib/Graphics/{Checks,Header,Icons,Wizard}
   for dirname in Checks Header Icons Wizard ; do
@@ -155,6 +155,10 @@ for pkgname in "${allinstalledpackages[@]}" ; do
 done
 prefix["native_client_sdk"]=""
 prefix["native_client_toolchain"]=""
+HTTPD_PY_FIX="`2to3 packages.unpacked/nacl-sdk.tgz/native_client_sdk_${SDK_VERSION//./_}/examples/httpd.py 2>/dev/null`"
+if [[ "$HTTPD_PY_FIX" != "" ]] ; then
+  echo "$HTTPD_PY_FIX" | patch -p0
+fi
 fill_required_packages
 fill_filetype_info
 

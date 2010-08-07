@@ -23,34 +23,41 @@ else
   VCROOTDIR=""
   echo "Can not find Microsoft Visual Studio installation - change make.cmd files manually when it'll be installed" >&2
 fi
+if [[ "$VCROOTDIR" != "" ]] ; then
+  VCCYGROOTDIR="${VCCYGROOTDIR}"
+else
+  VCCYGROOTDIR=""
+fi
 #if [[ "$(uname -s)" = *WOW64* ]] ; then
-#  if [ -f "$(cygpath "$VCROOTDIR")bin/x86_amd64/vcvarsx86_amd64.bat" ] ; then
+#  if [ -f "${VCCYGROOTDIR}bin/x86_amd64/vcvarsx86_amd64.bat" ] ; then
 #    VCSCRIPT="${VCROOTDIR}bin\\x86_amd64\\vcvarsx86_amd64.bat"
-#  elif [ -f "$(cygpath "$VCROOTDIR")bin/amd64/vcvarsamd64.bat" ] ; then
+#  elif [ -f "${VCCYGROOTDIR}bin/amd64/vcvarsamd64.bat" ] ; then
 #    VCSCRIPT="${VCROOTDIR}bin\\amd64\\vcvarsamd64.bat"
-#  elif [ -f "$(cygpath "$VCROOTDIR")bin/vcvarsx86_amd64.bat" ] ; then
+#  elif [ -f "${VCCYGROOTDIR}bin/vcvarsx86_amd64.bat" ] ; then
 #    VCSCRIPT="${VCROOTDIR}bin\\vcvarsx86_amd64.bat"
-#  elif [ -f "$(cygpath "$VCROOTDIR")bin/vcvarsamd64.bat" ] ; then
+#  elif [ -f "${VCCYGROOTDIR}bin/vcvarsamd64.bat" ] ; then
 #    VCSCRIPT="${VCROOTDIR}bin\\vcvarsamd64.bat"
-#  elif [ -f "$(cygpath "$VCROOTDIR")bin/vcvars64.bat" ] ; then
+#  elif [ -f "${VCCYGROOTDIR}bin/vcvars64.bat" ] ; then
 #    VCSCRIPT="${VCROOTDIR}bin\\vcvars64.bat"
 #  # Test and use vcvarsall.bat last since it may be present but broken
-#  elif [ -f "$(cygpath "$VCROOTDIR")vcvarsall.bat" ] ; then
+#  elif [ -f "${VCCYGROOTDIR}vcvarsall.bat" ] ; then
 #    VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86_amd64"
 #  else
 #    echo "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed with \"X64 Compilers and Tools\" option selected." >&2
 #    VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86_amd64"
 #  fi
 #else
-  if [ -f "$(cygpath "$VCROOTDIR")bin/vcvars32.bat" ] ; then
+  if [ -f "${VCCYGROOTDIR}bin/vcvars32.bat" ] ; then
     VCSCRIPT="${VCROOTDIR}bin\\vcvars32.bat"
-  elif [ -f "$(cygpath "$VCROOTDIR")vcvars32.bat" ] ; then
+  elif [ -f "${VCCYGROOTDIR}vcvars32.bat" ] ; then
     VCSCRIPT="${VCROOTDIR}vcvars32.bat"
   # Test and use vcvarsall.bat last since it may be present but broken
-  elif [ -f "$(cygpath "$VCROOTDIR")vcvarsall.bat" ] ; then
+  elif [ -f "${VCCYGROOTDIR}vcvarsall.bat" ] ; then
     VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86"
   else
-    echo "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed." >&2
+    if [[ "$VCROOTDIR" != "" ]] ; then
+      echo "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed." >&2
+    fi
     VCSCRIPT="${VCROOTDIR}vcvarsall.bat\" \"x86"
   fi
 #fi

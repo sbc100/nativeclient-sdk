@@ -121,6 +121,15 @@ fix_setup_inf_info() {
   version["libreadline7"]="6.1.2-0"
   install["libreadline7"]="release/readline/libreadline7/libreadline7-6.1.2-0.tar.bz2 89945 afd3ec6a01c015572ff9602cb4bdc794"
   source["libreadline7"]="release/readline/readline-6.1.2-0-src.tar.bz2 2283352 509b85aa6f723fac3b453f7c84ca3361"
+  sdesc["python3"]="\"Py3K language interpreter\""
+  ldesc["python3"]="\"Python is an interpreted, interactive object-oriented programming language suitable (amongst other uses) for distributed application development, scripting, numeric computing and system testing.  Python is often compared to Tcl, Perl, Java, JavaScript, Visual Basic or Scheme.\""
+  category["python3"]="Python Interpreters"
+  category_contents["Python"]="${category_contents[Python]} python3"
+  category_contents["Interpreters"]="${category_contents[Interpreters]} python3"
+  requires["python3"]="crypt libbz2_1 libexpat1 libffi4 libgcc1 libgdbm4 libintl8 libncursesw10 libreadline7 libsqlite3_0 libopenssl098 zlib0"
+  version["python3"]="3.1.2-1"
+  install["python3"]="release-2/Python/python3/python3-3.1.2-1.tar.bz2 4956012 365924b4887aef67779192d8391cbe8f"
+  source["python3"]="release-2/Python/python3/python3-3.1.2-1-src.tar.bz2 13510800 6425002951389788087ffe14acc43309"
   version["readline"]="6.1.2-0"
   install["readline"]="release/readline/readline-6.1.2-0.tar.bz2 288160 f16eeccbb99b41d9128d56ddc5d4ad3c"
   source["readline"]="release/readline/readline-6.1.2-0-src.tar.bz2 2283352 509b85aa6f723fac3b453f7c84ca3361"
@@ -948,26 +957,32 @@ END
         local sc_name="${secname}_${sanitized_name[$pkgname]}"
         echo "  SectionGetFlags \${sec_$sc_name} \$R0"
         echo "  IntOp \$R1 \$R0 & \${SF_SELECTED}"
-        echo "  IntCmp \$sv_$sc_name \$R1 L3_$sc_name"
+        if [[ "$defpackage" == "NONE" ]] ; then
+          echo "  IntCmp \$sv_$sc_name \$R1 L4_$sc_name"
+        else
+          echo "  IntCmp \$sv_$sc_name \$R1 L2_$sc_name"
+        fi
         echo "  IntCmp \$sv_$sc_name 0 L1_$sc_name"
         echo "  StrCpy \$$PKV_name 0"
         for subpkgname in ${required["$pkgname"]} ; do
           if [[ "${allinstpackages[$subpkgname]}" = "present" ]] ; then
+            echo "  IntCmp \$PKV_${sanitized_name[$subpkgname]} 9 +2 +1 +2"
             echo "  StrCpy \$PKV_${sanitized_name[$subpkgname]} 0"
           fi
         done
-        echo "  Goto L3_$sc_name"
+        echo "  Goto L4_$sc_name"
         echo "L1_$sc_name:"
         if [[ "$defpackage" != "NONE" ]] ; then
-          echo "  IntCmp \$R2 0 L2_$sc_name +1 +1"
-          for subpkgname in ${seed["$pkgname"]} ; do
-            echo "  IntCmp \$SVV_InstType $((subpkgname-1)) L2_$sc_name +1 +1"
-          done
-          echo "  GoTo L3_$sc_name"
+          echo "  IntCmp \$R2 0 L3_$sc_name +1 +1"
           echo "L2_$sc_name:"
+          for subpkgname in ${seed["$pkgname"]} ; do
+            echo "  IntCmp \$SVV_InstType $((subpkgname-1)) L3_$sc_name +1 +1"
+          done
+          echo "  GoTo L4_$sc_name"
+          echo "L3_$sc_name:"
         fi
         echo "  StrCpy \$$PKV_name 9"
-        echo "L3_$sc_name:"
+        echo "L4_$sc_name:"
       fi
     done
   done
@@ -980,12 +995,12 @@ END
   # Put the dependences back
   for pkgname in "${allinstalledpackages[@]}" ; do
     if ((verbose)) ; then echo "Set state: \"$pkgname\"..." >&2 ; fi
-    echo "  IntCmp \$PKV_${sanitized_name[$pkgname]} 9 +1 L4_${sanitized_name[$pkgname]} +1"
+    echo "  IntCmp \$PKV_${sanitized_name[$pkgname]} 9 +1 L5_${sanitized_name[$pkgname]} +1"
     for subpkgname in ${requires["$pkgname"]} ; do
       echo "  IntCmp \$PKV_${sanitized_name[$subpkgname]} 9 +2 +1 +2"
       echo "  StrCpy \$PKV_${sanitized_name[$subpkgname]} 1"
     done
-    echo "L4_${sanitized_name[$pkgname]}:"
+    echo "L5_${sanitized_name[$pkgname]}:"
   done
   # Copy the calculated new state to the screen
   for pkgname in "${allinstalledpackages[@]}" ; do
