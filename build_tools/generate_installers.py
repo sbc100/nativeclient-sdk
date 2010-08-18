@@ -137,7 +137,11 @@ def main(argv):
     variant = 'linux_x86'
   sel_ldr = subprocess.Popen([sys.executable, make_sel_ldr,
                               '--target',
-                              'toolchain/%s/bin/sel_ldr%s' % (
+                              'toolchain/%s/bin/nacl-sel_ldr%s' % (
+                                  variant, exe_suffix,
+                                  ),
+                              '--target64bit',
+                              'toolchain/%s/bin/nacl64-sel_ldr%s' % (
                                   variant, exe_suffix,
                                   ),
                               '--revision',

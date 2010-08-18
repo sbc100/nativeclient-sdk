@@ -81,6 +81,11 @@ def Build(options):
       '%s --mode=%s platform=x86-32 naclsdk_validate=0 sel_ldr' % (
           scons, variant), shell=True)
   assert p.wait() == 0
+  if variant == 'opt-linux':
+    p = subprocess.Popen(
+        '%s --mode=%s platform=x86-64 naclsdk_validate=0 sel_ldr' % (
+            scons, variant), shell=True)
+    assert p.wait() == 0
   # Leave it.
   os.chdir('..')
 
@@ -90,6 +95,9 @@ def Install(options):
   # TODO(bradnelson): add an 'install' alias to the main build for this.
   shutil.copy('native_client/scons-out/%s-x86-32/staging/sel_ldr%s' % (
       options.variant, options.exe_suffix), options.target)
+  if options.variant == 'opt-linux':
+    shutil.copy('native_client/scons-out/%s-x86-64/staging/sel_ldr%s' % (
+        options.variant, options.exe_suffix), options.target64bit)
 
 
 def Cleanup(options):
@@ -119,7 +127,11 @@ def main(argv):
   parser.add_option(
       '-t', '--target', dest='target',
       default='sel_ldr' + exe_suffix,
-      help='which revision of native_client to sync')
+      help='where to put the 32-bit sel_ldr binary')
+  parser.add_option(
+      '-T', '--target64bit', dest='target64bit',
+      default='sel_ldr64' + exe_suffix,
+      help='where to put the 64-bit sel_ldr binary')
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
@@ -127,6 +139,7 @@ def main(argv):
     sys.exit(1)
 
   options.target = os.path.abspath(options.target)
+  options.target64bit = os.path.abspath(options.target64bit)
   options.exe_suffix = exe_suffix
 
   return BuildSelLdr(options)
