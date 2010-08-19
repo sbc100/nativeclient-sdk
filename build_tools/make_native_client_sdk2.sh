@@ -116,7 +116,7 @@ if ! patch --no-backup-if-mismatch <<END
 @@ -734,4 +745,5 @@
    File "/oname=toolchain\\win_x86\\bin\\nacl-addr2line.exe" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-addr2line.exe"
    File "/oname=toolchain\\win_x86\\bin\\nacl-gccbug" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-gccbug"
-+  File "/oname=toolchain\\win_x86\\bin\\sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\sel_ldr.exe"
++  File "/oname=toolchain\\win_x86\\bin\\nacl-sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\nacl-sel_ldr.exe"
    File "/oname=toolchain\\win_x86\\COPYING" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING"
    File "/oname=toolchain\\win_x86\\COPYING.LIB" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING.LIB"
 @@ -1742 +1739,0 @@
