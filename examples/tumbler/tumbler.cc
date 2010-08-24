@@ -16,13 +16,18 @@ namespace {
 
 // Callback given to the browser for things like context repaint and draw
 // notifications.
-
 void Draw3DCallback(void* data) {
-    static_cast<tumbler::Tumbler*>(data)->DrawSelf();
+  static_cast<tumbler::Tumbler*>(data)->DrawSelf();
+}
+
+// Called by the browser when the 3D context needs to get repainted.
+void Repaint3DCallback(NPP instance, NPDeviceContext3D* context) {
+  tumbler::TumblerContext3D* tumbler_context =
+      static_cast<tumbler::TumblerContext3D*>(context);
+  reinterpret_cast<tumbler::Tumbler*>(tumbler_context->user_data_)->DrawSelf();
 }
 
 }  // namespace
-
 
 using tumbler::ScriptingBridge;
 
@@ -126,6 +131,8 @@ void Tumbler::CreateContext() {
   assert(NULL != device3d_);
   NPDeviceContext3DConfig config;
   config.commandBufferSize = kCommandBufferSize;
+  context3d_.repaintCallback = Repaint3DCallback;
+  context3d_.user_data_ = reinterpret_cast<void*>(this);
   device3d_->initializeContext(npp_, &config, &context3d_);
 
   // Create a PGL context.

@@ -29,10 +29,16 @@ namespace tumbler {
 
 class Cube;
 
+// Extend NPDeviceContext3D to include a user_data pointer.  This pointer is
+// used to carry context-specific data for, e.g. the repaint callback.
+struct TumblerContext3D : NPDeviceContext3D {
+  void* user_data_;
+};
+
 class Tumbler {
  public:
   explicit Tumbler(NPP npp);
-  
+
   // The dtor makes the 3D context current before deleting the cube view, then
   // destroys the 3D context both in the module and in the browser.
   ~Tumbler();
@@ -67,7 +73,7 @@ class Tumbler {
   NPP npp_;
   NPObject* scriptable_object_;
   NPDevice* device3d_;
-  NPDeviceContext3D context3d_;
+  TumblerContext3D context3d_;
   PGLContext pgl_context_;
   Cube* cube_;
 
