@@ -55,13 +55,24 @@ EXCLUDE_DIRS = ['.download',
 # (which makes a self-extracting zip instead of a tarball).
 WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
 
+# A list of files from third_party/valgrind that should be included in the SDK.
+VALGRIND_FILES = ['./third_party/valgrind/memcheck.sh',
+                  './third_party/valgrind/tsan.sh',
+                  './third_party/valgrind/nacl.supp',
+                  './third_party/valgrind/nacl.ignore',
+                  './third_party/valgrind/bin/memcheck',
+                  './third_party/valgrind/bin/tsan']
+
 
 # Return True if |file| should be excluded from the tarball.
-def ExcludeFile(file):
+def ExcludeFile(dir, file):
   return (file.startswith('.DS_Store') or
           re.search('^\._', file) or file == "make.cmd" or
           file == 'DEPS' or file == 'codereview.settings' or
-          (not sys.platform in WINDOWS_BUILD_PLATFORMS and file == "httpd.cmd"))
+          (not sys.platform in WINDOWS_BUILD_PLATFORMS and
+           file == "httpd.cmd") or
+          (dir.startswith('./third_party/valgrind') and
+           dir + '/' + file not in VALGRIND_FILES))
 
 
 # Note that this function has to be run from within a subversion working copy.
@@ -189,7 +200,7 @@ def main(argv):
         rm_dirs.append(os.path.join(root, excl))
     for rm_dir in rm_dirs:
       shutil.rmtree(rm_dir)
-    rm_files = [os.path.join(root, f) for f in files if ExcludeFile(f)]
+    rm_files = [os.path.join(root, f) for f in files if ExcludeFile(root, f)]
     for rm_file in rm_files:
       os.remove(rm_file)
 
