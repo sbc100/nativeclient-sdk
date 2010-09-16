@@ -11,13 +11,13 @@
 
 namespace tumbler {
 
-// The Cube class provides a place to implement 3D rendering.  It has a 
+// The Cube class provides a place to implement 3D rendering.  It has a
 // frame that it occupies in a browser window.
 class Cube {
  public:
   Cube();
   ~Cube();
-  
+
   // Called once when a new RenderContext is first bound to the view.  The
   // bound context is guaranteed to be current and valid before calling this
   // method.
@@ -79,10 +79,10 @@ class Cube {
   GLint position_location_;  // The position attribute location.
   GLint color_location_;  // The color attribute location.
   GLint mvp_location_;  // The Model-View-Projection composite matrix.
-  GLuint cube_vbos_[2];
+  GLuint cube_vbos_[3];
   GLfloat eye_[3];  // The eye point of the virtual camera.
   // The orientation of the virtual camera stored as a quaternion.  The
-  // quaternion is liad out as {{x, y, z}, w}.
+  // quaternion is laid out as {{x, y, z}, w}.
   GLfloat orientation_[4];
   GLfloat perspective_proj_[16];
   GLfloat mvp_matrix_[16];
