@@ -78,12 +78,12 @@ def Build(options):
     assert False
   options.variant = variant
   p = subprocess.Popen(
-      '%s --mode=%s platform=x86-32 naclsdk_validate=0 sel_ldr' % (
+      '%s --mode=%s platform=x86-32 naclsdk_validate=0 sdl=none sel_ldr' % (
           scons, variant), shell=True)
   assert p.wait() == 0
   if variant == 'opt-linux':
     p = subprocess.Popen(
-        '%s --mode=%s platform=x86-64 naclsdk_validate=0 sel_ldr' % (
+        '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
             scons, variant), shell=True)
     assert p.wait() == 0
   # Leave it.
