@@ -9,11 +9,11 @@
   <title>Hello, World!</title>
 
   <script type="text/javascript">
-    hello_world = null;  // Global application object.
-    status_text = 'NO-STATUS';
+    helloWorldModule = null;  // Global application object.
+    statusText = 'NO-STATUS';
 
     function moduleDidLoad() {
-      hello_world = document.getElementById('hello_world');
+      helloWorldModule = document.getElementById('hello_world');
       updateStatus('SUCCESS');
     }
 
@@ -21,7 +21,7 @@
     // status message indicating that the module is still loading.  Otherwise,
     // do not change the status message.
     function pageDidLoad() {
-      if (hello_world == null) {
+      if (helloWorldModule == null) {
         updateStatus('LOADING...');
       } else {
         // It's possible that the Native Client module onload event fired
@@ -32,33 +32,33 @@
       }
     }
 
-    function fortytwo() {
+    function fortyTwo() {
       try {
-        alert(hello_world.fortytwo());
+        alert(helloWorldModule.fortyTwo());
       } catch(e) {
         alert(e.message);
       }
     }
 
-    function helloworld() {
+    function helloWorld() {
       try {
-        alert(hello_world.helloworld());
+        alert(helloWorldModule.helloWorld());
       } catch(e) {
         alert(e.message);
       }
     }
 
-    // Set the global status message.  If the element with id 'status_field'
+    // Set the global status message.  If the element with id 'statusField'
     // exists, then set its HTML to the status message as well.
     // opt_message The message test.  If this is null or undefined, then
-    //     attempt to set the element with id 'status_field' to the value of
-    //     |status_text|.
+    //     attempt to set the element with id 'statusField' to the value of
+    //     |statusText|.
     function updateStatus(opt_message) {
       if (opt_message)
-        status_text = opt_message;
-      var status_field = document.getElementById('status_field');
-      if (status_field) {
-        status_field.innerHTML = status_text;
+        statusText = opt_message;
+      var statusField = document.getElementById('status_field');
+      if (statusField) {
+        statusField.innerHTML = statusText;
       }
     }
   </script>
@@ -67,48 +67,28 @@
 
 <h1>Native Client Simple Module</h1>
 <p>
-  <button onclick="fortytwo()">Call fortytwo()</button>
-  <button onclick="helloworld()">Call helloworld()</button>
+  <button onclick="fortyTwo()">Call fortyTwo()</button>
+  <button onclick="helloWorld()">Call helloWorld()</button>
 
-  <!-- For development, use a #develop location, which loads the develop
-  version of the module.
+  <!-- Load the published .nexe.  This includes the 'nexes' attribute which
+  shows how to load multi-architecture modules.  Each entry in the
+  table is a key-value pair: the key is the runtime ('x86-32',
+  'x86-64', etc.); the value is a URL for the desired NaCl module.
   -->
-  <div id="nacl_helloworld_content"></div>
-  <script type="text/javascript">
-    contentDiv = document.getElementById('nacl_helloworld_content');
-    if (window.location.hash == '#develop') {
-      // Load the develop version of the module.
-      contentDiv.innerHTML = '<embed name="nacl_module" '
-                             + 'id="hello_world" '
-                             + 'width=0 height=0 '
-                             + 'type="pepper-application/hello_world" />';
-      moduleDidLoad();
-    } else {
-      // Load the published .nexe.  This includes the 'nexes' attribute which
-      // shows how to load multi-architecture modules.  Each entry in the
-      // table is a key-value pair: the key is the runtime ('x86-32',
-      // 'x86-64', etc.); the value is a URL for the desired NaCl module.
-      var nexes = 'x86-32: hello_world_x86_32.nexe\n'
-                  + 'x86-64: hello_world_x86_64.nexe\n'
-                  + 'ARM: hello_world_arm.nexe ';
-      contentDiv.innerHTML = '<embed name="nacl_module" '
-                             + 'id="hello_world" '
-                             + 'width=0 height=0 '
-                          // + 'nexes="' + nexes + '" '
-                             + 'type="application/x-nacl-srpc" '
-                             + 'onload=moduleDidLoad() />';
-      // Note: this code is here to work around a bug in Chromium build
-      // #47357.  See also
-      // http://code.google.com/p/nativeclient/issues/detail?id=500
-      document.getElementById('hello_world').nexes = nexes;
-    }
-  </script>
+  <embed name="nacl_module"
+         id="hello_world"
+         width=0 height=0
+         nexes="ARM: hello_world_arm.nexe
+                x86-32: hello_world_x86_32.nexe
+                x86-64: hello_world_x86_64.nexe"
+         type="application/x-ppapi-nacl-srpc"
+         onload="moduleDidLoad();" />
 </p>
 
-<p>If the module is working correctly, a click on the "Call fortytwo" button
+<p>If the module is working correctly, a click on the "Call fortyTwo" button
   should open a popup dialog containing <b>42</b> as value.</p>
 
-<p> Clicking on the "Call helloworld" button
+<p> Clicking on the "Call helloWorld" button
   should open a popup dialog containing <b>hello, world</b> as value.</p>
 
 <h2>Status</h2>

@@ -6,7 +6,7 @@
 
 .PHONY: all clean
 
-CCFILES = hello_world_module.cc hello_world.cc npp_gate.cc
+CCFILES = hello_world.cc
 
 OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
 OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
@@ -15,8 +15,8 @@ NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
 INCLUDES =
-LDFLAGS = -lgoogle_nacl_imc \
-          -lgoogle_nacl_npruntime \
+LDFLAGS = -lppruntime \
+          -lppapi_cpp \
           -lpthread \
           -lsrpc \
           $(ARCH_FLAGS)

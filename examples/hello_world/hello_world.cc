@@ -2,133 +2,136 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// This example demonstrates loading, running and scripting a very simple NaCl
+// module.  To load the NaCl module, the browser first looks for the
+// CreateModule() factory method (ad the end of this file).  It calls
+// CreateModule() once to load the module code from your .nexe.  After the
+// .nexe code is loaded, CreateModule() is not called again.
+//
+// Once the .nexe code is loaded, the browser than calls the CreateInstance()
+// method on the object returned by CreateModule().  It calls CreateInstance()
+// each time it encounters an <embed> tag that references your NaCl module.
+//
+// When the browser encounters JavaScript that references your NaCl module, it
+// calls the GetInstanceObject() method on the object returned from
+// CreateInstance().  In this example, the returned object is a subclass of
+// ScriptableObject, which handles the scripting support.
 
-#include <nacl/nacl_npapi.h>
+#include <ppapi/cpp/instance.h>
+#include <ppapi/cpp/module.h>
+#include <ppapi/cpp/scriptable_object.h>
+#include <ppapi/cpp/var.h>
 
 // These are the method names as JavaScript sees them.
-static const char* kHelloWorldMethodId = "helloworld";
-static const char* kFortyTwoMethodId = "fortytwo";
+namespace {
+const char* kHelloWorldMethodId = "helloWorld";
+const char* kFortyTwoMethodId = "fortyTwo";
 
-// This is the module's function that does the work to set the value of the
-// result variable to '42'.  The Invoke() function that called this function
-// then returns the result back to the browser as a JavaScript value.
-static bool FortyTwo(NPVariant *result) {
-  if (result) {
-    INT32_TO_NPVARIANT(42, *result);
-  }
-  return true;
+// This is the module's function that does the work to compute the value 42.
+// The ScriptableObject that called this function then returns the result back
+// to the browser as a JavaScript value.
+int32_t FortyTwo() {
+  return 42;
 }
 
-// This function creates a string in the browser's memory pool and then returns
-// a variable containing a pointer to that string.  The variable is later
-// returned back to the browser by the Invoke() function that called this.
-static bool HelloWorld(NPVariant *result) {
-  if (result) {
-    const char *msg = "hello, world.";
-    const int msg_length = strlen(msg) + 1;
-    // Note: |msg_copy| will be freed later on by the browser, so it needs to
-    // be allocated here with NPN_MemAlloc().
-    char *msg_copy = reinterpret_cast<char*>(NPN_MemAlloc(msg_length));
-    strncpy(msg_copy, msg, msg_length);
-    STRINGN_TO_NPVARIANT(msg_copy, msg_length - 1, *result);
-  }
-  return true;
+// This function returns a pointer to some constant memory holding the string
+// "hello, world.".  The ScriptableObject that called this function then returns
+// the result back to the browser as a JavaScript value
+std::string HelloWorld() {
+  const char *msg = "hello, world.";
+  return msg;
 }
+}  // namespace
 
-// Creates the plugin-side instance of NPObject.
-// Called by NPN_CreateObject, declared in npruntime.h
-// Documentation URL: https://developer.mozilla.org/en/NPClass
-static NPObject* Allocate(NPP npp, NPClass* npclass) {
-  return new NPObject;
-}
+// This class exposes the scripting interface for this NaCl module.  The
+// HasMethod method is called by the browser when executing a method call on
+// the |helloWorld| object (see, e.g. the helloWorld() function in
+// hello_world.html).  The name of the JavaScript function (e.g. "fortyTwo") is
+// passed in the |method| paramter as a string pp::Var.  If HasMethod()
+// returns |true|, then the browser will call the Call() method to actually
+// invoke the method.
+class HelloWorldScriptableObject : public pp::ScriptableObject {
+ public:
+  // Return |true| if |method| is one of the exposed method names.
+  virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
 
-// Cleans up the plugin-side instance of an NPObject.
-// Called by NPN_ReleaseObject, declared in npruntime.h
-// Documentation URL: https://developer.mozilla.org/en/NPClass
-static void Deallocate(NPObject* object) {
-  delete object;
-}
-
-// Returns |true| if |method_name| is a recognized method.
-// Called by NPN_HasMethod, declared in npruntime.h
-// Documentation URL: https://developer.mozilla.org/en/NPClass
-static bool HasMethod(NPObject* obj, NPIdentifier method_name) {
-  char *name = NPN_UTF8FromIdentifier(method_name);
-  bool is_method = false;
-  if (!strcmp((const char *)name, kHelloWorldMethodId)) {
-    is_method = true;
-  } else if (!strcmp((const char*)name, kFortyTwoMethodId)) {
-    is_method = true;
-  }
-  NPN_MemFree(name);
-  return is_method;
-}
-
-// Called by the browser to invoke the default method on an NPObject.
-// Returns null.
-// Apparently the plugin won't load properly if we simply
-// tell the browser we don't have this method.
-// Called by NPN_InvokeDefault, declared in npruntime.h
-// Documentation URL: https://developer.mozilla.org/en/NPClass
-static bool InvokeDefault(NPObject *obj, const NPVariant *args,
-                          uint32_t argCount, NPVariant *result) {
-  if (result) {
-    NULL_TO_NPVARIANT(*result);
-  }
-  return true;
-}
-
-// Called by the browser to invoke a function object whose name
-// is |method_name|.
-// Called by NPN_Invoke, declared in npruntime.h
-// Documentation URL: https://developer.mozilla.org/en/NPClass
-static bool Invoke(NPObject* obj,
-                   NPIdentifier method_name,
-                   const NPVariant *args,
-                   uint32_t arg_count,
-                   NPVariant *result) {
-  NULL_TO_NPVARIANT(*result);
-  char *name = NPN_UTF8FromIdentifier(method_name);
-  if (name == NULL)
-    return false;
-  bool rval = false;
-
-  // Map the method name to a function call.  |result| is filled in by the
-  // called function, then gets returned to the browser when Invoke() returns.
-  if (!strcmp((const char *)name, kHelloWorldMethodId)) {
-    rval = HelloWorld(result);
-  } else if (!strcmp((const char*)name, kFortyTwoMethodId)) {
-    rval = FortyTwo(result);
-  }
-  // Since name was allocated above by NPN_UTF8FromIdentifier,
-  // it needs to be freed here.
-  NPN_MemFree(name);
-  return rval;
-}
-
-// Represents a class's interface, so that the browser knows what functions it
-// can call on this plugin object.  The browser can use the methods in this
-// class to discover the rest of the plugin's interface.
-// Documentation URL: https://developer.mozilla.org/en/NPClass
-static NPClass kHelloWorldClass = {
-  NP_CLASS_STRUCT_VERSION,
-  Allocate,
-  Deallocate,
-  NULL,  // Invalidate is not implemented
-  HasMethod,
-  Invoke,
-  InvokeDefault,
-  NULL,  // HasProperty is not implemented
-  NULL,  // GetProperty is not implemented
-  NULL,  // SetProperty is not implemented
+  // Invoke the function associated with |method|.  The argument list passed in
+  // via JavaScript is marshaled into a vector of pp::Vars.  None of the
+  // functions in this example take arguments, so this vector is always empty.
+  virtual pp::Var Call(const pp::Var& method,
+                       const std::vector<pp::Var>& args,
+                       pp::Var* exception);
 };
 
-// Called by NPP_GetScriptableInstance to get the scripting interface for
-// this plugin.
-NPClass *GetNPSimpleClass() {
-  return &kHelloWorldClass;
+bool HelloWorldScriptableObject::HasMethod(const pp::Var& method,
+                                           pp::Var* exception) {
+  if (!method.is_string()) {
+    return false;
+  }
+  std::string method_name = method.AsString();
+  bool has_method = method_name == kHelloWorldMethodId ||
+      method_name == kFortyTwoMethodId;
+  return has_method;
 }
+
+pp::Var HelloWorldScriptableObject::Call(const pp::Var& method,
+                                         const std::vector<pp::Var>& args,
+                                         pp::Var* exception) {
+  if (!method.is_string()) {
+    return pp::Var();
+  }
+  std::string method_name = method.AsString();
+  if (method_name == kHelloWorldMethodId)
+    return pp::Var(HelloWorld());
+  else if (method_name == kFortyTwoMethodId)
+    return pp::Var(FortyTwo());
+  return pp::Var();
+}
+
+// The Instance class.  One of these exists for each instance of your NaCl
+// module on the web page.  The browser will ask the Module object to create
+// a new Instance for each occurence of the <embed> tag that has these
+// attributes:
+//     type="application/x-ppapi-nacl-srpc"
+//     nexes="ARM: hello_world_arm.nexe
+//            ..."
+// The Instance can return a ScriptableObject representing itself.  When the
+// browser encounters JavaScript that wants to access the Instance, it calls
+// the GetInstanceObject() method.  All the scripting work is done though
+// the returned ScriptableObject.
+class HelloWorldInstance : public pp::Instance {
+ public:
+  HelloWorldInstance(PP_Instance instance) : pp::Instance(instance) {}
+  virtual ~HelloWorldInstance() {}
+
+  // The pp::Var takes over ownership of the HelloWorldScriptableObject.
+  virtual pp::Var GetInstanceObject() {
+    HelloWorldScriptableObject* hw_object = new HelloWorldScriptableObject();
+    return pp::Var(hw_object);
+  }
+};
+
+// The Module class.  The browser calls the CreateInstance() method to create
+// an instance of you NaCl module on the web page.  The browser creates a new
+// instance for each <embed> tag with type="application/x-ppapi-nacl-srpc".
+class HelloWorldModule : public pp::Module {
+ public:
+  HelloWorldModule() : pp::Module() {}
+  virtual ~HelloWorldModule() {}
+
+  // Create and return a HelloWorldInstance object.
+  virtual pp::Instance* CreateInstance(PP_Instance instance) {
+    return new HelloWorldInstance(instance);
+  }
+};
+
+// Factory function called by the browser when the module is first loaded.
+// The browser keeps a singleton of this module.  It calls the
+// CreateInstance() method on the object you return to make instances.  There
+// is one instance per <embed> tag on the page.  This is the main binding
+// point for your NaCl module with the browser.
+namespace pp {
+Module* CreateModule() {
+  return new HelloWorldModule();
+}
+}  // namespace pp
