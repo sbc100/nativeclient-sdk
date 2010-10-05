@@ -21,10 +21,13 @@
 #include <ppapi/cpp/module.h>
 #include <ppapi/cpp/scriptable_object.h>
 #include <ppapi/cpp/var.h>
+#include <cstdio>
+#include <string>
+#include <algorithm>  // for reverse
 
 // These are the method names as JavaScript sees them.
 namespace {
-const char* kHelloWorldMethodId = "helloWorld";
+const char* kReverseTextMethodId = "reverseText";
 const char* kFortyTwoMethodId = "fortyTwo";
 
 // This is the module's function that does the work to compute the value 42.
@@ -34,18 +37,35 @@ int32_t FortyTwo() {
   return 42;
 }
 
-// This function returns a pointer to some constant memory holding the string
-// "hello, world.".  The ScriptableObject that called this function then returns
-// the result back to the browser as a JavaScript value
-std::string HelloWorld() {
-  const char *msg = "hello, world.";
-  return msg;
+// This function is passed the arg list from the Javascript call to reverseText.
+// It makes sure that there is one argument and that it is a string, returning
+// an error message if it is not.
+// On good input, it reverses the string and returns a message with the
+// original string and the reversed string.  The ScriptableObject that called
+// this function returns this string back to the browser as a Javascript value.
+std::string ReverseText(const std::vector<pp::Var>& args) {
+  // There should be exactly one arg, which should be an object
+  if (args.size() != 1) {
+    printf("Unexpected number of args\n");
+    return "Unexpected number of args";
+  }
+  if (!args[0].is_string()) {
+    printf("Arg %s is NOT a string\n", args[0].DebugString().c_str());
+    return "Arg from Javascript is not a string!";
+  }
+
+  std::string str_arg = args[0].AsString();
+  std::string message = "Passed in: '" + str_arg + "'";
+  // use reverse to reverse |str_arg| in place
+  reverse(str_arg.begin(), str_arg.end());
+  message += " reversed: '" + str_arg + "'";
+  return message;
 }
 }  // namespace
 
 // This class exposes the scripting interface for this NaCl module.  The
 // HasMethod method is called by the browser when executing a method call on
-// the |helloWorld| object (see, e.g. the helloWorld() function in
+// the |helloWorld| object (see, e.g. the reverseText() function in
 // hello_world.html).  The name of the JavaScript function (e.g. "fortyTwo") is
 // passed in the |method| paramter as a string pp::Var.  If HasMethod()
 // returns |true|, then the browser will call the Call() method to actually
@@ -69,7 +89,7 @@ bool HelloWorldScriptableObject::HasMethod(const pp::Var& method,
     return false;
   }
   std::string method_name = method.AsString();
-  bool has_method = method_name == kHelloWorldMethodId ||
+  bool has_method = method_name == kReverseTextMethodId ||
       method_name == kFortyTwoMethodId;
   return has_method;
 }
@@ -81,10 +101,13 @@ pp::Var HelloWorldScriptableObject::Call(const pp::Var& method,
     return pp::Var();
   }
   std::string method_name = method.AsString();
-  if (method_name == kHelloWorldMethodId)
-    return pp::Var(HelloWorld());
-  else if (method_name == kFortyTwoMethodId)
+  if (method_name == kReverseTextMethodId) {
+    // note that the vector of pp::Var |args| is passed to ReverseText
+    return pp::Var(ReverseText(args));
+  } else if (method_name == kFortyTwoMethodId) {
+    // note that no arguments are passed in to FortyTwo.
     return pp::Var(FortyTwo());
+  }
   return pp::Var();
 }
 
