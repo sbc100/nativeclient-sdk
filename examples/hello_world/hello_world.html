@@ -40,9 +40,10 @@
       }
     }
 
-    function helloWorld() {
+    function reverseText() {
       try {
-        alert(helloWorldModule.helloWorld());
+        // Grab the text from the text box, pass it into reverseText() 
+        alert(helloWorldModule.reverseText(this.hello_form.input_id.value));
       } catch(e) {
         alert(e.message);
       }
@@ -67,9 +68,11 @@
 
 <h1>Native Client Simple Module</h1>
 <p>
-  <button onclick="fortyTwo()">Call fortyTwo()</button>
-  <button onclick="helloWorld()">Call helloWorld()</button>
-
+  <form name="hello_form" action="" method="get">
+  <input type="text" id="input_id" name="inputbox" value="Hello world"><p>
+  <input type="button" value="Call fortyTwo()" onclick="fortyTwo()">
+  <input type="button" value="Call reverseText()" onclick="reverseText()">
+  </form>
   <!-- Load the published .nexe.  This includes the 'nexes' attribute which
   shows how to load multi-architecture modules.  Each entry in the
   table is a key-value pair: the key is the runtime ('x86-32',
@@ -85,11 +88,12 @@
          onload="moduleDidLoad();" />
 </p>
 
-<p>If the module is working correctly, a click on the "Call fortyTwo" button
-  should open a popup dialog containing <b>42</b> as value.</p>
+<p>If the module is working correctly, a click on the "Call fortyTwo()" button
+  should open a popup dialog containing <b>42</b> as its value.</p>
 
-<p> Clicking on the "Call helloWorld" button
-  should open a popup dialog containing <b>hello, world</b> as value.</p>
+<p> Clicking on the "Call reverseText()" button
+  should open a popup dialog containing the textbox contents and its reverse
+   as its value.</p>
 
 <h2>Status</h2>
 <div id="status_field">NO-STATUS</div>
