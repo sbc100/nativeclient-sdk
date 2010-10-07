@@ -1,5 +1,5 @@
 vars = {
-  "compiler_version": "3404",
+  "compiler_version": "3416",
   "valgrind_path": "http://nativeclient.googlecode.com/svn/trunk/src/native_client/src/third_party/valgrind",
   "valgrind_version": "3087",
 }
