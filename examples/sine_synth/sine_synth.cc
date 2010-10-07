@@ -2,135 +2,231 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include "examples/sine_synth/sine_synth.h"
+#include <ppapi/cpp/dev/audio_dev.h>
+#include <ppapi/cpp/instance.h>
+#include <ppapi/cpp/module.h>
+#include <ppapi/cpp/scriptable_object.h>
+#include <ppapi/cpp/var.h>
 
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include <cmath>
 #include <limits>
+#include <sstream>
 
-#include <nacl/nacl_imc.h>
-#include <nacl/nacl_npapi.h>
-#include <nacl/npapi_extensions.h>
-#include <nacl/npruntime.h>
-
-#include "examples/sine_synth/scripting_bridge.h"
-
-extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
-
-using sine_synth::ScriptingBridge;
-
-// Audio device call-back wrapper.
-void AudioCallback(NPDeviceContextAudio *context) {
-  if (!context)
-    return;
-  sine_synth::SineSynth* sine_synth =
-      static_cast<sine_synth::SineSynth*>(context->config.userData);
-  if (sine_synth) {
-    sine_synth->SynthesizeSineWave(context);
-  }
-}
+namespace {
+const char* const kPlaySoundId = "playSound";
+const char* const kStopSoundId = "stopSound";
+const char* const kFrequencyId = "frequency";
+const double kPi = 3.141592653589;
+const uint32_t kSampleCount = 4096;
+}  // namespace
 
 namespace sine_synth {
+// This class exposes the scripting interface for this NaCl module.  The
+// HasMethod method is called by the browser when executing a method call on
+// the |sineSynth| object (see, e.g. the moduleDidLoad() function in
+// sine_synth.html).  The name of the JavaScript function (e.g. "playSound") is
+// passed in the |method| paramter as a string pp::Var.  If HasMethod()
+// returns |true|, then the browser will call the Call() method to actually
+// invoke the method.
+class SineSynthScriptableObject : public pp::ScriptableObject {
+ public:
+  // Single parameter ctor that recives a weak reference to an audio device.
+  explicit SineSynthScriptableObject(pp::Audio_Dev* audio)
+      : pp::ScriptableObject(), audio_(audio), frequency_(440) {}
+  // Return |true| if |method| is one of the exposed method names.
+  virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
+  // Return |true| if |property| is one of the exposed properties.
+  virtual bool HasProperty(const pp::Var& property, pp::Var* exception);
 
-static const double kPi = 3.141592653589;
+  // Invoke the function associated with |method|.  The argument list passed in
+  // via JavaScript is marshaled into a vector of pp::Vars.  None of the
+  // functions in this example take arguments, so this vector is always empty.
+  virtual pp::Var Call(const pp::Var& method,
+                       const std::vector<pp::Var>& args,
+                       pp::Var* exception);
+  // Assign the value of the property associated with |property|.  |value| is
+  // the new value of the property.
+  virtual void SetProperty(const pp::Var& property,
+                           const pp::Var& value,
+                           pp::Var* exception);
 
-SineSynth::SineSynth(NPP npp)
-    : npp_(npp),
-      scriptable_object_(NULL),
-      window_(NULL),
-      device_audio_(NULL),
-      play_sound_(false),
-      frequency_(440),
-      time_value_(0) {
-  ScriptingBridge::InitializeIdentifiers();
-}
-
-SineSynth::~SineSynth() {
-  if (scriptable_object_) {
-    NPN_ReleaseObject(scriptable_object_);
+  double frequency() const { return frequency_; }
+  void set_frequency(double frequency) {
+    frequency_ = frequency;
   }
+
+ private:
+  bool PlaySound() {
+    audio_->StartPlayback();
+    return true;
+  }
+  bool StopSound() {
+    audio_->StopPlayback();
+    return true;
+  }
+
+  pp::Audio_Dev* const audio_;  // weak
+  double frequency_;
+};
+
+pp::Var SineSynthScriptableObject::Call(const pp::Var& method,
+                                        const std::vector<pp::Var>& args,
+                                        pp::Var* exception) {
+  if (!method.is_string()) {
+    return pp::Var();
+  }
+  const std::string method_name = method.AsString();
+  if (method_name == kPlaySoundId) {
+    return pp::Var(PlaySound());
+  } else if (method_name == kStopSoundId) {
+    return pp::Var(StopSound());
+  } else {
+    *exception = std::string("No methon named ") + method_name;
+  }
+  return pp::Var();
 }
 
-NPObject* SineSynth::GetScriptableObject() {
-  if (scriptable_object_ == NULL) {
+bool SineSynthScriptableObject::HasMethod(const pp::Var& method,
+                                          pp::Var* exception) {
+  if (!method.is_string()) {
+    return false;
+  }
+  const std::string method_name = method.AsString();
+  const bool has_method = method_name == kPlaySoundId ||
+      method_name == kStopSoundId;
+  return has_method;
+}
+
+bool SineSynthScriptableObject::HasProperty(const pp::Var& property,
+                                            pp::Var* exception) {
+  if (!property.is_string()) {
+    return false;
+  }
+  const std::string property_name = property.AsString();
+  const bool has_property = property_name == kFrequencyId;
+  return has_property;
+}
+
+void SineSynthScriptableObject::SetProperty(const pp::Var& property,
+                                            const pp::Var& value,
+                                            pp::Var* exception) {
+  if (!property.is_string()) {
+    *exception = "Expected a property name of string type.";
+  }
+  std::string property_name = property.AsString();
+  if (property_name == kFrequencyId) {
+    // The value could come to us as an int32_t or a double, so we use pp::Var's
+    // is_number function which returns true when it's either kind of number.
+    if (value.is_number()) {
+      // And we get the value as an int32_t, and pp::Var does the conversion for
+      // us, if one is necessary.
+      set_frequency(value.AsDouble());
+      return;
+    } else if (value.is_string()) {
+      // We got the value as a string.  We'll try to convert it to a number.
+      std::istringstream stream(value.AsString());
+      double double_value;
+      if (stream >> double_value) {
+        set_frequency(double_value);
+        return;
+      } else {
+        std::string error_msg("Expected a number value for ");
+        error_msg += kFrequencyId;
+        error_msg += ".  Instead, got a non-numeric string: ";
+        error_msg += value.AsString();
+        *exception = error_msg;
+        return;
+      }
+      *exception = std::string("Expected a number value for ") + kFrequencyId;
+      return;
+    }
+  }
+  *exception = std::string("No property named ") + property_name;
+}
+
+// The Instance class.  One of these exists for each instance of your NaCl
+// module on the web page.  The browser will ask the Module object to create
+// a new Instance for each occurence of the <embed> tag that has these
+// attributes:
+//     type="application/x-ppapi-nacl-srpc"
+//     nexes="ARM: sine_synth_arm.nexe
+//            ..."
+// The Instance can return a ScriptableObject representing itself.  When the
+// browser encounters JavaScript that wants to access the Instance, it calls
+// the GetInstanceObject() method.  All the scripting work is done though
+// the returned ScriptableObject.
+class SineSynthInstance : public pp::Instance {
+ public:
+  explicit SineSynthInstance(PP_Instance instance)
+      : pp::Instance(instance), audio_time_(0), scriptable_object_(NULL) {}
+  virtual ~SineSynthInstance() {}
+
+  // The pp::Var takes over ownership of the SineSynthScriptableObject.
+  virtual pp::Var GetInstanceObject() {
     scriptable_object_ =
-      NPN_CreateObject(npp_, &ScriptingBridge::np_class);
+        new SineSynthScriptableObject(&audio_);
+    return pp::Var(scriptable_object_);
   }
-  if (scriptable_object_) {
-    NPN_RetainObject(scriptable_object_);
+  virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]) {
+    uint32_t obtained_sample_count = 0;
+    audio_ = pp::Audio_Dev(
+        *this,
+        pp::AudioConfig_Dev(PP_AUDIOSAMPLERATE_44100,
+                            kSampleCount,
+                            &obtained_sample_count),
+        SineWaveCallback, this);
+    return true;
   }
-  return scriptable_object_;
-}
 
-NPError SineSynth::SetWindow(NPWindow* window) {
-  if (!window)
-    return NPERR_NO_ERROR;
-  if (!IsContextValid())
-    CreateContext();
-  if (!IsContextValid())
-    return NPERR_GENERIC_ERROR;
-  window_ = window;
-  return NPERR_NO_ERROR;
-}
-
-void SineSynth::SynthesizeSineWave(NPDeviceContextAudio *context) {
-  const size_t sample_count  = context->config.sampleFrameCount;
-  const size_t channel_count = context->config.outputChannelMap;
-  const double theta = 2 * kPi * frequency_ / context->config.sampleRate;
-  int16_t* buf = reinterpret_cast<int16_t*>(context->outBuffer);
-  if (play_sound_) {
-    for (size_t sample = 0; sample < sample_count; ++sample) {
-      int16_t value = static_cast<int16_t>(sin(theta * time_value_) *
-                                       std::numeric_limits<int16_t>::max());
-      ++time_value_;  // Just let this wrap.
-      for (size_t channel = 0; channel < channel_count; ++channel) {
-        *buf++ = value;
+ private:
+  static void SineWaveCallback(void* samples, size_t buffer_size, void* data) {
+    SineSynthInstance* sine_synth_instance =
+        reinterpret_cast<SineSynthInstance*>(data);
+    size_t& t = sine_synth_instance->audio_time_;
+    const double frequency =
+        sine_synth_instance->scriptable_object_->frequency();
+    const double theta = 2 * kPi * frequency / PP_AUDIOSAMPLERATE_44100;
+    uint16_t* buff = reinterpret_cast<uint16_t*>(samples);
+    const size_t channel_count = 2;  // stereo
+    size_t j = 0;
+    for (size_t k = 0; k < kSampleCount; ++k) {
+      for (size_t m = 0; m < channel_count && j < buffer_size; ++m, ++j) {
+        *buff++ = static_cast<uint16_t>(std::sin(theta * t++) *
+                                        std::numeric_limits<uint16_t>::max());
       }
     }
-  } else {
-    memset(buf, 0, sample_count * channel_count * sizeof(int16_t));
   }
-}
+  // Audio resource. Allocated in Init()
+  pp::Audio_Dev audio_;
+  // Audio buffer time. Used to prevent sine wave skips on buffer
+  // boundaries.
+  size_t audio_time_;
+  SineSynthScriptableObject* scriptable_object_;
+};
 
-bool SineSynth::PlaySound() {
-  play_sound_ = true;
-  return true;
-}
+// The Module class.  The browser calls the CreateInstance() method to create
+// an instance of you NaCl module on the web page.  The browser creates a new
+// instance for each <embed> tag with type="application/x-ppapi-nacl-srpc".
+class SineSynthModule : public pp::Module {
+ public:
+  SineSynthModule() : pp::Module() {}
+  ~SineSynthModule() {}
 
-bool SineSynth::StopSound() {
-  play_sound_ = false;
-  return true;
-}
-
-void SineSynth::CreateContext() {
-  if (IsContextValid())
-    return;
-  device_audio_ = NPN_AcquireDevice(npp_, NPPepperAudioDevice);
-  assert(IsContextValid());
-  memset(&context_audio_, 0, sizeof(context_audio_));
-  NPDeviceContextAudioConfig cfg;
-  cfg.sampleRate = 44100;
-  cfg.sampleType = NPAudioSampleTypeInt16;
-  cfg.outputChannelMap = NPAudioChannelStereo;
-  cfg.inputChannelMap = NPAudioChannelNone;
-  cfg.sampleFrameCount = 1024;
-  cfg.startThread = 1;  // Start a thread for the audio producer.
-  cfg.flags = 0;
-  cfg.callback = &AudioCallback;
-  cfg.userData = reinterpret_cast<void*>(this);
-  NPError init_err = device_audio_->initializeContext(npp_,
-                                                      &cfg,
-                                                      &context_audio_);
-  assert(NPERR_NO_ERROR == init_err);
-}
-
-void SineSynth::DestroyContext() {
-  if (!IsContextValid())
-    return;
-}
+  // Create and return a HelloWorldInstance object.
+  virtual pp::Instance* CreateInstance(PP_Instance instance) {
+    return new SineSynthInstance(instance);
+  }
+};
 
 }  // namespace sine_synth
+
+// Factory function called by the browser when the module is first loaded.
+// The browser keeps a singleton of this module.  It calls the
+// CreateInstance() method on the object you return to make instances.  There
+// is one instance per <embed> tag on the page.  This is the main binding
+// point for your NaCl module with the browser.
+namespace pp {
+Module* CreateModule() {
+  return new sine_synth::SineSynthModule();
+}
+}  // namespace pp

@@ -6,11 +6,7 @@
 
 .PHONY: all clean
 
-CCFILES = npn_bridge.cc \
-          npp_gate.cc \
-          scripting_bridge.cc \
-          sine_synth.cc \
-          sine_synth_module.cc
+CCFILES =  sine_synth.cc
 
 OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
 OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
@@ -19,8 +15,8 @@ NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
 INCLUDES = -I$(NACL_SDK_ROOT)
-LDFLAGS = -lgoogle_nacl_imc \
-          -lgoogle_nacl_npruntime \
+LDFLAGS = -lppruntime \
+          -lppapi_cpp \
           -lpthread \
           -lsrpc
 OPT_FLAGS = -O2
