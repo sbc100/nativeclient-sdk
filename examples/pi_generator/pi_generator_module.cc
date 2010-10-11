@@ -2,47 +2,33 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include <nacl/npupp.h>
+#include <ppapi/cpp/module.h>
 
-// These functions are called when a module instance is first loaded, and when
-// the module instance is finally deleted.  They must use C-style linkage.
+#include "examples/pi_generator/pi_generator.h"
 
-extern "C" {
+namespace pi_generator {
+// The Module class.  The browser calls the CreateInstance() method to create
+// an instance of you NaCl module on the web page.  The browser creates a new
+// instance for each <embed> tag with type="application/x-ppapi-nacl-srpc".
+class PiGeneratorModule : public pp::Module {
+ public:
+  PiGeneratorModule() : pp::Module() {}
+  virtual ~PiGeneratorModule() {}
 
-// Populates |plugin_funcs| by calling InitializePluginFunctions.
-// Declaration: npupp.h
-// Web Reference: N/A
-NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
-  extern NPError InitializePluginFunctions(NPPluginFuncs* plugin_funcs);
-  return InitializePluginFunctions(plugin_funcs);
+  // Create and return a PiGeneratorInstance object.
+  virtual pp::Instance* CreateInstance(PP_Instance instance) {
+    return new PiGenerator(instance);
+  }
+};
+}  // namespace pi_generator
+
+// Factory function called by the browser when the module is first loaded.
+// The browser keeps a singleton of this module.  It calls the
+// CreateInstance() method on the object you return to make instances.  There
+// is one instance per <embed> tag on the page.  This is the main binding
+// point for your NaCl module with the browser.
+namespace pp {
+Module* CreateModule() {
+  return new pi_generator::PiGeneratorModule();
 }
-
-// Some platforms, including Native Client, use the two-parameter version of
-// NP_Initialize(), and do not call NP_GetEntryPoints().  Others (Mac, e.g.)
-// use single-parameter version of NP_Initialize(), and then call
-// NP_GetEntryPoints() to get the NPP functions.  Also, the NPN entry points
-// are defined by the Native Client loader, but are not defined in the trusted
-// plugin loader (and must be filled in in NP_Initialize()).
-
-// Called when the first instance of this plugin is first allocated to
-// initialize global state.  The browser is hereby telling the plugin its
-// interface in |browser_functions| and expects the plugin to populate
-// |plugin_functions| in return.  Memory allocated by this function may only
-// be cleaned up by NP_Shutdown.
-// returns an NPError if anything went wrong.
-// Declaration: npupp.h
-// Documentation URL: https://developer.mozilla.org/en/NP_Initialize
-NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
-                      NPPluginFuncs* plugin_functions) {
-  return NP_GetEntryPoints(plugin_functions);
-}
-
-// Called just before the plugin itself is completely unloaded from the
-// browser.  Should clean up anything allocated by NP_Initialize.
-// Declaration: npupp.h
-// Documentation URL: https://developer.mozilla.org/en/NP_Shutdown
-NPError NP_Shutdown() {
-  return NPERR_NO_ERROR;
-}
-
-}  // extern "C"
+}  // namespace pp

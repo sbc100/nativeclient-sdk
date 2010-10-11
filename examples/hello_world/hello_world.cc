@@ -1,4 +1,4 @@
-// Copyright 2008 The Native Client Authors. All rights reserved.
+// Copyright 2010 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -27,8 +27,8 @@
 
 // These are the method names as JavaScript sees them.
 namespace {
-const char* kReverseTextMethodId = "reverseText";
-const char* kFortyTwoMethodId = "fortyTwo";
+const char* const kReverseTextMethodId = "reverseText";
+const char* const kFortyTwoMethodId = "fortyTwo";
 
 // This is the module's function that does the work to compute the value 42.
 // The ScriptableObject that called this function then returns the result back

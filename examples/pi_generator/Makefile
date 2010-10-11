@@ -6,11 +6,7 @@
 
 .PHONY: all clean
 
-CCFILES = npn_bridge.cc \
-          npp_gate.cc \
-          pi_generator.cc \
-          pi_generator_module.cc \
-          scripting_bridge.cc
+CCFILES = pi_generator.cc pi_generator_module.cc
 
 OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
 OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
@@ -19,10 +15,11 @@ NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
 INCLUDES = -I$(NACL_SDK_ROOT)
-LDFLAGS = -lgoogle_nacl_imc \
-          -lgoogle_nacl_npruntime \
+LDFLAGS = -lppruntime \
+          -lppapi_cpp \
           -lpthread \
-          -lsrpc
+          -lsrpc \
+          $(ARCH_FLAGS)
 OPT_FLAGS = -O2
 
 all: check_variables pi_generator_x86_32.nexe pi_generator_x86_64.nexe

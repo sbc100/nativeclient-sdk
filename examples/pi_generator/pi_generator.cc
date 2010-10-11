@@ -4,122 +4,221 @@
 
 #include "examples/pi_generator/pi_generator.h"
 
-#include <assert.h>
-#include <math.h>
+#include <ppapi/cpp/completion_callback.h>
+#include <ppapi/cpp/var.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <nacl/nacl_imc.h>
-#include <nacl/nacl_npapi.h>
-#include <nacl/npapi_extensions.h>
-#include <nacl/npruntime.h>
+#include <cassert>
+#include <cmath>
+#include <cstring>
 
-#include "examples/pi_generator/scripting_bridge.h"
-
-extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
-
-using pi_generator::ScriptingBridge;
+namespace {
+const int kPthreadMutexSuccess = 0;
+const char* const kPaintMethodId = "paint";
+const int kMaxPointCount = 1000000000;  // The total number of points to draw.
+const uint32_t kOpaqueColorMask = 0xff000000;  // Opaque pixels.
+const uint32_t kRedMask = 0xff0000;
+const uint32_t kBlueMask = 0xff;
+const uint32_t kRedShift = 16;
+const uint32_t kBlueShift = 0;
 
 // This is called by the brower when the 2D context has been flushed to the
 // browser window.
-void FlushCallback(NPP instance, NPDeviceContext* context,
-                   NPError err, void* user_data) {
+void FlushCallback(void* data, int32_t result) {
 }
+}  // namespace
 
 namespace pi_generator {
 
-PiGenerator::PiGenerator(NPP npp)
-    : npp_(npp),
-      scriptable_object_(NULL),
-      window_(NULL),
-      device2d_(NULL),
+// A small helper RAII class that implementes a scoped pthread_mutex lock.
+class ScopedMutexLock {
+ public:
+  explicit ScopedMutexLock(pthread_mutex_t* mutex) : mutex_(mutex) {
+    if (pthread_mutex_lock(mutex_) != kPthreadMutexSuccess) {
+      mutex_ = NULL;
+    }
+  }
+  ~ScopedMutexLock() {
+    if (mutex_)
+      pthread_mutex_unlock(mutex_);
+  }
+  bool is_valid() const {
+    return mutex_ != NULL;
+  }
+ private:
+  pthread_mutex_t* mutex_;  // Weak reference.
+};
+
+// A small helper RAII class used to acquire and release the pixel lock.
+class ScopedPixelLock {
+ public:
+  explicit ScopedPixelLock(PiGenerator* image_owner)
+      : image_owner_(image_owner), pixels_(image_owner->LockPixels()) {}
+
+  ~ScopedPixelLock() {
+    pixels_ = NULL;
+    image_owner_->UnlockPixels();
+  }
+
+  uint32_t* pixels() const {
+    return pixels_;
+  }
+ private:
+  PiGenerator* image_owner_;  // Weak reference.
+  uint32_t* pixels_;  // Weak reference.
+
+  ScopedPixelLock();  // Not implemented, do not use.
+};
+
+PiGenerator::PiGenerator(PP_Instance instance)
+    : pp::Instance(instance),
+      graphics_2d_context_(NULL),
+      pixel_buffer_(NULL),
       quit_(false),
-      thread_(0),
+      compute_pi_thread_(0),
       pi_(0.0) {
-  ScriptingBridge::InitializeIdentifiers();
+  pthread_mutex_init(&pixel_buffer_mutex_, NULL);
 }
 
 PiGenerator::~PiGenerator() {
   quit_ = true;
-  if (thread_) {
-    pthread_join(thread_, NULL);
-  }
-  if (scriptable_object_) {
-    NPN_ReleaseObject(scriptable_object_);
+  if (compute_pi_thread_) {
+    pthread_join(compute_pi_thread_, NULL);
   }
   DestroyContext();
+  // The ComputePi() thread should be gone by now, so there is no need to
+  // acquire the mutex for |pixel_buffer_|.
+  delete pixel_buffer_;
+  pthread_mutex_destroy(&pixel_buffer_mutex_);
 }
 
-NPObject* PiGenerator::GetScriptableObject() {
-  if (scriptable_object_ == NULL) {
-    scriptable_object_ =
-      NPN_CreateObject(npp_, &ScriptingBridge::np_class);
-  }
-  if (scriptable_object_) {
-    NPN_RetainObject(scriptable_object_);
-  }
-  return scriptable_object_;
+void PiGenerator::DidChangeView(const pp::Rect& position,
+                                const pp::Rect& clip) {
+  if (position.size().width() == width() &&
+      position.size().height() == height())
+    return;  // Size didn't change, no need to update anything.
+
+  // Create a new device context with the new size.
+  DestroyContext();
+  CreateContext(position.size());
+  // Cause a new pixel buffer to get created at the next call to Paint().
+  ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
+  delete pixel_buffer_;
+  pixel_buffer_ = NULL;
 }
 
-NPError PiGenerator::SetWindow(NPWindow* window) {
-  if (!window)
-    return NPERR_NO_ERROR;
-  if (!IsContextValid())
-    CreateContext();
-  if (!IsContextValid())
-    return NPERR_GENERIC_ERROR;
-  // Clear the 2D drawing context.
-  pthread_create(&thread_, NULL, pi, this);
-  window_ = window;
-  return Paint() ? NPERR_NO_ERROR : NPERR_GENERIC_ERROR;
+pp::Var PiGenerator::GetInstanceObject() {
+  PiGeneratorScriptObject* script_object = new PiGeneratorScriptObject(this);
+  return pp::Var(script_object);
+}
+
+bool PiGenerator::Init(uint32_t argc, const char* argn[], const char* argv[]) {
+  pthread_create(&compute_pi_thread_, NULL, ComputePi, this);
+  return true;
+}
+
+uint32_t* PiGenerator::LockPixels() {
+  void* pixels = NULL;
+  // Do not use a ScopedMutexLock here, since the lock needs to be held until
+  // the matching UnlockPixels() call.
+  if (pthread_mutex_lock(&pixel_buffer_mutex_) == kPthreadMutexSuccess) {
+    // Lazily create |pixel_buffer_|.
+    if (pixel_buffer_ == NULL && graphics_2d_context_ != NULL) {
+      pixel_buffer_ = new pp::ImageData(PP_IMAGEDATAFORMAT_BGRA_PREMUL,
+                                        graphics_2d_context_->size(),
+                                        false);
+    }
+    if (pixel_buffer_ != NULL && !pixel_buffer_->is_null()) {
+      pixels = pixel_buffer_->data();
+    }
+  }
+  return reinterpret_cast<uint32_t*>(pixels);
+}
+
+void PiGenerator::UnlockPixels() const {
+  pthread_mutex_unlock(&pixel_buffer_mutex_);
 }
 
 bool PiGenerator::Paint() {
-  if (IsContextValid()) {
-    NPDeviceFlushContextCallbackPtr callback =
-        reinterpret_cast<NPDeviceFlushContextCallbackPtr>(&FlushCallback);
-    device2d_->flushContext(npp_, &context2d_, callback, NULL);
-    return true;
+  // Lazily create the image data.
+  ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
+  if (!scoped_mutex.is_valid()) {
+    return false;
   }
-  return false;
+  // Note that the pixel lock is held while the buffer is copied into the
+  // device context and then flushed.
+  if (IsContextValid()) {
+    graphics_2d_context_->PaintImageData(*pixel_buffer_, pp::Point());
+    graphics_2d_context_->Flush(pp::CompletionCallback(&FlushCallback, this));
+  }
+  return true;
 }
 
-void PiGenerator::CreateContext() {
+void PiGenerator::CreateContext(const pp::Size& size) {
+  ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
+  if (!scoped_mutex.is_valid()) {
+    return;
+  }
   if (IsContextValid())
     return;
-  device2d_ = NPN_AcquireDevice(npp_, NPPepper2DDevice);
-  assert(IsContextValid());
-  memset(&context2d_, 0, sizeof(context2d_));
-  NPDeviceContext2DConfig config;
-  NPError init_err = device2d_->initializeContext(npp_, &config, &context2d_);
-  assert(NPERR_NO_ERROR == init_err);
+  graphics_2d_context_ = new pp::Graphics2D(size, false);
+  if (!BindGraphics(*graphics_2d_context_)) {
+    printf("Couldn't bind the device context\n");
+  }
 }
 
 void PiGenerator::DestroyContext() {
+  ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
+  if (!scoped_mutex.is_valid()) {
+    return;
+  }
   if (!IsContextValid())
     return;
-  device2d_->destroyContext(npp_, &context2d_);
+  delete graphics_2d_context_;
+  graphics_2d_context_ = NULL;
 }
 
-// pi() estimates Pi using Monte Carlo method and it is executed by a separate
-// thread created in SetWindow(). pi() puts kMaxPointCount points inside the
-// square whose length of each side is 1.0, and calculates the ratio of the
-// number of points put inside the inscribed quadrant divided by the total
-// number of random points to get Pi/4.
-void* PiGenerator::pi(void* param) {
-  const int kMaxPointCount = 1000000000;  // The total number of points to put.
-  const uint32_t kOpaqueColorMask = 0xff000000;  // Opaque pixels.
-  const uint32_t kRedMask = 0xff0000;
-  const uint32_t kBlueMask = 0xff;
-  const unsigned kRedShift = 16;
-  const unsigned kBlueShift = 0;
+bool PiGenerator::PiGeneratorScriptObject::HasMethod(
+    const pp::Var& method,
+    pp::Var* exception) {
+  if (!method.is_string()) {
+    return false;
+  }
+  std::string method_name = method.AsString();
+  return method_name == kPaintMethodId;
+}
+
+pp::Var PiGenerator::PiGeneratorScriptObject::Call(
+    const pp::Var& method,
+    const std::vector<pp::Var>& args,
+    pp::Var* exception) {
+  if (!method.is_string()) {
+    return false;
+  }
+  std::string method_name = method.AsString();
+  if (app_instance_ != NULL && method_name == kPaintMethodId) {
+    app_instance_->Paint();
+  }
+  return pp::Var();
+}
+
+void* PiGenerator::ComputePi(void* param) {
   int count = 0;  // The number of points put inside the inscribed quadrant.
   unsigned int seed = 1;
   PiGenerator* pi_generator = static_cast<PiGenerator*>(param);
-  uint32_t* pixel_bits = static_cast<uint32_t*>(pi_generator->pixels());
   srand(seed);
   for (int i = 1; i <= kMaxPointCount && !pi_generator->quit(); ++i) {
+    ScopedPixelLock scoped_pixel_lock(pi_generator);
+    uint32_t* pixel_bits = scoped_pixel_lock.pixels();
+    if (pixel_bits == NULL) {
+      // Note that if the pixel buffer never gets initialized, this won't ever
+      // paint anything.  Which is probably the right thing to do.  Also, this
+      // clause means that the image will not get the very first few Pi dots,
+      // since it's possible that this thread starts before the pixel buffer is
+      // initialized.
+      continue;
+    }
     double x = static_cast<double>(rand_r(&seed)) / RAND_MAX;
     double y = static_cast<double>(rand_r(&seed)) / RAND_MAX;
     double distance = sqrt(x * x + y * y);
