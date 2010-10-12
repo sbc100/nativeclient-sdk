@@ -5,7 +5,7 @@
 #include <ppapi/cpp/dev/audio_dev.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/module.h>
-#include <ppapi/cpp/scriptable_object.h>
+#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
 #include <ppapi/cpp/var.h>
 
 #include <cmath>
@@ -28,11 +28,11 @@ namespace sine_synth {
 // passed in the |method| paramter as a string pp::Var.  If HasMethod()
 // returns |true|, then the browser will call the Call() method to actually
 // invoke the method.
-class SineSynthScriptableObject : public pp::ScriptableObject {
+class SineSynthScriptableObject : public pp::deprecated::ScriptableObject {
  public:
   // Single parameter ctor that recives a weak reference to an audio device.
   explicit SineSynthScriptableObject(pp::Audio_Dev* audio)
-      : pp::ScriptableObject(), audio_(audio), frequency_(440) {}
+      : pp::deprecated::ScriptableObject(), audio_(audio), frequency_(440) {}
   // Return |true| if |method| is one of the exposed method names.
   virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
   // Return |true| if |property| is one of the exposed properties.
@@ -81,7 +81,7 @@ pp::Var SineSynthScriptableObject::Call(const pp::Var& method,
   } else if (method_name == kStopSoundId) {
     return pp::Var(StopSound());
   } else {
-    *exception = std::string("No methon named ") + method_name;
+    *exception = std::string("No method named ") + method_name;
   }
   return pp::Var();
 }
@@ -103,7 +103,7 @@ bool SineSynthScriptableObject::HasProperty(const pp::Var& property,
     return false;
   }
   const std::string property_name = property.AsString();
-  const bool has_property = property_name == kFrequencyId;
+  const bool has_property = (property_name == kFrequencyId);
   return has_property;
 }
 

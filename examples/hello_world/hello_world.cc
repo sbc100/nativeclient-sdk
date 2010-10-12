@@ -19,7 +19,7 @@
 
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/module.h>
-#include <ppapi/cpp/scriptable_object.h>
+#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
 #include <ppapi/cpp/var.h>
 #include <cstdio>
 #include <string>
@@ -70,7 +70,7 @@ std::string ReverseText(const std::vector<pp::Var>& args) {
 // passed in the |method| paramter as a string pp::Var.  If HasMethod()
 // returns |true|, then the browser will call the Call() method to actually
 // invoke the method.
-class HelloWorldScriptableObject : public pp::ScriptableObject {
+class HelloWorldScriptableObject : public pp::deprecated::ScriptableObject {
  public:
   // Return |true| if |method| is one of the exposed method names.
   virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
@@ -124,7 +124,7 @@ pp::Var HelloWorldScriptableObject::Call(const pp::Var& method,
 // the returned ScriptableObject.
 class HelloWorldInstance : public pp::Instance {
  public:
-  HelloWorldInstance(PP_Instance instance) : pp::Instance(instance) {}
+  explicit HelloWorldInstance(PP_Instance instance) : pp::Instance(instance) {}
   virtual ~HelloWorldInstance() {}
 
   // The pp::Var takes over ownership of the HelloWorldScriptableObject.

@@ -9,7 +9,7 @@
 #include <ppapi/cpp/image_data.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/rect.h>
-#include <ppapi/cpp/scriptable_object.h>
+#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
 #include <ppapi/cpp/size.h>
 #include <pthread.h>
 
@@ -83,10 +83,10 @@ class PiGenerator : public pp::Instance {
   // passed in the |method| paramter as a string pp::Var.  If HasMethod()
   // returns |true|, then the browser will call the Call() method to actually
   // invoke the method.
-  class PiGeneratorScriptObject : public pp::ScriptableObject {
+  class PiGeneratorScriptObject : public pp::deprecated::ScriptableObject {
    public:
     explicit PiGeneratorScriptObject(PiGenerator* app_instance)
-        : pp::ScriptableObject(),
+        : pp::deprecated::ScriptableObject(),
           app_instance_(app_instance) {}
     virtual ~PiGeneratorScriptObject() {}
     // Return |true| if |method| is one of the exposed method names.
