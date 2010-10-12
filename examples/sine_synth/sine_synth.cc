@@ -49,6 +49,9 @@ class SineSynthScriptableObject : public pp::deprecated::ScriptableObject {
   virtual void SetProperty(const pp::Var& property,
                            const pp::Var& value,
                            pp::Var* exception);
+  // Return the value of the property associated with the name |property|.
+  virtual pp::Var GetProperty(const pp::Var& property,
+                           pp::Var* exception);
 
   double frequency() const { return frequency_; }
   void set_frequency(double frequency) {
@@ -112,6 +115,7 @@ void SineSynthScriptableObject::SetProperty(const pp::Var& property,
                                             pp::Var* exception) {
   if (!property.is_string()) {
     *exception = "Expected a property name of string type.";
+    return;
   }
   std::string property_name = property.AsString();
   if (property_name == kFrequencyId) {
@@ -142,6 +146,20 @@ void SineSynthScriptableObject::SetProperty(const pp::Var& property,
     }
   }
   *exception = std::string("No property named ") + property_name;
+}
+
+pp::Var SineSynthScriptableObject::GetProperty(const pp::Var& property,
+                                               pp::Var* exception) {
+  if (!property.is_string()) {
+    *exception = "Expected a property name of string type.";
+    return pp::Var();
+  }
+  std::string property_name = property.AsString();
+  if (property_name == kFrequencyId) {
+    return pp::Var(frequency());
+  }
+  *exception = std::string("No property named ") + property_name;
+  return pp::Var();
 }
 
 // The Instance class.  One of these exists for each instance of your NaCl
