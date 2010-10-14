@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 
-SEL_LDR_REVISION = 2969
+NACL_REVISION = 2969
 
 EXCLUDE_DIRS = ['.download',
                 '.svn',
@@ -134,8 +134,6 @@ def main(argv):
   if sys.platform == 'win32':
     env['PATH'] = cygwin_dir + ';' + env['PATH']
 
-  # Build sel_ldr.
-  make_sel_ldr = os.path.join(home_dir, 'src', 'build_tools', 'make_sel_ldr.py')
   if sys.platform == 'win32':
     exe_suffix = '.exe'
   else:
@@ -146,22 +144,27 @@ def main(argv):
     variant = 'mac_x86'
   elif sys.platform in ['linux', 'linux2']:
     variant = 'linux_x86'
-  sel_ldr = subprocess.Popen([sys.executable, make_sel_ldr,
-                              '--target',
-                              'toolchain/%s/bin/nacl-sel_ldr%s' % (
-                                  variant, exe_suffix,
-                                  ),
-                              '--target64bit',
-                              'toolchain/%s/bin/nacl64-sel_ldr%s' % (
-                                  variant, exe_suffix,
-                                  ),
-                              '--revision',
-                              str(SEL_LDR_REVISION),
-                              ])
-  assert sel_ldr.wait() == 0
+  toolchain = os.path.join('toolchain', variant)
+
+  # Build the NaCl tools.
+  make_nacl_tools = os.path.join(home_dir,
+                                 'src',
+                                 'build_tools',
+                                 'make_nacl_tools.py')
+  nacl_tools = subprocess.Popen([sys.executable,
+                                 make_nacl_tools,
+                                 '--toolchain',
+                                 toolchain,
+                                 '--revision',
+                                 str(NACL_REVISION)])
+  assert nacl_tools.wait() == 0
+
+  # Build c_salt
+  # TODO(dspringer): add this part.
+  c_salt_path = os.path.join(home_dir, 'src', 'c_salt')
 
   # Build the examples.
-  example_path = os.path.join(home_dir, 'src/examples')
+  example_path = os.path.join(home_dir, 'src', 'examples')
   make = subprocess.Popen('make install_prebuilt',
                           env=env,
                           cwd=example_path,

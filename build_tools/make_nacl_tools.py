@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Build sel_ldr at a given revision."""
+"""Build NaCl tools (e.g. sel_ldr and ncval) at a given revision."""
 
 import optparse
 import os
@@ -40,7 +40,7 @@ import tempfile
 
 def WorkingArea(options):
   # Pick work directory.
-  options.work_dir = tempfile.mkdtemp(prefix='sel_ldr')
+  options.work_dir = tempfile.mkdtemp(prefix='nacl_tools')
   # Go into working area.
   options.old_cwd = os.getcwd()
   os.chdir(options.work_dir)
@@ -77,27 +77,53 @@ def Build(options):
   else:
     assert False
   options.variant = variant
+  # Build sel_ldr.
   p = subprocess.Popen(
       '%s --mode=%s platform=x86-32 naclsdk_validate=0 sdl=none sel_ldr' % (
-          scons, variant), shell=True)
+      scons, variant), shell=True)
+  assert p.wait() == 0
+  # Build ncval.
+  p = subprocess.Popen(
+      '%s --mode=%s platform=x86-32 naclsdk_validate=0 ncval' % (
+      scons, variant), shell=True)
   assert p.wait() == 0
   if variant == 'opt-linux':
     p = subprocess.Popen(
         '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
-            scons, variant), shell=True)
+        scons, variant), shell=True)
+    assert p.wait() == 0
+    p = subprocess.Popen(
+        '%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
+        scons, variant), shell=True)
     assert p.wait() == 0
   # Leave it.
   os.chdir('..')
 
 
-def Install(options):
-  # Figure out where sel_ldr is.
+def Install(options, tools):
+  # Figure out where tools are.
   # TODO(bradnelson): add an 'install' alias to the main build for this.
-  shutil.copy('native_client/scons-out/%s-x86-32/staging/sel_ldr%s' % (
-      options.variant, options.exe_suffix), options.target)
+  tool_build_path = os.path.join('native_client',
+                                 'scons-out',
+                                 '%s-x86-32' % (options.variant),
+                                 'staging')
+  for nacl_tool in tools:
+    shutil.copy(os.path.join(tool_build_path,
+                             '%s%s' % (nacl_tool, options.exe_suffix)),
+                os.path.join(options.toolchain,
+                             'bin',
+                             'nacl-%s%s' % (nacl_tool, options.exe_suffix)))
   if options.variant == 'opt-linux':
-    shutil.copy('native_client/scons-out/%s-x86-64/staging/sel_ldr%s' % (
-        options.variant, options.exe_suffix), options.target64bit)
+    tool_build_path = os.path.join('native_client',
+                                   'scons-out',
+                                   '%s-x86-64' % (options.variant),
+                                   'staging')
+    for nacl_tool in tools:
+      shutil.copy(os.path.join(tool_build_path,
+                               '%s%s' % (nacl_tool, options.exe_suffix)),
+                  os.path.join(options.toolchain,
+                               'bin',
+                               'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
 
 
 def Cleanup(options):
@@ -108,7 +134,7 @@ def BuildSelLdr(options):
   WorkingArea(options)
   Checkout(options)
   Build(options)
-  Install(options)
+  Install(options, ['sel_ldr', 'ncval'])
   Cleanup(options)
   return 0
 
@@ -125,21 +151,16 @@ def main(argv):
       default='HEAD',
       help='which revision of native_client to sync')
   parser.add_option(
-      '-t', '--target', dest='target',
-      default='sel_ldr' + exe_suffix,
-      help='where to put the 32-bit sel_ldr binary')
-  parser.add_option(
-      '-T', '--target64bit', dest='target64bit',
-      default='sel_ldr64' + exe_suffix,
-      help='where to put the 64-bit sel_ldr binary')
+      '-t', '--toolchain', dest='toolchain',
+      default='toolchain',
+      help='where to put the NaCl tool binaries')
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
     print 'ERROR: invalid argument'
     sys.exit(1)
 
-  options.target = os.path.abspath(options.target)
-  options.target64bit = os.path.abspath(options.target64bit)
+  options.toolchain = os.path.abspath(options.toolchain)
   options.exe_suffix = exe_suffix
 
   return BuildSelLdr(options)
