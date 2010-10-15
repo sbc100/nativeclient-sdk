@@ -59,6 +59,7 @@ pp::Var GetURLScriptableObject::Call(const pp::Var& method,
       printf("GetURLScriptableObject::Call('%s'', '%s'')\n",
              method_name.c_str(),
              url.c_str());
+      fflush(stdout);
       GetURLHandler* handler = GetURLHandler::Create(instance_, url);
       if (handler != NULL) {
         // Starts asynchronous download. When download is finished or when an
@@ -66,10 +67,7 @@ pp::Var GetURLScriptableObject::Call(const pp::Var& method,
         // reportResult(url, result, success) (defined in geturl.html) and
         // self-destroys.
         if (!handler->Start()) {
-          const char* msg = "GetURLHandler::Start failed";
-          printf("%s\n", msg);
-          *exception = msg;
-          delete handler;
+          *exception = "GetURLHandler::Start() failed";
         }
       } else {
         const char* msg = "GetURLHandler::Create failed";
@@ -77,7 +75,7 @@ pp::Var GetURLScriptableObject::Call(const pp::Var& method,
         *exception = msg;
       }
     } else {
-      *exception = "URL of string type.";
+      *exception = "The URL must be of string type.";
     }
   } else {
     *exception = std::string("No method named ") + method_name;
