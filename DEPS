@@ -12,8 +12,11 @@ deps = {
 hooks = [
   {
     "pattern": ".",
+    # Grab the NaCl toolchain
     "action": ["python", "src/build_tools/download_compilers.py",
                "-v", Var("compiler_version")],
+    # Install GMock and GTest.
+    "action": ["python", "src/build_tools/install_gtest.py"],
   }
 ]
 

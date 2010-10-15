@@ -130,7 +130,7 @@ def Cleanup(options):
   shutil.rmtree(options.work_dir, ignore_errors=True)
 
 
-def BuildSelLdr(options):
+def BuildNaClTools(options):
   WorkingArea(options)
   Checkout(options)
   Build(options)
@@ -163,7 +163,7 @@ def main(argv):
   options.toolchain = os.path.abspath(options.toolchain)
   options.exe_suffix = exe_suffix
 
-  return BuildSelLdr(options)
+  return BuildNaClTools(options)
 
 
 if __name__ == '__main__':
