@@ -11,11 +11,16 @@ deps = {
 
 hooks = [
   {
+    # Grab the NaCl toolchain.  This action has to happen before the testing
+    # libraries are installed, and before boost gets installed.
     "pattern": ".",
-    # Grab the NaCl toolchain
     "action": ["python", "src/build_tools/download_compilers.py",
                "-v", Var("compiler_version")],
+  },
+  {
     # Install GMock and GTest.
+    # Make sure this runs after download_compilers.py.
+    "pattern": ".",
     "action": ["python", "src/build_tools/install_gtest.py"],
   }
 ]
