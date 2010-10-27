@@ -1,0 +1,80 @@
+Jeremy started by sketching out the desired user experience for a file chooser,
+which I thought was great.  Many other candidates do not start here, they often
+jump right into code.  I liked that Jeremy tried to get a larger view of the
+problem before diving into design.  He drew a picture of the file chooser panel
+on the whiteboard - it had a n area for displaying files and directories, a text
+field for typing in a file name, an Open button, and a combo box for filtering. 
+Jeremy then started enumerating the methods in his class, and came up with this
+pseudo-code:
+
+class FileChooser {
+  SetCurrentDir(str dir);  // Sets the root directory for the chooser.
+  SetFilterPatterns(vector<str> regexs);
+  ConvertToAbsURL(str path);  // Convert the selected file path to a URL that
+can be opened by other API.
+  vector<str> GetFiles();  // Enumerate all the files in the root dir
+  vector<str> GetDirs();  // Enumerate all the dirs under the root dir.
+};
+
+While Jeremy was talking about the synchronous GetFiles() method, he realized
+the JavaScript programs are usually very asynchronous and event-driven, and so
+he added this methods:
+  AsyncGetFiles(js_closure);  // js_closure is a JS function object that takes
+two parameters: (name, is_dir).
+
+The closure (or event handler) is called for each file or dir under the root
+dir.
+
+Jeremy then thought about the case where you type in a filename, and it requires
+validating, so he added:
+  ValidateUserFile(str path);  // returns an enum indicating one of four states:
+exists & is_file, exists & is_dir, does not exist, cannot exist (this last state
+means there is an invalid dir in the path).
+
+He then thought about autocomplete, and added:
+  GetAsyncAutoComplete(str partial_path, js_closure);  // The closure is called
+with an array of possible filenames.
+
+He made the good observation that all the GUI element handling (popping up the
+combo box, highlight, etc. of the Open button, getting text from the text field)
+would be done in the JavaScript.
+
+He through we could remove the synchronous API, which I thought was a good
+observation.
+
+His final API:
+
+class FileChooser {
+  SetCurrentDir(str dir);  // Sets the root directory for the chooser.
+  SetFilterPatterns(vector<str> regexs);
+  ConvertToAbsURL(str path);  // Convert the selected file path to a URL that
+can be opened by other API.
+  AsyncGetFiles(JSObject closure);  // Enumerate all the files and dirs in the
+root dir, call the closure with each file.
+  ValidateUserFile(str path);  // returns an enum indicating one of four states:
+exists & is_file, exists & is_dir, does not exist, cannot exist (this last state
+means there is an invalid dir in the path).
+  GetAsyncAutoComplete(str partial_path, js_closure);  // The closure is called
+with an array of possible filenames.
+};
+
+
+He was asked, What if there are 1,000,000 files?  He responded, Have the
+AsyncGetFiles() method respond to a bool from the JS closure and stop when the
+bool is false, or have another API which stops the file enumeration. 
+AsyncGetFiles() would pass a third parameter to the JS indicating that all the
+files have been enumerated (is_done).
+
+He was asked, What is the first dir?  He responded that we could use a default,
+and that that default could come from a list of Special Dirs (e.g. the user's
+documents dir), or it could be the last visited dir.  He suggested adding API to
+get the list of special dirs, and have that API return a dictionary that can be
+extended across versions.
+
+He was asked about testing.  He responded that he would unit test the JavaScript
+to know that the end-to-end process worked.  He said he would either have a FS
+populated with known files, or (better) mock the file system that this class
+talked to.  I thought this was a fantastic answer.
+
+Score: 3.8 (relative to other candidates, Jeremy basically hit this one out of
+the park). 

@@ -1,0 +1,8 @@
+To run the test:
+0.  export GINSU_ROOT=/path/to/ginsu/trunk
+1.  cd $GINSU_ROOT
+2.  Build using ./hammer.sh --mode=test.
+3.  cd to scons-out/test/staging
+4.  Run "python ./httpd.py 5103".
+5.  Start a native-client enabled browser (currently only Chrome 6 with --enable-nacl is supported).
+6.  Point the browser at localhost:5103/c_salt_tests.html

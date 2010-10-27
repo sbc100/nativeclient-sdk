@@ -1,0 +1,84 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2010 The Native Client SDK Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+""" Main scons script for Native Client SDK builds.
+"""
+
+import os
+import sys
+
+if os.getenv('NACL_TOOLCHAIN_ROOT') is None:
+  sys.stderr.write('NACL_TOOLCHAIN_ROOT must be defined as the root directory'
+                   ' of NaCl toolchain.\n')
+  sys.exit(1)
+
+# Check to make sure the necessary naclports packages are installed.
+naclports_include = os.path.join(os.getenv('NACL_TOOLCHAIN_ROOT'),
+                                 'nacl', 'usr', 'include')
+packages = ['boost', 'gmock', 'gtest']
+for p in packages:
+  if not os.path.exists(os.path.join(naclports_include, p)):
+    sys.stderr.write('Your NaCl toolchain does not have the necessary packages\n'
+                     'or the packages are not current.\n'
+                     'Run scripts/setup_naclports_packages.py\n')
+    sys.exit(1)
+
+environment_list = []
+
+base_env = Environment(
+  tools = ['component_setup'],
+  BUILD_SCONSCRIPTS = [
+    '$MAIN_DIR/c_salt/c_salt.scons',
+  ],
+  CPPPATH = ['$MAIN_DIR'],
+  CPPDEFINES = [
+    'BOOST_ALL_NO_LIB',
+  ],
+  NACL_TOOLCHAIN_ROOT = os.getenv('NACL_TOOLCHAIN_ROOT')
+)
+
+#-----------------------------------------------------------------------------
+# Build environment for NaCl module
+nacl_env = base_env.Clone(
+    tools = ['naclsdk'],
+    BUILD_TYPE_DESCRIPTION = 'NaCl module',
+    BUILD_TYPE = 'nacl',
+    LIBS = ['google_nacl_imc',
+            'google_nacl_npruntime',
+            'pthread',
+            'srpc'],
+    NATIVE_CLIENT_SDK_DEFAULT_MODE='custom:' + os.getenv('NACL_TOOLCHAIN_ROOT'),
+    CFLAGS = ['-m32'],
+)
+
+nacl_dbg_env = nacl_env.Clone(
+    BUILD_GROUPS = ['default'],
+    BUILD_TYPE = 'dbg',
+    tools = ['target_debug']
+)
+environment_list.append(nacl_dbg_env)
+
+nacl_opt_env = nacl_env.Clone(
+    BUILD_TYPE = 'opt',
+    tools = ['target_optimized']
+)
+environment_list.append(nacl_opt_env)
+
+nacl_test_env = nacl_env.Clone(
+    BUILD_TYPE = 'test',
+    BUILD_SCONSCRIPTS = [
+      '$MAIN_DIR/c_salt/c_salt.scons',
+      '$MAIN_DIR/c_salt/test.scons',
+    ],
+    BUILD_TYPE_DESCRIPTION = 'Tests',
+    COMPONENT_TEST_CMDLINE = '$NACL_TOOLCHAIN_ROOT/bin/sel_ldr $PROGRAM_NAME',
+    LIBS = ['gmock', 'gtest', 'nosys', 'pthread', 'srpc',
+            'c_salt', 'google_nacl_npruntime', 'google_nacl_imc',
+            'google_nacl_pgl', 'google_nacl_gpu']
+)
+environment_list.append(nacl_test_env)
+
+BuildComponents(environment_list)
