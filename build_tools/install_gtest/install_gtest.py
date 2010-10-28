@@ -9,7 +9,7 @@ installs them in <toolchain>/nacl/usr/lib and <toolchain>/nacl64/usr/lib.  The
 header files are also installed in <toolchain>/<ncal_spec>/usr/include.
 """
 
-import optparse
+import build_utils
 import os
 import shutil
 import subprocess
@@ -17,9 +17,10 @@ import sys
 import tempfile
 import urllib
 
-# Default values for the --toolchain and --bit-spec coimmand line arguments.
-TOOLCHAIN_AUTODETECT = "AUTODETECT"
-BIT_SPEC = "32,64"
+from optparse import OptionParser
+
+# Default values for the --toolchain and --bit-spec command line arguments.
+BIT_SPEC_DEFAULT = "32,64"
 
 # The original gtest distro can be found here:
 # http://code.google.com/p/googletest/downloads/detail?name=gtest-1.5.0.tar.gz
@@ -32,43 +33,6 @@ GTEST_PATCH_FILE = "nacl-gtest-1.5.0.patch"
 GMOCK_URL = "http://build.chromium.org/mirror/nacl/gmock-1.5.0.tgz"
 GMOCK_PATH = "gmock-1.5.0"
 GMOCK_PATCH_FILE = "nacl-gmock-1.5.0.patch"
-
-# Map the string stored in |sys.platform| into a toolchain platform specifier.
-PLATFORM_MAPPING = {
-    'win32': 'win_x86',
-    'cygwin': 'win_x86',
-    'linux': 'linux_x86',
-    'linux2': 'linux_x86',
-    'darwin': 'mac_x86',
-    'macos': 'mac_x86',
-}
-
-
-# Make all the directories in |abs_path|.  If these paths already exist, this
-# method does nothing.
-def ForceMakeDirs(abs_path):
-  try:
-    os.makedirs(abs_path)
-  except:
-    pass
-
-
-# patch version 2.6 doesn't work.  Most of our Linux distros use patch 2.6
-def CheckPatchVersion():
-  patch = subprocess.Popen("patch --version",
-                            shell=True,
-                            stdout=subprocess.PIPE)
-  sed = subprocess.Popen("sed q",
-                         shell=True,
-                         stdin=patch.stdout,
-                         stdout=subprocess.PIPE)
-  sed_output = sed.communicate()[0]
-  if sed_output.strip() == 'patch 2.6':
-    print "patch 2.6 is incompatible with these scripts."
-    print "Please install either version 2.5.9 (or earlier)"
-    print "or version 2.6.1 (or later)."
-    return False
-  return True
 
 
 # Create a temporary working directory.  This is where all the tar files go
@@ -110,10 +74,8 @@ def PatchAll(options):
                          shell=True)
     assert p.wait() == 0
 
-  Patch(options.working_dir,
-        os.path.join(options.script_dir, 'patch_files', GTEST_PATCH_FILE))
-  Patch(options.working_dir,
-        os.path.join(options.script_dir, 'patch_files', GMOCK_PATCH_FILE))
+  Patch(options.working_dir, os.path.join(options.script_dir, GTEST_PATCH_FILE))
+  Patch(options.working_dir, os.path.join(options.script_dir, GMOCK_PATCH_FILE))
 
 
 # Build GTest and GMock, then install them into the toolchain.  Note that
@@ -144,7 +106,7 @@ def BuildAndInstallAll(options):
     # 32-bits is treated specially, due to being the empty string in legacy
     # code.
     nacl_spec = bit_spec == '32' and 'nacl' or ('nacl%s' % bit_spec)
-    print 'Building NaCl spec: %s.' % nacl_spec
+    print 'Building gtest and gmock for NaCl spec: %s.' % nacl_spec
     # Make sure the target directories exist.
     nacl_usr_include = os.path.join(options.toolchain,
                                     nacl_spec,
@@ -154,8 +116,8 @@ def BuildAndInstallAll(options):
                                 nacl_spec,
                                 'usr',
                                 'lib')
-    ForceMakeDirs(nacl_usr_include)
-    ForceMakeDirs(nacl_usr_lib)
+    build_utils.ForceMakeDirs(nacl_usr_include)
+    build_utils.ForceMakeDirs(nacl_usr_lib)
 
     # Set up the nacl-specific environment variables used by make.
     toolchain_bin = os.path.join(options.toolchain, 'bin')
@@ -206,25 +168,11 @@ def InstallTestingLibs(options):
     PatchAll(options)
   except:
     return 1
+
   BuildAndInstallAll(options)
   # Clean up.
   shutil.rmtree(options.working_dir, ignore_errors=True)
   return 0
-
-
-# Build a toolchain path based on the platform type.  |base_dir| is the root
-# directory which includes the platform-specific toolchain.  This could be
-# something like "/usr/local/mydir/nacl_sdk/src".  This method assumes that
-# the platform-specific toolchain is found under
-# <base_dir>/toolchain/<platform_spec>.
-def AutoDetectToolchain(toochain_base=''):
-  if sys.platform in PLATFORM_MAPPING:
-    return os.path.join(toochain_base,
-                        'toolchain',
-                        PLATFORM_MAPPING[sys.platform])
-  else:
-    print 'ERROR: Unsupported platform "%s"!' % sys.platform
-    return base_dir
 
 
 # Parse the command-line args and set up the options object.  There are two
@@ -238,32 +186,27 @@ def AutoDetectToolchain(toochain_base=''):
 #              default is "32,64" which means build 32- and 64-bit versions
 #              of the libraries.
 def main(argv):
-  if not CheckPatchVersion():
+  if not build_utils.CheckPatchVersion():
     sys.exit(0)
 
-  parser = optparse.OptionParser()
+  parser = OptionParser()
   parser.add_option(
       '-t', '--toolchain', dest='toolchain',
-      default=TOOLCHAIN_AUTODETECT,
-      help='where to put the NaCl tool binaries')
+      default=build_utils.TOOLCHAIN_AUTODETECT,
+      help='where to put the testing libraries')
   parser.add_option(
       '-b', '--bit-spec', dest='bit_spec',
-      default=BIT_SPEC,
+      default=BIT_SPEC_DEFAULT,
       help='comma separated list of instruction set bit-widths')
   (options, args) = parser.parse_args(argv)
   if args:
+    print 'ERROR: invalid argument: %s' % str(args)
     parser.print_help()
-    print 'ERROR: invalid argument'
     sys.exit(1)
 
   options.script_dir = os.path.abspath(os.path.dirname(__file__))
-
-  if options.toolchain == TOOLCHAIN_AUTODETECT:
-    (base_dir, _) = os.path.split(options.script_dir)
-    options.toolchain = AutoDetectToolchain(toochain_base=base_dir)
-  else:
-    options.toolchain = os.path.abspath(options.toolchain)
-  print "Installing into toolchain %s" % options.toolchain
+  options.toolchain = build_utils.NormalizeToolchain(options.toolchain)
+  print "Installing testing libs into toolchain %s" % options.toolchain
 
   return InstallTestingLibs(options)
 
