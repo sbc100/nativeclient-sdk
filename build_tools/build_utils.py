@@ -38,7 +38,7 @@ def ForceMakeDirs(abs_path, mode=0755):
     pass
   try:
     os.makedirs(abs_path, mode)
-  except OSError as (os_errno, os_strerr):
+  except OSError, (os_errno, os_strerr):
     # If the error is anything but EEXIST (file already exists), then print an
     # informative message and re-raise.  It is not and error if the directory
     # already exists.
