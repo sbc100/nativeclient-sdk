@@ -21,6 +21,12 @@ THIRD_PARTY_SCRIPTS = [
 
 
 def main(argv):
+  # TODO(strotheide): This needs to work on windows, too.  See bug
+  # http://code.google.com/p/nativeclient/issues/detail?id=1122
+  if sys.platform == 'win32':
+    print "NaCl SDK does not install third party packages on Windows."
+    sys.exit(0)
+
   script_dir = os.path.abspath(os.path.dirname(__file__))
   os.putenv('PYTHONPATH', '%s:%s' %(os.getenv('PYTHONPATH'), script_dir))
   # Force NACL_SDK_ROOT to point to the toolchain in this repo.
