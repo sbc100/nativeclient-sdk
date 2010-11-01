@@ -52,7 +52,7 @@ class NotificationCenter : public boost::noncopyable {
                      SubscriberType* subscriber,
                      void (SubscriberType::*handler)(const Notification&),
                      const std::string& publisher_name) {
-    AddSubscriberImpl(notification_name,
+    return AddSubscriberImpl(notification_name,
                       CreateSubscriberId(subscriber),
                       boost::bind(handler, subscriber, _1),
                       publisher_name);
@@ -62,7 +62,7 @@ class NotificationCenter : public boost::noncopyable {
   // Returns |true| on success.
   template <typename SubscriberType>
   bool RemoveSubscriber(SubscriberType* subscriber) {
-    RemoveSubscriberImpl(CreateSubscriberId(subscriber));
+    return RemoveSubscriberImpl(CreateSubscriberId(subscriber));
   }
 
   // Remove a subscriber from the specified notification.  Returns |true| on
@@ -71,7 +71,7 @@ class NotificationCenter : public boost::noncopyable {
   bool RemoveSubscriberFromNotification(
       SubscriberType* subscriber,
       const std::string& notification_name) {
-    RemoveSubscriberFromNotificationImpl(CreateSubscriberId(subscriber),
+    return RemoveSubscriberFromNotificationImpl(CreateSubscriberId(subscriber),
                                          notification_name);
   }
   // Remove all subscribers from a specified notification and then remove the
