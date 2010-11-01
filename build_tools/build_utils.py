@@ -29,6 +29,8 @@ TOOLCHAIN_AUTODETECT = "AUTODETECT"
 # file, it is removed before an attempt to make the directories.  If |abs_path|
 # already points to a directory, this method does nothing.
 def ForceMakeDirs(abs_path, mode=0755):
+  if os.path.isdir(abs_path):
+    return
   try:
     # Remove an existing regular file; ignore errors (e.g. file doesn't exist).
     # If there are permission problems, they will be caught by the exception
@@ -48,14 +50,57 @@ def ForceMakeDirs(abs_path, mode=0755):
     pass
 
 
+# Return a shell environment suitable for use by Mac, Linux and Windows.  On
+# Mac and Linux, this is just a copy of os.environ.  On Windows, the PATH
+# variable is extended to include the hermetic cygwin installation.
+# |nacl_sdk_root| should point to the place where the hermetic cygwin was
+# installed, this is typically something like C:/nacl_sdk/src.  If
+# |nacl_sdk_root| is None, then the NACL_SDK_ROOT environment variable is used.
+# if NACL_SDK_ROOT is not set, then the location of this script file is used.
+def GetShellEnvironment(nacl_sdk_root=None):
+  shell_env = os.environ.copy()
+  if (sys.platform == 'win32'):
+    # This adds the assumption that cygwin is installed in the default
+    # location when building the SDK for windows.
+    if nacl_sdk_root is None:
+      toolchain_dir = os.path.dirname(os.path.dirname(
+                                      os.path.abspath(__file__)))
+      nacl_sdk_root = os.getenv('NACL_SDK_ROOT', toolchain_dir)
+    cygwin_dir = os.path.join(nacl_sdk_root, 'third_party', 'cygwin', 'bin')
+    shell_env['PATH'] = cygwin_dir + ';' + shell_env['PATH']
+
+  return shell_env
+
+
+# Return a "normalized" path that will work with both hermetic cygwin and *nix
+# shell environments.  On *nix, this method just returns the original path; on
+# Windows running hermetic cygwin, this alters the path.  |abs_path| must be
+# a fully-qualified absolute path, on Windows it must include the drive letter.
+# |shell_env| describes the environment used by any subprocess (this is
+# normally obtained from GetShellEnvironment()
+# TODO(dspringer,khim): make this work properly for hermetic cygwin (see bug
+# http://code.google.com/p/nativeclient/issues/detail?id=1122)
+def HermeticBuildPath(abs_path, shell_env):
+  if (sys.platform == 'win32'):
+    return abs_path
+
+  return abs_path
+
+
 # patch version 2.6 doesn't work.  Most of our Linux distros use patch 2.6.
 # Returns |True| if the version of patch is usable (that is, not version 2.6).
-def CheckPatchVersion():
+# |shell_env| is the enviromnent used to run the subprocesses like patch and
+# sed.  If |shell_env| is None, then os.environ is used.
+def CheckPatchVersion(shell_env=None):
+  if shell_env is None:
+    shell_env = os.environ
   patch = subprocess.Popen("patch --version",
                             shell=True,
+                            env=shell_env,
                             stdout=subprocess.PIPE)
   sed = subprocess.Popen("sed q",
                          shell=True,
+                         env=shell_env,
                          stdin=patch.stdout,
                          stdout=subprocess.PIPE)
   sed_output = sed.communicate()[0]

@@ -28,7 +28,10 @@ def main(argv):
     sys.exit(0)
 
   script_dir = os.path.abspath(os.path.dirname(__file__))
-  os.putenv('PYTHONPATH', '%s:%s' %(os.getenv('PYTHONPATH'), script_dir))
+  sep_char = ';' if sys.platform == 'win32' else ':'
+  os.putenv('PYTHONPATH', '%s%s%s' %(os.getenv('PYTHONPATH'),
+                                     sep_char,
+                                     script_dir))
   # Force NACL_SDK_ROOT to point to the toolchain in this repo.
   (nacl_sdk_root, _) = os.path.split(script_dir)
   os.putenv('NACL_SDK_ROOT', nacl_sdk_root)

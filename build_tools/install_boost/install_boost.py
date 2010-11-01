@@ -35,7 +35,9 @@ def DownloadAndExtract(options, url, path):
   print "Download: %s" % url
   try:
     (zip_file, headers) = urllib.urlretrieve(url, '%s.tgz' % path)
-    p = subprocess.Popen('tar xzf %s' % (zip_file), shell=True)
+    p = subprocess.Popen('tar xzf %s' % (zip_file),
+                         env=options.shell_env,
+                         shell=True)
     assert p.wait() == 0
   except (URLError, ContentTooShortError):
     os.chdir(options.cwd)
@@ -50,6 +52,7 @@ def Patch(options, patch_file):
   print "Patching %s with: %s" % (options.working_dir, patch_file)
   p = subprocess.Popen('patch -p0 < %s' % (patch_file),
                        cwd=options.working_dir,
+                       env=options.shell_env,
                        shell=True)
   assert p.wait() == 0
 
@@ -75,10 +78,12 @@ def BuildAndInstall(options):
                           --exclude='mpi'"
     tar_cf = subprocess.Popen("tar cf - %s boost" % boost_tar_excludes,
                               cwd=boost_path,
+                              env=options.shell_env,
                               shell=True,
                               stdout=subprocess.PIPE)
     tar_xf = subprocess.Popen("tar xfp -",
                               cwd=nacl_usr_include,
+                              env=options.shell_env,
                               shell=True,
                               stdin=tar_cf.stdout)
     tar_copy_err = tar_xf.communicate()[1]
@@ -113,7 +118,8 @@ def InstallBoost(options):
 #              default is "32,64" which means build 32- and 64-bit versions
 #              of boost.
 def main(argv):
-  if not build_utils.CheckPatchVersion():
+  shell_env = build_utils.GetShellEnvironment();
+  if not build_utils.CheckPatchVersion(shell_env):
     sys.exit(0)
 
   parser = OptionParser()
@@ -131,6 +137,7 @@ def main(argv):
     parser.print_help()
     sys.exit(1)
 
+  options.shell_env = shell_env
   options.script_dir = os.path.abspath(os.path.dirname(__file__))
   options.toolchain = build_utils.NormalizeToolchain(options.toolchain)
   print "Installing boost into toolchain %s" % options.toolchain

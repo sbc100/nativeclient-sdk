@@ -50,7 +50,9 @@ def DownloadAndExtractAll(options):
   def DownloadAndExtract(url, path):
     print "Download: %s" % url
     (zip_file, headers) = urllib.urlretrieve(url, '%s.tgz' % path)
-    p = subprocess.Popen('tar xzf %s' % (zip_file), shell=True)
+    p = subprocess.Popen('tar xzf %s' % (zip_file),
+                         env=options.shell_env,
+                         shell=True)
     assert p.wait() == 0
 
   os.chdir(options.working_dir)
@@ -71,6 +73,7 @@ def PatchAll(options):
     print "Patching %s with: %s" % (abs_path, patch_file)
     p = subprocess.Popen('patch -p0 < %s' % (patch_file),
                          cwd=abs_path,
+                         env=options.shell_env,
                          shell=True)
     assert p.wait() == 0
 
@@ -84,20 +87,22 @@ def PatchAll(options):
 # the necessary shell environment variables for the makefiles, such as CC and
 # CXX.
 def BuildAndInstallAll(options):
-  def BuildInPath(abs_path):
+  def BuildInPath(abs_path, shell_env):
     # Run make clean and make in |abs_path|.  Assumes there is a makefile in
     # |abs_path|, if not then the assert will trigger.
     print "Building in %s" % (abs_path)
-    p = subprocess.Popen('make clean ; make -j4',
+    p = subprocess.Popen('make clean && make -j4',
                          cwd=abs_path,
+                         env=shell_env,
                          shell=True)
     assert p.wait() == 0
 
-  def InstallLib(lib, src_path, dst_path):
+  def InstallLib(lib, src_path, dst_path, shell_env):
     # Use the install untility to install |lib| from |src_path| into
     # |dst_path|.
     p = subprocess.Popen("install -m 644 %s %s" % (lib, dst_path),
                          cwd=src_path,
+                         env=shell_env,
                          shell=True)
     assert p.wait() == 0
 
@@ -120,42 +125,59 @@ def BuildAndInstallAll(options):
     build_utils.ForceMakeDirs(nacl_usr_lib)
 
     # Set up the nacl-specific environment variables used by make.
+    build_env = options.shell_env.copy()
     toolchain_bin = os.path.join(options.toolchain, 'bin')
-    os.putenv('CC', os.path.join(toolchain_bin, '%s-gcc' % nacl_spec))
-    os.putenv('CXX', os.path.join(toolchain_bin, '%s-g++' % nacl_spec))
-    os.putenv('AR', os.path.join(toolchain_bin, '%s-ar' % nacl_spec))
-    os.putenv('RANLIB', os.path.join(toolchain_bin, '%s-ranlib' % nacl_spec))
-    os.putenv('LD', os.path.join(toolchain_bin, '%s-ld' % nacl_spec))
-    os.putenv('NACL_TOOLCHAIN_ROOT', options.toolchain)
+    build_env['CC'] = build_utils.HermeticBuildPath(
+        os.path.join(toolchain_bin, '%s-gcc' % nacl_spec),
+        options.shell_env)
+    build_env['CXX'] = build_utils.HermeticBuildPath(
+        os.path.join(toolchain_bin, '%s-g++' % nacl_spec),
+        options.shell_env)
+    build_env['AR'] = build_utils.HermeticBuildPath(
+        os.path.join(toolchain_bin, '%s-ar' % nacl_spec),
+        options.shell_env)
+    build_env['RANLIB'] = build_utils.HermeticBuildPath(
+        os.path.join(toolchain_bin, '%s-ranlib' % nacl_spec),
+        options.shell_env)
+    build_env['LD'] = build_utils.HermeticBuildPath(
+        os.path.join(toolchain_bin, '%s-ld' % nacl_spec),
+        options.shell_env)
+    build_env['NACL_TOOLCHAIN_ROOT'] = build_utils.HermeticBuildPath(
+        options.toolchain,
+        options.shell_env)
 
     # GTest has to be built & installed before GMock can be built.
     gtest_path = os.path.join(options.working_dir, GTEST_PATH)
-    BuildInPath(gtest_path)
+    BuildInPath(gtest_path, build_env)
     gtest_tar_excludes = "--exclude='gtest-death-test.h' \
                           --exclude='gtest-death-test-internal.h'"
     tar_cf = subprocess.Popen("tar cf - %s gtest" % gtest_tar_excludes,
                               cwd=os.path.join(gtest_path, 'include'),
+                              env=build_env,
                               shell=True,
                               stdout=subprocess.PIPE)
     tar_xf = subprocess.Popen("tar xfp -",
                               cwd=nacl_usr_include,
+                              env=build_env,
                               shell=True,
                               stdin=tar_cf.stdout)
     tar_copy_err = tar_xf.communicate()[1]
-    InstallLib('libgtest.a', gtest_path, nacl_usr_lib)
+    InstallLib('libgtest.a', gtest_path, nacl_usr_lib, build_env)
 
     gmock_path = os.path.join(options.working_dir, GMOCK_PATH)
-    BuildInPath(gmock_path)
+    BuildInPath(gmock_path, build_env)
     tar_cf = subprocess.Popen("tar cf - gmock",
                               cwd=os.path.join(gmock_path, 'include'),
+                              env=options.shell_env,
                               shell=True,
                               stdout=subprocess.PIPE)
     tar_xf = subprocess.Popen("tar xfp -",
                               cwd=nacl_usr_include,
+                              env=options.shell_env,
                               shell=True,
                               stdin=tar_cf.stdout)
     tar_copy_err = tar_xf.communicate()[1]
-    InstallLib('libgmock.a', gmock_path, nacl_usr_lib)
+    InstallLib('libgmock.a', gmock_path, nacl_usr_lib, build_env)
 
 
 # Main driver method that creates a working directory, then downloads and
@@ -186,7 +208,8 @@ def InstallTestingLibs(options):
 #              default is "32,64" which means build 32- and 64-bit versions
 #              of the libraries.
 def main(argv):
-  if not build_utils.CheckPatchVersion():
+  shell_env = build_utils.GetShellEnvironment();
+  if not build_utils.CheckPatchVersion(shell_env):
     sys.exit(0)
 
   parser = OptionParser()
@@ -204,6 +227,7 @@ def main(argv):
     parser.print_help()
     sys.exit(1)
 
+  options.shell_env = shell_env
   options.script_dir = os.path.abspath(os.path.dirname(__file__))
   options.toolchain = build_utils.NormalizeToolchain(options.toolchain)
   print "Installing testing libs into toolchain %s" % options.toolchain
