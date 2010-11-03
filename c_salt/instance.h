@@ -31,6 +31,12 @@ namespace c_salt {
 class Instance : public boost::noncopyable,
                  public ScriptableNativeObject {
  public:
+  typedef enum {
+    URLLDR_NETWORK_ERROR = 1,
+    URLLDR_USER_BREAK = 2,
+    URLLDR_INTERNAL_ERROR = 3
+  } URLLoaderErrorCode;
+
   explicit Instance(const NPP& npp_instance)
       : is_loaded_(false), npp_instance_(npp_instance) {}
   virtual ~Instance();
@@ -82,6 +88,14 @@ class Instance : public boost::noncopyable,
   NPObject* WindowObject() const {
     return scripting_bridge_->window_object();
   }
+
+  // Callbacks for GetURL, GetURLNotify.
+  // Should go away with PPAPI v2.
+  // |data| is managed by c_salt, do not delete it, do not store pointer to it.
+  virtual void OnURLLoaded(const char* data, size_t data_sz) {}
+
+  // Called only in case of error.
+  virtual void OnURLLoadFailed(URLLoaderErrorCode error) {}
 
  private:
   bool is_loaded_;

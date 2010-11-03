@@ -6,6 +6,9 @@
 
 #include <nacl/npupp.h>
 
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <cstring>
 
 #include "c_salt/instance.h"
@@ -13,6 +16,12 @@
 #include "c_salt/scripting_bridge.h"
 #include "c_salt/scripting_bridge_ptrs.h"
 
+namespace {
+  bool MapStreamToMemory(NPStream* stream,
+                         const char* fname,
+                         char** data,
+                         size_t* data_length);
+}
 using c_salt::Instance;
 using c_salt::Module;
 
@@ -122,6 +131,42 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
   return NPERR_NO_ERROR;
 }
 
+void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
+  if (NULL != stream) {
+    Instance* module_instance = static_cast<Instance*>(instance->pdata);
+    if (NULL != module_instance) {
+      char* data = NULL;
+      size_t data_length = 0;
+      if (MapStreamToMemory(stream, fname, &data, &data_length)) {
+        module_instance->OnURLLoaded(data, data_length);
+      } else {
+        module_instance->OnURLLoadFailed(Instance::URLLDR_INTERNAL_ERROR);
+      }
+    }
+  }
+}
+
+void NPP_URLNotify(NPP instance,
+                   const char* url,
+                   NPReason reason,
+                   void* notifyData) {
+  Instance* module_instance = static_cast<Instance*>(instance->pdata);
+  if ((NULL != module_instance) && (NPRES_DONE != reason)) {
+    Instance::URLLoaderErrorCode error_code = Instance::URLLDR_INTERNAL_ERROR;
+    switch (reason) {
+      case NPRES_NETWORK_ERR: {
+        error_code = Instance::URLLDR_NETWORK_ERROR;
+        break;
+      }
+    case NPRES_USER_BREAK: {
+        error_code = Instance::URLLDR_USER_BREAK;
+        break;
+      }
+    }
+    module_instance->OnURLLoadFailed(error_code);
+  }
+}
+
 extern "C" {
 NPError InitializePepperGateFunctions(NPPluginFuncs* plugin_funcs) {
   std::memset(plugin_funcs, 0, sizeof(*plugin_funcs));
@@ -132,6 +177,44 @@ NPError InitializePepperGateFunctions(NPPluginFuncs* plugin_funcs) {
   plugin_funcs->setwindow = NPP_SetWindow;
   plugin_funcs->event = NPP_HandleEvent;
   plugin_funcs->getvalue = NPP_GetValue;
+  plugin_funcs->asfile = NPP_StreamAsFile;
+  plugin_funcs->urlnotify = NPP_URLNotify;
   return NPERR_NO_ERROR;
 }
 }  // extern "C"
+
+namespace {
+bool MapStreamToMemory(NPStream* stream,
+                       const char* fname,
+                       char** data,
+                       size_t* data_length) {
+  // |fname| is actually a pointer to a file descriptor.
+  const int fd = *reinterpret_cast<const int*>(fname);
+  if (NULL == stream) {
+    return false;
+  }
+  if (-1 == fd) {
+    return false;
+  }
+  struct stat stb;
+  if (-1 == fstat(fd, &stb)) {
+    return false;
+  }
+  if ((stb.st_mode & S_IFMT) != S_IFSHM) {
+    return false;
+  }
+  // Chrome integration returns a shared memory descriptor for this now.
+  *data = reinterpret_cast<char *>(mmap(NULL,
+                                        stream->end,
+                                        PROT_READ,
+                                        MAP_SHARED,
+                                        fd,
+                                        0));
+  if (MAP_FAILED == *data) {
+    return false;
+  }
+  *data_length = stream->end;
+  return true;
+}
+}  // namespace
+
