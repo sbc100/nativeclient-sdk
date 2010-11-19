@@ -53,6 +53,10 @@ nacl_env = base_env.Clone(
     NATIVE_CLIENT_SDK_DEFAULT_MODE='custom:' + os.getenv('NACL_TOOLCHAIN_ROOT'),
     CFLAGS = ['-m32'],
 )
+nacl_env.Append(CPPPATH=[os.path.join('$NACL_TOOLCHAIN_ROOT',
+                                      'nacl',
+                                      'usr',
+                                      'include')])
 
 nacl_dbg_env = nacl_env.Clone(
     BUILD_GROUPS = ['default'],
