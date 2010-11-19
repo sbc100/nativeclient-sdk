@@ -71,7 +71,7 @@ def DownloadAndExtractAll(options):
 def PatchAll(options):
   def Patch(abs_path, patch_file):
     print "Patching %s with: %s" % (abs_path, patch_file)
-    p = subprocess.Popen('patch -p0 < %s' % (patch_file),
+    p = subprocess.Popen('chmod -R a+w . && patch -p0 < %s' % (patch_file),
                          cwd=abs_path,
                          env=options.shell_env,
                          shell=True)
