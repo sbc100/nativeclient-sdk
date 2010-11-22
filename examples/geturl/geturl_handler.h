@@ -6,8 +6,8 @@
 #define EXAMPLES_GETURL_GETURL_HANDLER_H_
 
 #include <ppapi/cpp/completion_callback.h>
-#include <ppapi/cpp/dev/url_loader_dev.h>
-#include <ppapi/cpp/dev/url_request_info_dev.h>
+#include <ppapi/cpp/url_loader.h>
+#include <ppapi/cpp/url_request_info.h>
 #include <ppapi/cpp/instance.h>
 #include <string>
 
@@ -42,8 +42,8 @@ class GetURLHandler {
   // Callback fo the pp::URLLoader::Open().
   // Called by pp::URLLoader when response headers are received or when an
   // error occurs (in response to the call of pp::URLLoader::Open()).
-  // Look at <ppapi/c/dev/ppb_url_loader_dev.h> and
-  // <ppapi/cpp/dev/url_loader_dev.h> for more information about pp::URLLoader.
+  // Look at <ppapi/c/ppb_url_loader.h> and
+  // <ppapi/cpp/url_loader.h> for more information about pp::URLLoader.
   void OnOpen(int32_t result);
 
   // Callback fo the pp::URLLoader::ReadResponseBody().
@@ -66,8 +66,8 @@ class GetURLHandler {
 
   PP_Instance instance_id_;
   std::string url_;  // URL to be downloaded.
-  pp::URLRequestInfo_Dev url_request_;
-  pp::URLLoader_Dev url_loader_;  // URLLoader provides an API to download URLs.
+  pp::URLRequestInfo url_request_;
+  pp::URLLoader url_loader_;  // URLLoader provides an API to download URLs.
   char buffer_[kBufferSize];  // buffer for pp::URLLoader::ReadResponseBody().
   std::string url_response_body_;  // Contains downloaded data.
   pp::CompletionCallbackFactory<GetURLHandler> cc_factory_;

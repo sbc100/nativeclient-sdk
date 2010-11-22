@@ -46,7 +46,7 @@ bool GetURLHandler::Start() {
 
 void GetURLHandler::OnOpen(int32_t result) {
   if (result < 0)
-    ReportResultAndDie(url_, "pp::URLLoader_Dev::Open() failed", false);
+    ReportResultAndDie(url_, "pp::URLLoader::Open() failed", false);
   else
     ReadBody();
 }
@@ -54,7 +54,7 @@ void GetURLHandler::OnOpen(int32_t result) {
 void GetURLHandler::OnRead(int32_t result) {
   if (result < 0) {
     ReportResultAndDie(url_,
-                       "pp::URLLoader_Dev::ReadResponseBody() result<0",
+                       "pp::URLLoader::ReadResponseBody() result<0",
                        false);
 
   } else if (result != 0) {

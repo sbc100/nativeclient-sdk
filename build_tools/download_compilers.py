@@ -189,7 +189,7 @@ PLATFORM_COLLAPSE = {
 
 PLATFORM_MAPPING = {
     'win32': [
-        ['win_x86', 'win_x86'],  # Multilib toolchain
+        ['win_x86_win7', 'win_x86'],  # Multilib toolchain
     ],
     'linux': [
         ['linux_x86', 'linux_x86'],  # Multilib toolchain
@@ -211,7 +211,8 @@ def main(argv):
       help='comma separated list of platform toolchains to download')
   parser.add_option(
       '-b', '--base-url', dest='base_url',
-      default='http://build.chromium.org/buildbot/nacl_archive/nacl/toolchain/',
+      default='http://commondatastorage.googleapis.com/'
+              'nativeclient-archive2/toolchain/',
       help='base url to download from')
   parser.add_option(
       '-c', '--cygwin-url', dest='cygwin_url',

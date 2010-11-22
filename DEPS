@@ -1,9 +1,9 @@
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_version": "61644",
-  "compiler_version": "3431",
-  "valgrind_path": "http://nativeclient.googlecode.com/svn/trunk/src/native_client/src/third_party/valgrind",
-  "valgrind_version": "3087",
+  "chromium_version": "66111",
+  "compiler_version": "3746",
+  "valgrind_path": "svn://svn.chromium.org/native_client/trunk/src/native_client/src/third_party/valgrind",
+  "valgrind_version": "3746",
 }
 
 deps = {
