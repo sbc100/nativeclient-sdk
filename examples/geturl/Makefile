@@ -9,34 +9,37 @@
 CCFILES = geturl.cc \
           geturl_handler.cc
 
-OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
-OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
-
 NACL_SDK_ROOT = ../..
 
-CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
 INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lppruntime \
           -lppapi_cpp \
           -lpthread \
           -lsrpc \
           $(ARCH_FLAGS)
-OPT_FLAGS = -O2
 
-all: check_variables geturl_x86_32.nexe geturl_x86_64.nexe
+all: check_variables geturl_x86_32.nexe geturl_x86_64.nexe \
+	geturl_x86_32_dbg.nexe geturl_x86_64_dbg.nexe
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
 
 geturl_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
+	$(NACL_STRIP) $@ -o $@	
 
 geturl_x86_64.nexe: $(OBJECTS_X86_64)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
+	$(NACL_STRIP) $@ -o $@	
+
+geturl_x86_32_dbg.nexe: $(OBJECTS_X86_32_DBG)
+	$(CPP) $^ $(LDFLAGS) -m32 -o $@
+
+geturl_x86_64_dbg.nexe: $(OBJECTS_X86_64_DBG)
+	$(CPP) $^ $(LDFLAGS) -m64 -o $@
 
 clean:
-	-$(RM) $(OBJECTS_X86_32) $(OBJECTS_X86_64) \
-      geturl_x86_32.nexe geturl_x86_64.nexe
+	-$(RM) *.o *.obj *.nexe
 
 # This target is used by the SDK build system to produce a pre-built version
 # of the .nexe.  You do not need to call this target.

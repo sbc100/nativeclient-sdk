@@ -22,12 +22,8 @@ APP_FILES = dragger.js \
             trackball.js \
             vector3.js
 
-OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
-OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
-
 NACL_SDK_ROOT = ../..
 
-CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
 INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lgoogle_nacl_imc \
           -lgoogle_nacl_npruntime \
@@ -35,22 +31,30 @@ LDFLAGS = -lgoogle_nacl_imc \
           -lsrpc \
           -lgoogle_nacl_pgl \
           -lgoogle_nacl_gpu
-OPT_FLAGS = -O2
 
-all: check_variables tumbler_x86_32.nexe tumbler_x86_64.nexe
+all: check_variables tumbler_x86_32.nexe tumbler_x86_64.nexe \
+     tumbler_x86_32_dbg.nexe tumbler_x86_64_dbg.nexe
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
 
 tumbler_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
+	$(NACL_STRIP) $@ -o $@	
 
 tumbler_x86_64.nexe: $(OBJECTS_X86_64)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
+	$(NACL_STRIP) $@ -o $@	
+
+tumbler_x86_32_dbg.nexe: $(OBJECTS_X86_32_DBG)
+	$(CPP) $^ $(LDFLAGS) -m32 -o $@
+
+tumbler_x86_64_dbg.nexe: $(OBJECTS_X86_64_DBG)
+	$(CPP) $^ $(LDFLAGS) -m64 -o $@
+
 
 clean:
-	-$(RM) $(OBJECTS_X86_32) $(OBJECTS_X86_64) \
-	    tumbler_x86_32.nexe tumbler_x86_64.nexe
+	-$(RM) *.o *.obj *.nexe
 
 # This target is used by the SDK build system to produce a pre-built version
 # of the .nexe.  You do not need to call this target.

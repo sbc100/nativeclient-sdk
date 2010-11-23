@@ -6,7 +6,7 @@
 
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/dev/scriptable_object_deprecated.h>
-#include <ppapi/cpp/dev/url_loader_dev.h>
+#include <ppapi/cpp/url_loader.h>
 #include <ppapi/cpp/module.h>
 #include <ppapi/cpp/var.h>
 #include <cstdio>
