@@ -17,13 +17,19 @@ if os.getenv('NACL_SDK_ROOT') is None:
 
 # Build a string representing the NaCl toolchain root.  This root points at the
 # platform-specific directory.
-def GetToolchainRoot(sdk_root):
-  if sys.platform in ['win32', 'cygwin']:
+def GetToolchainRoot(sdk_root=None):
+  if sdk_root is None:
+    sdk_root = os.getenv('NACL_SDK_ROOT', '')
+  if sys.platform == 'cygwin' or sys.platform.startswith('win'):
     variant = 'win_x86'
   elif sys.platform in ['darwin', 'macos']:
     variant = 'mac_x86'
   elif sys.platform in ['linux', 'linux2']:
     variant = 'linux_x86'
+  else:
+    sys.stderr.write('Unrecognized build platform: %s\n' % sys.platform)
+    return ''
+
   return os.path.join(sdk_root, 'toolchain', variant)
 
 
@@ -64,13 +70,19 @@ nacl_env = base_env.Clone(
             'srpc'],
     NATIVE_CLIENT_SDK_DEFAULT_MODE = 'custom:' + base_env['NACL_TOOLCHAIN_ROOT']
 )
-nacl32_env = nacl_env.Clone(CFLAGS = ['-m32'])
+nacl32_env = nacl_env.Clone(
+    CFLAGS = ['-m32'],
+    BUILD_TYPE_DESCRIPTION = '32-bit NaCl module',
+)
 nacl32_env.Append(CPPPATH = [os.path.join('$NACL_TOOLCHAIN_ROOT',
                                           'nacl',
                                           'usr',
                                           'include')])
 
-nacl64_env = nacl_env.Clone(CFLAGS = ['-m64'])
+nacl64_env = nacl_env.Clone(
+    CFLAGS = ['-m64'],
+    BUILD_TYPE_DESCRIPTION = '64-bit NaCl module',
+)
 nacl64_env.Append(CPPPATH = [os.path.join('$NACL_TOOLCHAIN_ROOT',
                                           'nacl64',
                                           'usr',
@@ -79,6 +91,7 @@ nacl64_env.Append(CPPPATH = [os.path.join('$NACL_TOOLCHAIN_ROOT',
 nacl32_dbg_env = nacl32_env.Clone(
     BUILD_GROUPS = ['default'],
     BUILD_TYPE = 'dbg32',
+    BUILD_TYPE_DESCRIPTION = '32-bit debug NaCl module',
     tools = ['target_debug']
 )
 environment_list.append(nacl32_dbg_env)
@@ -86,29 +99,32 @@ environment_list.append(nacl32_dbg_env)
 nacl64_dbg_env = nacl64_env.Clone(
     BUILD_GROUPS = ['default'],
     BUILD_TYPE = 'dbg64',
+    BUILD_TYPE_DESCRIPTION = '64-bit debug NaCl module',
     tools = ['target_debug']
 )
 environment_list.append(nacl64_dbg_env)
 
 nacl32_opt_env = nacl32_env.Clone(
     BUILD_TYPE = 'opt32',
+    BUILD_TYPE_DESCRIPTION = '32-bit optimized NaCl module',
     tools = ['target_optimized']
 )
 environment_list.append(nacl32_opt_env)
 
 nacl64_opt_env = nacl64_env.Clone(
     BUILD_TYPE = 'opt64',
+    BUILD_TYPE_DESCRIPTION = '64-bit optimized NaCl module',
     tools = ['target_optimized']
 )
 environment_list.append(nacl64_opt_env)
 
 nacl_test_env = nacl32_env.Clone(
     BUILD_TYPE = 'test',
+    BUILD_TYPE_DESCRIPTION = 'NaCl test build',
     BUILD_SCONSCRIPTS = [
       '$MAIN_DIR/c_salt/c_salt.scons',
       '$MAIN_DIR/c_salt/test.scons',
     ],
-    BUILD_TYPE_DESCRIPTION = 'Tests',
     COMPONENT_TEST_CMDLINE = '$NACL_TOOLCHAIN_ROOT/bin/sel_ldr $PROGRAM_NAME',
     LIBS = ['gmock', 'gtest', 'nosys', 'pthread', 'srpc',
             'c_salt', 'google_nacl_npruntime', 'google_nacl_imc',
