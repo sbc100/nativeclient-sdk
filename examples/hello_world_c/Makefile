@@ -8,9 +8,6 @@
 
 CFILES = hello_world.c
 
-OBJECTS_X86_32 = $(CFILES:%.c=%_x86_32.o)
-OBJECTS_X86_64 = $(CFILES:%.c=%_x86_64.o)
-
 NACL_SDK_ROOT = ../..
 
 CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
@@ -26,7 +23,7 @@ all: check_variables hello_world_x86_32.nexe hello_world_x86_64.nexe
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
 
-# have to link with g++: the implementation of the PPAPI proxy 
+# have to link with g++: the implementation of the PPAPI proxy
 # is a C++ implementation
 
 hello_world_x86_32.nexe: $(OBJECTS_X86_32)

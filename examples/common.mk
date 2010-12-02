@@ -79,11 +79,11 @@ DEBUG_FLAGS = -g
 %_x86_64.o: %.cpp
 	$(CPP) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-# Generate list of .o files based on .cc files
-OBJECTS_X86_32 = $(CCFILES:%.cc=%_x86_32.o)
-OBJECTS_X86_64 = $(CCFILES:%.cc=%_x86_64.o)
-OBJECTS_X86_32_DBG = $(CCFILES:%.cc=%_x86_32_dbg.o)
-OBJECTS_X86_64_DBG = $(CCFILES:%.cc=%_x86_64_dbg.o)
+# Generate list of .o files based on the list of .c and .cc files
+OBJECTS_X86_32 = $(CFILES:%.c=%_x86_32.o) $(CCFILES:%.cc=%_x86_32.o)
+OBJECTS_X86_64 = $(CFILES:%.c=%_x86_64.o) $(CCFILES:%.cc=%_x86_64.o)
+OBJECTS_X86_32_DBG = $(CFILES:%.c=%_x86_32_dbg.o) $(CCFILES:%.cc=%_x86_32_dbg.o)
+OBJECTS_X86_64_DBG = $(CFILES:%.c=%_x86_64_dbg.o) $(CCFILES:%.cc=%_x86_64_dbg.o)
 
 # Make sure certain variables are defined.  This rule is set as a dependency
 # for all the .nexe builds in the examples.
