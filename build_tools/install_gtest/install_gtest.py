@@ -24,13 +24,15 @@ BIT_SPEC_DEFAULT = "32,64"
 
 # The original gtest distro can be found here:
 # http://code.google.com/p/googletest/downloads/detail?name=gtest-1.5.0.tar.gz
-GTEST_URL = "http://build.chromium.org/mirror/nacl/gtest-1.5.0.tgz"
+GTEST_URL = ("http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/"
+             "gtest-1.5.0.tgz")
 GTEST_PATH = "gtest-1.5.0"
 GTEST_PATCH_FILE = "nacl-gtest-1.5.0.patch"
 
 # The original gmock distro can be found here:
 # http://googlemock.googlecode.com/files/gmock-1.5.0.tar.gz
-GMOCK_URL = "http://build.chromium.org/mirror/nacl/gmock-1.5.0.tgz"
+GMOCK_URL = ("http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/"
+             "gmock-1.5.0.tgz")
 GMOCK_PATH = "gmock-1.5.0"
 GMOCK_PATCH_FILE = "nacl-gmock-1.5.0.patch"
 

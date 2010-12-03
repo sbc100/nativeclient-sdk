@@ -216,8 +216,8 @@ def main(argv):
       help='base url to download from')
   parser.add_option(
       '-c', '--cygwin-url', dest='cygwin_url',
-      default=('http://build.chromium.org/mirror/nacl/'
-               'cygwin_mirror/hermetic_cygwin_1_7_5-1_1.exe'),
+      default=('http://commondatastorage.googleapis.com/nativeclient-mirror/'
+               'nacl/cygwin_mirror/hermetic_cygwin_1_7_5-1_1.exe'),
       help='cygwin installer url to download from')
   parser.add_option(
       '-v', '--version', dest='version',

@@ -25,7 +25,8 @@ BIT_SPEC_DEFAULT = "32,64"
 # The original boost distro can be found here:
 # http://sourceforge.net/projects/boost/files/boost/1.43.0/\
 #     boost_1_43_0.tar.gz/download
-BOOST_URL = "http://build.chromium.org/mirror/nacl/boost_1_43_0.tar.gz"
+BOOST_URL = ("http://commondatastorageapis.appspot.com/nativeclient-mirror/"
+             "/nacl/boost_1_43_0.tar.gz")
 BOOST_PATH = "boost_1_43_0"
 BOOST_PATCH_FILE = "nacl-boost_1_43_0.patch"
 
