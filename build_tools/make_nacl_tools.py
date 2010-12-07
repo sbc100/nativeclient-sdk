@@ -67,34 +67,32 @@ def Build(options):
     scons = 'scons.bat'
   else:
     scons = './scons'
-  # Pick variant.
-  if sys.platform in ['win32', 'cygwin']:
-    variant = 'opt-win'
-  elif sys.platform == 'darwin':
-    variant = 'opt-mac'
-  elif sys.platform in ['linux', 'linux2']:
-    variant = 'opt-linux'
-  else:
-    assert False
-  options.variant = variant
   # Build 32- and 64-bit sel_ldr.
+  # TODO(dspringer): this does not build 64-bit sel_ldr on windows.
   p = subprocess.Popen(
       '%s --mode=%s platform=x86-32 naclsdk_validate=0 sdl=none sel_ldr' % (
-      scons, variant), shell=True)
+      scons, options.variant), shell=True)
   assert p.wait() == 0
-  p = subprocess.Popen(
-      '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
-      scons, variant), shell=True)
-  assert p.wait() == 0
+  # TODO(dspringer): remove this check when sel_ldr builds on 64-bit windows
+  # (see http://code.google.com/p/nativeclient/issues/detail?id=1228).
+  if options.variant != 'opt-win':
+    p = subprocess.Popen(
+        '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
+        scons, options.variant), shell=True)
+    assert p.wait() == 0
   # Build 32- and 64-bit ncval.
+  # TODO(dspringer): this does not build 64-bit ncval on windows.
   p = subprocess.Popen(
       '%s --mode=%s platform=x86-32 naclsdk_validate=0 ncval' % (
-      scons, variant), shell=True)
+      scons, options.variant), shell=True)
   assert p.wait() == 0
-  p = subprocess.Popen(
-      '%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
-      scons, variant), shell=True)
-  assert p.wait() == 0
+  # TODO(dspringer): remove this check when ncval builds on 64-bit windows
+  # (see http://code.google.com/p/nativeclient/issues/detail?id=1228).
+  if options.variant != 'opt-win':
+    p = subprocess.Popen(
+        '%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
+        scons, options.variant), shell=True)
+    assert p.wait() == 0
   # Leave it.
   os.chdir('..')
 
@@ -117,11 +115,14 @@ def Install(options, tools):
                 os.path.join(options.toolchain,
                              'bin',
                              'nacl-%s%s' % (nacl_tool, options.exe_suffix)))
-    shutil.copy(os.path.join(tool_build_path_64,
-                             '%s%s' % (nacl_tool, options.exe_suffix)),
-                os.path.join(options.toolchain,
-                             'bin',
-                             'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
+    if options.variant != 'opt-win':
+    # TODO(dspringer): remove this check when 64-bit artifacts build on windows.
+    # (see http://code.google.com/p/nativeclient/issues/detail?id=1228).
+      shutil.copy(os.path.join(tool_build_path_64,
+                               '%s%s' % (nacl_tool, options.exe_suffix)),
+                  os.path.join(options.toolchain,
+                               'bin',
+                               'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
 
 
 def Cleanup(options):
@@ -160,6 +161,16 @@ def main(argv):
 
   options.toolchain = os.path.abspath(options.toolchain)
   options.exe_suffix = exe_suffix
+  # Pick variant.
+  if sys.platform in ['win32', 'cygwin']:
+    variant = 'opt-win'
+  elif sys.platform == 'darwin':
+    variant = 'opt-mac'
+  elif sys.platform in ['linux', 'linux2']:
+    variant = 'opt-linux'
+  else:
+    assert False
+  options.variant = variant
 
   return BuildNaClTools(options)
 
