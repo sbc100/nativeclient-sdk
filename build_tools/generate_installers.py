@@ -41,7 +41,7 @@ import subprocess
 import sys
 import tempfile
 
-NACL_REVISION = 3847
+NACL_REVISION = 3876
 
 EXCLUDE_DIRS = ['.download',
                 '.svn',
