@@ -9,6 +9,7 @@ Import('env')
 # Build the c_salt library.
 
 c_salt_npapi_sources = [
+  'npapi/browser_3d_device.cc',
   'npapi/browser_binding.cc',
   'npapi/javascript_object_proxy.cc',
   'npapi/npn_bridge.cc',
@@ -23,7 +24,6 @@ c_salt_sources = [
   'module.cc',
   'notification_center.cc',
   'opengl_context.cc',
-  'opengl_view.cc',
   'property.cc',
   'scriptable_native_object.cc',
   'scripting_bridge.cc',

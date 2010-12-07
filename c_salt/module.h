@@ -29,7 +29,8 @@ class Module : public boost::noncopyable {
   virtual Instance* CreateInstance(const NPP& npp_instance) = 0;
 
   // Initialize the OpenGL library for this module.  The library termination
-  // code is called in the dtor (via CleanUp()).
+  // code is called in the dtor (via CleanUp()).  If OpenGL has already been
+  // initialized, this is a no-op.
   bool InitializeOpenGL();
 
  protected:
