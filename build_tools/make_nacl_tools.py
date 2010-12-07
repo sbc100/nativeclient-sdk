@@ -50,7 +50,7 @@ def Checkout(options):
   # Setup client spec.
   p = subprocess.Popen(
       'gclient config '
-      'http://nativeclient.googlecode.com/svn/trunk/src/native_client',
+      'svn://svn.chromium.org/native_client/trunk/src/native_client',
       shell=True)
   assert p.wait() == 0
   # Sync at the desired revision.
@@ -77,53 +77,51 @@ def Build(options):
   else:
     assert False
   options.variant = variant
-  # Build sel_ldr.
+  # Build 32- and 64-bit sel_ldr.
   p = subprocess.Popen(
       '%s --mode=%s platform=x86-32 naclsdk_validate=0 sdl=none sel_ldr' % (
       scons, variant), shell=True)
   assert p.wait() == 0
-  # Build ncval.
+  p = subprocess.Popen(
+      '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
+      scons, variant), shell=True)
+  assert p.wait() == 0
+  # Build 32- and 64-bit ncval.
   p = subprocess.Popen(
       '%s --mode=%s platform=x86-32 naclsdk_validate=0 ncval' % (
       scons, variant), shell=True)
   assert p.wait() == 0
-  if variant == 'opt-linux':
-    p = subprocess.Popen(
-        '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
-        scons, variant), shell=True)
-    assert p.wait() == 0
-    p = subprocess.Popen(
-        '%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
-        scons, variant), shell=True)
-    assert p.wait() == 0
+  p = subprocess.Popen(
+      '%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
+      scons, variant), shell=True)
+  assert p.wait() == 0
   # Leave it.
   os.chdir('..')
 
 
 def Install(options, tools):
-  # Figure out where tools are.
+  # Figure out where tools are and install the build artifacts into the
+  # SDK tarball staging area.
   # TODO(bradnelson): add an 'install' alias to the main build for this.
-  tool_build_path = os.path.join('native_client',
-                                 'scons-out',
-                                 '%s-x86-32' % (options.variant),
-                                 'staging')
+  tool_build_path_32 = os.path.join('native_client',
+                                    'scons-out',
+                                    '%s-x86-32' % (options.variant),
+                                    'staging')
+  tool_build_path_64 = os.path.join('native_client',
+                                    'scons-out',
+                                    '%s-x86-64' % (options.variant),
+                                    'staging')
   for nacl_tool in tools:
-    shutil.copy(os.path.join(tool_build_path,
+    shutil.copy(os.path.join(tool_build_path_32,
                              '%s%s' % (nacl_tool, options.exe_suffix)),
                 os.path.join(options.toolchain,
                              'bin',
                              'nacl-%s%s' % (nacl_tool, options.exe_suffix)))
-  if options.variant == 'opt-linux':
-    tool_build_path = os.path.join('native_client',
-                                   'scons-out',
-                                   '%s-x86-64' % (options.variant),
-                                   'staging')
-    for nacl_tool in tools:
-      shutil.copy(os.path.join(tool_build_path,
-                               '%s%s' % (nacl_tool, options.exe_suffix)),
-                  os.path.join(options.toolchain,
-                               'bin',
-                               'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
+    shutil.copy(os.path.join(tool_build_path_64,
+                             '%s%s' % (nacl_tool, options.exe_suffix)),
+                os.path.join(options.toolchain,
+                             'bin',
+                             'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
 
 
 def Cleanup(options):
