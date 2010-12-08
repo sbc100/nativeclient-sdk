@@ -67,32 +67,31 @@ def Build(options):
     scons = 'scons.bat'
   else:
     scons = './scons'
+  # Pick bit size prefix.
+  if sys.platform == 'win32':
+    bits32 = 'vcvarsall.bat x86 && '
+    bits64 = 'vcvarsall.bat x86_amd64 && '
+  else:
+    bits32 = ''
+    bits64 = ''
   # Build 32- and 64-bit sel_ldr.
-  # TODO(dspringer): this does not build 64-bit sel_ldr on windows.
   p = subprocess.Popen(
-      '%s --mode=%s platform=x86-32 naclsdk_validate=0 sdl=none sel_ldr' % (
-      scons, options.variant), shell=True)
+      '%s%s --mode=%s platform=x86-32 naclsdk_validate=0 sdl=none sel_ldr' % (
+      bits32, scons, options.variant), shell=True)
   assert p.wait() == 0
-  # TODO(dspringer): remove this check when sel_ldr builds on 64-bit windows
-  # (see http://code.google.com/p/nativeclient/issues/detail?id=1228).
-  if options.variant != 'opt-win':
-    p = subprocess.Popen(
-        '%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
-        scons, options.variant), shell=True)
-    assert p.wait() == 0
+  p = subprocess.Popen(
+      '%s%s --mode=%s platform=x86-64 naclsdk_validate=0 sdl=none sel_ldr' % (
+      bits64, scons, options.variant), shell=True)
+  assert p.wait() == 0
   # Build 32- and 64-bit ncval.
-  # TODO(dspringer): this does not build 64-bit ncval on windows.
   p = subprocess.Popen(
-      '%s --mode=%s platform=x86-32 naclsdk_validate=0 ncval' % (
-      scons, options.variant), shell=True)
+      '%s%s --mode=%s platform=x86-32 naclsdk_validate=0 ncval' % (
+      bits32, scons, options.variant), shell=True)
   assert p.wait() == 0
-  # TODO(dspringer): remove this check when ncval builds on 64-bit windows
-  # (see http://code.google.com/p/nativeclient/issues/detail?id=1228).
-  if options.variant != 'opt-win':
-    p = subprocess.Popen(
-        '%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
-        scons, options.variant), shell=True)
-    assert p.wait() == 0
+  p = subprocess.Popen(
+      '%s%s --mode=%s platform=x86-64 naclsdk_validate=0 ncval' % (
+      bits64, scons, options.variant), shell=True)
+  assert p.wait() == 0
   # Leave it.
   os.chdir('..')
 
