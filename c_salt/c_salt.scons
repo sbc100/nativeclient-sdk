@@ -20,11 +20,13 @@ c_salt_npapi_sources = [
 
 c_salt_sources = [
   'converting_visitor.cc',
+  'graphics_2d_context.cc',
   'instance.cc',
   'module.cc',
   'notification_center.cc',
   'opengl_context.cc',
   'property.cc',
+  'rect.cc',
   'scriptable_native_object.cc',
   'scripting_bridge.cc',
   'variant.cc',
