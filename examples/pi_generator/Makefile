@@ -13,6 +13,8 @@ NACL_SDK_ROOT = ../..
 INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lppruntime \
           -lppapi_cpp \
+          -lgoogle_nacl_platform \
+          -lgio \
           -lpthread \
           -lsrpc \
           $(ARCH_FLAGS)
@@ -25,11 +27,11 @@ all: check_variables pi_generator_x86_32.nexe pi_generator_x86_64.nexe \
 
 pi_generator_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
-	$(NACL_STRIP) $@ -o $@	
+	$(NACL_STRIP) $@ -o $@
 
 pi_generator_x86_64.nexe: $(OBJECTS_X86_64)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
-	$(NACL_STRIP) $@ -o $@	
+	$(NACL_STRIP) $@ -o $@
 
 pi_generator_x86_32_dbg.nexe: $(OBJECTS_X86_32_DBG)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
