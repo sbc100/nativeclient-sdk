@@ -1,0 +1,15 @@
+# This is a standard .gitignore file, used to exclude certain files
+# from a 'git status' command, or similar
+
+# Ignore these filename patterns
+*.pyc
+*.nexe
+
+# Ignore these directories
+scons-out/
+third_party/scons/
+third_party/swtoolkit/
+third_party/valgrind/
+third_party/cygwin/
+toolchain/
+

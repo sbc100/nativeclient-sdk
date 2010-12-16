@@ -47,9 +47,6 @@ environment_list = []
 
 base_env = Environment(
   tools = ['component_setup'],
-  BUILD_SCONSCRIPTS = [
-    '$MAIN_DIR/c_salt/c_salt.scons',
-  ],
   CPPPATH = ['$MAIN_DIR'],
   CPPDEFINES = [
     'BOOST_ALL_NO_LIB',
@@ -70,6 +67,13 @@ nacl_env = base_env.Clone(
             'srpc'],
     NATIVE_CLIENT_SDK_DEFAULT_MODE = 'custom:' + base_env['NACL_TOOLCHAIN_ROOT']
 )
+
+nacl_env.Append(
+  BUILD_SCONSCRIPTS = [
+    '$MAIN_DIR/c_salt/c_salt.scons',
+  ],
+)
+
 nacl32_env = nacl_env.Clone(
     CFLAGS = ['-m32'],
     BUILD_TYPE_DESCRIPTION = '32-bit NaCl module',
@@ -131,5 +135,25 @@ nacl_test_env = nacl32_env.Clone(
             'google_nacl_pgl', 'google_nacl_gpu']
 )
 environment_list.append(nacl_test_env)
+
+# ----------------------------------------------------------
+# DOCUMENTATION HELPER
+# ----------------------------------------------------------
+
+doc_env = base_env.Clone(
+  NACL_BUILD_FAMILY = 'NO_PLATFORM',
+  BUILD_GROUPS = ['docs'],
+  BUILD_TYPE = 'doc',
+  BUILD_TYPE_DESCRIPTION = 'Doxygen build for c_salt and examples',
+  HOST_PLATFORMS = '*',
+  HOST_PLATFORM_SUFFIX='',
+)
+
+doc_env.Append(
+  BUILD_SCONSCRIPTS = [
+    'documentation/build.scons',
+  ],
+)
+environment_list.append(doc_env)
 
 BuildComponents(environment_list)
