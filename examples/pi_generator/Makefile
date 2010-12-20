@@ -19,11 +19,30 @@ LDFLAGS = -lppruntime \
           -lsrpc \
           $(ARCH_FLAGS)
 
-all: check_variables pi_generator_x86_32.nexe pi_generator_x86_64.nexe \
-	pi_generator_x86_32_dbg.nexe pi_generator_x86_64_dbg.nexe
+all: check_variables pi_generator.nmf pi_generator_dbg.nmf
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
+
+pi_generator.nmf: pi_generator_x86_32.nexe pi_generator_x86_64.nexe
+	@echo "Creating pi_generator.nmf..."
+	@echo > pi_generator.nmf \
+	'{\n\
+	  "nexes": {\n\
+	    "x86-64": "pi_generator_x86_64.nexe",\n\
+	    "x86-32": "pi_generator_x86_32.nexe",\n\
+	  }\n\
+	}\n'
+
+pi_generator_dbg.nmf: pi_generator_x86_32_dbg.nexe pi_generator_x86_64_dbg.nexe
+	@echo "Creating pi_generator_dbg.nmf..."
+	@echo > pi_generator_dbg.nmf \
+	'{\n\
+	  "nexes": {\n\
+	    "x86-64": "pi_generator_x86_64_dbg.nexe",\n\
+	    "x86-32": "pi_generator_x86_32_dbg.nexe",\n\
+	  }\n\
+	}\n'
 
 pi_generator_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
@@ -40,9 +59,9 @@ pi_generator_x86_64_dbg.nexe: $(OBJECTS_X86_64_DBG)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
 
 clean:
-	-$(RM) *.o *.obj *.nexe
+	-$(RM) *.nmf *.o *.obj *.nexe
 
 # This target is used by the SDK build system to produce a pre-built version
 # of the .nexe.  You do not need to call this target.
-install_prebuilt: pi_generator_x86_32.nexe pi_generator_x86_64.nexe
+install_prebuilt: pi_generator.nmf
 	-$(RM) $(OBJECTS_X86_32) $(OBJECTS_X86_64)

@@ -40,17 +40,20 @@
       The textbox under the square
       shows the current estimate of &pi;.
     </p>
-    <!-- Load the published .nexe.  This includes the 'nexes' attribute which
-    shows how to load multi-architecture modules.  Each entry in the
-    table is a key-value pair: the key is the runtime ('x86-32',
-    'x86-64', etc.); the value is a URL for the desired NaCl module.
+    <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+    shows how to load multi-architecture modules.  Each entry in the "nexes"
+    object in the  .nmf manifest file is a key-value pair: the key is the
+    runtime ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl
+    module.  To load the debug versions of your .nexes, set the 'nacl'
+    attribute to the _dbg.nmf version of the manifest file.
+
+    Note: The 'dimensions' attribute indicates that the pi_generator .nexe will
+    use the 2D drawing device in the browser.
     -->
     <embed name="nacl_module"
            id="piGenerator"
            width=200 height=200
-           nexes="ARM: pi_generator_arm.nexe
-                  x86-32: pi_generator_x86_32.nexe
-                  x86-64: pi_generator_x86_64.nexe"
+           nacl="pi_generator.nmf"
            type="application/x-ppapi-nacl-srpc"
            dimensions="2"
            onload="moduleDidLoad();" />

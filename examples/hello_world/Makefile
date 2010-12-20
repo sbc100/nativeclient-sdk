@@ -21,11 +21,30 @@ LDFLAGS = -lppruntime \
           -lsrpc \
           $(ARCH_FLAGS)
 
-all: check_variables hello_world_x86_32.nexe hello_world_x86_64.nexe \
-	hello_world_x86_32_dbg.nexe hello_world_x86_64_dbg.nexe
+all: check_variables hello_world.nmf hello_world_dbg.nmf
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
+
+hello_world.nmf: hello_world_x86_32.nexe hello_world_x86_64.nexe
+	@echo "Creating hello_world.nmf..."
+	@echo > hello_world.nmf \
+	'{\n\
+	  "nexes": {\n\
+	    "x86-64": "hello_world_x86_64.nexe",\n\
+	    "x86-32": "hello_world_x86_32.nexe",\n\
+	  }\n\
+	}\n'
+
+hello_world_dbg.nmf: hello_world_x86_32_dbg.nexe hello_world_x86_64_dbg.nexe
+	@echo "Creating hello_world_dbg.nmf..."
+	@echo > hello_world_dbg.nmf \
+	'{\n\
+	  "nexes": {\n\
+	    "x86-64": "hello_world_x86_64_dbg.nexe",\n\
+	    "x86-32": "hello_world_x86_32_dbg.nexe",\n\
+	  }\n\
+	}\n'
 
 hello_world_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
@@ -42,9 +61,9 @@ hello_world_x86_64_dbg.nexe: $(OBJECTS_X86_64_DBG)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
 
 clean:
-	-$(RM) *.o *.nexe *.obj
+	-$(RM) *.nmf *.o *.nexe *.obj
 
 # This target is used by the SDK build system to produce a pre-built version
 # of the .nexe.  You do not need to call this target.
-install_prebuilt: hello_world_x86_32.nexe hello_world_x86_64.nexe
+install_prebuilt: hello_world.nmf
 	-$(RM) $(OBJECTS_X86_32) $(OBJECTS_X86_64)

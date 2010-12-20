@@ -42,7 +42,7 @@
 
     function reverseText() {
       try {
-        // Grab the text from the text box, pass it into reverseText() 
+        // Grab the text from the text box, pass it into reverseText()
         alert(helloWorldModule.reverseText(this.hello_form.input_id.value));
       } catch(e) {
         alert(e.message);
@@ -73,17 +73,17 @@
   <input type="button" value="Call fortyTwo()" onclick="fortyTwo()">
   <input type="button" value="Call reverseText()" onclick="reverseText()">
   </form>
-  <!-- Load the published .nexe.  This includes the 'nexes' attribute which
-  shows how to load multi-architecture modules.  Each entry in the
-  table is a key-value pair: the key is the runtime ('x86-32',
-  'x86-64', etc.); the value is a URL for the desired NaCl module.
+  <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+  shows how to load multi-architecture modules.  Each entry in the "nexes"
+  object in the  .nmf manifest file is a key-value pair: the key is the runtime
+  ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
+  To load the debug versions of your .nexes, set the 'nacl' attribute to the
+  _dbg.nmf version of the manifest file.
   -->
   <embed name="nacl_module"
          id="hello_world"
          width=0 height=0
-         nexes="ARM: hello_world_arm.nexe
-                x86-32: hello_world_x86_32.nexe
-                x86-64: hello_world_x86_64.nexe"
+         nacl="hello_world.nmf"
          type="application/x-ppapi-nacl-srpc"
          onload="moduleDidLoad();" />
 </p>

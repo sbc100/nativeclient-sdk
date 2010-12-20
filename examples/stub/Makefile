@@ -19,11 +19,30 @@ LDFLAGS = -lppruntime \
           -lsrpc \
           $(ARCH_FLAGS)
 
-all: check_variables stub_x86_32.nexe stub_x86_64.nexe \
-	stub_x86_32_dbg.nexe stub_x86_64_dbg.nexe
+all: check_variables stub.nmf stub_dbg.nmf
 
 # common.mk has rules to build .o files from .cc files.
 -include ../common.mk
+
+stub.nmf: stub_x86_32.nexe stub_x86_64.nexe
+	@echo "Creating stub.nmf..."
+	@echo > stub.nmf \
+	'{\n\
+	  "nexes": {\n\
+	    "x86-64": "stub_x86_64.nexe",\n\
+	    "x86-32": "stub_x86_32.nexe",\n\
+	  }\n\
+	}\n'
+
+stub_dbg.nmf: stub_x86_32_dbg.nexe stub_x86_64_dbg.nexe
+	@echo "Creating stub_dbg.nmf..."
+	@echo > stub_dbg.nmf \
+	'{\n\
+	  "nexes": {\n\
+	    "x86-64": "stub_x86_64_dbg.nexe",\n\
+	    "x86-32": "stub_x86_32_dbg.nexe",\n\
+	  }\n\
+	}\n'
 
 stub_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
@@ -40,5 +59,5 @@ stub_x86_64_dbg.nexe: $(OBJECTS_X86_64_DBG)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
 
 clean:
-	-$(RM) *.o *.obj *.nexe
+	-$(RM) *.nmf *.o *.obj *.nexe
 

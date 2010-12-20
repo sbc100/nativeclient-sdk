@@ -51,17 +51,21 @@
 
 <h1>Native Client Module Stub</h1>
 <p>
-  <!-- Load the published .nexe.  This includes the 'nexes' attribute which
-  shows how to load multi-architecture modules.  Each entry in the
-  table is a key-value pair: the key is the runtime ('x86-32',
-  'x86-64', etc.); the value is a URL for the desired NaCl module.
+  <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+  shows how to load multi-architecture modules.  Each entry in the "nexes"
+  object in the  .nmf manifest file is a key-value pair: the key is the runtime
+  ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
+  To load the debug versions of your .nexes, set the 'nacl' attribute to the
+  _dbg.nmf version of the manifest file.
+
+  Note: Since this NaCl module does not use any real-estate in the browser,
+  it's width and height are set to 0, and the 'dimensions' attribute is not
+  set (see the pi_generator example for use of the 'dimensions' attribute).
   -->
   <embed name="nacl_module"
          id="stub"
          width=0 height=0
-         nexes="ARM: stub_arm.nexe
-                x86-32: stub_x86_32.nexe
-                x86-64: stub_x86_64.nexe"
+         nacl="stub.nmf"
          type="application/x-ppapi-nacl-srpc"
          onload="moduleDidLoad();" />
 </p>
