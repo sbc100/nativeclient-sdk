@@ -41,7 +41,9 @@ import subprocess
 import sys
 import tempfile
 
-NACL_REVISION = 3876
+# NOTE: |NACL_REVISION| *must* match the |native_client_version| value set in
+# the DEPS file.
+NACL_REVISION = 3992
 
 EXCLUDE_DIRS = ['.download',
                 '.svn',
