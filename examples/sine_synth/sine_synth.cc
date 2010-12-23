@@ -8,6 +8,7 @@
 #include <ppapi/cpp/dev/scriptable_object_deprecated.h>
 #include <ppapi/cpp/var.h>
 
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <sstream>
@@ -17,7 +18,11 @@ const char* const kPlaySoundId = "playSound";
 const char* const kStopSoundId = "stopSound";
 const char* const kFrequencyId = "frequency";
 const double kPi = 3.141592653589;
-const uint32_t kSampleCount = 4096;
+const double kTwoPi = 2.0 * kPi;
+// The sample count we will request.
+const uint32_t kSampleFrameCount = 4096u;
+// Only supporting stereo audio for now.
+const uint32_t kChannels = 2u;
 }  // namespace
 
 namespace sine_synth {
@@ -176,7 +181,8 @@ pp::Var SineSynthScriptableObject::GetProperty(const pp::Var& property,
 class SineSynthInstance : public pp::Instance {
  public:
   explicit SineSynthInstance(PP_Instance instance)
-      : pp::Instance(instance), audio_time_(0), scriptable_object_(NULL) {}
+      : pp::Instance(instance), theta_(0), scriptable_object_(NULL),
+        sample_frame_count_(kSampleFrameCount) {}
   virtual ~SineSynthInstance() {}
 
   // The pp::Var takes over ownership of the SineSynthScriptableObject.
@@ -186,10 +192,13 @@ class SineSynthInstance : public pp::Instance {
     return pp::Var(scriptable_object_);
   }
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]) {
+    // Ask the device for an appropriate sample count size.
+    sample_frame_count_ =
+        pp::AudioConfig_Dev::RecommendSampleFrameCount(kSampleFrameCount);
     audio_ = pp::Audio_Dev(
         *this,
         pp::AudioConfig_Dev(PP_AUDIOSAMPLERATE_44100,
-                            kSampleCount),
+                            sample_frame_count_),
         SineWaveCallback, this);
     return true;
   }
@@ -198,26 +207,42 @@ class SineSynthInstance : public pp::Instance {
   static void SineWaveCallback(void* samples, size_t buffer_size, void* data) {
     SineSynthInstance* sine_synth_instance =
         reinterpret_cast<SineSynthInstance*>(data);
-    size_t& t = sine_synth_instance->audio_time_;
     const double frequency =
         sine_synth_instance->scriptable_object_->frequency();
-    const double theta = 2 * kPi * frequency / PP_AUDIOSAMPLERATE_44100;
-    uint16_t* buff = reinterpret_cast<uint16_t*>(samples);
-    const size_t channel_count = 2;  // stereo
-    size_t j = 0;
-    for (size_t k = 0; k < kSampleCount; ++k) {
-      for (size_t m = 0; m < channel_count && j < buffer_size; ++m, ++j) {
-        *buff++ = static_cast<uint16_t>(std::sin(theta * t++) *
-                                        std::numeric_limits<uint16_t>::max());
+    const double delta = kTwoPi * frequency / PP_AUDIOSAMPLERATE_44100;
+    const int16_t max_int16 = std::numeric_limits<int16_t>::max();
+
+    int16_t* buff = reinterpret_cast<int16_t*>(samples);
+
+    // Make sure we can't write outside the buffer.
+    assert(buffer_size >= (sizeof(*buff) * kChannels *
+                           sine_synth_instance->sample_frame_count_));
+
+    for (size_t sample_i = 0;
+         sample_i < sine_synth_instance->sample_frame_count_;
+         ++sample_i, sine_synth_instance->theta_ += delta) {
+      // Keep theta_ from going beyond 2*Pi.
+      if (sine_synth_instance->theta_ > kTwoPi) {
+        sine_synth_instance->theta_ -= kTwoPi;
+      }
+      double sin_value(std::sin(sine_synth_instance->theta_));
+      int16_t scaled_value = static_cast<int16_t>(sin_value * max_int16);
+      for (size_t channel = 0; channel < kChannels; ++channel) {
+        *buff++ = scaled_value;
       }
     }
   }
   // Audio resource. Allocated in Init()
   pp::Audio_Dev audio_;
-  // Audio buffer time. Used to prevent sine wave skips on buffer
-  // boundaries.
-  size_t audio_time_;
+
+  // The last parameter sent to the sin function.  Used to prevent sine wave
+  // skips on buffer boundaries.
+  double theta_;
+
   SineSynthScriptableObject* scriptable_object_;
+
+  // The count of sample frames per channel in an audio buffer.
+  uint32_t sample_frame_count_;
 };
 
 // The Module class.  The browser calls the CreateInstance() method to create
