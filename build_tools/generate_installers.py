@@ -146,7 +146,7 @@ def main(argv):
     variant = 'mac_x86'
   elif sys.platform in ['linux', 'linux2']:
     variant = 'linux_x86'
-  toolchain = os.path.join('toolchain', variant)
+  toolchain = os.path.abspath(os.path.join('toolchain', variant))
 
   # Build the NaCl tools.
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
