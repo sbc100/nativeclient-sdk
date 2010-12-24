@@ -47,24 +47,6 @@ def MakeCheckoutDirs(options):
   options.old_cwd = os.getcwd()
   os.chdir(options.work_dir)
 
-def MakeInstallDirs(options, tools):
-  for nacl_tool in tools:
-    # Make sure the toolchain directories exist
-    toolchain_32_bit = os.path.join(options.toolchain,
-                                    'bin',
-                                    'nacl-%s%s' % (nacl_tool,
-                                                   options.exe_suffix))
-
-    toolchain_64_bit = os.path.join(options.toolchain,
-                                    'bin',
-                                    'nacl64-%s%s' % (nacl_tool,
-                                                     options.exe_suffix))
-				  
-    if not os.path.exists(toolchain_32_bit):
-      os.makedirs(toolchain_32_bit)
-    if not os.path.exists(toolchain_64_bit):
-      os.makedirs(toolchain_64_bit)
-     
 
 def Checkout(options):
   if not os.path.exists(".gclient"):
@@ -131,7 +113,7 @@ def Install(options, tools):
                                     'scons-out',
                                     '%s-x86-64' % (options.variant),
                                     'staging')
- 
+
   for nacl_tool in tools:
     shutil.copy(os.path.join(tool_build_path_32,
                              '%s%s' % (nacl_tool, options.exe_suffix)),
@@ -149,7 +131,6 @@ def Install(options, tools):
 
 def BuildNaClTools(options):
   MakeCheckoutDirs(options)
-  MakeInstallDirs(options, ['sel_ldr', 'ncval'])
   Checkout(options)
   Build(options)
   Install(options, ['sel_ldr', 'ncval'])
