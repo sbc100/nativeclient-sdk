@@ -122,8 +122,6 @@ if ! patch --no-backup-if-mismatch <<END
    File "/oname=toolchain\\win_x86\\COPYING.LIB" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING.LIB"
 @@ -1742 +1739,0 @@
 -  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
-@@ -2001 +2000,0 @@
--  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
 @@ -4054,3 +4046,5 @@
 -  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
 +  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\bash.exe"
