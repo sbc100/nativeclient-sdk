@@ -47,6 +47,12 @@ def MakeCheckoutDirs(options):
   options.old_cwd = os.getcwd()
   os.chdir(options.work_dir)
 
+def MakeInstallDirs(options, tools):
+  # Make sure the toolchain directories exist
+  toolchain_bin = os.path.join(options.toolchain, 'bin')
+  if not os.path.exists(toolchain_bin):
+    os.makedirs(toolchain_bin)
+
 
 def Checkout(options):
   if not os.path.exists(".gclient"):
@@ -131,6 +137,7 @@ def Install(options, tools):
 
 def BuildNaClTools(options):
   MakeCheckoutDirs(options)
+  MakeInstallDirs(options, ['sel_ldr', 'ncval'])
   Checkout(options)
   Build(options)
   Install(options, ['sel_ldr', 'ncval'])
