@@ -38,32 +38,21 @@ import sys
 import tempfile
 
 
-def MakeCheckoutDirs(options):
+def WorkingArea(options):
   # Pick work directory.
-  options.work_dir = os.path.join('packages', 'native_client');
-  if not os.path.exists(options.work_dir):
-    os.mkdir(options.work_dir)
+  options.work_dir = tempfile.mkdtemp(prefix='nacl_tools')
   # Go into working area.
   options.old_cwd = os.getcwd()
   os.chdir(options.work_dir)
 
-def MakeInstallDirs(options, tools):
-  # Make sure the toolchain directories exist
-  toolchain_bin = os.path.join(options.toolchain, 'bin')
-  if not os.path.exists(toolchain_bin):
-    os.makedirs(toolchain_bin)
-
 
 def Checkout(options):
-  if not os.path.exists(".gclient"):
-    # Setup client spec.
-    p = subprocess.Popen(
-        'gclient config '
-        'http://src.chromium.org/native_client/trunk/src/native_client',
-        shell=True)
-    assert p.wait() == 0
-  else:
-    print(".gclient found, using existing configuration.")
+  # Setup client spec.
+  p = subprocess.Popen(
+      'gclient config '
+      'svn://svn.chromium.org/native_client/trunk/src/native_client',
+      shell=True)
+  assert p.wait() == 0
   # Sync at the desired revision.
   p = subprocess.Popen(
       'gclient sync --rev %s' % options.revision, shell=True)
@@ -119,7 +108,6 @@ def Install(options, tools):
                                     'scons-out',
                                     '%s-x86-64' % (options.variant),
                                     'staging')
-
   for nacl_tool in tools:
     shutil.copy(os.path.join(tool_build_path_32,
                              '%s%s' % (nacl_tool, options.exe_suffix)),
@@ -135,12 +123,17 @@ def Install(options, tools):
                                'bin',
                                'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
 
+
+def Cleanup(options):
+  shutil.rmtree(options.work_dir, ignore_errors=True)
+
+
 def BuildNaClTools(options):
-  MakeCheckoutDirs(options)
-  MakeInstallDirs(options, ['sel_ldr', 'ncval'])
+  WorkingArea(options)
   Checkout(options)
   Build(options)
   Install(options, ['sel_ldr', 'ncval'])
+  Cleanup(options)
   return 0
 
 

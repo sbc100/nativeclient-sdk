@@ -66,17 +66,13 @@ VALGRIND_FILES = ['./third_party/valgrind/memcheck.sh',
                   './third_party/valgrind/bin/tsan']
 
 
-# Check to see of |platform| is a Windows-based build platform.
-def IsWindowsBuild(platform):
-  return platform in WINDOWS_BUILD_PLATFORMS or platform.startswith('win')
-
-
 # Return True if |file| should be excluded from the tarball.
 def ExcludeFile(dir, file):
   return (file.startswith('.DS_Store') or
           re.search('^\._', file) or file == "make.cmd" or
           file == 'DEPS' or file == 'codereview.settings' or
-          (not IsWindowsBuild(sys.platform) and file == "httpd.cmd") or
+          (not sys.platform in WINDOWS_BUILD_PLATFORMS and
+           file == "httpd.cmd") or
           (dir.startswith('./third_party/valgrind') and
            dir + '/' + file not in VALGRIND_FILES))
 
@@ -130,7 +126,7 @@ def main(argv):
 
   # Windows only: remove toolchain and cygwin. They will be added by
   # make_native_client_sdk.sh
-  if IsWindowsBuild(sys.platform):
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
     EXCLUDE_DIRS.extend(['cygwin', 'toolchain'])
 
   # Decide environment to run in per platform.
@@ -150,19 +146,19 @@ def main(argv):
     variant = 'mac_x86'
   elif sys.platform in ['linux', 'linux2']:
     variant = 'linux_x86'
-  toolchain = os.path.abspath(os.path.join('toolchain', variant))
+  toolchain = os.path.join('toolchain', variant)
 
   # Build the NaCl tools.
-  build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
-  make_nacl_tools = os.path.join(build_tools_dir,
+  make_nacl_tools = os.path.join(home_dir,
+                                 'src',
+                                 'build_tools',
                                  'make_nacl_tools.py')
   nacl_tools = subprocess.Popen([sys.executable,
                                  make_nacl_tools,
                                  '--toolchain',
                                  toolchain,
                                  '--revision',
-                                 str(NACL_REVISION)],
-                                 cwd=build_tools_dir)
+                                 str(NACL_REVISION)])
   assert nacl_tools.wait() == 0
 
   # Build c_salt
@@ -227,7 +223,7 @@ def main(argv):
 
   # Windows only: archive will be created in src\build_tools,
   # make_native_client_sdk.sh will create the real nacl-sdk.exe
-  if IsWindowsBuild(sys.platform):
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
     archive = os.path.join(home_dir, 'src', 'build_tools', ar_name)
   else:
     archive = os.path.join(home_dir, ar_name)
@@ -241,7 +237,7 @@ def main(argv):
 
 
   # Windows only: use make_native_client_sdk.sh to create installer
-  if IsWindowsBuild(sys.platform):
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
     os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
     if os.path.exists('done1'):
       os.remove('done1')
