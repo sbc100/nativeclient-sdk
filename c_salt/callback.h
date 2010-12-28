@@ -17,7 +17,7 @@ namespace c_salt {
 namespace c_salt_private {
 // VariantToArgConverter is a small helper class for converting c_salt Variants
 // in to a given type, to allow them to be used as parameters.
-// For most types, just call Variant::GetValue<> function, and let it do the
+// For most types, just call Variant::GetValue<> function and let it do the
 // work.
 // TODO(dmichael):  Is there a nicer way to support passing c_salt::Variant as
 // a parameter?  Or is this a good way...  it is certainly extensible.  It also
