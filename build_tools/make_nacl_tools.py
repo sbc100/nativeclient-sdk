@@ -46,23 +46,9 @@ def MakeCheckoutDirs(options):
     os.makedirs(options.work_dir)
 
 def MakeInstallDirs(options, tools):
-  for nacl_tool in tools:
-    # Make sure the toolchain directories exist
-    toolchain_32_bit = os.path.join(options.toolchain,
-                                    'bin',
-                                    'nacl-%s%s' % (nacl_tool,
-                                                   options.exe_suffix))
-
-    toolchain_64_bit = os.path.join(options.toolchain,
-                                    'bin',
-                                    'nacl64-%s%s' % (nacl_tool,
-                                                     options.exe_suffix))
-				  
-    if not os.path.exists(toolchain_32_bit):
-      os.makedirs(toolchain_32_bit)
-    if not os.path.exists(toolchain_64_bit):
-      os.makedirs(toolchain_64_bit)
-     
+  install_dir = os.path.join(options.toolchain, 'bin');
+  if not os.path.exists(install_dir):
+    os.makedirs(install_dir)
 
 def Checkout(options):
   os.chdir(options.work_dir)
