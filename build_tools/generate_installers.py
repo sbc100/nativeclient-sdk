@@ -149,12 +149,12 @@ def main(argv):
   toolchain = os.path.join('toolchain', variant)
 
   # Build the NaCl tools.
-  make_nacl_tools = os.path.join(home_dir,
-                                 'src',
-                                 'build_tools',
+  build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
+  make_nacl_tools = os.path.join(build_tools_dir,
                                  'make_nacl_tools.py')
   nacl_tools = subprocess.Popen([sys.executable,
                                  make_nacl_tools,
+                                 '-c',
                                  '--toolchain',
                                  toolchain,
                                  '--revision',

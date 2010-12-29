@@ -38,21 +38,43 @@ import sys
 import tempfile
 
 
-def WorkingArea(options):
+def MakeCheckoutDirs(options):
+  script_dir = os.path.abspath(os.path.dirname(__file__))
   # Pick work directory.
-  options.work_dir = tempfile.mkdtemp(prefix='nacl_tools')
-  # Go into working area.
-  options.old_cwd = os.getcwd()
-  os.chdir(options.work_dir)
+  options.work_dir = os.path.join(script_dir, 'packages', 'native_client');
+  if not os.path.exists(options.work_dir):
+    os.makedirs(options.work_dir)
 
+def MakeInstallDirs(options, tools):
+  for nacl_tool in tools:
+    # Make sure the toolchain directories exist
+    toolchain_32_bit = os.path.join(options.toolchain,
+                                    'bin',
+                                    'nacl-%s%s' % (nacl_tool,
+                                                   options.exe_suffix))
+
+    toolchain_64_bit = os.path.join(options.toolchain,
+                                    'bin',
+                                    'nacl64-%s%s' % (nacl_tool,
+                                                     options.exe_suffix))
+				  
+    if not os.path.exists(toolchain_32_bit):
+      os.makedirs(toolchain_32_bit)
+    if not os.path.exists(toolchain_64_bit):
+      os.makedirs(toolchain_64_bit)
+     
 
 def Checkout(options):
-  # Setup client spec.
-  p = subprocess.Popen(
-      'gclient config '
-      'svn://svn.chromium.org/native_client/trunk/src/native_client',
-      shell=True)
-  assert p.wait() == 0
+  os.chdir(options.work_dir)
+  if not os.path.exists(".gclient"):
+    # Setup client spec.
+    p = subprocess.Popen(
+        'gclient config '
+        'http://src.chromium.org/native_client/trunk/src/native_client',
+        shell=True)
+    assert p.wait() == 0
+  else:
+    print(".gclient found, using existing configuration.")
   # Sync at the desired revision.
   p = subprocess.Popen(
       'gclient sync --rev %s' % options.revision, shell=True)
@@ -108,6 +130,7 @@ def Install(options, tools):
                                     'scons-out',
                                     '%s-x86-64' % (options.variant),
                                     'staging')
+ 
   for nacl_tool in tools:
     shutil.copy(os.path.join(tool_build_path_32,
                              '%s%s' % (nacl_tool, options.exe_suffix)),
@@ -123,17 +146,26 @@ def Install(options, tools):
                                'bin',
                                'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
 
-
-def Cleanup(options):
-  shutil.rmtree(options.work_dir, ignore_errors=True)
-
-
+#Cleans up the checkout directories if -c was provided as a command line arg.
+def CleanUpCheckoutDirs(options):
+  if(options.cleanup):
+    if(options.variant != 'opt-win'):
+      shutil.rmtree(options.work_dir, ignore_errors=True)
+    else:
+      rm_proc = subprocess.Popen(['rmdir',
+                                  '/Q',
+                                  '/S',
+                                  options.work_dir],
+                                  env=os.environ.copy(),
+                                  shell=True)
+			       
 def BuildNaClTools(options):
-  WorkingArea(options)
+  MakeCheckoutDirs(options)
+  MakeInstallDirs(options, ['sel_ldr', 'ncval'])
   Checkout(options)
   Build(options)
   Install(options, ['sel_ldr', 'ncval'])
-  Cleanup(options)
+  CleanUpCheckoutDirs(options)
   return 0
 
 
@@ -152,6 +184,10 @@ def main(argv):
       '-t', '--toolchain', dest='toolchain',
       default='toolchain',
       help='where to put the NaCl tool binaries')
+  parser.add_option(
+      '-c', '--cleanup', action='store_true', dest='cleanup',
+      default=False,
+      help='whether to clean up the checkout files')
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
