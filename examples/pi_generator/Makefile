@@ -26,23 +26,14 @@ all: check_variables pi_generator.nmf pi_generator_dbg.nmf
 
 pi_generator.nmf: pi_generator_x86_32.nexe pi_generator_x86_64.nexe
 	@echo "Creating pi_generator.nmf..."
-	@echo > pi_generator.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "pi_generator_x86_64.nexe",\n\
-	    "x86-32": "pi_generator_x86_32.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 pi_generator_x86_64.nexe --x86-32 pi_generator_x86_32.nexe
 
 pi_generator_dbg.nmf: pi_generator_x86_32_dbg.nexe pi_generator_x86_64_dbg.nexe
 	@echo "Creating pi_generator_dbg.nmf..."
-	@echo > pi_generator_dbg.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "pi_generator_x86_64_dbg.nexe",\n\
-	    "x86-32": "pi_generator_x86_32_dbg.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 pi_generator_x86_64_dbg.nexe \
+	 --x86-32 pi_generator_x86_32_dbg.nexe
 
 pi_generator_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@

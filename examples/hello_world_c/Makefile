@@ -27,23 +27,14 @@ all: check_variables hello_world.nmf hello_world_dbg.nmf
 
 hello_world.nmf: hello_world_x86_32.nexe hello_world_x86_64.nexe
 	@echo "Creating hello_world.nmf..."
-	@echo > hello_world.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "hello_world_x86_64.nexe",\n\
-	    "x86-32": "hello_world_x86_32.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 hello_world_x86_64.nexe --x86-32 hello_world_x86_32.nexe
 
 hello_world_dbg.nmf: hello_world_x86_32_dbg.nexe hello_world_x86_64_dbg.nexe
 	@echo "Creating hello_world_dbg.nmf..."
-	@echo > hello_world_dbg.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "hello_world_x86_64_dbg.nexe",\n\
-	    "x86-32": "hello_world_x86_32_dbg.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 hello_world_x86_64_dbg.nexe \
+	 --x86-32 hello_world_x86_32_dbg.nexe
 
 # Have to link with g++: the implementation of the PPAPI proxy
 # is a C++ implementation

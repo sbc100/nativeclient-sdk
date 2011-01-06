@@ -26,23 +26,13 @@ all: check_variables stub.nmf stub_dbg.nmf
 
 stub.nmf: stub_x86_32.nexe stub_x86_64.nexe
 	@echo "Creating stub.nmf..."
-	@echo > stub.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "stub_x86_64.nexe",\n\
-	    "x86-32": "stub_x86_32.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 stub_x86_64.nexe --x86-32 stub_x86_32.nexe
 
 stub_dbg.nmf: stub_x86_32_dbg.nexe stub_x86_64_dbg.nexe
 	@echo "Creating stub_dbg.nmf..."
-	@echo > stub_dbg.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "stub_x86_64_dbg.nexe",\n\
-	    "x86-32": "stub_x86_32_dbg.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 stub_x86_64_dbg.nexe --x86-32 stub_x86_32_dbg.nexe
 
 stub_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@

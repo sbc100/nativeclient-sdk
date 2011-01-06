@@ -27,23 +27,13 @@ all: check_variables geturl.nmf geturl_dbg.nmf
 
 geturl.nmf: geturl_x86_32.nexe geturl_x86_64.nexe
 	@echo "Creating geturl.nmf..."
-	@echo > geturl.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "geturl_x86_64.nexe",\n\
-	    "x86-32": "geturl_x86_32.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 geturl_x86_64.nexe --x86-32 geturl_x86_32.nexe
 
 geturl_dbg.nmf: geturl_x86_32_dbg.nexe geturl_x86_64_dbg.nexe
 	@echo "Creating geturl_dbg.nmf..."
-	@echo > geturl_dbg.nmf \
-	'{\n\
-	  "nexes": {\n\
-	    "x86-64": "geturl_x86_64_dbg.nexe",\n\
-	    "x86-32": "geturl_x86_32_dbg.nexe",\n\
-	  }\n\
-	}\n'
+	$(PYTHON) ../generate_nmf.py --nmf $@ \
+	 --x86-64 geturl_x86_64_dbg.nexe --x86-32 geturl_x86_32_dbg.nexe
 
 geturl_x86_32.nexe: $(OBJECTS_X86_32)
 	$(CPP) $^ $(LDFLAGS) -m32 -o $@
