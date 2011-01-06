@@ -37,6 +37,7 @@ ifneq (, $(findstring Linux, $(OS)))
   TARGET = x86
 endif
 
+PYTHON ?= /usr/bin/python
 NACL_SDK_ROOT ?= .
 
 NACL_TOOLCHAIN_DIR = toolchain/$(PLATFORM)_$(TARGET)
