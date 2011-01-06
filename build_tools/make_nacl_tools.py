@@ -45,7 +45,7 @@ def MakeCheckoutDirs(options):
   if not os.path.exists(options.work_dir):
     os.makedirs(options.work_dir)
 
-def MakeInstallDirs(options, tools):
+def MakeInstallDirs(options):
   install_dir = os.path.join(options.toolchain, 'bin');
   if not os.path.exists(install_dir):
     os.makedirs(install_dir)
@@ -116,7 +116,7 @@ def Install(options, tools):
                                     'scons-out',
                                     '%s-x86-64' % (options.variant),
                                     'staging')
- 
+
   for nacl_tool in tools:
     shutil.copy(os.path.join(tool_build_path_32,
                              '%s%s' % (nacl_tool, options.exe_suffix)),
@@ -144,10 +144,10 @@ def CleanUpCheckoutDirs(options):
                                   options.work_dir],
                                   env=os.environ.copy(),
                                   shell=True)
-			       
+
 def BuildNaClTools(options):
   MakeCheckoutDirs(options)
-  MakeInstallDirs(options, ['sel_ldr', 'ncval'])
+  MakeInstallDirs(options)
   Checkout(options)
   Build(options)
   Install(options, ['sel_ldr', 'ncval'])
