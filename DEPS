@@ -1,11 +1,11 @@
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "3992",
+  "native_client_version": "4089",
 # NOTE: The version number for build_tools/generate_installers.py needs to have
 # |NACL_REVISION| set to match |native_client_version|
-  "x86_toolchain_version": "3992",
+  "x86_toolchain_version": "4089",
   "valgrind_path": "http://src.chromium.org/native_client/trunk/src/native_client/src/third_party/valgrind",
-  "valgrind_version": "3860",
+  "valgrind_version": "4089",
 }
 # When we have ARM and PNaCl support, we'll need to add toolchain support
 # for those too.

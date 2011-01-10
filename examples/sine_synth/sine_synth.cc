@@ -189,15 +189,16 @@ class SineSynthInstance : public pp::Instance {
   virtual pp::Var GetInstanceObject() {
     scriptable_object_ =
         new SineSynthScriptableObject(&audio_);
-    return pp::Var(scriptable_object_);
+    return pp::Var(this, scriptable_object_);
   }
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]) {
     // Ask the device for an appropriate sample count size.
     sample_frame_count_ =
         pp::AudioConfig_Dev::RecommendSampleFrameCount(kSampleFrameCount);
     audio_ = pp::Audio_Dev(
-        *this,
-        pp::AudioConfig_Dev(PP_AUDIOSAMPLERATE_44100,
+        this,
+        pp::AudioConfig_Dev(this,
+                            PP_AUDIOSAMPLERATE_44100,
                             sample_frame_count_),
         SineWaveCallback, this);
     return true;

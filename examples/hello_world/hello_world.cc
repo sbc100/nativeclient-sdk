@@ -147,7 +147,7 @@ class HelloWorldInstance : public pp::Instance {
   ///       and is responsible for deallocating memory.
   virtual pp::Var GetInstanceObject() {
     HelloWorldScriptableObject* hw_object = new HelloWorldScriptableObject();
-    return pp::Var(hw_object);
+    return pp::Var(this, hw_object);
   }
 };
 

@@ -110,7 +110,7 @@ void PiGenerator::DidChangeView(const pp::Rect& position,
 
 pp::Var PiGenerator::GetInstanceObject() {
   PiGeneratorScriptObject* script_object = new PiGeneratorScriptObject(this);
-  return pp::Var(script_object);
+  return pp::Var(this, script_object);
 }
 
 bool PiGenerator::Init(uint32_t argc, const char* argn[], const char* argv[]) {
@@ -125,7 +125,8 @@ uint32_t* PiGenerator::LockPixels() {
   if (pthread_mutex_lock(&pixel_buffer_mutex_) == kPthreadMutexSuccess) {
     // Lazily create |pixel_buffer_|.
     if (pixel_buffer_ == NULL && graphics_2d_context_ != NULL) {
-      pixel_buffer_ = new pp::ImageData(PP_IMAGEDATAFORMAT_BGRA_PREMUL,
+      pixel_buffer_ = new pp::ImageData(this,
+                                        PP_IMAGEDATAFORMAT_BGRA_PREMUL,
                                         graphics_2d_context_->size(),
                                         false);
     }
@@ -162,7 +163,7 @@ void PiGenerator::CreateContext(const pp::Size& size) {
   }
   if (IsContextValid())
     return;
-  graphics_2d_context_ = new pp::Graphics2D(size, false);
+  graphics_2d_context_ = new pp::Graphics2D(this, size, false);
   if (!BindGraphics(*graphics_2d_context_)) {
     printf("Couldn't bind the device context\n");
   }

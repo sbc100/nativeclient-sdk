@@ -101,7 +101,7 @@ class GetURLInstance : public pp::Instance {
 
   // The pp::Var takes over ownership of the GetURLScriptableObject.
   virtual pp::Var GetInstanceObject() {
-    return pp::Var(new GetURLScriptableObject(*this));
+    return pp::Var(this, new GetURLScriptableObject(*this));
   }
 };
 
