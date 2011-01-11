@@ -37,6 +37,7 @@ import os
 import re
 import shutil
 import stat
+import string
 import subprocess
 import sys
 import tempfile
@@ -47,11 +48,17 @@ NACL_REVISION = 3992
 
 EXCLUDE_DIRS = ['.download',
                 '.svn',
-                'build_tools',
-                'experimental',
-                'packages',
-                'scons-out']
-
+                '.gitignore',
+                '.git']
+INSTALLER_CONTENTS = ['toolchain',
+                      'documentation',
+                      'examples',
+                      'third_party',
+                      'AUTHORS',
+                      'COPYING',
+                      'LICENSE',
+                      'NOTICE',
+                      'README']
 
 # A list of all platforms that should use the Windows-based build strategy
 # (which makes a self-extracting zip instead of a tarball).
@@ -101,6 +108,7 @@ def RawVersion():
 
 
 def main(argv):
+  print('generate_installers is starting.')
   # Cache the current location so we can return here before removing the
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -117,8 +125,9 @@ def main(argv):
   # contents of src to that directory, clean the directory of unwanted
   # stuff and finally tar it all up using the platform's tar.  There seems to
   # be a problem with python's tarfile module and symlinks.
-  temp_dir = tempfile.mkdtemp()
+  temp_dir = os.path.join(script_dir, 'installers_temp')
   installer_dir = os.path.join(temp_dir, version_dir)
+  print('generate_installers chose installer directory: %s' % (installer_dir))
   try:
     os.makedirs(installer_dir, mode=0777)
   except OSError:
@@ -149,6 +158,7 @@ def main(argv):
   toolchain = os.path.join('toolchain', variant)
 
   # Build the NaCl tools.
+  print('generate_installers is kicking off make_nacl_tools.py.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
   make_nacl_tools = os.path.join(build_tools_dir,
                                  'make_nacl_tools.py')
@@ -166,6 +176,7 @@ def main(argv):
   c_salt_path = os.path.join(home_dir, 'src', 'c_salt')
 
   # Build the examples.
+  print('generate_installers is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
   make = subprocess.Popen('make install_prebuilt',
                           env=env,
@@ -175,8 +186,10 @@ def main(argv):
 
   # Use native tar to copy the SDK into the build location; this preserves
   # symlinks.
+  print('generate_installers is copying contents to install directory.')
   tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen('tar cf - .',
+  tar_cf = subprocess.Popen('tar cf - %s' % 
+                            (string.join(INSTALLER_CONTENTS, ' ')),
                             cwd=tar_src_dir, env=env, shell=True,
                             stdout=subprocess.PIPE)
   tar_xf = subprocess.Popen('tar xfv -',
@@ -185,6 +198,7 @@ def main(argv):
   tar_copy_err = tar_xf.communicate()[1]
 
   # Clean out the cruft.
+  print('generate_installers is cleaning up the installer directory.')
   os.chdir(installer_dir)
 
   # Make everything read/write (windows needs this).
@@ -197,6 +211,7 @@ def main(argv):
 
   # This loop prunes the result of os.walk() at each excluded dir, so that it
   # doesn't descend into the excluded dir.
+  print('generate_installers is pruning installer directory')
   for root, dirs, files in os.walk('.'):
     rm_dirs = []
     for excl in EXCLUDE_DIRS:
@@ -209,6 +224,7 @@ def main(argv):
     for rm_file in rm_files:
       os.remove(rm_file)
 
+  print('generate_installers is creating the installer archive')
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
   os.chdir(temp_dir)
@@ -238,6 +254,7 @@ def main(argv):
 
   # Windows only: use make_native_client_sdk.sh to create installer
   if sys.platform in WINDOWS_BUILD_PLATFORMS:
+    print('generate_installers is creating the windows installer.')
     os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
     if os.path.exists('done1'):
       os.remove('done1')
