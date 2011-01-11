@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2010, Google Inc.
+# Copyright 2010, 2011, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -113,11 +113,13 @@ if ! patch --no-backup-if-mismatch <<END
 @@ -431,2 +430,0 @@
 -  CreateDirectory "\$INSTDIR\\sdk"
 -  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
-@@ -734,4 +745,6 @@
+@@ -734,4 +745,8 @@
    File "/oname=toolchain\\win_x86\\bin\\nacl-addr2line.exe" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-addr2line.exe"
    File "/oname=toolchain\\win_x86\\bin\\nacl-gccbug" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-gccbug"
 +  File "/oname=toolchain\\win_x86\\bin\\nacl-sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\nacl-sel_ldr.exe"
 +  File "/oname=toolchain\\win_x86\\bin\\nacl-ncval.exe" "..\\toolchain\\win_x86\\bin\\nacl-ncval.exe"
++  File "/oname=toolchain\\win_x86\\bin\\nacl64-sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\nacl64-sel_ldr.exe"
++  File "/oname=toolchain\\win_x86\\bin\\nacl64-ncval.exe" "..\\toolchain\\win_x86\\bin\\nacl64-ncval.exe"
    File "/oname=toolchain\\win_x86\\COPYING" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING"
    File "/oname=toolchain\\win_x86\\COPYING.LIB" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING.LIB"
 @@ -1742 +1739,0 @@
