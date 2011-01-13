@@ -51,6 +51,7 @@ EXCLUDE_DIRS = ['.download',
                 '.gitignore',
                 '.git']
 INSTALLER_CONTENTS = ['toolchain',
+                      'documentation',
                       'examples',
                       'third_party',
                       'AUTHORS',
@@ -181,23 +182,20 @@ def main(argv):
                           env=env,
                           cwd=example_path,
                           shell=True)
-  assert make.wait() == 0
+  make_err = make.communicate()[1]
 
   # Use native tar to copy the SDK into the build location; this preserves
-  # symlinks.  We use a buffer for speed here.  -1 causes the default OS
-  # size to be used.
+  # symlinks.
   print('generate_installers is copying contents to install directory.')
   tar_src_dir = os.path.realpath(os.curdir)
   tar_cf = subprocess.Popen('tar cf - %s' % 
                             (string.join(INSTALLER_CONTENTS, ' ')),
-                            bufsize=-1,
                             cwd=tar_src_dir, env=env, shell=True,
                             stdout=subprocess.PIPE)
   tar_xf = subprocess.Popen('tar xfv -',
                             cwd=installer_dir, env=env, shell=True,
                             stdin=tar_cf.stdout)
-  assert tar_xf.wait() == 0
-  assert tar_cf.poll() == 0
+  tar_copy_err = tar_xf.communicate()[1]
 
   # Clean out the cruft.
   print('generate_installers is cleaning up the installer directory.')
@@ -251,7 +249,8 @@ def main(argv):
             'input':version_dir,
             'output':archive.replace('\\', '/')}),
       env=env, shell=True)
-  assert tarball.wait() == 0
+  tarball_err = tarball.communicate()[1]
+
 
   # Windows only: use make_native_client_sdk.sh to create installer
   if sys.platform in WINDOWS_BUILD_PLATFORMS:
@@ -264,7 +263,7 @@ def main(argv):
       exefile = subprocess.Popen([
           os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
           'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
-      exefile.wait()
+      exefile_err = exefile.communicate()[1]
       if os.path.exists('done1'):
         print "NSIS script created - time to run makensis!"
         if os.path.exists('done2'):
@@ -274,7 +273,7 @@ def main(argv):
           exefile2 = subprocess.Popen([
               os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
               'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
-          exefile2.wait()
+          exefile_err2 = exefile2.communicate()[1]
           if os.path.exists('done2'):
             print "Installer created!"
             break
