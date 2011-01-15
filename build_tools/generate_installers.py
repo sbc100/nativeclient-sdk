@@ -50,15 +50,15 @@ EXCLUDE_DIRS = ['.download',
                 '.svn',
                 '.gitignore',
                 '.git']
-INSTALLER_CONTENTS = ['toolchain',
-                      'documentation',
-                      'examples',
-                      'third_party',
-                      'AUTHORS',
-                      'COPYING',
-                      'LICENSE',
-                      'NOTICE',
-                      'README']
+INSTALLER_DIRS = ['examples',
+                  'third_party']
+INSTALLER_FILES = ['AUTHORS',
+                   'COPYING',
+                   'LICENSE',
+                   'NOTICE',
+                   'README']
+
+INSTALLER_CONTENTS = INSTALLER_DIRS + INSTALLER_FILES
 
 # A list of all platforms that should use the Windows-based build strategy
 # (which makes a self-extracting zip instead of a tarball).
@@ -133,11 +133,6 @@ def main(argv):
   except OSError:
     pass
 
-  # Windows only: remove toolchain and cygwin. They will be added by
-  # make_native_client_sdk.sh
-  if sys.platform in WINDOWS_BUILD_PLATFORMS:
-    EXCLUDE_DIRS.extend(['cygwin', 'toolchain'])
-
   # Decide environment to run in per platform.
   # This adds the assumption that cygwin is installed in the default location
   # when cooking the sdk for windows.
@@ -182,20 +177,54 @@ def main(argv):
                           env=env,
                           cwd=example_path,
                           shell=True)
-  make_err = make.communicate()[1]
+  assert make.wait() == 0
 
-  # Use native tar to copy the SDK into the build location; this preserves
-  # symlinks.
-  print('generate_installers is copying contents to install directory.')
-  tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen('tar cf - %s' % 
-                            (string.join(INSTALLER_CONTENTS, ' ')),
-                            cwd=tar_src_dir, env=env, shell=True,
-                            stdout=subprocess.PIPE)
-  tar_xf = subprocess.Popen('tar xfv -',
-                            cwd=installer_dir, env=env, shell=True,
-                            stdin=tar_cf.stdout)
-  tar_copy_err = tar_xf.communicate()[1]
+  if sys.platform in WINDOWS_BUILD_PLATFORMS:
+    # On windows we use copytree to copy the SDK into the build location
+    # because there is no native tar and using cygwin's version has proven
+    # to be error prone.
+
+    # In case previous run didn't succeed, clean this out so copytree can make
+    # its target directories.
+    print('generate_installers is cleaning out install directory.')
+    shutil.rmtree(installer_dir)
+    # Make the ignore pattern for the recursive copy.  Note that we cannot use
+    # the list from the top of the script because it's the wrong datatype and
+    # because we need to append asterisks to match directories.
+    ignore_dir_pattern = shutil.ignore_patterns('.svn*',
+                                                '.git*',
+                                                '.gitignore*',
+                                                '.download*',
+                                                'cygwin*')
+    print('generate_installers is copying contents to install directory.')
+    for copy_source_dir in INSTALLER_DIRS:
+      copy_target_dir = os.path.join(installer_dir, copy_source_dir)
+      print("Copying %s to %s" % (copy_source_dir, copy_target_dir))
+      shutil.copytree(copy_source_dir,
+                      copy_target_dir,
+                      symlinks=True,
+                      ignore=ignore_dir_pattern)
+    for copy_source_file in INSTALLER_FILES:
+      copy_target_file = os.path.join(installer_dir, copy_source_file)
+      print("Copying %s to %s" % (copy_source_file, copy_target_file))
+      shutil.copy(copy_source_file, copy_target_file)
+  else:
+    # On other platforms, use native tar to copy the SDK into the build location
+    # because copytree has proven to be error prone and is not supported on mac.
+    # We use a buffer for speed here.  -1 causes the default OS size to be used.
+    print('generate_installers is copying contents to install directory.')
+    INSTALLER_CONTENTS.extend(['toolchain'])
+    tar_src_dir = os.path.realpath(os.curdir)
+    tar_cf = subprocess.Popen('tar cf - %s' % 
+                              (string.join(INSTALLER_CONTENTS, ' ')),
+                              bufsize=-1,
+                              cwd=tar_src_dir, env=env, shell=True,
+                              stdout=subprocess.PIPE)
+    tar_xf = subprocess.Popen('tar xfv -',
+                              cwd=installer_dir, env=env, shell=True,
+                              stdin=tar_cf.stdout)
+    assert tar_xf.wait() == 0
+    assert tar_cf.poll() == 0
 
   # Clean out the cruft.
   print('generate_installers is cleaning up the installer directory.')
@@ -249,8 +278,7 @@ def main(argv):
             'input':version_dir,
             'output':archive.replace('\\', '/')}),
       env=env, shell=True)
-  tarball_err = tarball.communicate()[1]
-
+  assert tarball.wait() == 0
 
   # Windows only: use make_native_client_sdk.sh to create installer
   if sys.platform in WINDOWS_BUILD_PLATFORMS:
@@ -263,7 +291,7 @@ def main(argv):
       exefile = subprocess.Popen([
           os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
           'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
-      exefile_err = exefile.communicate()[1]
+      exefile.wait()
       if os.path.exists('done1'):
         print "NSIS script created - time to run makensis!"
         if os.path.exists('done2'):
@@ -273,7 +301,7 @@ def main(argv):
           exefile2 = subprocess.Popen([
               os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
               'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
-          exefile_err2 = exefile2.communicate()[1]
+          exefile2.wait()
           if os.path.exists('done2'):
             print "Installer created!"
             break
