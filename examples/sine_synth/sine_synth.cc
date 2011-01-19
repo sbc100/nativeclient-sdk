@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include <ppapi/cpp/dev/audio_dev.h>
+#include <ppapi/cpp/audio.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/module.h>
 #include <ppapi/cpp/dev/scriptable_object_deprecated.h>
@@ -36,7 +36,7 @@ namespace sine_synth {
 class SineSynthScriptableObject : public pp::deprecated::ScriptableObject {
  public:
   // Single parameter ctor that recives a weak reference to an audio device.
-  explicit SineSynthScriptableObject(pp::Audio_Dev* audio)
+  explicit SineSynthScriptableObject(pp::Audio* audio)
       : pp::deprecated::ScriptableObject(), audio_(audio), frequency_(440) {}
   // Return |true| if |method| is one of the exposed method names.
   virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
@@ -73,7 +73,7 @@ class SineSynthScriptableObject : public pp::deprecated::ScriptableObject {
     return true;
   }
 
-  pp::Audio_Dev* const audio_;  // weak
+  pp::Audio* const audio_;  // weak
   double frequency_;
 };
 
@@ -194,12 +194,13 @@ class SineSynthInstance : public pp::Instance {
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]) {
     // Ask the device for an appropriate sample count size.
     sample_frame_count_ =
-        pp::AudioConfig_Dev::RecommendSampleFrameCount(kSampleFrameCount);
-    audio_ = pp::Audio_Dev(
+        pp::AudioConfig::RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100,
+                                                   kSampleFrameCount);
+    audio_ = pp::Audio(
         this,
-        pp::AudioConfig_Dev(this,
-                            PP_AUDIOSAMPLERATE_44100,
-                            sample_frame_count_),
+        pp::AudioConfig(this,
+                        PP_AUDIOSAMPLERATE_44100,
+                        sample_frame_count_),
         SineWaveCallback, this);
     return true;
   }
@@ -234,7 +235,7 @@ class SineSynthInstance : public pp::Instance {
     }
   }
   // Audio resource. Allocated in Init()
-  pp::Audio_Dev audio_;
+  pp::Audio audio_;
 
   // The last parameter sent to the sin function.  Used to prevent sine wave
   // skips on buffer boundaries.
