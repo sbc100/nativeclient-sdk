@@ -28,65 +28,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Assemble the final installer for each platform.
-
-At this time this is just a tarball.
-"""
+"""Assemble the final installer for windows."""
 
 import build_utils
 import nacl_revision
 import optparse
 import os
-import re
 import shutil
 import stat
 import string
 import subprocess
 import sys
 
-EXCLUDE_DIRS = ['.download',
-                '.svn',
-                '.gitignore',
-                '.git']
+IGNORE_PATTERN = ('.download*', '.svn*', '.gitignore*', '.git*')
 INSTALLER_DIRS = ['examples',
-                  'third_party',
-                  'toolchain']
-
+                  'third_party']
 INSTALLER_FILES = ['AUTHORS',
                    'COPYING',
                    'LICENSE',
                    'NOTICE',
                    'README']
 
-INSTALLER_CONTENTS = INSTALLER_DIRS + INSTALLER_FILES
+def RawVersion():
+  rev = build_utils.SVNRevision()
+  build_number = os.environ.get('BUILD_NUMBER', '0')
+  return '0.1.%d.%s' % (rev, build_number)
 
-INSTALLER_NAME = 'nacl-sdk.tgz'
-
-# A list of all platforms that should use the Windows-based build strategy
-# (which makes a self-extracting zip instead of a tarball).
-WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
-
-# A list of files from third_party/valgrind that should be included in the SDK.
-VALGRIND_FILES = ['./third_party/valgrind/memcheck.sh',
-                  './third_party/valgrind/tsan.sh',
-                  './third_party/valgrind/nacl.supp',
-                  './third_party/valgrind/nacl.ignore',
-                  './third_party/valgrind/bin/memcheck',
-                  './third_party/valgrind/bin/tsan']
-
-
-# Return True if |file| should be excluded from the tarball.
-def ExcludeFile(dir, file):
-  return (file.startswith('.DS_Store') or
-          file.startswith('._') or file == "make.cmd" or
-          file == 'DEPS' or file == 'codereview.settings' or
-          (file == "httpd.cmd") or
-          (dir.startswith('./third_party/valgrind') and
-           dir + '/' + file not in VALGRIND_FILES))
 
 def main(argv):
-  print('generate_installers is starting.')
-  
+  print('generate_windows_installer is starting.')
+
   parser = optparse.OptionParser()
   parser.add_option(
       '--development', action='store_true', dest='development',
@@ -99,10 +70,18 @@ def main(argv):
     print 'ERROR: invalid argument'
     sys.exit(1)
   
+  if(options.development):
+    print 'Running in development mode.'
+  
+  # Make sure that we are running python version 2.6 or higher
+  (major, minor) = sys.version_info[:2]
+  assert major == 2 and minor >= 6
   # Cache the current location so we can return here before removing the
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   home_dir = os.path.realpath(os.path.join(script_dir, '..', '..'))
+  
+  cygwin_dir = os.path.join(script_dir, '..', 'third_party', 'cygwin', 'bin')
 
   os.chdir(home_dir)
   os.chdir('src')
@@ -111,27 +90,25 @@ def main(argv):
 
   # Create a temporary directory using the version string, then move the
   # contents of src to that directory, clean the directory of unwanted
-  # stuff and finally tar it all up using the platform's tar.  There seems to
-  # be a problem with python's tarfile module and symlinks.
+  # stuff and finally create an installer.
   temp_dir = os.path.join(script_dir, 'installers_temp')
   installer_dir = os.path.join(temp_dir, version_dir)
-  print('generate_installers chose installer directory: %s' % (installer_dir))
+  print('generate_windows_installer chose installer directory: %s' %
+        (installer_dir))
   try:
     os.makedirs(installer_dir, mode=0777)
   except OSError:
     pass
 
-  # Decide environment to run in per platform.
   env = os.environ.copy()
-
-  if sys.platform == 'darwin':
-    variant = 'mac_x86'
-  elif sys.platform in ['linux', 'linux2']:
-    variant = 'linux_x86'
+  # TODO (mlinck, mball) make this unnecessary
+  env['PATH'] = cygwin_dir + ';' + env['PATH']
+  # TODO(mlinck, mball): maybe get rid of this
+  variant = 'win_x86'
   toolchain = os.path.join('toolchain', variant)
 
   # Build the NaCl tools.
-  print('generate_installers is kicking off make_nacl_tools.py.')
+  print('generate_windows_installer is kicking off make_nacl_tools.py.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
   make_nacl_tools = os.path.join(build_tools_dir,
                                  'make_nacl_tools.py')
@@ -151,7 +128,7 @@ def main(argv):
   c_salt_path = os.path.join(home_dir, 'src', 'c_salt')
 
   # Build the examples.
-  print('generate_installers is building examples.')
+  print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
   make = subprocess.Popen('make install_prebuilt',
                           env=env,
@@ -159,58 +136,87 @@ def main(argv):
                           shell=True)
   assert make.wait() == 0
 
-  # Use native tar to copy the SDK into the build location
-  # because copytree has proven to be error prone and is not supported on mac.
-  # We use a buffer for speed here.  -1 causes the default OS size to be used.
-  print('generate_installers is copying contents to install directory.')
-  tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen('tar cf - %s' % 
-                            (string.join(INSTALLER_CONTENTS, ' ')),
-                            bufsize=-1,
-                            cwd=tar_src_dir, env=env, shell=True,
-                            stdout=subprocess.PIPE)
-  tar_xf = subprocess.Popen('tar xfv -',
-                            cwd=installer_dir, env=env, shell=True,
-                            stdin=tar_cf.stdout)
-  assert tar_xf.wait() == 0
-  assert tar_cf.poll() == 0
+  # On windows we use copytree to copy the SDK into the build location
+  # because there is no native tar and using cygwin's version has proven
+  # to be error prone.
+
+  # In case previous run didn't succeed, clean this out so copytree can make
+  # its target directories.
+  print('generate_windows_installer is cleaning out install directory.')
+  shutil.rmtree(installer_dir)
+  print('generate_windows_installer is copying contents to install directory.')
+  for copy_source_dir in INSTALLER_DIRS:
+    copy_target_dir = os.path.join(installer_dir, copy_source_dir)
+    print("Copying %s to %s" % (copy_source_dir, copy_target_dir))
+    shutil.copytree(copy_source_dir,
+                    copy_target_dir,
+                    symlinks=True,
+                    ignore=shutil.ignore_patterns(*IGNORE_PATTERN))
+  for copy_source_file in INSTALLER_FILES:
+    copy_target_file = os.path.join(installer_dir, copy_source_file)
+    print("Copying %s to %s" % (copy_source_file, copy_target_file))
+    shutil.copy(copy_source_file, copy_target_file)
 
   # Clean out the cruft.
-  print('generate_installers is cleaning up the installer directory.')
+  print('generate_windows_installer is cleaning up the installer directory.')
   os.chdir(installer_dir)
 
-  # This loop prunes the result of os.walk() at each excluded dir, so that it
-  # doesn't descend into the excluded dir.
-  print('generate_installers is pruning installer directory')
+  # Make everything read/write (windows needs this).
   for root, dirs, files in os.walk('.'):
-    rm_dirs = []
-    for excl in EXCLUDE_DIRS:
-      if excl in dirs:
-        dirs.remove(excl)
-        rm_dirs.append(os.path.join(root, excl))
-    for rm_dir in rm_dirs:
-      shutil.rmtree(rm_dir)
-    rm_files = [os.path.join(root, f) for f in files if ExcludeFile(root, f)]
-    for rm_file in rm_files:
-      os.remove(rm_file)
+    for d in dirs:
+      os.chmod(os.path.join(root, d), stat.S_IWRITE | stat.S_IREAD)
+    for f in files:
+      os.chmod(os.path.join(root, f), stat.S_IWRITE | stat.S_IREAD)
 
-  print('generate_installers is creating the installer archive')
+  print('generate_windows_installer is creating the installer archive')
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
   os.chdir(temp_dir)
 
   # Set the default shell command and output name.
-  ar_cmd = ('tar cvzf %(INSTALLER_NAME)s %(input)s && cp %(INSTALLER_NAME)s '
-            '%(output)s && chmod 644 %(output)s')
+  ar_cmd = ('tar cvzf %(ar_name)s %(input)s && cp %(ar_name)s %(output)s'
+            ' && chmod 644 %(output)s')
+  ar_name = 'nacl-sdk.tgz'
 
-  archive = os.path.join(home_dir, INSTALLER_NAME)
+  # archive will be created in src\build_tools,
+  # make_native_client_sdk.sh will create the real nacl-sdk.exe
+  archive = os.path.join(home_dir, 'src', 'build_tools', ar_name)
   tarball = subprocess.Popen(
       ar_cmd % (
-           {'INSTALLER_NAME':INSTALLER_NAME,
+           {'ar_name':ar_name,
             'input':version_dir,
-            'output':archive}),
+            'output':archive.replace('\\', '/')}),
       env=env, shell=True)
   assert tarball.wait() == 0
+
+  print('generate_windows_installer is creating the windows installer.')
+  os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
+  if os.path.exists('done1'):
+    os.remove('done1')
+  for i in xrange(100):
+    print "Trying to make a script: try %i..." % (i+1)
+    exefile = subprocess.Popen([
+        os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
+        'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
+    exefile.wait()
+    if os.path.exists('done1'):
+      print "NSIS script created - time to run makensis!"
+      if os.path.exists('done2'):
+        os.remove('done2')
+      for j in xrange(100):
+        print "Trying to make a script: try %i..." % (j+1)
+        exefile2 = subprocess.Popen([
+            os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
+            'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
+        exefile2.wait()
+        if os.path.exists('done2'):
+          print "Installer created!"
+          break
+      else:
+        print "Can not create installer (even after 100 tries)"
+      break
+  else:
+    print "Can not create NSIS script (even after 100 tries)"
 
   # Clean up.
   os.chdir(home_dir)
@@ -218,9 +224,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-  if(sys.platform in WINDOWS_BUILD_PLATFORMS):
-    import generate_windows_installer
-    generate_windows_installer.main(sys.argv[1:])
-  else:
-    main(sys.argv[1:])
-
+  main(sys.argv[1:])

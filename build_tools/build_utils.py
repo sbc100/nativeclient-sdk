@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2010 The Native Client Authors. All rights reserved.
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that be
 # found in the LICENSE file.
 
@@ -9,6 +9,7 @@ installers.
 
 import errno
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -135,3 +136,21 @@ def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT, base_dir=None):
   else:
     normalized_toolchain = os.path.abspath(toolchain)
   return normalized_toolchain
+
+# Note that this function has to be run from within a subversion working copy.
+def SVNRevision():
+  p = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE)
+  assert p.wait() == 0
+
+  svn_info = p.communicate()[0]
+  m = re.search('Revision: ([0-9]+)', svn_info)
+  if m:
+    return int(m.group(1))
+  else:
+    return 0
+
+# Returns the version of native client based on the svn revision number.
+def VersionString():
+  rev = SVNRevision()
+  build_number = os.environ.get('BUILD_NUMBER', '0')
+  return 'native_client_sdk_0_1_%d_%s' % (rev, build_number)
