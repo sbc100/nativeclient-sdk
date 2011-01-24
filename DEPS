@@ -1,7 +1,7 @@
 # Defines NACL_REVISION
 # TODO(dspringer,mlinck): make this work from any directory.
 # execfile(build_tools/nacl_revision.py)
-NACL_REVISION = "4164"
+NACL_REVISION = "4209"
 
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
