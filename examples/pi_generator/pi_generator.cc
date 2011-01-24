@@ -16,6 +16,7 @@
 namespace {
 const int kPthreadMutexSuccess = 0;
 const char* const kPaintMethodId = "paint";
+const double kInvalidPiValue = -1.0;
 const int kMaxPointCount = 1000000000;  // The total number of points to draw.
 const uint32_t kOpaqueColorMask = 0xff000000;  // Opaque pixels.
 const uint32_t kRedMask = 0xff0000;
@@ -102,10 +103,16 @@ void PiGenerator::DidChangeView(const pp::Rect& position,
   // Create a new device context with the new size.
   DestroyContext();
   CreateContext(position.size());
-  // Cause a new pixel buffer to get created at the next call to Paint().
+  // Delete the old pixel buffer and create a new one.
   ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
   delete pixel_buffer_;
   pixel_buffer_ = NULL;
+  if (graphics_2d_context_ != NULL) {
+    pixel_buffer_ = new pp::ImageData(this,
+                                      PP_IMAGEDATAFORMAT_BGRA_PREMUL,
+                                      graphics_2d_context_->size(),
+                                      false);
+  }
 }
 
 pp::Var PiGenerator::GetInstanceObject() {
@@ -123,13 +130,6 @@ uint32_t* PiGenerator::LockPixels() {
   // Do not use a ScopedMutexLock here, since the lock needs to be held until
   // the matching UnlockPixels() call.
   if (pthread_mutex_lock(&pixel_buffer_mutex_) == kPthreadMutexSuccess) {
-    // Lazily create |pixel_buffer_|.
-    if (pixel_buffer_ == NULL && graphics_2d_context_ != NULL) {
-      pixel_buffer_ = new pp::ImageData(this,
-                                        PP_IMAGEDATAFORMAT_BGRA_PREMUL,
-                                        graphics_2d_context_->size(),
-                                        false);
-    }
     if (pixel_buffer_ != NULL && !pixel_buffer_->is_null()) {
       pixels = pixel_buffer_->data();
     }
@@ -141,11 +141,10 @@ void PiGenerator::UnlockPixels() const {
   pthread_mutex_unlock(&pixel_buffer_mutex_);
 }
 
-bool PiGenerator::Paint() {
-  // Lazily create the image data.
+pp::Var PiGenerator::Paint() {
   ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
   if (!scoped_mutex.is_valid()) {
-    return false;
+    return pp::Var(kInvalidPiValue);
   }
   // Note that the pixel lock is held while the buffer is copied into the
   // device context and then flushed.
@@ -153,7 +152,7 @@ bool PiGenerator::Paint() {
     graphics_2d_context_->PaintImageData(*pixel_buffer_, pp::Point());
     graphics_2d_context_->Flush(pp::CompletionCallback(&FlushCallback, this));
   }
-  return true;
+  return pp::Var(pi());
 }
 
 void PiGenerator::CreateContext(const pp::Size& size) {
@@ -199,7 +198,7 @@ pp::Var PiGenerator::PiGeneratorScriptObject::Call(
   }
   std::string method_name = method.AsString();
   if (app_instance_ != NULL && method_name == kPaintMethodId) {
-    app_instance_->Paint();
+    return app_instance_->Paint();
   }
   return pp::Var();
 }

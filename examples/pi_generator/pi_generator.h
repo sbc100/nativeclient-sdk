@@ -44,11 +44,10 @@ class PiGenerator : public pp::Instance {
   // The pp::Var takes over ownership of the returned script object.
   virtual pp::Var GetInstanceObject();
 
-
   // Return a pointer to the pixels represented by |pixel_buffer_|.  When this
-  // method returns, the underlying |pixel_buffer_| object is locked.  Lazily
-  // creates |pixel_buffer_|.  This call must have a matching UnlockPixels() or
-  // various threading errors (e.g. deadlock) will occur.
+  // method returns, the underlying |pixel_buffer_| object is locked.  This
+  // call must have a matching UnlockPixels() or various threading errors
+  // (e.g. deadlock) will occur.
   uint32_t* LockPixels();
   // Release the image lock acquired by LockPixels().
   void UnlockPixels() const;
@@ -56,8 +55,9 @@ class PiGenerator : public pp::Instance {
   // Flushes its contents of |pixel_buffer_| to the 2D graphics context.  The
   // ComputePi() thread fills in |pixel_buffer_| pixels as it computes Pi.
   // This method is called in response to the "paint()" method being called
-  // from JavaScript.
-  bool Paint();
+  // from JavaScript.  Returns the current value of pi as computed by the
+  // Monte Carlo method.
+  pp::Var Paint();
 
   bool quit() const {
     return quit_;
