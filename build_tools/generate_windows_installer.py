@@ -31,7 +31,6 @@
 """Assemble the final installer for windows."""
 
 import build_utils
-import nacl_revision
 import optparse
 import os
 import shutil
@@ -87,7 +86,10 @@ def main(argv):
   os.chdir('src')
 
   version_dir = build_utils.VersionString()
-
+  (parent_dir, _) = os.path.split(script_dir)
+  deps_file = os.path.join(parent_dir, 'DEPS')
+  NACL_REVISION = build_utils.GetNaClRevision(deps_file)
+  
   # Create a temporary directory using the version string, then move the
   # contents of src to that directory, clean the directory of unwanted
   # stuff and finally create an installer.
@@ -117,7 +119,7 @@ def main(argv):
                           '--toolchain',
                           toolchain,
                           '--revision',
-                          str(nacl_revision.NACL_REVISION)]
+                          NACL_REVISION]
   if not options.development:
     make_nacl_tools_args.extend(['-c'])
   nacl_tools = subprocess.Popen(make_nacl_tools_args)

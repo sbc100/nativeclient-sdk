@@ -112,7 +112,31 @@ def CheckPatchVersion(shell_env=None):
     return False
   return True
 
+  
+def GetDepsValues(deps_loc):  
+  """Returns a dict that contains all the variables defined in the DEPS file"""
+  local_scope = { }
+  
+  # This is roughly taken from depot_tools/gclient.py, with unneeded functions
+  # stubbed out.
+  global_scope = {
+    'File': lambda: '--File() Not Implemented--',
+    'From': lambda: '--From() Not Implemented--',
+    'Var': lambda var: 'Var(%s)' % var,
+    'deps_os': {},
+  }
+  
+  # This loads the contents from the DEPS file into the local_scope dict
+  execfile(deps_loc, global_scope, local_scope)
+  
+  return local_scope
+  
 
+def GetNaClRevision(deps_loc):
+  """Returns the Subversion Revision of the NaCL Repository"""
+  return GetDepsValues(deps_loc)['NACL_REVISION']
+
+  
 # Build a toolchain path based on the platform type.  |base_dir| is the root
 # directory which includes the platform-specific toolchain.  This could be
 # something like "/usr/local/mydir/nacl_sdk/src".  If |base_dir| is None, then
