@@ -27,6 +27,7 @@ const uint32_t kBlueShift = 0;
 // This is called by the brower when the 2D context has been flushed to the
 // browser window.
 void FlushCallback(void* data, int32_t result) {
+  static_cast<pi_generator::PiGenerator*>(data)->set_flush_pending(false);
 }
 }  // namespace
 
@@ -76,6 +77,7 @@ PiGenerator::PiGenerator(PP_Instance instance)
     : pp::Instance(instance),
       graphics_2d_context_(NULL),
       pixel_buffer_(NULL),
+      flush_pending_(false),
       quit_(false),
       compute_pi_thread_(0),
       pi_(0.0) {
@@ -146,12 +148,7 @@ pp::Var PiGenerator::Paint() {
   if (!scoped_mutex.is_valid()) {
     return pp::Var(kInvalidPiValue);
   }
-  // Note that the pixel lock is held while the buffer is copied into the
-  // device context and then flushed.
-  if (IsContextValid()) {
-    graphics_2d_context_->PaintImageData(*pixel_buffer_, pp::Point());
-    graphics_2d_context_->Flush(pp::CompletionCallback(&FlushCallback, this));
-  }
+  FlushPixelBuffer();
   return pp::Var(pi());
 }
 
@@ -177,6 +174,21 @@ void PiGenerator::DestroyContext() {
     return;
   delete graphics_2d_context_;
   graphics_2d_context_ = NULL;
+}
+
+void PiGenerator::FlushPixelBuffer() {
+  if (!IsContextValid())
+    return;
+  // Note that the pixel lock is held while the buffer is copied into the
+  // device context and then flushed.
+  // TODO(dspringer): remove the final pp::Rect() param when the proxy code can
+  // handle the two-param version of this function.
+  graphics_2d_context_->PaintImageData(*pixel_buffer_, pp::Point(),
+                                       pp::Rect(0, 0, width(), height()));
+  if (flush_pending())
+    return;
+  set_flush_pending(true);
+  graphics_2d_context_->Flush(pp::CompletionCallback(&FlushCallback, this));
 }
 
 bool PiGenerator::PiGeneratorScriptObject::HasMethod(

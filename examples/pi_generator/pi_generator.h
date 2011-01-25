@@ -75,6 +75,15 @@ class PiGenerator : public pp::Instance {
     return pixel_buffer_ ? pixel_buffer_->size().height() : 0;
   }
 
+  // Indicate whether a flush is pending.  This can only be called from the
+  // main thread; it is not thread safe.
+  bool flush_pending() const {
+    return flush_pending_;
+  }
+  void set_flush_pending(bool flag) {
+    flush_pending_ = flag;
+  }
+
  private:
   // This class exposes the scripting interface for this NaCl module.  The
   // HasMethod method is called by the browser when executing a method call on
@@ -106,13 +115,19 @@ class PiGenerator : public pp::Instance {
   void CreateContext(const pp::Size& size);
   // Destroy the 2D drawing context.
   void DestroyContext();
-  bool IsContextValid() {
+  // Push the pixels to the browser, then attempt to flush the 2D context.  If
+  // there is a pending flush on the 2D context, then update the pixels only
+  // and do not flush.
+  void FlushPixelBuffer();
+
+  bool IsContextValid() const {
     return graphics_2d_context_ != NULL;
   }
 
   mutable pthread_mutex_t pixel_buffer_mutex_;
   pp::Graphics2D* graphics_2d_context_;
   pp::ImageData* pixel_buffer_;
+  bool flush_pending_;
   bool quit_;
   pthread_t compute_pi_thread_;
   double pi_;
