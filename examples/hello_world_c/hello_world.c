@@ -87,7 +87,7 @@ static struct PP_Var Instance_GetInstanceObject(PP_Instance pp_instance) {
 }
 
 /**
- * Check existance of the function associated with @a method_name.
+ * Check existence of the function associated with @a name.
  * @param[in] object unused
  * @param[in] name method name
  * @param[out] exception pointer to the exception object, unused
@@ -107,7 +107,7 @@ static bool HelloWorld_HasMethod(void* object,
 }
 
 /**
- * Invoke the function associated with @a method_name.
+ * Invoke the function associated with @a name.
  * @param[in] object unused
  * @param[in] name method name
  * @param[in] argc number of arguments
@@ -182,4 +182,3 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
  */
 PP_EXPORT void PPP_ShutdownModule() {
 }
-
