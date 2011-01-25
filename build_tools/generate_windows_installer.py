@@ -155,9 +155,12 @@ def main(argv):
                     symlinks=True,
                     ignore=shutil.ignore_patterns(*IGNORE_PATTERN))
   for copy_source_file in INSTALLER_FILES:
-    copy_target_file = os.path.join(installer_dir, copy_source_file)
+    copy_target_file = os.path.join(installer_dir, copy_source_file + '.txt')
     print("Copying %s to %s" % (copy_source_file, copy_target_file))
-    shutil.copy(copy_source_file, copy_target_file)
+    with open(copy_source_file, "U") as source_file:
+      text = source_file.read().replace("\n", "\r\n")
+    with open(copy_target_file, "wb") as dest_file:
+      dest_file.write(text)
 
   # Clean out the cruft.
   print('generate_windows_installer is cleaning up the installer directory.')
