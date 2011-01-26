@@ -207,7 +207,7 @@ static PP_Bool Instance_HandleInputEvent(PP_Instance instance,
  */
 static struct PP_Var Instance_GetInstanceObject(PP_Instance instance) {
   if (var_interface)
-    return var_interface->CreateObject(module_id, &ppp_class, NULL);
+    return var_interface->CreateObject(instance, &ppp_class, NULL);
   return PP_MakeUndefined();
 }
 
