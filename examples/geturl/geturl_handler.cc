@@ -17,15 +17,16 @@ bool IsError(int32_t result) {
 }
 }  // namespace
 
-GetURLHandler* GetURLHandler::Create(const pp::Instance& instance,
+GetURLHandler* GetURLHandler::Create(pp::Instance* instance,
                                      const std::string& url) {
   return new GetURLHandler(instance, url);
 }
 
-GetURLHandler::GetURLHandler(const pp::Instance& instance,
+GetURLHandler::GetURLHandler(pp::Instance* instance,
                              const std::string& url)
-    : instance_id_(instance.pp_instance()),
+    : instance_id_(instance->pp_instance()),
       url_(url),
+      url_request_(instance),
       url_loader_(instance),
       cc_factory_(this) {
   url_request_.SetURL(url);

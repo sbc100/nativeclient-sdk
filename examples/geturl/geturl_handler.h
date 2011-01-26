@@ -27,7 +27,7 @@ class GetURLHandler {
   // Creates instance of GetURLHandler on the heap.
   // GetURLHandler objects shall be created only on the heap (they
   // self-destroy when all data is in).
-  static GetURLHandler* Create(const pp::Instance& instance_,
+  static GetURLHandler* Create(pp::Instance* instance_,
                                const std::string& url);
   // Initiates page (URL) download.
   // Returns false in case of internal error, and self-destroys.
@@ -36,7 +36,7 @@ class GetURLHandler {
  private:
   static const int kBufferSize = 4096;
 
-  GetURLHandler(const pp::Instance& instance_, const std::string& url);
+  GetURLHandler(pp::Instance* instance_, const std::string& url);
   ~GetURLHandler();
 
   // Callback fo the pp::URLLoader::Open().

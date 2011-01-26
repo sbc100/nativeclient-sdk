@@ -21,7 +21,7 @@ const char* const kLoadUrlMethodId = "getUrl";
 // This class exposes the scripting interface for this NaCl module.
 class GetURLScriptableObject : public pp::deprecated::ScriptableObject {
  public:
-  explicit GetURLScriptableObject(const pp::Instance& instance)
+  explicit GetURLScriptableObject(pp::Instance* instance)
       : instance_(instance) {}
 
   // Return |true| if |method| is one of the exposed method names.
@@ -33,7 +33,7 @@ class GetURLScriptableObject : public pp::deprecated::ScriptableObject {
                        const std::vector<pp::Var>& args,
                        pp::Var* exception);
  private:
-  const pp::Instance& instance_;
+  pp::Instance* instance_;
 };
 
 bool GetURLScriptableObject::HasMethod(const pp::Var& method,
@@ -101,7 +101,7 @@ class GetURLInstance : public pp::Instance {
 
   // The pp::Var takes over ownership of the GetURLScriptableObject.
   virtual pp::Var GetInstanceObject() {
-    return pp::Var(this, new GetURLScriptableObject(*this));
+    return pp::Var(this, new GetURLScriptableObject(this));
   }
 };
 
