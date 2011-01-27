@@ -46,8 +46,11 @@ def SanityCheckDirectory():
   sys.exit(1)
 
 
-# An HTTP server that will quit when |is_running| is set to False.
-class QuittableHTTPServer(BaseHTTPServer.HTTPServer):
+# An HTTP server that will quit when |is_running| is set to False.  We also use
+# SocketServer.ThreadingMixIn in order to handle requests asynchronously for
+# faster responses.
+class QuittableHTTPServer(SocketServer.ThreadingMixIn,
+                          BaseHTTPServer.HTTPServer):
   def serve_forever(self):
     self.is_running = True
     while self.is_running:
