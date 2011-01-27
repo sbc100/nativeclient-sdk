@@ -98,7 +98,7 @@ class StubInstance : public pp::Instance {
   // The pp::Var takes over ownership of the StubScriptableObject.
   virtual pp::Var GetInstanceObject() {
     StubScriptableObject* hw_object = new StubScriptableObject();
-    return pp::Var(hw_object);
+    return pp::Var(this, hw_object);
   }
 };
 
