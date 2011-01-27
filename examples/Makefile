@@ -12,7 +12,7 @@
 
 .PHONY: all publish clean install_prebuilt
 
-EXAMPLES = hello_world hello_world_c pi_generator sine_synth tumbler geturl
+EXAMPLES = hello_world hello_world_c pi_generator sine_synth geturl
 
 all: publish
 
