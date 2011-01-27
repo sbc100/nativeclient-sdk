@@ -8,7 +8,6 @@
 # The main purpose of this makefile component is to demonstrate building a
 # Native Client module (.nexe)
 
-.SUFFIXES:
 .SUFFIXES: .c .cc .cpp .o
 
 .PHONY: check_variables
