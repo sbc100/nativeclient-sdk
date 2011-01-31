@@ -181,10 +181,7 @@ void PiGenerator::FlushPixelBuffer() {
     return;
   // Note that the pixel lock is held while the buffer is copied into the
   // device context and then flushed.
-  // TODO(dspringer): remove the final pp::Rect() param when the proxy code can
-  // handle the two-param version of this function.
-  graphics_2d_context_->PaintImageData(*pixel_buffer_, pp::Point(),
-                                       pp::Rect(0, 0, width(), height()));
+  graphics_2d_context_->PaintImageData(*pixel_buffer_, pp::Point());
   if (flush_pending())
     return;
   set_flush_pending(true);
