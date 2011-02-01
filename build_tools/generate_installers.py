@@ -43,10 +43,12 @@ import string
 import subprocess
 import sys
 
+# TODO(NaCl SDK team): Put tumbler back in the package when it's ported.
 EXCLUDE_DIRS = ['.download',
                 '.svn',
                 '.gitignore',
-                '.git']
+                '.git',
+                'tumbler']
 INSTALLER_DIRS = ['examples',
                   'third_party',
                   'toolchain']

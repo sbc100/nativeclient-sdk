@@ -140,7 +140,7 @@ if ! patch --no-backup-if-mismatch <<END
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1.gz" "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\pgawk.1.gz"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "gawk.exe"
-@@ -7046,6 +7040,11 @@
+@@ -7046,6 +7040,10 @@
  Section "" sec_PKG_make
    SectionIn 1 2
    SetOutPath \$INSTDIR
@@ -148,11 +148,10 @@ if ! patch --no-backup-if-mismatch <<END
 +  CreateDirectory "\$INSTDIR\\examples\\hello_world"
 +  CreateDirectory "\$INSTDIR\\examples\\pi_generator"
 +  CreateDirectory "\$INSTDIR\\examples\\sine_synth"
-+  CreateDirectory "\$INSTDIR\\examples\\tumbler"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share"
-@@ -7433,6 +7435,7 @@
+@@ -7433,6 +7434,7 @@
  Section "" sec_PKG_python
    SectionIn 1 2
    SetOutPath \$INSTDIR
@@ -160,11 +159,11 @@ if ! patch --no-backup-if-mismatch <<END
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
    CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\include"
-@@ -7471,2 +7474,3 @@
+@@ -7471,2 +7473,3 @@
    CreateDirectory "\$INSTDIR\\third_party\\cygwin\\usr\\share\\man\\man1"
 +  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
    File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python3-3.1.2-1.tar.bz2\\usr\\bin\\2to3"
-@@ -9789,4 +9789,6 @@
+@@ -9789,4 +9788,6 @@
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.exe" "python3.1.exe"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3-config" "python3.1-config"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython3.1.dll.a" "python3.1\\config\\libpython3.1.dll.a"
@@ -175,7 +174,7 @@ if ! patch --no-backup-if-mismatch <<END
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython3.1.dll.a" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python3.1\\config\\libpython3.1.dll.a"
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python.pc" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python-3.1.pc"
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python3.pc" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python-3.1.pc"
-@@ -9032,3 +9035,3 @@
+@@ -9032,3 +9034,3 @@
 -  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} ""
    !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_sdk} "Native Client SDK - examples and documentation"
    !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_toolchain} "Native Client SDK - toolchain"
