@@ -1,11 +1,11 @@
 Welcome to the Native Client SDK.
 
 Native Client SDK Developer Preview
-Updated: October 15 2010
+Updated: January 31, 2011
 
 Please refer to the online documentation here:
 
-  http://code.google.com/p/nativeclient-sdk/wiki/GettingStarted
+  http://code.google.com/chrome/nativeclient
 
 OTHER DEVELOPMENT
 
@@ -19,4 +19,4 @@ KNOWN ISSUES
 
 Please refer to the online documentation here:
 
-  http://code.google.com/p/nativeclient-sdk/wiki/Ref_KnownIssues
+  http://code.google.com/chrome/nativeclient/docs/releasenotes.html
