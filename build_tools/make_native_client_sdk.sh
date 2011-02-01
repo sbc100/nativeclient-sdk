@@ -273,7 +273,7 @@ Section "" sec_PostInstall
   IfErrors 0 DirFound
   ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\7.0\\Setup\\VC" "ProductDir"
   IfErrors 0 DirFound
-  MessageBox MB_OK "Can not find Microsoft Visual Studio location. Native compilation is not supported."
+  ; MessageBox MB_OK "Can not find Microsoft Visual Studio location. Native compilation is not supported."
   StrCpy \$R0 "%VS100COMNTOOLS%\\..\\..\\VC\\bin\\"
   StrCpy \$R2 0
 DirFound:
@@ -312,8 +312,8 @@ DirFound:
     IfFileExists "\$R0vcvarsall.bat" 0 +3
     StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
     GoTo WriteFiles
-    IntCmp \$R2 0 +2
-    MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed"
+    ; IntCmp \$R2 0 +2
+    ; MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed"
     StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
   ;\${EndIf}
 WriteFiles:
