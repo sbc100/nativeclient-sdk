@@ -42,6 +42,7 @@ import sys
 # TODO(NaCl SDK team):  Put tumbler back in the package when it's ported.
 IGNORE_PATTERN = ('.download*', '.svn*', '.gitignore*', '.git*', 'tumbler*')
 INSTALLER_DIRS = ['examples',
+                  'project_templates',
                   'third_party']
 INSTALLER_FILES = ['AUTHORS',
                    'COPYING',
@@ -69,10 +70,10 @@ def main(argv):
     parser.print_help()
     print 'ERROR: invalid argument'
     sys.exit(1)
-  
+
   if(options.development):
     print 'Running in development mode.'
-  
+
   # Make sure that we are running python version 2.6 or higher
   (major, minor) = sys.version_info[:2]
   assert major == 2 and minor >= 6
@@ -80,7 +81,7 @@ def main(argv):
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
   home_dir = os.path.realpath(os.path.join(script_dir, '..', '..'))
-  
+
   cygwin_dir = os.path.join(script_dir, '..', 'third_party', 'cygwin', 'bin')
 
   os.chdir(home_dir)
@@ -90,7 +91,7 @@ def main(argv):
   (parent_dir, _) = os.path.split(script_dir)
   deps_file = os.path.join(parent_dir, 'DEPS')
   NACL_REVISION = build_utils.GetNaClRevision(deps_file)
-  
+
   # Create a temporary directory using the version string, then move the
   # contents of src to that directory, clean the directory of unwanted
   # stuff and finally create an installer.

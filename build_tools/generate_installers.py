@@ -50,6 +50,7 @@ EXCLUDE_DIRS = ['.download',
                 '.git',
                 'tumbler']
 INSTALLER_DIRS = ['examples',
+                  'project_templates',
                   'third_party',
                   'toolchain']
 
@@ -87,7 +88,7 @@ def ExcludeFile(dir, file):
 
 def main(argv):
   print('generate_installers is starting.')
-  
+
   parser = optparse.OptionParser()
   parser.add_option(
       '--development', action='store_true', dest='development',
@@ -99,7 +100,7 @@ def main(argv):
     parser.print_help()
     print 'ERROR: invalid argument'
     sys.exit(1)
-  
+
   # Cache the current location so we can return here before removing the
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -168,7 +169,7 @@ def main(argv):
   # We use a buffer for speed here.  -1 causes the default OS size to be used.
   print('generate_installers is copying contents to install directory.')
   tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen('tar cf - %s' % 
+  tar_cf = subprocess.Popen('tar cf - %s' %
                             (string.join(INSTALLER_CONTENTS, ' ')),
                             bufsize=-1,
                             cwd=tar_src_dir, env=env, shell=True,
@@ -227,4 +228,3 @@ if __name__ == '__main__':
     generate_windows_installer.main(sys.argv[1:])
   else:
     main(sys.argv[1:])
-

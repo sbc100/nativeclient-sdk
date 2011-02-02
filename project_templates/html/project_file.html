@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html>
-  <!--
-  Copyright (c) 2010 The Native Client Authors. All rights reserved.
-  Use of this source code is governed by a BSD-style license that can be
-  found in the LICENSE file.
-  -->
 <head>
-  <title>Stub!</title>
+  <title><ProjectName>!</title>
 
   <script type="text/javascript">
-    stubModule = null;  // Global application object.
+    <ProjectName>Module = null;  // Global application object.
     statusText = 'NO-STATUS';
 
     function moduleDidLoad() {
-      stubModule = document.getElementById('stub');
+      <ProjectName>Module = document.getElementById('<PROJECT_NAME>');
       updateStatus('SUCCESS');
     }
 
@@ -21,7 +16,7 @@
     // status message indicating that the module is still loading.  Otherwise,
     // do not change the status message.
     function pageDidLoad() {
-      if (stubModule == null) {
+      if (<ProjectName>Module == null) {
         updateStatus('LOADING...');
       } else {
         // It's possible that the Native Client module onload event fired
@@ -49,12 +44,13 @@
 </head>
 <body onload="pageDidLoad()">
 
-<h1>Native Client Module Stub</h1>
+<h1>Native Client Module <ProjectName></h1>
 <p>
   <!-- Load the published .nexe.  This includes the 'nacl' attribute which
   shows how to load multi-architecture modules.  Each entry in the "nexes"
-  object in the  .nmf manifest file is a key-value pair: the key is the runtime
-  ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
+  object in the .nmf manifest file is a key-value pair: the key is the
+  instruction set architecture ('x86-32', 'x86-64', etc.); the value is a URL
+  for the desired NaCl module.
   To load the debug versions of your .nexes, set the 'nacl' attribute to the
   _dbg.nmf version of the manifest file.
 
@@ -63,9 +59,9 @@
   set (see the pi_generator example for use of the 'dimensions' attribute).
   -->
   <embed name="nacl_module"
-         id="stub"
+         id="<PROJECT_NAME>"
          width=0 height=0
-         nacl="stub.nmf"
+         nacl="<PROJECT_NAME>.nmf"
          type="application/x-nacl"
          onload="moduleDidLoad();" />
 </p>

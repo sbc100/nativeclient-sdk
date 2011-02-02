@@ -10,7 +10,7 @@ CFILES = hello_world.c
 
 NACL_SDK_ROOT = ../..
 
-CFLAGS = -Wall -Wno-long-long -pthread -DXP_UNIX -Werror
+CFLAGS = -Wall -Wno-long-long -pthread -Werror
 INCLUDES =
 LDFLAGS = -lppruntime \
           -lpthread \
