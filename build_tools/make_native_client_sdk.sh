@@ -193,8 +193,8 @@ InstallDir "c:\\native_client_sdk_${SDK_VERSION//./_}"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
-!define MUI_FINISHPAGE_LINK "Visit the Native Client site for the news, FAQs and support"
-!define MUI_FINISHPAGE_LINK_LOCATION "http://code.google.com/p/nativeclient-sdk/wiki/HowTo_GetStarted"
+!define MUI_FINISHPAGE_LINK "Visit the Native Client site for news, FAQs and support"
+!define MUI_FINISHPAGE_LINK_LOCATION "http://code.google.com/chrome/nativeclient"
 
 ;!define MUI_FINISHPAGE_RUN
 ;!define MUI_FINISHPAGE_RUN_TEXT "Compile and Run Native Client Demos"
@@ -373,7 +373,7 @@ END
 ;  ExecShell "open" "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk"
 ;FunctionEnd
 Function ShowReleaseNotes
-  ExecShell "open" "http://code.google.com/p/nativeclient-sdk/wiki/HowTo_GetStarted"
+  ExecShell "open" "http://code.google.com/chrome/nativeclient"
 FunctionEnd
 END
   echo "NSIS configuration file is created successfully..." >&2
