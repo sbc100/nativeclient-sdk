@@ -155,10 +155,6 @@ for pkgname in "${allinstalledpackages[@]}" ; do
 done
 prefix["native_client_sdk"]=""
 prefix["native_client_toolchain"]=""
-HTTPD_PY_FIX="`2to3 packages.unpacked/nacl-sdk.tgz/native_client_sdk_${SDK_VERSION//./_}/examples/httpd.py 2>/dev/null`"
-if [[ "$HTTPD_PY_FIX" != "" ]] ; then
-  echo "$HTTPD_PY_FIX" | patch -p0
-fi
 fill_required_packages
 fill_filetype_info
 
