@@ -33,7 +33,7 @@ namespace hello_world {
 /// method name for ReverseText, as seen by JavaScript code.
 const char* const kReverseTextMethodId = "reverseText";
 
-/// method name for FortyTwo, as seen by Javascript code.
+/// method name for FortyTwo, as seen by Javascript code. @see FortyTwo()
 const char* const kFortyTwoMethodId = "fortyTwo";
 
 /// This is the module's function that invokes FortyTwo and converts the return
@@ -72,7 +72,7 @@ pp::Var MarshallReverseText(const std::vector<pp::Var>& args) {
 class HelloWorldScriptableObject : public pp::deprecated::ScriptableObject {
  public:
   /// Determines whether a given method is implemented in this object.
-  /// @param method [in] A JavaScript string containing the method name to check
+  /// @param[in] method A JavaScript string containing the method name to check
   /// @param exception Unused
   /// @return @a true if @a method is one of the exposed method names.
   virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
@@ -80,8 +80,8 @@ class HelloWorldScriptableObject : public pp::deprecated::ScriptableObject {
   /// Invoke the function associated with @a method.  The argument list passed
   /// via JavaScript is marshaled into a vector of pp::Vars.  None of the
   /// functions in this example take arguments, so this vector is always empty.
-  /// @param method [in] A JavaScript string with the name of the method to call
-  /// @param args [in] A list of the JavaScript parameters passed to this method
+  /// @param[in] method A JavaScript string with the name of the method to call
+  /// @param[in] args A list of the JavaScript parameters passed to this method
   /// @param exception unused
   /// @return the return value of the invoked method
   virtual pp::Var Call(const pp::Var& method,
@@ -122,10 +122,8 @@ pp::Var HelloWorldScriptableObject::Call(const pp::Var& method,
 /// a new Instance for each occurrence of the <embed> tag that has these
 /// attributes:
 /// <pre>
-///     type="application/x-ppapi-nacl-srpc"
-///     nexes="ARM: hello_world_arm.nexe
-///            x86-32: hello_world_x86_32.nexe
-///            x86-64: hello_world_x86_64.nexe"
+///     type="application/x-nacl"
+///     nacl="hello_world.nmf"
 /// </pre>
 /// The Instance can return a ScriptableObject representing itself.  When the
 /// browser encounters JavaScript that wants to access the Instance, it calls
@@ -155,7 +153,7 @@ class HelloWorldModule : public pp::Module {
   virtual ~HelloWorldModule() {}
 
   /// Create and return a HelloWorldInstance object.
-  /// @param instance [in] a handle to a plug-in instance.
+  /// @param[in] instance a handle to a plug-in instance.
   /// @return a newly created HelloWorldInstance.
   /// @note The browser is responsible for calling @a delete when done.
   virtual pp::Instance* CreateInstance(PP_Instance instance) {

@@ -171,9 +171,9 @@ pp::Var SineSynthScriptableObject::GetProperty(const pp::Var& property,
 // module on the web page.  The browser will ask the Module object to create
 // a new Instance for each occurence of the <embed> tag that has these
 // attributes:
-//     type="application/x-ppapi-nacl-srpc"
-//     nexes="ARM: sine_synth_arm.nexe
-//            ..."
+//     type="application/x-nacl"
+//     nacl="sine_synth.nmf"
+//
 // The Instance can return a ScriptableObject representing itself.  When the
 // browser encounters JavaScript that wants to access the Instance, it calls
 // the GetInstanceObject() method.  All the scripting work is done though

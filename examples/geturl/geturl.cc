@@ -85,11 +85,11 @@ pp::Var GetURLScriptableObject::Call(const pp::Var& method,
 
 // The Instance class.  One of these exists for each instance of your NaCl
 // module on the web page.  The browser will ask the Module object to create
-// a new Instance for each occurence of the <embed> tag that has these
+// a new Instance for each occurrence of the <embed> tag that has these
 // attributes:
-//     type="application/x-ppapi-nacl-srpc"
-//     nexes="ARM: geturl_arm.nexe
-//            ..."
+//     type="application/x-nacl"
+//     nacl="geturl.nmf"
+//
 // The Instance can return a ScriptableObject representing itself.  When the
 // browser encounters JavaScript that wants to access the Instance, it calls
 // the GetInstanceObject() method.  All the scripting work is done though

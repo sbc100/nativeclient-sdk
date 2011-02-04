@@ -4,6 +4,8 @@
 # Ignore these filename patterns
 *.pyc
 *.nexe
+*.o
+*.nmf
 
 # Ignore these directories
 scons-out/
