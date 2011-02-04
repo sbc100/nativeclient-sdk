@@ -1,4 +1,4 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -27,28 +27,29 @@
 #include <string>
 #include <algorithm>  // for reverse
 
-namespace {
+#include "examples/hello_world/helper_functions.h"
+
+namespace hello_world {
 /// method name for ReverseText, as seen by JavaScript code.
 const char* const kReverseTextMethodId = "reverseText";
 
 /// method name for FortyTwo, as seen by Javascript code.
 const char* const kFortyTwoMethodId = "fortyTwo";
 
-/// This is the module's function that does the work to compute the value 42.
-/// The ScriptableObject that called this function then returns the result back
-/// to the browser as a JavaScript value.
-int32_t FortyTwo() {
-  return 42;
+/// This is the module's function that invokes FortyTwo and converts the return
+/// value from an int32_t to a pp::Var for return.
+pp::Var MarshallFortyTwo() {
+  return pp::Var(FortyTwo());
 }
 
 /// This function is passed the arg list from the JavaScript call to
 /// @a reverseText.
 /// It makes sure that there is one argument and that it is a string, returning
 /// an error message if it is not.
-/// On good input, it reverses the string and returns a message with the
-/// original string and the reversed string.  The ScriptableObject that called
-/// this function returns this string back to the browser as a JavaScript value.
-std::string ReverseText(const std::vector<pp::Var>& args) {
+/// On good input, it calls ReverseText and returns the result.  The
+/// ScriptableObject that called this function returns this string back to the
+/// browser as a JavaScript value.
+pp::Var MarshallReverseText(const std::vector<pp::Var>& args) {
   // There should be exactly one arg, which should be an object
   if (args.size() != 1) {
     printf("Unexpected number of args\n");
@@ -58,15 +59,8 @@ std::string ReverseText(const std::vector<pp::Var>& args) {
     printf("Arg %s is NOT a string\n", args[0].DebugString().c_str());
     return "Arg from Javascript is not a string!";
   }
-
-  std::string str_arg = args[0].AsString();
-  std::string message = "Passed in: '" + str_arg + "'";
-  // use reverse to reverse |str_arg| in place
-  reverse(str_arg.begin(), str_arg.end());
-  message += " reversed: '" + str_arg + "'";
-  return message;
+  return pp::Var(ReverseText(args[0].AsString()));
 }
-}  // namespace
 
 /// This class exposes the scripting interface for this NaCl module.  The
 /// HasMethod() method is called by the browser when executing a method call on
@@ -115,10 +109,10 @@ pp::Var HelloWorldScriptableObject::Call(const pp::Var& method,
   std::string method_name = method.AsString();
   if (method_name == kReverseTextMethodId) {
     // note that the vector of pp::Var |args| is passed to ReverseText
-    return pp::Var(ReverseText(args));
+    return MarshallReverseText(args);
   } else if (method_name == kFortyTwoMethodId) {
     // note that no arguments are passed in to FortyTwo.
-    return pp::Var(FortyTwo());
+    return MarshallFortyTwo();
   }
   return pp::Var();
 }
@@ -168,6 +162,8 @@ class HelloWorldModule : public pp::Module {
     return new HelloWorldInstance(instance);
   }
 };
+}  // namespace hello_world
+
 
 namespace pp {
 /// Factory function called by the browser when the module is first loaded.
@@ -178,6 +174,6 @@ namespace pp {
 /// @return new HelloWorldModule.
 /// @note The browser is responsible for deleting returned @a Module.
 Module* CreateModule() {
-  return new HelloWorldModule();
+  return new hello_world::HelloWorldModule();
 }
 }  // namespace pp

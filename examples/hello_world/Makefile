@@ -1,4 +1,4 @@
-# Copyright 2010, The Native Client SDK Authors. All rights reserved.
+# Copyright 2011, The Native Client SDK Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can
 # be found in the LICENSE file.
 
@@ -6,13 +6,13 @@
 
 .PHONY: all clean
 
-CCFILES = hello_world.cc
+CCFILES = hello_world.cc helper_functions.cc
 
 
 
 NACL_SDK_ROOT = ../..
 
-INCLUDES =
+INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lppruntime \
           -lppapi_cpp \
           -lgoogle_nacl_platform \
@@ -50,6 +50,27 @@ hello_world_x86_32_dbg.nexe: $(OBJECTS_X86_32_DBG)
 
 hello_world_x86_64_dbg.nexe: $(OBJECTS_X86_64_DBG)
 	$(CPP) $^ $(LDFLAGS) -m64 -o $@
+
+test_helper_functions_x86_32_dbg.nexe: test_helper_functions_x86_32_dbg.o \
+                                       helper_functions_x86_32_dbg.o
+	$(CPP) $^ $(LDFLAGS) -m32 -o $@
+
+test_helper_functions_x86_64_dbg.nexe: test_helper_functions_x86_64_dbg.o \
+                                       helper_functions_x86_64_dbg.o
+	$(CPP) $^ $(LDFLAGS) -m64 -o $@
+
+# Run the 32-bit version of the unit test with nacl-sel_ldr.
+test32: test_helper_functions_x86_32_dbg.nexe
+	$(NACL_SEL_LDR32) test_helper_functions_x86_32_dbg.nexe
+
+# Run the 64-bit version of the unit test with nacl64-sel_ldr.
+test64: test_helper_functions_x86_64_dbg.nexe
+	$(NACL_SEL_LDR64) test_helper_functions_x86_64_dbg.nexe
+
+# Run both the 32-bit and the 64-bit version of the tests.  Note that this is
+# not included in the 'all' target because 32-bit platforms won't support the
+# 64-bit test.
+test: test32 test64
 
 clean:
 	-$(RM) *.nmf *.o *.nexe *.obj
