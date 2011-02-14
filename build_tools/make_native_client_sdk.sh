@@ -373,7 +373,7 @@ END
 ;  ExecShell "open" "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk"
 ;FunctionEnd
 Function ShowReleaseNotes
-  ExecShell "open" "http://code.google.com/chrome/nativeclient"
+  ExecShell "open" "http://code.google.com/chrome/nativeclient/docs/releasenotes.html"
 FunctionEnd
 END
   echo "NSIS configuration file is created successfully..." >&2
