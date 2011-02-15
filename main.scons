@@ -68,10 +68,9 @@ nacl_env = base_env.Clone(
     NATIVE_CLIENT_SDK_DEFAULT_MODE = 'custom:' + base_env['NACL_TOOLCHAIN_ROOT']
 )
 
-#TODO(mball) Uncomment this line after adding c_salt stub back in
 nacl_env.Append(
   BUILD_SCONSCRIPTS = [
-#    '$MAIN_DIR/c_salt/c_salt.scons',
+    '$MAIN_DIR/c_salt/c_salt.scons',
   ],
 )
 
@@ -123,13 +122,13 @@ nacl64_opt_env = nacl64_env.Clone(
 )
 environment_list.append(nacl64_opt_env)
 
+# TODO(mball) update this target after properly adding c_salt tests
 nacl_test_env = nacl32_env.Clone(
     BUILD_TYPE = 'test',
     BUILD_TYPE_DESCRIPTION = 'NaCl test build',
-    #TODO(mball) uncomment these after adding a c_salt test stub back in
     BUILD_SCONSCRIPTS = [
-#      '$MAIN_DIR/c_salt/c_salt.scons',
-#      '$MAIN_DIR/c_salt/test.scons',
+      '$MAIN_DIR/c_salt/c_salt.scons',
+      '$MAIN_DIR/c_salt/test.scons',
     ],
     COMPONENT_TEST_CMDLINE = '$NACL_TOOLCHAIN_ROOT/bin/sel_ldr $PROGRAM_NAME',
     LIBS = ['gmock', 'gtest', 'nosys', 'pthread', 'srpc',
