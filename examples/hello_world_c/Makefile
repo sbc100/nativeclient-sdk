@@ -14,7 +14,7 @@ CFLAGS = -Wall -Wno-long-long -pthread -Werror
 INCLUDES =
 LDFLAGS = -lppruntime \
           -lpthread \
-          -lgoogle_nacl_platform \
+          -lplatform \
           -lgio \
           -lsrpc \
           $(ARCH_FLAGS)

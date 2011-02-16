@@ -1,7 +1,5 @@
-# Defines NACL_REVISION
-# TODO(dspringer,mlinck): make this work from any directory.
-# execfile(build_tools/nacl_revision.py)
-NACL_REVISION = "4235"
+# Note: NACL_REVISION is used by build_tools/generate_installers.py
+NACL_REVISION = "4303"
 
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",

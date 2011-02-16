@@ -14,7 +14,7 @@ NACL_SDK_ROOT = ../..
 INCLUDES = -I$(NACL_SDK_ROOT)
 LDFLAGS = -lppruntime \
           -lppapi_cpp \
-          -lgoogle_nacl_platform \
+          -lplatform \
           -lgio \
           -lpthread \
           -lsrpc \
