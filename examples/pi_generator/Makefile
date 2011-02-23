@@ -7,6 +7,7 @@
 .PHONY: all clean
 
 CCFILES = pi_generator.cc pi_generator_module.cc
+HFILES = pi_generator.h
 
 NACL_SDK_ROOT = ../..
 

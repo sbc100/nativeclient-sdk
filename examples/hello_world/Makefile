@@ -7,8 +7,7 @@
 .PHONY: all clean
 
 CCFILES = hello_world.cc helper_functions.cc
-
-
+HFILES = helper_functions.h
 
 NACL_SDK_ROOT = ../..
 

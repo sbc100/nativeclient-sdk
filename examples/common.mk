@@ -1,4 +1,4 @@
-# Copyright 2010, The Native Client SDK Authors. All rights reserved.
+# Copyright 2011, The Native Client SDK Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can
 # be found in the LICENSE file.
 
@@ -51,34 +51,37 @@ CFLAGS = -Wall -Wno-long-long -pthread -Werror
 OPT_FLAGS = -O2
 DEBUG_FLAGS = -g
 
-%_x86_32_dbg.o: %.c
+# Make all the object files depend on the entire list of header files.  This
+# is a little brutal, but it gets the job dome simply without a make depend
+# step.
+%_x86_32_dbg.o: %.c $(HFILES)
 	$(CC) $(CFLAGS) -m32 $(INCLUDES) $(DEBUG_FLAGS) -c -o $@ $<
 
-%_x86_32_dbg.o: %.cc
+%_x86_32_dbg.o: %.cc $(HFILES)
 	$(CPP) $(CFLAGS) -m32 $(INCLUDES) $(DEBUG_FLAGS) -c -o $@ $<
 
-%_x86_64_dbg.o: %.c
+%_x86_64_dbg.o: %.c $(HFILES)
 	$(CC) $(CFLAGS) -m64 $(INCLUDES) $(DEBUG_FLAGS) -c -o $@ $<
 
-%_x86_64_dbg.o: %.cc
+%_x86_64_dbg.o: %.cc $(HFILES)
 	$(CPP) $(CFLAGS) -m64 $(INCLUDES) $(DEBUG_FLAGS) -c -o $@ $<
 
-%_x86_32.o: %.c
+%_x86_32.o: %.c $(HFILES)
 	$(CC) $(CFLAGS) -m32 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%_x86_32.o: %.cc
+%_x86_32.o: %.cc $(HFILES)
 	$(CPP) $(CFLAGS) -m32 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%_x86_32.o: %.cpp
+%_x86_32.o: %.cpp $(HFILES)
 	$(CPP) $(CFLAGS) -m32 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%_x86_64.o: %.c
+%_x86_64.o: %.c $(HFILES)
 	$(CC) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%_x86_64.o: %.cc
+%_x86_64.o: %.cc $(HFILES)
 	$(CPP) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
-%_x86_64.o: %.cpp
+%_x86_64.o: %.cpp $(HFILES)
 	$(CPP) $(CFLAGS) -m64 $(INCLUDES) $(OPT_FLAGS) -c -o $@ $<
 
 # Generate list of .o files based on the list of .c and .cc files

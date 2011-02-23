@@ -8,6 +8,7 @@
 
 CCFILES = geturl.cc \
           geturl_handler.cc
+HFILES = geturl_handler.h
 
 NACL_SDK_ROOT = ../..
 
