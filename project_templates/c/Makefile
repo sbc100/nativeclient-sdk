@@ -11,7 +11,7 @@ INCLUDES =
 # These libraries are necessary for PPAPI and NaCl.
 LDFLAGS = -lppruntime \
           -lpthread \
-          -lgoogle_nacl_platform \
+          -lplatform \
           -lgio \
           -lsrpc \
           $(ARCH_FLAGS)

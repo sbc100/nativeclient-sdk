@@ -10,7 +10,7 @@ INCLUDES =
 # These libraries are necessary for PPAPI (Pepper 2) and NaCl.
 LDFLAGS = -lppruntime \
           -lppapi_cpp \
-          -lgoogle_nacl_platform \
+          -lplatform \
           -lgio \
           -lpthread \
           -lsrpc \
