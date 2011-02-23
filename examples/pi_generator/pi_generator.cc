@@ -24,6 +24,20 @@ const uint32_t kBlueMask = 0xff;
 const uint32_t kRedShift = 16;
 const uint32_t kBlueShift = 0;
 
+// Helper function to set the scripting exception.  Both |exception| and
+// |except_string| can be NULL.  If |exception| is NULL, this function does
+// nothing.
+void SetExceptionString(pp::Var* exception, const std::string& except_string) {
+  if (exception) {
+    *exception = except_string;
+  }
+}
+
+// Exception strings.  These are passed back to the browser when errors
+// happen during property accesses or method calls.
+const char* const kExceptionMethodNotAString = "Method name is not a string";
+const char* const kExceptionNoMethodName = "No method named ";
+
 // This is called by the brower when the 2D context has been flushed to the
 // browser window.
 void FlushCallback(void* data, int32_t result) {
@@ -192,6 +206,7 @@ bool PiGenerator::PiGeneratorScriptObject::HasMethod(
     const pp::Var& method,
     pp::Var* exception) {
   if (!method.is_string()) {
+    SetExceptionString(exception, kExceptionMethodNotAString);
     return false;
   }
   std::string method_name = method.AsString();
@@ -203,11 +218,15 @@ pp::Var PiGenerator::PiGeneratorScriptObject::Call(
     const std::vector<pp::Var>& args,
     pp::Var* exception) {
   if (!method.is_string()) {
+    SetExceptionString(exception, kExceptionMethodNotAString);
     return false;
   }
   std::string method_name = method.AsString();
   if (app_instance_ != NULL && method_name == kPaintMethodId) {
     return app_instance_->Paint();
+  } else {
+    SetExceptionString(exception,
+                       std::string(kExceptionNoMethodName) + method_name);
   }
   return pp::Var();
 }

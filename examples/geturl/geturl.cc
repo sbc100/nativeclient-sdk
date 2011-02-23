@@ -16,6 +16,22 @@
 // These are the method names as JavaScript sees them.
 namespace {
 const char* const kLoadUrlMethodId = "getUrl";
+
+// Helper function to set the scripting exception.  Both |exception| and
+// |except_string| can be NULL.  If |exception| is NULL, this function does
+// nothing.
+void SetExceptionString(pp::Var* exception, const std::string& except_string) {
+  if (exception) {
+    *exception = except_string;
+  }
+}
+
+// Exception strings.  These are passed back to the browser when errors
+// happen during property accesses or method calls.
+const char* const kExceptionMethodNotAString = "Method name is not a string";
+const char* const kExceptionNoMethodName = "No method named ";
+const char* const kExceptionStartFailed = "GetURLHandler::Start() failed";
+const char* const kExceptionURLNotAString = "URL is not a string";
 }  // namespace
 
 // This class exposes the scripting interface for this NaCl module.
@@ -39,17 +55,18 @@ class GetURLScriptableObject : public pp::deprecated::ScriptableObject {
 bool GetURLScriptableObject::HasMethod(const pp::Var& method,
                                        pp::Var* exception) {
   if (!method.is_string()) {
+    SetExceptionString(exception, kExceptionMethodNotAString);
     return false;
   }
   std::string method_name = method.AsString();
-  bool has_method = (method_name == kLoadUrlMethodId);
-  return has_method;
+  return method_name == kLoadUrlMethodId;
 }
 
 pp::Var GetURLScriptableObject::Call(const pp::Var& method,
                                      const std::vector<pp::Var>& args,
                                      pp::Var* exception) {
   if (!method.is_string()) {
+    SetExceptionString(exception, kExceptionMethodNotAString);
     return pp::Var();
   }
   std::string method_name = method.AsString();
@@ -67,18 +84,19 @@ pp::Var GetURLScriptableObject::Call(const pp::Var& method,
         // reportResult(url, result, success) (defined in geturl.html) and
         // self-destroys.
         if (!handler->Start()) {
-          *exception = "GetURLHandler::Start() failed";
+          SetExceptionString(exception, kExceptionStartFailed);
         }
       } else {
         const char* msg = "GetURLHandler::Create failed";
         printf("%s\n", msg);
-        *exception = msg;
+        SetExceptionString(exception, msg);
       }
     } else {
-      *exception = "The URL must be of string type.";
+      SetExceptionString(exception, kExceptionURLNotAString);
     }
   } else {
-    *exception = std::string("No method named ") + method_name;
+    SetExceptionString(exception,
+                       std::string(kExceptionNoMethodName) + method_name);
   }
   return pp::Var();
 }

@@ -7,6 +7,7 @@
  * This example demonstrates loading, running and scripting a very simple
  * NaCl module.
  */
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ppapi/c/dev/ppb_var_deprecated.h>
@@ -21,6 +22,14 @@
 
 static const char* const kReverseTextMethodId = "reverseText";
 static const char* const kFortyTwoMethodId = "fortyTwo";
+
+/**
+ * Exception strings.  These are passed back to the browser when errors
+ * happen during property accesses or method calls.
+ */
+static const char* const kExceptionMethodNotAString =
+    "Method name is not a string";
+static const char* const kExceptionNoMethodName = "No method named ";
 
 static PP_Bool Instance_DidCreate(PP_Instance instance,
                                   uint32_t argc,
@@ -73,6 +82,20 @@ static struct PP_Var StrToVar(const char* str) {
   if (NULL != var_interface)
     return var_interface->VarFromUtf8(module_id, str, strlen(str));
   return PP_MakeUndefined();
+}
+
+/**
+ * Helper function to set the scripting exception.  Both @a exception and
+ * @a except_string can be NULL.  If @a exception is NULL, this function does
+ * nothing.
+ * @param[out] exception The PP_Var representing the exception.
+ * @param[in] except_string The exception string.
+ */
+static void SetExceptionString(struct PP_Var* exception,
+                               const char* const except_string) {
+  if (exception) {
+    *exception = StrToVar(except_string);
+  }
 }
 
 /**
@@ -225,8 +248,11 @@ static bool HelloWorld_HasMethod(void* object,
   const char* method_name = VarToCStr(name);
   if (NULL != method_name) {
     if ((strcmp(method_name, kReverseTextMethodId) == 0) ||
-        (strcmp(method_name, kFortyTwoMethodId) == 0))
+        (strcmp(method_name, kFortyTwoMethodId) == 0)) {
       return true;
+    }
+  } else {
+    SetExceptionString(exception, kExceptionMethodNotAString);
   }
   return false;
 }
@@ -263,7 +289,20 @@ static struct PP_Var HelloWorld_Call(void* object,
       }
     } else if (strcmp(method_name, kFortyTwoMethodId) == 0) {
       v = FortyTwo();
+    } else {
+      size_t except_length = strlen(kExceptionNoMethodName) +
+                             strlen(method_name) + 1;
+      char* except_string = (char*)malloc(except_length);
+      snprintf(except_string,
+               except_length,
+               "%s%s",
+               kExceptionNoMethodName,
+               method_name);
+      SetExceptionString(exception, except_string);
+      free(except_string);
     }
+  } else {
+    SetExceptionString(exception, kExceptionMethodNotAString);
   }
   return v;
 }

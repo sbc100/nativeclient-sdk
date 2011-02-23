@@ -23,6 +23,24 @@ const double kTwoPi = 2.0 * kPi;
 const uint32_t kSampleFrameCount = 4096u;
 // Only supporting stereo audio for now.
 const uint32_t kChannels = 2u;
+
+// Helper function to set the scripting exception.  Both |exception| and
+// |except_string| can be NULL.  If |exception| is NULL, this function does
+// nothing.
+void SetExceptionString(pp::Var* exception, const std::string& except_string) {
+  if (exception) {
+    *exception = except_string;
+  }
+}
+
+// Exception strings.  These are passed back to the browser when errors
+// happen during property accesses or method calls.
+const char* const kExceptionMethodNotAString = "Method name is not a string";
+const char* const kExceptionNoMethodName = "No method named ";
+const char* const kExceptionPropertyNotAString =
+    "Property name is not a string";
+const char* const kExceptionNoPropertyName = "No property named ";
+const char* const kExceptionNotANumber = "Expected a number value for ";
 }  // namespace
 
 namespace sine_synth {
@@ -81,6 +99,7 @@ pp::Var SineSynthScriptableObject::Call(const pp::Var& method,
                                         const std::vector<pp::Var>& args,
                                         pp::Var* exception) {
   if (!method.is_string()) {
+    SetExceptionString(exception, kExceptionMethodNotAString);
     return pp::Var();
   }
   const std::string method_name = method.AsString();
@@ -89,7 +108,8 @@ pp::Var SineSynthScriptableObject::Call(const pp::Var& method,
   } else if (method_name == kStopSoundId) {
     return pp::Var(StopSound());
   } else {
-    *exception = std::string("No method named ") + method_name;
+    SetExceptionString(exception,
+                       std::string(kExceptionNoMethodName) + method_name);
   }
   return pp::Var();
 }
@@ -97,29 +117,28 @@ pp::Var SineSynthScriptableObject::Call(const pp::Var& method,
 bool SineSynthScriptableObject::HasMethod(const pp::Var& method,
                                           pp::Var* exception) {
   if (!method.is_string()) {
+    SetExceptionString(exception, kExceptionMethodNotAString);
     return false;
   }
   const std::string method_name = method.AsString();
-  const bool has_method = method_name == kPlaySoundId ||
-      method_name == kStopSoundId;
-  return has_method;
+  return method_name == kPlaySoundId || method_name == kStopSoundId;
 }
 
 bool SineSynthScriptableObject::HasProperty(const pp::Var& property,
                                             pp::Var* exception) {
   if (!property.is_string()) {
+    SetExceptionString(exception, kExceptionPropertyNotAString);
     return false;
   }
   const std::string property_name = property.AsString();
-  const bool has_property = (property_name == kFrequencyId);
-  return has_property;
+  return property_name == kFrequencyId;
 }
 
 void SineSynthScriptableObject::SetProperty(const pp::Var& property,
                                             const pp::Var& value,
                                             pp::Var* exception) {
   if (!property.is_string()) {
-    *exception = "Expected a property name of string type.";
+    SetExceptionString(exception, kExceptionPropertyNotAString);
     return;
   }
   std::string property_name = property.AsString();
@@ -143,27 +162,30 @@ void SineSynthScriptableObject::SetProperty(const pp::Var& property,
         error_msg += kFrequencyId;
         error_msg += ".  Instead, got a non-numeric string: ";
         error_msg += value.AsString();
-        *exception = error_msg;
+        SetExceptionString(exception, error_msg);
         return;
       }
-      *exception = std::string("Expected a number value for ") + kFrequencyId;
+      SetExceptionString(exception,
+                         std::string(kExceptionNotANumber) + kFrequencyId);
       return;
     }
   }
-  *exception = std::string("No property named ") + property_name;
+  SetExceptionString(exception,
+                     std::string(kExceptionNoPropertyName) + property_name);
 }
 
 pp::Var SineSynthScriptableObject::GetProperty(const pp::Var& property,
                                                pp::Var* exception) {
   if (!property.is_string()) {
-    *exception = "Expected a property name of string type.";
+    SetExceptionString(exception, kExceptionPropertyNotAString);
     return pp::Var();
   }
   std::string property_name = property.AsString();
   if (property_name == kFrequencyId) {
     return pp::Var(frequency());
   }
-  *exception = std::string("No property named ") + property_name;
+  SetExceptionString(exception,
+                     std::string(kExceptionNoPropertyName) + property_name);
   return pp::Var();
 }
 
