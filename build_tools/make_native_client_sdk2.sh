@@ -126,14 +126,14 @@ if ! patch --no-backup-if-mismatch <<END
 -  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
 @@ -2001 +2000,0 @@
 -  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
-@@ -4054,3 +4046,5 @@
--  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\bash.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\bash4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
-   File "/oname=${CYGWIN_PREFIX}bin\\bashbug" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bashbug"
--  File "/oname=${CYGWIN_PREFIX}bin\\sh.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\sh.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\sh.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\sh4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
+@@ -4054,6 +4046,7 @@
+   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}etc\\postinstall"
+   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
+   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
++  CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}dev"
+   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share"
+   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\doc"
+   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\doc\\bash"
 @@ -4303,4 +4299,4 @@
 +  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"

@@ -110,17 +110,17 @@ declare -A description packages
 . "${0/.sh/.conf}"
 . "`dirname \"$0\"`"/make_installer.inc
 
-CYGWIN_VERSION=1.7.5-1.1
+CYGWIN_VERSION=1.7.7-0.1
 
 mkdir -p packages{,.src,.unpacked} setup
 
 parse_setup_ini
+fix_setup_inf_info
 download_package_dependences bash 0
 reqpackages=()
 sectionin=()
 allinstpackages=()
 allinstalledpackages=()
-fix_setup_inf_info
 rm setup/*.lst.gz
 download_package "Base" "`seq -s ' ' \"$((${#packages[@]}+3))\"`"
 download_addon_packages 2
@@ -207,10 +207,6 @@ Section "" sec_PostInstall
   SetOutPath \$INSTDIR
   nsExec::ExecToLog '"bin\\bash" -c ./postinstall.sh'
   Delete \$INSTDIR\\postinstall.sh
-  Delete \$INSTDIR\\bin\\bash.exe
-  Rename \$INSTDIR\\bin\\bash4.exe \$INSTDIR\\bin\\bash.exe
-  Delete \$INSTDIR\\bin\\sh.exe
-  Rename \$INSTDIR\\bin\\sh4.exe \$INSTDIR\\bin\\sh.exe
   FileOpen \$R0 \$INSTDIR\\Cygwin.bat w
   StrCpy \$R1 \$INSTDIR 1
   FileWrite \$R0 "@echo off\$\r\$\n\$\r\$\n\$R1:$\r\$\nchdir \$INSTDIR\\bin\$\r\$\nbash --login -i$\r\$\n"
@@ -232,14 +228,14 @@ if ! patch --no-backup-if-mismatch <<END
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.8.exe" "\$INSTDIR\\bin\\pgawk.exe"
    MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1.gz" "\$INSTDIR\\usr\\share\\man\\man1\\pgawk.1.gz"
 -  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "gawk.exe"
-@@ -5296,3 +5296,5 @@
--  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\bash.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\bash.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\bash4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bash.exe"
-   File "/oname=${CYGWIN_PREFIX}bin\\bashbug" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\bashbug"
--  File "/oname=${CYGWIN_PREFIX}bin\\sh.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\sh.exe" "packages.unpacked\\bash-3.2.49-23.tar.bz2\\usr\\bin\\sh.exe"
-+  File "/oname=${CYGWIN_PREFIX}bin\\sh4.exe" "packages.unpacked\\bash-4.1.5-0.tar.bz2\\usr\\bin\\sh.exe"
+@@ -4775,6 +4775,7 @@
+   CreateDirectory "\$INSTDIR\\etc\\postinstall"
+   CreateDirectory "\$INSTDIR\\usr"
+   CreateDirectory "\$INSTDIR\\bin"
++  CreateDirectory "\$INSTDIR\\dev"
+   CreateDirectory "\$INSTDIR\\usr\\share"
+   CreateDirectory "\$INSTDIR\\usr\\share\\doc"
+   CreateDirectory "\$INSTDIR\\usr\\share\\doc\\bash"
 @@ -24353 +24353,0 @@
 -  File "/oname=${CYGWIN_PREFIX}bin\\python.exe" "packages.unpacked\\python-2.6.5-2.tar.bz2\\usr\\bin\\python.exe"
 @@ -24887,2 +24887,4 @@

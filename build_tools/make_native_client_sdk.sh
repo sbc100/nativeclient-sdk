@@ -120,12 +120,12 @@ rm -rf packages.unpacked/{nacl-sdk.tgz,naclsdk_win_x86.tgz}
 CYGWIN_PREFIX="third_party\\cygwin\\"
 
 parse_setup_ini
+fix_setup_inf_info
 download_package_dependences bash 0
 reqpackages=()
 sectionin=()
 allinstpackages=()
 allinstalledpackages=()
-fix_setup_inf_info
 mv "`dirname \"$0\"`"/nacl-sdk.tgz packages
 version["native_client_sdk"]="$SDK_VERSION"
 install["native_client_sdk"]="nacl-sdk.tgz"
@@ -244,10 +244,6 @@ Section "" sec_PostInstall
   SetOutPath \$INSTDIR
   nsExec::ExecToLog '"${CYGWIN_PREFIX}bin\\bash" -c ./postinstall.sh'
   Delete \$INSTDIR\\postinstall.sh
-  Delete \$INSTDIR\\${CYGWIN_PREFIX}bin\\bash.exe
-  Rename \$INSTDIR\\${CYGWIN_PREFIX}bin\\bash4.exe \$INSTDIR\\${CYGWIN_PREFIX}bin\\bash.exe
-  Delete \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh.exe
-  Rename \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh4.exe \$INSTDIR\\${CYGWIN_PREFIX}bin\\sh.exe
   FileOpen \$R0 \$INSTDIR\\${CYGWIN_PREFIX}CygWin.bat w
   StrCpy \$R1 \$INSTDIR 1
   FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\n\$R1:$\r\$\\nchdir \$INSTDIR\\${CYGWIN_PREFIX//\//\\}bin\$\\r\$\\nbash --login -i$\r\$\\n"
