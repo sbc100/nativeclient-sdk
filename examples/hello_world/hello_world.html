@@ -21,6 +21,10 @@
     // status message indicating that the module is still loading.  Otherwise,
     // do not change the status message.
     function pageDidLoad() {
+      // Set the focus on the text input box.  Doing this means you can press
+      // return as soon as the page loads, and it will fire the reversetText()
+      // function.
+      document.forms.helloForm.inputBox.focus();
       if (helloWorldModule == null) {
         updateStatus('LOADING...');
       } else {
@@ -43,10 +47,14 @@
     function reverseText() {
       try {
         // Grab the text from the text box, pass it into reverseText()
-        alert(helloWorldModule.reverseText(this.hello_form.input_id.value));
+        var inputBox = document.forms.helloForm.inputBox;
+        alert(helloWorldModule.reverseText(inputBox.value));
       } catch(e) {
         alert(e.message);
       }
+      // Note: a |false| return tells the <form> tag to cancel the GET action
+      // when submitting the form.
+      return false;
     }
 
     // Set the global status message.  If the element with id 'statusField'
@@ -57,7 +65,7 @@
     function updateStatus(opt_message) {
       if (opt_message)
         statusText = opt_message;
-      var statusField = document.getElementById('status_field');
+      var statusField = document.getElementById('statusField');
       if (statusField) {
         statusField.innerHTML = statusText;
       }
@@ -68,10 +76,13 @@
 
 <h1>Native Client Simple Module</h1>
 <p>
-  <form name="hello_form" action="" method="get">
-  <input type="text" id="input_id" name="inputbox" value="Hello world"><p>
-  <input type="button" value="Call fortyTwo()" onclick="fortyTwo()">
-  <input type="button" value="Call reverseText()" onclick="reverseText()">
+  <form name="helloForm"
+        action=""
+        method="get"
+        onsubmit="return reverseText()">
+    <input type="text" id="inputBox" name="inputBox" value="Hello world" /><p>
+    <input type="button" value="Call fortyTwo()" onclick="fortyTwo()" />
+    <input type="submit" value="Call reverseText()" />
   </form>
   <!-- Load the published .nexe.  This includes the 'nacl' attribute which
   shows how to load multi-architecture modules.  Each entry in the "nexes"
@@ -96,6 +107,6 @@
    as its value.</p>
 
 <h2>Status</h2>
-<div id="status_field">NO-STATUS</div>
+<div id="statusField">NO-STATUS</div>
 </body>
 </html>
