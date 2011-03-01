@@ -1,53 +1,45 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include <nacl/npupp.h>
-#include <pgl/pgl.h>
+#include <ppapi/cpp/instance.h>
+#include <ppapi/cpp/module.h>
+#include <ppapi/gles2/gl2ext_ppapi.h>
+#include "examples/tumbler/tumbler.h"
 
-// These functions are called when a module instance is first loaded, and when
-// the module instance is finally deleted.  They must use C-style linkage.
+/// The Module class.  The browser calls the CreateInstance() method to create
+/// an instance of your NaCl module on the web page.  The browser creates a new
+/// instance for each <embed> tag with type="application/x-nacl".
+class TumberModule : public pp::Module {
+ public:
+  TumberModule() : pp::Module() {}
+  virtual ~TumberModule() {
+    glTerminatePPAPI();
+  }
 
-extern "C" {
+  /// Called by the browser when the module is first loaded and ready to run.
+  /// This is called once per module, not once per instance of the module on
+  /// the page.
+  virtual bool Init() {
+    return glInitializePPAPI(get_browser_interface()) == GL_TRUE;
+  }
 
-// Populates |plugin_funcs| by calling InitializePluginFunctions.
-// Declaration: npupp.h
-// Documentation URL: N/A
-NPError NP_GetEntryPoints(NPPluginFuncs* plugin_funcs) {
-  extern NPError InitializePluginFunctions(NPPluginFuncs* plugin_funcs);
-  return InitializePluginFunctions(plugin_funcs);
+  /// Create and return a Tumbler instance object.
+  /// @param[in] instance The browser-side instance.
+  /// @return the plugin-side instance.
+  virtual pp::Instance* CreateInstance(PP_Instance instance) {
+    return new tumbler::Tumbler(instance);
+  }
+};
+
+namespace pp {
+/// Factory function called by the browser when the module is first loaded.
+/// The browser keeps a singleton of this module.  It calls the
+/// CreateInstance() method on the object you return to make instances.  There
+/// is one instance per <embed> tag on the page.  This is the main binding
+/// point for your NaCl module with the browser.
+Module* CreateModule() {
+  return new TumberModule();
 }
+}  // namespace pp
 
-// Some platforms, including Native Client, use the two-parameter version of
-// NP_Initialize(), and do not call NP_GetEntryPoints().  Others (Mac, e.g.)
-// use single-parameter version of NP_Initialize(), and then call
-// NP_GetEntryPoints() to get the NPP functions.  Also, the NPN entry points
-// are defined by the Native Client loader, but are not defined in the trusted
-// plugin loader (and must be filled in in NP_Initialize()).
-
-// Called when the first instance of this plugin is first allocated to
-// initialize global state.  The browser is hereby telling the plugin its
-// interface in |browser_functions| and expects the plugin to populate
-// |plugin_functions| in return.  Memory allocated by this function may only
-// be cleaned up by NP_Shutdown.
-// returns an NPError if anything went wrong.
-// Declaration: npupp.h
-// Documentation URL: https://developer.mozilla.org/en/NP_Initialize
-NPError NP_Initialize(NPNetscapeFuncs* browser_functions,
-                      NPPluginFuncs* plugin_functions) {
-  NPError np_err = NP_GetEntryPoints(plugin_functions);
-  if (NPERR_NO_ERROR == np_err)
-    pglInitialize();
-  return np_err;
-}
-
-// Called just before the plugin itself is completely unloaded from the
-// browser.  Should clean up anything allocated by NP_Initialize.
-// Declaration: npupp.h
-// Documentation URL: https://developer.mozilla.org/en/NP_Shutdown
-NPError NP_Shutdown() {
-  pglTerminate();
-  return NPERR_NO_ERROR;
-}
-
-}  // extern "C"

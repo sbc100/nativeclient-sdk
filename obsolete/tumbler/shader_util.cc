@@ -1,4 +1,4 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -55,7 +55,7 @@ GLuint CreateProgramFromVertexAndFragmentShaders(
     return 0;
   fragment_shader = CreateShaderOfType(GL_FRAGMENT_SHADER, fragment_shader_src);
   if (fragment_shader == 0) {
-    glDeleteShader( vertex_shader );
+    glDeleteShader(vertex_shader);
     return 0;
   }
 
@@ -75,7 +75,7 @@ GLuint CreateProgramFromVertexAndFragmentShaders(
     GLint info_len = 0;
     glGetProgramiv(program_object, GL_INFO_LOG_LENGTH, &info_len);
     if (info_len > 1) {
-      char* info_log = reinterpret_cast<char*>(malloc(sizeof(char) * info_len));
+      char* info_log = reinterpret_cast<char*>(malloc(info_len));
       glGetProgramInfoLog(program_object, info_len, NULL, info_log);
       // TODO(dspringer): We could really use a logging API.
       printf("Error linking program:\n%s\n", info_log);

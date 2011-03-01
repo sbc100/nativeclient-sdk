@@ -1,4 +1,4 @@
-// Copyright 2010 The Native Client SDK Authors.
+// Copyright 2011 The Native Client SDK Authors.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -214,7 +214,7 @@ tumbler.Trackball.prototype.handleStartDrag =
   // Cache the camera orientation.  The orientations from the trackball as it
   // rolls are concatenated to this orientation and pushed back into the
   // plugin on the other side of the JavaScript bridge.
-  this.cameraOrientation_ = controller.getCameraOrientation();
+  controller.getCameraOrientation(this.cameraOrientation_);
   // Invert the y-coordinate for the trackball computations.
   var frameSize = { width: controller.offsetWidth,
                     height: controller.offsetHeight };

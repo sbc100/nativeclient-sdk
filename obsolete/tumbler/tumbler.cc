@@ -1,151 +1,151 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
 #include "examples/tumbler/tumbler.h"
 
-#include <assert.h>
-#include <string.h>
+#include <ppapi/cpp/rect.h>
+#include <ppapi/cpp/size.h>
+#include <cstring>
+#include <string>
+#include <vector>
 
 #include "examples/tumbler/cube.h"
+#include "examples/tumbler/opengl_context.h"
+#include "examples/tumbler/script_array.h"
 #include "examples/tumbler/scripting_bridge.h"
 
-extern NPDevice* NPN_AcquireDevice(NPP instance, NPDeviceID device);
-
 namespace {
+const ssize_t kQuaternionElementCount = 4;
 
-// Callback given to the browser for things like context repaint and draw
-// notifications.
-void Draw3DCallback(void* data) {
-  static_cast<tumbler::Tumbler*>(data)->DrawSelf();
+// Attempt to turn any PP_Var value into a float, except for objects.
+// Strings are passed into strtof() for conversion.
+float FloatValue(const pp::Var& variant) {
+  float return_value = 0.0f;
+  const PP_Var& pp_var = variant.pp_var();
+  switch (pp_var.type) {
+  case PP_VARTYPE_INT32:
+    return_value = static_cast<float>(variant.AsInt());
+    break;
+  case PP_VARTYPE_DOUBLE:
+    return_value = static_cast<float>(variant.AsDouble());
+    break;
+  case PP_VARTYPE_BOOL:
+    return_value = variant.AsBool() ? 1.0f : 0.0f;
+    break;
+  case PP_VARTYPE_STRING:
+    {
+      std::string str_value(variant.AsString());
+      return_value = str_value.empty() ? 0.0f :
+                                         strtof(str_value.c_str(), NULL);
+    }
+    break;
+  default:
+    return_value = 0;
+    break;
+  }
+  return return_value;
 }
-
-// Called by the browser when the 3D context needs to get repainted.
-void Repaint3DCallback(NPP instance, NPDeviceContext3D* context) {
-  tumbler::TumblerContext3D* tumbler_context =
-      static_cast<tumbler::TumblerContext3D*>(context);
-  reinterpret_cast<tumbler::Tumbler*>(tumbler_context->user_data_)->DrawSelf();
-}
-
 }  // namespace
-
-using tumbler::ScriptingBridge;
 
 namespace tumbler {
 
-static const int32_t kCommandBufferSize = 1024 * 1024;
-
-Tumbler::Tumbler(NPP npp)
-    : npp_(npp),
-      scriptable_object_(NULL),
-      device3d_(NULL),
-      pgl_context_(NULL),
-      cube_(NULL) {
-  memset(&context3d_, 0, sizeof(context3d_));
-  ScriptingBridge::InitializeIdentifiers();
-}
-
 Tumbler::~Tumbler() {
-  if (scriptable_object_) {
-    NPN_ReleaseObject(scriptable_object_);
-  }
   // Destroy the cube view while GL context is current.
-  pglMakeCurrent(pgl_context_);
-  delete cube_;
-  pglMakeCurrent(PGL_NO_CONTEXT);
-
-  DestroyContext();
+  opengl_context_->MakeContextCurrent(this);
+  cube_.reset(NULL);
 }
 
-NPObject* Tumbler::GetScriptableObject() {
-  if (scriptable_object_ == NULL) {
-    scriptable_object_ =
-      NPN_CreateObject(npp_, &ScriptingBridge::np_class);
-  }
-  if (scriptable_object_) {
-    NPN_RetainObject(scriptable_object_);
-  }
-  return scriptable_object_;
+pp::Var Tumbler::GetInstanceObject() {
+  tumbler::ScriptingBridge* bridge = new tumbler::ScriptingBridge();
+  if (bridge == NULL)
+    return pp::Var();
+  InitializeMethods(bridge);
+  return pp::Var(this, bridge);
 }
 
-NPError Tumbler::SetWindow(const NPWindow& window) {
-  if (!pgl_context_) {
-    CreateContext();
-  }
-  if (!pglMakeCurrent(pgl_context_))
-    return NPERR_INVALID_INSTANCE_ERROR;
+void Tumbler::InitializeMethods(ScriptingBridge* bridge) {
+  ScriptingBridge::SharedMethodCallbackExecutor get_orientation_method(
+      new tumbler::MethodCallback<Tumbler>(
+          this, &Tumbler::GetCameraOrientation));
+  bridge->AddMethodNamed("getCameraOrientation", get_orientation_method);
+  ScriptingBridge::SharedMethodCallbackExecutor set_orientation_method(
+      new tumbler::MethodCallback<Tumbler>(
+          this, &Tumbler::SetCameraOrientation));
+  bridge->AddMethodNamed("setCameraOrientation", set_orientation_method);
+}
+
+void Tumbler::DidChangeView(const pp::Rect& position, const pp::Rect& clip) {
+  int cube_width = cube_.get() ? cube_->width() : 0;
+  int cube_height = cube_.get() ? cube_->height() : 0;
+  if (position.size().width() == cube_width &&
+      position.size().height() == cube_height)
+    return;  // Size didn't change, no need to update anything.
+
+  if (opengl_context_ == NULL)
+    opengl_context_.reset(new OpenGLContext());
+  opengl_context_->InvalidateContext(this);
+  if (!opengl_context_->MakeContextCurrent(this))
+    return;
   if (cube_ == NULL) {
-    cube_ = new Cube();
+    cube_.reset(new Cube());
     cube_->PrepareOpenGL();
   }
-  cube_->Resize(window.width, window.height);
-  PostRedrawNotification();
-  return NPERR_NO_ERROR;
+  cube_->Resize(position.size().width(), position.size().height());
+  DrawSelf();
 }
 
-void Tumbler::PostRedrawNotification() {
-  NPN_PluginThreadAsyncCall(npp_, Draw3DCallback, this);
-}
-
-bool Tumbler::DrawSelf() {
-  if (cube_ == NULL)
-    return false;
-
-  if (!pglMakeCurrent(pgl_context_) && pglGetError() == PGL_CONTEXT_LOST) {
-    DestroyContext();
-    CreateContext();
-    pglMakeCurrent(pgl_context_);
-    delete cube_;
-    cube_ = new Cube();
-    cube_->PrepareOpenGL();
-  }
-
+void Tumbler::DrawSelf() {
+  if (cube_ == NULL || opengl_context_ == NULL)
+    return;
+  opengl_context_->MakeContextCurrent(this);
   cube_->Draw();
-  pglSwapBuffers();
-  pglMakeCurrent(PGL_NO_CONTEXT);
-  return true;
+  opengl_context_->FlushContext();
 }
 
-bool Tumbler::GetCameraOrientation(float* orientation) const {
-  if (cube_ != NULL) {
-    cube_->GetOrientation(orientation);
-    return true;
+pp::Var Tumbler::GetCameraOrientation(const ScriptingBridge& bridge,
+                                      const std::vector<pp::Var>& args) {
+  // |args| is expected to contain one object, a Javascript array of four
+  // floats.
+  if (args.size() != 1 || !args[0].is_object() || cube_ == NULL)
+    return pp::Var(false);
+  float orientation[4] = {0.0f, 0.0f, 0.0f, 1.0f};  // Identity quaternion.
+  cube_->GetOrientation(orientation);
+  ScriptArray quaternion(args[0]);
+  if (quaternion.GetElementCount() < kQuaternionElementCount) {
+    return pp::Var(false);
   }
-  return false;
-}
-
-bool Tumbler::SetCameraOrientation(const float* orientation) {
-  if (cube_ != NULL) {
-    cube_->SetOrientation(orientation);
-    PostRedrawNotification();
-    return true;
+  for (int i = 0; i < kQuaternionElementCount; ++i) {
+    if (!quaternion.SetValueAtIndex(pp::Var(orientation[i]), i))
+      return pp::Var(false);
   }
-  return false;
+  return pp::Var(true);
 }
 
-void Tumbler::CreateContext() {
-  if (pgl_context_ != NULL)
-    return;
-  // Create and initialize a 3D context.
-  device3d_ = NPN_AcquireDevice(npp_, NPPepper3DDevice);
-  assert(NULL != device3d_);
-  NPDeviceContext3DConfig config;
-  config.commandBufferSize = kCommandBufferSize;
-  context3d_.repaintCallback = Repaint3DCallback;
-  context3d_.user_data_ = reinterpret_cast<void*>(this);
-  device3d_->initializeContext(npp_, &config, &context3d_);
-
-  // Create a PGL context.
-  pgl_context_ = pglCreateContext(npp_, device3d_, &context3d_);
+pp::Var Tumbler::SetCameraOrientation(const ScriptingBridge& bridge,
+                                      const std::vector<pp::Var>& args) {
+  // |args| is expected to contain one object, a Javascript array of four
+  // floats.
+  if (args.size() != 1 || !args[0].is_object() || cube_ == NULL)
+    return pp::Var(false);
+  // Walk through the array object, picking out the first four elements.  Each
+  // array element is accessed as a property whose key is the string of the
+  // element index.  I.e. the first element is the value of property "0", the
+  // next element is the value of property "1" and so on.
+  float orientation[4] = {0.0f, 0.0f, 0.0f, 1.0f};  // Identity quaternion.
+  ScriptArray quaternion(args[0]);
+  if (quaternion.GetElementCount() < kQuaternionElementCount) {
+    return pp::Var(false);
+  }
+  for (int i = 0; i < kQuaternionElementCount; ++i) {
+    pp::Var index_value = quaternion.GetValueAtIndex(i);
+    if (index_value.is_number()) {
+      orientation[i] = FloatValue(index_value);
+    }
+  }
+  cube_->SetOrientation(orientation);
+  DrawSelf();
+  return pp::Var(true);
 }
+}  // namespace tumbler
 
-void Tumbler::DestroyContext() {
-  if (pgl_context_ == NULL)
-    return;
-  pglDestroyContext(pgl_context_);
-  pgl_context_ = NULL;
-
-  device3d_->destroyContext(npp_, &context3d_);
-}
-
-}  // namespace pinpapi_bridge

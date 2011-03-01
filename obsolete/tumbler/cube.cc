@@ -1,4 +1,4 @@
-// Copyright (c) 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -60,7 +60,7 @@ void Cube::Draw() {
   glEnableVertexAttribArray(position_location_);
   glVertexAttribPointer(position_location_,
                         3,
-                        GL_FLOAT, 
+                        GL_FLOAT,
                         GL_FALSE,
                         3 * sizeof(GLfloat),
                         NULL);
@@ -68,7 +68,7 @@ void Cube::Draw() {
   glBindBuffer(GL_ARRAY_BUFFER, cube_vbos_[1]);
   glVertexAttribPointer(color_location_,
                         3,
-                        GL_FLOAT, 
+                        GL_FLOAT,
                         GL_FALSE,
                         3 * sizeof(GLfloat),
                         NULL);
@@ -80,7 +80,7 @@ void Cube::Draw() {
 }
 
 bool Cube::CreateShaders() {
-  const char vertex_shader_src[] =  
+  const char vertex_shader_src[] =
     "uniform mat4 u_mvpMatrix;                   \n"
     "attribute vec4 a_position;                  \n"
     "attribute vec3 a_color;                     \n"
@@ -91,14 +91,14 @@ bool Cube::CreateShaders() {
     "   v_color.w = 1.0;                         \n"
     "   gl_Position = u_mvpMatrix * a_position;  \n"
     "}                                           \n";
-  
+
   const char fragment_shader_src[] =
     "varying lowp vec4 v_color;                   \n"
     "void main()                                  \n"
     "{                                            \n"
     "  gl_FragColor = v_color;                    \n"
     "}                                            \n";
-  
+
   // Load the shaders and get a linked program object
   shader_program_object_ =
       shader_util::CreateProgramFromVertexAndFragmentShaders(

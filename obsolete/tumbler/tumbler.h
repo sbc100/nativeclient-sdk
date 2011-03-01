@@ -1,83 +1,69 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
 #ifndef EXAMPLES_TUMBLER_TUMBLER_H_
 #define EXAMPLES_TUMBLER_TUMBLER_H_
 
+#include <boost/noncopyable.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <ppapi/cpp/instance.h>
 #include <pthread.h>
-#if defined(__native_client__)
-#include <nacl/nacl_npapi.h>
-#include <nacl/npapi_extensions.h>
-#include <nacl/npupp.h>
-#include <nacl/npruntime.h>
-#include <pgl/pgl.h>
-#else
-// Building a trusted plugin for debugging.
-#include "third_party/include/pgl/pgl.h"
-#include "third_party/npapi/bindings/npapi.h"
-#include "third_party/npapi/bindings/npapi_extensions.h"
-#include "third_party/npapi/bindings/nphostapi.h"
-#include "third_party/npapi/bindings/npruntime.h"
-#endif
-
 #include <map>
+#include <vector>
 
-#include "examples/tumbler/basic_macros.h"
+#include "examples/tumbler/cube.h"
+#include "examples/tumbler/opengl_context.h"
+#include "examples/tumbler/opengl_context_ptrs.h"
+#include "examples/tumbler/scripting_bridge.h"
 
 namespace tumbler {
 
-class Cube;
-
-// Extend NPDeviceContext3D to include a user_data pointer.  This pointer is
-// used to carry context-specific data for, e.g. the repaint callback.
-struct TumblerContext3D : NPDeviceContext3D {
-  void* user_data_;
-};
-
-class Tumbler {
+class Tumbler : public pp::Instance, boost::noncopyable {
  public:
-  explicit Tumbler(NPP npp);
+  explicit Tumbler(PP_Instance instance) : pp::Instance(instance) {}
 
   // The dtor makes the 3D context current before deleting the cube view, then
   // destroys the 3D context both in the module and in the browser.
-  ~Tumbler();
+  virtual ~Tumbler();
 
-  NPObject* GetScriptableObject();
+  // The browser calls this function to get a handle, in form of a pp::Var,
+  // to the Native Client-side scriptable object.  The pp::Var takes over
+  // ownership of the returned object, meaning the browser can call its
+  // destructor.
+  // Returns the browser's handle to the plugin side instance.
+  virtual pp::Var GetInstanceObject();
 
-  // SetWindow is called by the browser when the window is created, moved,
-  // sized, or destroyed.
-  NPError SetWindow(const NPWindow& window);
+  // Called whenever the in-browser window changes size.
+  virtual void DidChangeView(const pp::Rect& position, const pp::Rect& clip);
 
-  // Called to post a notification that the module needs to be redrawn by the
-  // browser.
-  void PostRedrawNotification();
+  // Bind and publish the module's methods to JavaScript.
+  void InitializeMethods(ScriptingBridge* bridge);
+
+  // Fill in the passed-in quaternion with the quaternion that represents the
+  // current camera orientation.  Returns success.
+  // This method is bound to the JavaScript "getCameraOrientation" method and
+  // is called like this:
+  //     var orientation = [0.0, 0.0, 1.0, 0.0];
+  //     module.getCameraOrientation(orientation);
+  pp::Var GetCameraOrientation(const ScriptingBridge& bridge,
+                               const std::vector<pp::Var>& args);
+
+  // Set the camera orientation to the quaternion in |args[0]|.  |args| must
+  // have length at least 1; the first element is expeted to be an Array
+  // object containing 4 floating point number elements (the quaternion).
+  // This method is bound to the JavaScript "setCameraOrientation" method and
+  // is called like this:
+  //     module.setCameraOrientation([0.0, 1.0, 0.0, 0.0]);
+  pp::Var SetCameraOrientation(const ScriptingBridge& bridge,
+                               const std::vector<pp::Var>& args);
 
   // Called to draw the contents of the module's browser area.
-  bool DrawSelf();
-
-  // Accessor/mutators for the camera orientation in |cube_|.
-  bool GetCameraOrientation(float* orientation) const;
-  bool SetCameraOrientation(const float* orientation);
+  void DrawSelf();
 
  private:
-  // Create a 3D context both in the module and in the browser.  CreateContext()
-  // used both PGL and Pepper to establish the 3D context.
-  void CreateContext();
-
-  // Tear down the 3D context.
-  void DestroyContext();
-
-  // TODO(dspringer): Once we get smart pointers in the Native Client SDK,
-  // all the following pointers should become scoped_ptr<> types.
-  NPP npp_;
-  NPObject* scriptable_object_;
-  NPDevice* device3d_;
-  TumblerContext3D context3d_;
-  PGLContext pgl_context_;
-  Cube* cube_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Tumbler);
+  SharedOpenGLContext opengl_context_;
+  boost::scoped_ptr<Cube> cube_;
 };
 
 }  // namespace tumbler

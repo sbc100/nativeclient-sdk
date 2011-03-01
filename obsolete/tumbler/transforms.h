@@ -1,4 +1,4 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -30,7 +30,7 @@ void Multiply(GLfloat *m, GLfloat *a, GLfloat* b);
 
 // Pre-multiply |m| with a single-point perspective matrix based on the viewing
 // frustum whose view angle is |fovy|.
-void Perspective(GLfloat* m, 
+void Perspective(GLfloat* m,
                  GLfloat fovy,
                  GLfloat aspect,
                  GLfloat near_z,
@@ -39,7 +39,7 @@ void Perspective(GLfloat* m,
 // Pre-multiply |m| with a matrix that represents a translation by |tx|, |ty|,
 // |tz|.
 void Translate(GLfloat* m, GLfloat tx, GLfloat ty, GLfloat tz);
+}  // namespace transform_4x4
 
-}  // transform_4x4
+#endif  // EXAMPLES_TUMBLER_TRANSFORMS_H_
 
-#endif  // EXAMPLES_TUMBLERTRANSFORMS_H_

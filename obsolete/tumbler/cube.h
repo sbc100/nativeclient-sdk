@@ -1,19 +1,18 @@
-// Copyright 2010 The Native Client SDK Authors. All Rights Reserved.
+// Copyright 2011 The Native Client SDK Authors. All Rights Reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
 #ifndef EXAMPLES_TUMBLER_CUBE_H_
 #define EXAMPLES_TUMBLER_CUBE_H_
 
+#include <boost/noncopyable.hpp>
 #include <GLES2/gl2.h>
-
-#include "examples/tumbler/basic_macros.h"
 
 namespace tumbler {
 
 // The Cube class provides a place to implement 3D rendering.  It has a
 // frame that it occupies in a browser window.
-class Cube {
+class Cube : public boost::noncopyable {
  public:
   Cube();
   ~Cube();
@@ -86,8 +85,6 @@ class Cube {
   GLfloat orientation_[4];
   GLfloat perspective_proj_[16];
   GLfloat mvp_matrix_[16];
-
-  DISALLOW_COPY_AND_ASSIGN(Cube);
 };
 
 }  // namespace tumbler

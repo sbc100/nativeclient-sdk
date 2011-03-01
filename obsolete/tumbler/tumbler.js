@@ -1,4 +1,4 @@
-// Copyright 2010 The Native Client SDK Authors.
+// Copyright 2011 The Native Client SDK Authors.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -86,34 +86,18 @@ tumbler.Application.prototype.run = function(opt_contentDivName) {
   contentDivName = opt_contentDivName || tumbler.Application.DEFAULT_DIV_NAME;
   var contentDiv = document.getElementById(contentDivName);
   this.assert(contentDiv, "Missing DOM element '" + contentDivName + "'");
-  // Conditionally load the develop or publish version of the module.
-  if (window.location.hash == '#develop') {
-    contentDiv.innerHTML = '<embed id="'
-                           + tumbler.Application.TUMBLER_MODULE_NAME + '" '
-                           + 'type="pepper-application/tumbler" '
-                           + 'width="480" height="480" '
-                           + 'dimensions="3" />'
-    moduleDidLoad();
-  } else {
-    // Load the published .nexe.  This includes the 'nexes' attribute which
-    // shows how to load multi-architecture modules.  Each entry in the
-    // table is a key-value pair: the key is the runtime ('x86-32',
-    // 'x86-64', etc.); the value is a URL for the desired NaCl module.
-    var nexes = 'x86-32: tumbler_x86_32.nexe\n'
-                + 'x86-64: tumbler_x86_64.nexe\n'
-                + 'ARM: tumbler_arm.nexe ';
-    contentDiv.innerHTML = '<embed id="'
-                           + tumbler.Application.TUMBLER_MODULE_NAME + '" '
-                        // + 'nexes="' + nexes + '" '
-                           + 'type="application/x-nacl-srpc" '
-                           + 'width="480" height="480" '
-                           + 'dimensions="3" '
-                           + 'onload="moduleDidLoad()" />'
-    // Note: this code is here to work around a bug in Chromium build
-    // #47357.  See also
-    // http://code.google.com/p/nativeclient/issues/detail?id=500
-    document.getElementById('tumbler').nexes = nexes;
-  }
+  // Load the published .nexe.  This includes the 'nacl' attribute which
+  // shows how to load multi-architecture modules.  Each entry in the "nexes"
+  // object in the  .nmf manifest file is a key-value pair: the key is the
+  // runtime ('x86-32', 'x86-64', etc.); the value is a URL for the desired
+  // NaCl module.  To load the debug versions of your .nexes, set the 'nacl'
+  //  attribute to the _dbg.nmf version of the manifest file.
+  contentDiv.innerHTML = '<embed id="'
+                         + tumbler.Application.TUMBLER_MODULE_NAME + '" '
+                         + 'nacl=tumbler.nmf '
+                         + 'type="application/x-nacl" '
+                         + 'width="480" height="480" '
+                         + 'onload="moduleDidLoad()" />'
 }
 
 /**

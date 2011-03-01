@@ -1,4 +1,4 @@
-// Copyright 2010 The Native Client SDK Authors. All rights reserved.
+// Copyright 2011 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -53,7 +53,7 @@ void Frustum(GLfloat* m,
 }
 
 
-void Perspective(GLfloat* m, 
+void Perspective(GLfloat* m,
                  GLfloat fovy,
                  GLfloat aspect,
                  GLfloat near_z,
@@ -70,25 +70,37 @@ void Multiply(GLfloat *m, GLfloat *a, GLfloat* b) {
   GLfloat tmp[16];
   // tmp = a . b
   GLfloat a0, a1, a2, a3;
-  a0 = a[0]; a1 = a[1]; a2 = a[2]; a3 = a[3];
+  a0 = a[0];
+  a1 = a[1];
+  a2 = a[2];
+  a3 = a[3];
   tmp[0] = a0 * b[0] + a1 * b[4] + a2 * b[8] + a3 * b[12];
   tmp[1] = a0 * b[1] + a1 * b[5] + a2 * b[9] + a3 * b[13];
   tmp[2] = a0 * b[2] + a1 * b[6] + a2 * b[10] + a3 * b[14];
   tmp[3] = a0 * b[3] + a1 * b[7] + a2 * b[11] + a3 * b[15];
 
-  a0 = a[4]; a1 = a[5]; a2 = a[6]; a3 = a[7];
+  a0 = a[4];
+  a1 = a[5];
+  a2 = a[6];
+  a3 = a[7];
   tmp[4] = a0 * b[0] + a1 * b[4] + a2 * b[8] + a3 * b[12];
   tmp[5] = a0 * b[1] + a1 * b[5] + a2 * b[9] + a3 * b[13];
   tmp[6] = a0 * b[2] + a1 * b[6] + a2 * b[10] + a3 * b[14];
   tmp[7] = a0 * b[3] + a1 * b[7] + a2 * b[11] + a3 * b[15];
 
-  a0 = a[8]; a1 = a[9]; a2 = a[10]; a3 = a[11];
+  a0 = a[8];
+  a1 = a[9];
+  a2 = a[10];
+  a3 = a[11];
   tmp[8] = a0 * b[0] + a1 * b[4] + a2 * b[8] + a3 * b[12];
   tmp[9] = a0 * b[1] + a1 * b[5] + a2 * b[9] + a3 * b[13];
   tmp[10] = a0 * b[2] + a1 * b[6] + a2 * b[10] + a3 * b[14];
   tmp[11] = a0 * b[3] + a1 * b[7] + a2 * b[11] + a3 * b[15];
 
-  a0 = a[12]; a1 = a[13]; a2 = a[14]; a3 = a[15];
+  a0 = a[12];
+  a1 = a[13];
+  a2 = a[14];
+  a3 = a[15];
   tmp[12] = a0 * b[0] + a1 * b[4] + a2 * b[8] + a3 * b[12];
   tmp[13] = a0 * b[1] + a1 * b[5] + a2 * b[9] + a3 * b[13];
   tmp[14] = a0 * b[2] + a1 * b[6] + a2 * b[10] + a3 * b[14];
