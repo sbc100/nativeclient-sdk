@@ -90,7 +90,9 @@ class TestProjectInitializer(unittest.TestCase):
   """Class for test cases to cover public interface of ProjectInitializer."""
 
   def setUp(self):
-    script_dir = os.path.abspath(os.path.dirname(__file__))
+    self.script_dir = os.path.abspath(os.path.dirname(__file__))
+    self.nacl_src_dir = os.path.abspath(os.path.join(self.script_dir,
+                                                     '..'))
     self.mock_factory = mox.Mox()
     # This mock is only valid for initialization and will be overwritten
     # after ward by self.os_mock.
@@ -103,7 +105,7 @@ class TestProjectInitializer(unittest.TestCase):
     init_os_mock.makedirs('test/dir/test_project')
     self.mock_factory.ReplayAll()
     self.test_subject = init_project.ProjectInitializer(
-        True, 'test_project', 'test/dir', script_dir, init_os_mock)
+        True, 'test_project', 'test/dir', self.script_dir, init_os_mock)
     self.mock_factory.VerifyAll()
     self.InitializeResourceMocks()
 
@@ -131,25 +133,22 @@ class TestProjectInitializer(unittest.TestCase):
 
   def testPrepareDirectoryContent(self):
     self.shutil_mock.copy(
-        '/usr/local/google/dev/svn/nacl-sdk/src/project_templates/c/Makefile',
+        '%s/c/Makefile' % self.script_dir,
         'test/dir/test_project/Makefile')
     self.shutil_mock.copy(
-        '/usr/local/google/dev/svn/nacl-sdk/src/project_templates/c/'
-        'project_file.c',
+        '%s/c/project_file.c' % self.script_dir,
         'test/dir/test_project/test_project.c')
     self.shutil_mock.copy(
-        '/usr/local/google/dev/svn/nacl-sdk/src/project_templates/html/'
-        'project_file.html',
+        '%s/html/project_file.html' % self.script_dir,
         'test/dir/test_project/test_project.html')
     self.shutil_mock.copy(
-        '/usr/local/google/dev/svn/nacl-sdk/src/project_templates/common.mk',
+        '%s/common.mk' % self.script_dir,
         'test/dir/test_project/common.mk')
     self.shutil_mock.copy(
-        '/usr/local/google/dev/svn/nacl-sdk/src/project_templates/'
-        'generate_nmf.py',
+        '%s/generate_nmf.py' % self.script_dir,
         'test/dir/test_project/generate_nmf.py')
     self.shutil_mock.copy(
-        '/usr/local/google/dev/svn/nacl-sdk/src/project_templates/make.cmd',
+        '%s/make.cmd' % self.script_dir,
         'test/dir/test_project/make.cmd')
     self.os_mock.path = os.path
     self.mock_factory.ReplayAll()
@@ -164,10 +163,9 @@ class TestProjectInitializer(unittest.TestCase):
     path_mock = self.mock_factory.CreateMock(os.path)
     stdout_mock = self.mock_factory.CreateMock(sys.stdout)
     self.os_mock.path = path_mock
-    path_mock.join('/usr/local/google/dev/svn/nacl-sdk/src/project_templates',
-                   '..').AndReturn('/usr/local/google/dev/svn/nacl-sdk/src/')
-    path_mock.abspath('/usr/local/google/dev/svn/nacl-sdk/src/').AndReturn(
-        '/usr/local/google/dev/svn/nacl-sdk/src/')
+    path_mock.join(self.script_dir,
+                   '..').AndReturn(self.nacl_src_dir)
+    path_mock.abspath(self.nacl_src_dir).AndReturn(self.nacl_src_dir)
     self.fileinput_mock.input(
         'test/dir/test_project/normal_name.txt',
         inplace=1, mode='U').AndReturn(
@@ -194,7 +192,7 @@ class TestProjectInitializer(unittest.TestCase):
              'A line with <NACL_SDK_ROOT>.'])
     stdout_mock.write('A line with test_project.')
     stdout_mock.write('A line with TestProject.')
-    stdout_mock.write('A line with /usr/local/google/dev/svn/nacl-sdk/src/.')
+    stdout_mock.write('A line with %s.' % self.nacl_src_dir)
     # One multi-line file with different replacements has already been mocked
     # so we make this next test simpler.
     self.fileinput_mock.input(
