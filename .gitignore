@@ -13,6 +13,7 @@ third_party/scons/
 third_party/swtoolkit/
 third_party/valgrind/
 third_party/cygwin/
+third_party/pymox/
 toolchain/
 build_tools/packages/
 
