@@ -161,10 +161,14 @@ def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT, base_dir=None):
     normalized_toolchain = os.path.abspath(toolchain)
   return normalized_toolchain
 
-# Note that this function has to be run from within a subversion working copy.
+# Note that this function has to be run from within a subversion working copy,
+# or a git repository that is based on a subversion parent.
 def SVNRevision():
   p = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE)
-  assert p.wait() == 0
+  if p.wait() != 0:
+    p = subprocess.Popen('git svn info', shell=True, stdout=subprocess.PIPE)
+    if p.wait() != 0:
+      raise AssertionError('Cannot determine SVN revision of this repository');
 
   svn_info = p.communicate()[0]
   m = re.search('Revision: ([0-9]+)', svn_info)
