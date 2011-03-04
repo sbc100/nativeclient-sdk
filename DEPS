@@ -7,6 +7,8 @@ vars = {
   "x86_toolchain_version": NACL_REVISION,
   "valgrind_path": "http://src.chromium.org/native_client/trunk/src/native_client/src/third_party/valgrind",
   "valgrind_version": NACL_REVISION,
+  "pymox": "http://pymox.googlecode.com/svn/trunk",
+  "pymox_version": "61",
 }
 # When we have ARM and PNaCl support, we'll need to add toolchain support
 # for those too.
@@ -18,6 +20,7 @@ deps = {
     "http://swtoolkit.googlecode.com/svn/trunk@66",
   "src/third_party/valgrind": Var("valgrind_path") + "@" +
        Var("valgrind_version"),
+  "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version")
 }
 
 hooks = [

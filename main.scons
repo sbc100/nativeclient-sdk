@@ -129,6 +129,7 @@ nacl_test_env = nacl32_env.Clone(
     BUILD_SCONSCRIPTS = [
       '$MAIN_DIR/c_salt/c_salt.scons',
       '$MAIN_DIR/c_salt/test.scons',
+      '$MAIN_DIR/project_templates/test.scons',
     ],
     COMPONENT_TEST_CMDLINE = '$NACL_TOOLCHAIN_ROOT/bin/sel_ldr $PROGRAM_NAME',
     LIBS = ['gmock', 'gtest', 'nosys', 'pthread', 'srpc',
