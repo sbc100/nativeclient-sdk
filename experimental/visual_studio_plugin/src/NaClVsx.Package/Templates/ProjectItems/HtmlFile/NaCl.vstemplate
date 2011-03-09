@@ -1,0 +1,14 @@
+<VSTemplate Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>file.html</DefaultName>
+    <Name>HtmlFile</Name>
+    <Description>NaCl: An html file</Description>
+    <Icon>HtmlIcon.ico</Icon>
+    <ProjectType>NaCl</ProjectType>
+    <SortOrder>10</SortOrder>
+  </TemplateData>
+  <TemplateContent>
+    <References />
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.html" ItemType="Content" ReplaceParameters="true">file.html</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

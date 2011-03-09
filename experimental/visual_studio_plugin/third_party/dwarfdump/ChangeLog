@@ -1,0 +1,35 @@
+2010-02-14  DavidAnderson <davea42@earthlink.net>
+      * print_die.c: Add newer DW_OP operators, remove
+        bogus test of DW_OP_nop as the highest valid operator.
+        Add table of DW_OPs to simplify testing for zero-operand
+        operators.
+        Revise so that the FORM of all attributes print with -M.
+        Move a local variable declaration to the front of a block
+        to match C 1990 rules.
+        String searches now also match on attribute name.
+      * tag_attr.list: Updated copyright.
+      * dwarfdump.c: Remove a switch  FALL THROUGH in the 'g' case.
+      * tag_tree_ext.list, tag_attr_ext.list: Added GNU template 
+        parameter tags, attributes. Updated copyright.
+      * tag_tree.list: Added template parameter tags. Added
+        entry for nested classes. Updated copyright.
+      * tag_common.h: Increased STD_TAG_TABLE_COLUMNS and 
+        EXT_ATTR_TABLE_COLS.
+2010-01-30  DavidAnderson <davea42@earthlink.net>
+      * print_die.c: Changed the spelling of one
+        'DW_AT_type offset does not point to type info' error message so
+        one can distinguish which check lead to the message.
+2010-01-26  DavidAnderson <davea42@earthlink.net>
+      * dwarfdump.1, dwconf.c, dwconf.h, dwarfdump.conf: The default 
+        frame values in frame
+        output are now generic registers like r0 to r99
+        instead of MIPS register names.  
+        For the MIPS register names use '-x abi=mips'.
+      * print_frames.c: Added commentary.
+2010-01-17  DavidAnderson <davea42@earthlink.net>
+      * print_die.c: The special case DW_AT_SUN_func_offsets
+        now prints identically in dwarfdump and dwarfdump2.
+2010-01-03  DavidAnderson <davea42@earthlink.net>
+      * tag_common.c, common.h, common.c: Remove <cr> line 
+        terminator characters.  Update copyright year.
+      * All other files: Update copyright year.

@@ -1,0 +1,65 @@
+# Copyright 2008, Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+# copyright notice, this list of conditions and the following disclaimer
+# in the documentation and/or other materials provided with the
+# distribution.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Import('env')
+
+# NOTE: there are some "string too long" warnings
+# TODO(bsy): the tests contain some common code which should be factored.
+env.FilterOut(CCFLAGS=['-pedantic'])
+
+
+nrd_xfer_test = env.ComponentProgram('nrd_xfer_test.nexe', 'nrd_xfer_test.c',
+                                     EXTRA_LIBS=['pthread'])
+
+env.ComponentProgram('nrd_xfer_test2.nexe', 'nrd_xfer_test2.c',
+                     EXTRA_LIBS=['pthread'])
+
+env.ComponentProgram('nrd_xfer_perf.nexe', 'nrd_xfer_perf.c',
+                     EXTRA_LIBS=['pthread'])
+
+# TODO(bsy): add more tests and investigate 64 bit issue
+# NOTE: "env" is an untrusted  nacl env but we can only run this shell script
+#       in a trusted linux build env
+trusted = env.get('TRUSTED_ENV', None)
+if trusted and trusted.Bit('linux') and trusted['BUILD_SUBARCH'] == '32':
+  # TODO(robertm): factor this hack
+  sel_ldr = trusted.File('${STAGING_DIR}/${PROGPREFIX}sel_ldr${PROGSUFFIX}')
+
+  test_args = [ nrd_xfer_test[0] ]
+
+  if env['BUILD_ARCHITECTURE'] == 'arm':
+    test_args += ["-Q"]
+
+  node = env.CommandTest(
+      'sel_ldr_nrd_xfer_test.out',
+      [env.File('nrd_xfer_test.sh'), sel_ldr] + test_args,
+      direct_emulation=False,
+      )
+  env.AddNodeToTestSuite(node, ['medium_tests'], 'run_sel_ldr_nrd_xfer_test')

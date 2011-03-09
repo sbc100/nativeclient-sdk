@@ -1,0 +1,209 @@
+# -*- python -*-
+# Copyright 2008, Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+# copyright notice, this list of conditions and the following disclaimer
+# in the documentation and/or other materials provided with the
+# distribution.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Import('env')
+
+######################################################################
+# Simple RPC basic methods tests
+######################################################################
+srpc_test_nexe = env.ComponentProgram('srpc_test.nexe', 'srpc_test.c',
+                                      EXTRA_LIBS=['srpc', 'm', 'pthread'])
+env.Publish('srpc_test.nexe', 'run',
+            ['srpc_basic.html', 'srpcperf.html', 'srpc_shm.html',
+             'srpc_plugin.html',
+             env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js') ])
+
+env.AddPrebuiltBinaryToRepository(srpc_test_nexe)
+
+
+
+srpc_shm_nexe = env.ComponentProgram('srpc_shm.nexe', 'srpc_shm.c',
+                                     EXTRA_LIBS=['srpc', 'm', 'pthread'])
+env.Publish('srpc_shm.nexe', 'run',
+            [ 'srpc_shm.html',
+              env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js') ])
+
+env.AddPrebuiltBinaryToRepository(srpc_shm_nexe)
+
+
+
+srpc_nrd_server_nexe = env.ComponentProgram('srpc_nrd_server.nexe',
+                                            'srpc_nrd_server.c',
+                                            EXTRA_LIBS=['srpc', 'm',
+                                                        'pthread'])
+env.Publish('srpc_nrd_server.nexe', 'run',
+            ['examples.html', '_README.txt', 'srpc_sockaddr.html',
+             env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js') ])
+
+env.AddPrebuiltBinaryToRepository(srpc_nrd_server_nexe)
+
+
+
+srpc_nrd_client_nexe = env.ComponentProgram('srpc_nrd_client.nexe',
+                                            'srpc_nrd_client.c',
+                                            EXTRA_LIBS=['srpc', 'm', 'pthread'])
+env.Publish('srpc_nrd_client.nexe', 'run',
+            ['srpc_nrd_xfer.html',
+             env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js') ])
+
+env.AddPrebuiltBinaryToRepository(srpc_nrd_client_nexe)
+
+
+cat_nexe = env.ComponentProgram('cat.nexe', 'cat.c',
+                                EXTRA_LIBS=['srpc', 'm', 'pthread'])
+env.Publish('cat.nexe', 'run',
+            ['srpc_url_as_nacl_desc.html',
+             'srpc_url_as_nacl_desc_success.html',
+             env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js') ])
+
+env.ComponentProgram('srpc_bidir.nexe', 'srpc_bidir.c',
+                     EXTRA_LIBS=['srpc', 'm', 'pthread'])
+env.Publish('srpc_bidir.nexe', 'run', ['srpc_bidir.html'])
+
+
+# NOTE: at least for ARM the EXTRA_LIBS list should include 'srpc'
+#       but this somehow make the x86 version fragile
+env.ComponentProgram('srpc_bad_service.nexe', 'srpc_bad_service.c',
+                     EXTRA_LIBS=['m', 'pthread'])
+env.Publish('srpc_bad_service.nexe', 'run', [])
+
+
+# NOTE: sel_universal launches sel_ldr internally and we do not have a
+# good hook to sneak in an emulator yet
+TEST_SUITES = ['small_tests']
+if env['TARGET_ARCHITECTURE'] == 'arm':
+  TEST_SUITES = ['small_tests_arm_hw_only']
+
+node = env.CommandSelLdrTestNacl(
+    'srpc_basic_test.out',
+    loader='sel_universal',
+    command=[env.File('srpc_test.nexe')],
+    stdin=env.File('srpc_basic_test.stdin'),
+    stdout_golden=env.File('srpc_basic_test.stdout'),
+    )
+env.AddNodeToTestSuite(node, TEST_SUITES, 'run_srpc_basic_test')
+
+trusted = env.get('TRUSTED_ENV', None)
+# TODO: add comment explaining the if
+if trusted and trusted.Bit('linux'):
+  node = env.CommandSelLdrTestNacl(
+      'srpc_sysv_shm_test.out',
+      loader='sel_universal',
+      command=[env.File('srpc_shm.nexe')],
+      stdin=env.File('srpc_sysv_shm_test.stdin'),
+      stdout_golden=env.File('srpc_sysv_shm_test.stdout'),
+      )
+  env.AddNodeToTestSuite(node, TEST_SUITES, 'run_srpc_sysv_shm_test')
+
+# TODO: this may be a threading issue
+TEST_SUITES = ['small_tests']
+if env['TARGET_ARCHITECTURE'] == 'arm':
+  TEST_SUITES = ['small_tests_arm_broken']
+
+node = env.CommandSelLdrTestNacl(
+    'srpc_bad_service.out',
+    loader='sel_universal',
+    command=[env.File('srpc_bad_service.nexe')],
+    exit_status='1'
+    )
+env.AddNodeToTestSuite(node, TEST_SUITES, 'run_srpc_bad_service_test')
+
+# Run the example tests under Selenium.
+BROWSER_TESTS = ['browser_tests']
+node = env.BrowserTester(
+    'srpc_basic_browser_test.out',
+     url='srpc_basic.html',
+     files=[srpc_test_nexe,
+            env.File('srpc_basic.html'),
+            env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js'),
+            ],
+     browser='*firefox',
+     )
+env.AddNodeToTestSuite(node, BROWSER_TESTS, 'run_srpc_basic_browser_test')
+
+node = env.BrowserTester(
+    'srpc_plugin_browser_test.out',
+     url='srpc_plugin.html',
+     files=[srpc_test_nexe,
+            srpc_nrd_client_nexe,
+            env.File('srpc_plugin.html'),
+            env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js'),
+            ],
+     browser='*firefox',
+     )
+env.AddNodeToTestSuite(node, BROWSER_TESTS, 'run_srpc_plugin_browser_test')
+
+node = env.BrowserTester(
+    'srpc_sockaddr_browser_test.out',
+     url='srpc_sockaddr.html',
+     files=[srpc_nrd_server_nexe,
+            env.File('srpc_sockaddr.html'),
+            env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js'),
+            ],
+     browser='*firefox',
+     )
+env.AddNodeToTestSuite(node, BROWSER_TESTS, 'run_srpc_sockaddr_browser_test')
+
+node = env.BrowserTester(
+    'srpc_shm_browser_test.out',
+     url='srpc_shm.html',
+     files=[srpc_shm_nexe,
+            env.File('srpc_shm.html'),
+            env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js'),
+            ],
+     browser='*firefox',
+     )
+env.AddNodeToTestSuite(node, BROWSER_TESTS, 'run_srpc_shm_browser_test')
+
+node = env.BrowserTester(
+    'srpc_nrd_xfer_browser_test.out',
+     url='srpc_nrd_xfer.html',
+     files=[srpc_nrd_client_nexe,
+            srpc_nrd_server_nexe,
+            env.File('srpc_nrd_xfer.html'),
+            env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js'),
+            ],
+     browser='*firefox',
+     )
+env.AddNodeToTestSuite(node, BROWSER_TESTS, 'run_srpc_nrd_xfer_browser_test')
+
+node = env.BrowserTester(
+    'srpc_url_as_nacl_desc_test.out',
+     url='srpc_url_as_nacl_desc.html',
+     files=[cat_nexe,
+            env.File('srpc_url_as_nacl_desc.html'),
+            env.File('srpc_url_as_nacl_desc_success.html'),
+            env.File('${SCONSTRUCT_DIR}/tests/nacl_js_lib.js'),
+            ],
+     browser='*firefox',
+     )
+env.AddNodeToTestSuite(node, BROWSER_TESTS,
+                       'run_srpc_url_as_nacl_desc_browser_test')

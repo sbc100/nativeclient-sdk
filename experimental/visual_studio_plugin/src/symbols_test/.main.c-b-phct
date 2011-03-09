@@ -1,0 +1,31 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "nacl_symbols.h"
+
+
+typedef void (*NaClSymXMLFunc)(void *obj, const char *str);
+
+void printit(void *obj, const char *str) {
+  printf("%s:\n%s\n", obj, str);
+}
+int main(int argc, const char *argv[])
+{
+  //char *name = "..\\..\\third_party\\nacl\\native_client\\scons-out\\nacl-x86-64\\staging\\noop.nexe";
+  char *name = "z:\\test\\test64.nexe";
+  NaClSymMap_t *map  ;
+
+  if (NULL != (map = NaClSymMapFactory(name))) {
+    NaClSymbol_t *sym;
+  
+    sym = map->AddrToSymbol_(map, 0x20340);
+    sym = map->NameToSymbol_(map, "main");
+
+    map->AddrToXML_(map, sym->offset, printit, "get main");
+  
+    map->Free_(map);
+  }
+
+  return 0;
+}
+  

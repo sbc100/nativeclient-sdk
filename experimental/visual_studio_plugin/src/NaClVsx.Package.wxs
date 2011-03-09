@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <DirectoryRef Id="NaClVsx.Package.Binaries">
+            <Component Id="cmpB76FCA7EF069BC9D0227303A209D9036" Guid="PUT-GUID-HERE">
+                <File Id="fil1323A61BF78C6E8E3587EBAE46EAF867" Source="$(var.NaClVsx.Package.TargetDir)\NaClVsx.Package.dll" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="NaClVsx.Package.Binaries">
+            <ComponentRef Id="cmpB76FCA7EF069BC9D0227303A209D9036" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>

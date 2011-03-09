@@ -1,0 +1,7 @@
+Selenium is an open-source browser-based functional testing framework.
+License  Apache 2.0
+(c.f. http://seleniumhq.org)
+
+The directories in here are a subset of
+http://release.seleniumhq.org/selenium-remote-control/1.0.1/selenium-remote-control-1.0.1-dist.zip
+

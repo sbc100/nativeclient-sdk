@@ -1,0 +1,144 @@
+# -*- python -*-
+# Copyright 2008, Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+# copyright notice, this list of conditions and the following disclaimer
+# in the documentation and/or other materials provided with the
+# distribution.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+import sys
+
+Import('env')
+
+basic_types_env = env.Clone()
+
+# TODO(tuduce): this should not be necessary once we go -std=c99
+if basic_types_env.Bit('linux') or basic_types_env.Bit('mac'):
+  basic_types_env.Append(CCFLAGS=['-Wno-long-long'])
+
+# basic_types_env is needed for anything that includes
+# src/include/base/basictypes.h since it uses LL constants.  this is
+# used from condition_variable.cc, lock.cc, nacl_sync.cc,
+# time_linux.cc, and time.cc.
+#
+# Ick ick ick.
+#
+# sigh.
+
+platform_inputs = [];
+
+if env.Bit('windows'):
+  platform_inputs += [
+    'win/condition_variable.cc',
+    'win/lock.cc',
+    'win/nacl_find_addrsp.c',
+    'win/nacl_host_desc.c',
+    'win/nacl_host_dir.c',
+    'win/lock_impl_win.cc',
+    'win/nacl_secure_random.c',
+    'win/nacl_semaphore.c',
+    'win/nacl_threads.c',
+    'win/nacl_time.c',
+    'win/nacl_timestamp.c',
+    'win/port_win.c',
+    'win/time_win.cc',
+    'win/xlate_system_error.c',
+  ]
+  # Needed for rand_s().
+  env.Append(
+        CCFLAGS = ['/D_CRT_RAND_S',
+                   '/D_UNICODE',
+                   '/DUNICODE'],
+  )
+elif env.Bit('linux'):
+  platform_inputs += [
+    'linux/nacl_find_addrsp.c',
+    'linux/nacl_host_desc.c',
+    'linux/nacl_host_dir.c',
+    'linux/nacl_secure_random.c',
+    'linux/nacl_semaphore.c',
+    'linux/nacl_threads.c',
+    'linux/nacl_time.c',
+    'linux/nacl_timestamp.c',
+  ] + map(basic_types_env.ComponentObject, [
+      'linux/condition_variable.cc',
+      'linux/lock.cc',
+      'linux/time_linux.cc',
+      ])
+elif env.Bit('mac'):
+  platform_inputs += [
+    'linux/nacl_find_addrsp.c',
+    'linux/nacl_host_desc.c',
+    'linux/nacl_secure_random.c',
+    'linux/nacl_threads.c',
+    'linux/nacl_time.c',
+    'linux/nacl_timestamp.c',
+    'osx/nacl_host_dir.c',
+    'osx/nacl_semaphore.c',
+    'osx/strnlen_osx.c',
+  ] + map(basic_types_env.ComponentObject, [
+      'linux/condition_variable.cc',
+      'linux/lock.cc',
+      'linux/time_linux.cc',
+      ])
+
+platform_inputs += [
+    'nacl_check.c',
+    'nacl_global_secure_random.c',
+    'nacl_host_desc_common.c',
+    'nacl_interruptible_condvar.c',
+    'nacl_interruptible_mutex.c',
+    'nacl_log.c',
+    'nacl_secure_random_common.c',
+    'nacl_sync_checked.c',
+  ] + map(basic_types_env.ComponentObject, [
+    'nacl_sync.cc',
+    'time.cc',
+    ])
+
+env.ComponentLibrary('platform', platform_inputs)
+
+if env.Bit('windows'):
+  PORT_WIN_TEST_SOURCES = ['platform_tests.cc',
+                           'win/port_win_test.c']
+  if env['BUILD_SUBARCH'] == '64':
+    PORT_WIN_TEST_SOURCES = [PORT_WIN_TEST_SOURCES,
+                             'win/test_tls.S']
+  port_win_test_exe = env.ComponentProgram('port_win_test',
+                                           PORT_WIN_TEST_SOURCES,
+                                           EXTRA_LIBS=['platform',
+                                                       'gio'])
+
+  node = env.CommandTest(
+      'port_win_test.out',
+      [port_win_test_exe],
+      size='huge')
+  env.AddNodeToTestSuite(node,
+                         ['large_tests'],
+                         'run_platform_tests')
+
+env.EnsureRequiredBuildWarnings()
+basic_types_env.EnsureRequiredBuildWarnings()

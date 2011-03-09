@@ -1,0 +1,21 @@
+# -*- python -*-
+# Copyright (c) 2008 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+
+Import('env')
+
+# NOTE: keep this sync'ed with nacl.scons
+trusted_untrusted_shared = [
+    'imc_buffer.c',
+    'invoke.c',
+    'nacl_srpc.c',
+    'rpc_serialize.c',
+    'rpc_service.c',
+    'rpc_server_loop.c',
+    'rpc_universal.c',
+    'utility.c',
+]
+
+env.ComponentLibrary('nonnacl_srpc', trusted_untrusted_shared)

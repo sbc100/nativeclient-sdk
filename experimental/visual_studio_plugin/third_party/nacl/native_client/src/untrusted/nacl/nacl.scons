@@ -1,0 +1,57 @@
+# -*- python -*-
+# Copyright 2008 The Native Client Authors.  All rights reserved.
+# Use of this source code is governed by a BSD-style license that can
+# be found in the LICENSE file.
+
+
+Import('env')
+
+# we have some empty source files
+env.FilterOut(CCFLAGS=['-pedantic'])
+
+# Sources are split into essentially one function per file to be in
+# alignment with the linker, which resolves symbols by including entire
+# object files.  Placing multiple definitions in one file may result in
+# object code bloat or possibly multiple definitions.
+
+sources = [
+    'av_wait.c',
+    'clock.c',
+    'close.c',
+    'dyncode_copy.c',
+    '_exit.c',
+    'fstat.c',
+    'getdents.c',
+    'getpid.c',
+    'gettimeofday.c',
+    'imc_accept.c',
+    'imc_connect.c',
+    'imc_makeboundsock.c',
+    'imc_mem_obj_create.c',
+    'imc_recvmsg.c',
+    'imc_sendmsg.c',
+    'imc_socketpair.c',
+    'lock.c',
+    'lseek.c',
+    'mmap.c',
+    'munmap.c',
+    'nanosleep.c',
+    'null.c',
+    'open.c',
+    'read.c',
+    'sbrk.c',
+    'sched_yield.c',
+    'sleep.c',
+    'srpc_get_fd.c',
+    'srpc_init.c',
+    'srpc_wait.c',
+    'stacktrace.c',
+    'stat.c',
+    'sysconf.c',
+    'tls.c',
+    'write.c',
+    ]
+
+env.ComponentLibrary('libnacl', sources)
+
+env.AddLibraryToSdk(['libnacl'])

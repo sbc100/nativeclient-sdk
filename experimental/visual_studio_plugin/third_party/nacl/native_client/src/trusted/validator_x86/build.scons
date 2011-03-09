@@ -1,0 +1,397 @@
+# -*- python -*-
+# Copyright 2008, Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+# copyright notice, this list of conditions and the following disclaimer
+# in the documentation and/or other materials provided with the
+# distribution.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+import os
+import sys
+Import('env')
+
+# TODO(robertm): consider adding this to the top level scons files
+env.Append(CPPPATH=['${TARGET_ROOT}'])
+
+# TODO(bradchen): eliminate need for the following line
+env.FilterOut(CCFLAGS=['-Wextra', '-Wswitch-enum', '-Wsign-compare'])
+
+# Start by building libary utilities that may be used by other architectures.
+env.ComponentLibrary('nchelper', ['ncfileutil.c'])
+
+# Now build validator for x86
+if env['TARGET_ARCHITECTURE'] != 'x86':
+  Return()
+
+# Define where generated code should be put.
+ncv_gen_basedir = '${TARGET_ROOT}'
+ncv_gen_dir = ncv_gen_basedir +'/gen/native_client/src/trusted/validator_x86'
+
+#------------------------------------------------------
+# Generate the needed header files for enumerated types.
+# Note that we use the same directory for all platforms.
+
+# Define enumerate type files, and the options to process.
+ncv_enum_pairs = {
+    'nacl_disallows': '--name=NaClDisallowsFlag --add_size=1',
+    'ncopcode_prefix': '--name=NaClInstPrefix --add_size=1',
+    'ncopcode_insts':
+      '--name=NaClMnemonic --add_size=1 --sort=1 --name_prefix=Inst',
+    'ncopcode_opcode_flags': '--name=NaClIFlag --add_size=1',
+    'ncopcode_operand_kind': '--name=NaClOpKind --add_size=1',
+    'ncopcode_operand_flag': '--name=NaClOpFlag --add_size=1',
+    'ncop_expr_node_flag': '--name=NaClExpFlag --add_size=1',
+    'ncop_expr_node_kind': '--name=NaClExpKind --add_size=1',
+}
+
+# Now code generate the enumerated types.
+for ncv_enum in ncv_enum_pairs:
+  ncv_options = ncv_enum_pairs[ncv_enum]
+  ncv_base = ncv_gen_dir + '/' + ncv_enum
+  ncv_enum_file = env.File(ncv_enum + '.enum')
+  ncv_header_1 = env.File(ncv_base + '.h')
+  ncv_header_2 = env.File(ncv_base + '_impl.h')
+  ncv_headers = [ ncv_header_1 , ncv_header_2 ]
+  ncv_command = (
+      '${PYTHON} %s --header="%s" --source="%s" --path_prefix="%s" %s %s' %
+      (env.File('enum_gen.py'), ncv_header_1, ncv_header_2, ncv_gen_basedir,
+       ncv_options, ncv_enum_file))
+  env.Command(ncv_headers,
+              [ncv_enum_file, env.File('enum_gen.py')],
+              [ncv_command])
+
+env.ComponentLibrary('ncopcode_utils',
+                     ['ncopcode_desc.c'])
+
+# Make a copy of debug CRT for now.
+# TODO(bradnelson): there should be a better way to generalize this requirement.
+# NOTE: debug builds on windows break without this
+crt = []
+if env.AllBits('windows', 'debug'):
+  for i in ['.', '$STAGING_DIR']:
+    crt += env.Replicate(i, '$VC80_DIR/vc/redist/Debug_NonRedist/'
+                         'x86/Microsoft.VC80.DebugCRT')
+    crt += env.Replicate(i, '$VC80_DIR/vc/redist/x86/Microsoft.VC80.CRT')
+
+# Isolate the environment for ncdecode_table to prevent a cycle.
+env_decode_table = env.Clone()
+# TODO: This should be handled more cleanly, by just building
+#   Testing type programs for coverage. But for the moment, we need sel_ldr
+#   and others to have coverage, so it's easier to gate it off here.
+env_decode_table['COVERAGE_LINKCOM_EXTRAS'] = None
+
+ncdecode_table = env_decode_table.ComponentProgram('ncdecode_table',
+                                                   ['ncdecode_table.c'],)
+env.Requires(ncdecode_table, crt)
+
+# Add new x86 table generator.
+ncdecode_tablegen = env_decode_table.ComponentProgram(
+    'ncdecode_tablegen',
+    ['ncdecode_tablegen.c',
+     'ncdecode_forms.c',
+     'ncdecode_onebyte.c',
+     'ncdecode_OF.c',
+     'ncdecode_sse.c',
+     'ncdecodeX87.c'
+    ],
+    EXTRA_LIBS=['ncopcode_utils'])
+
+env.Requires(ncdecode_tablegen, crt)
+
+# Segment register validator library
+NCVALIDATE_SOURCES = ['nacl_cpuid.c',
+                                    'ncdecode.c',
+                                    'nc_segment.c',
+                                    'nc_inst_iter.c',
+                                    'nc_inst_state.c',
+                                    'nc_inst_trans.c',
+                                    'ncop_exps.c',
+                                    'nc_read_segment.c',
+                                    'ncvalidate.c']
+if env['TARGET_SUBARCH']=='64':
+  NCVALIDATE_SOURCES = NCVALIDATE_SOURCES + ['ncopcode_desc.c']
+
+env.ComponentLibrary('ncvalidate', NCVALIDATE_SOURCES)
+
+# SFI validator library
+env.ComponentLibrary('ncvalidate_sfi',
+                     ['ncvalidate_iter.c',
+                      'ncvalidator_registry.c',
+                      'nc_opcode_histogram.c',
+                      'nc_cpu_checks.c',
+                      'nc_illegal.c',
+                      'nc_protect_base.c',
+                      'nc_store_protect.c',
+                      'ncvalidate_utils.c',
+                      'nc_jumps.c',
+                      'ncval_driver.c'])
+
+env.ComponentLibrary('ncdis_util', ['ncdis_util.c'])
+
+#------------------------------------------------------------------
+# Generate the header files containing the modeled x86 instructions.
+
+ncv_decodetab_h = env.File(ncv_gen_dir + '/ncdecodetab.h')
+ncv_disasmtab_h = env.File(ncv_gen_dir + '/ncdisasmtab.h')
+
+env.Command(
+    [ncv_decodetab_h, ncv_disasmtab_h],
+    [ncdecode_table, '${STAGING_DIR}/${PROGPREFIX}ncdecode_table${PROGSUFFIX}'],
+    ['${STAGING_DIR}/${PROGPREFIX}ncdecode_table${PROGSUFFIX} -m%s %s %s' %
+     (env['TARGET_SUBARCH'], ncv_decodetab_h, ncv_disasmtab_h)])
+
+# TODO(gregoryd): use nc_opcode_table64.h on all 64-bit platforms.
+if env['TARGET_SUBARCH'] == '64' and env.Bit('windows'):
+  ncv_opcode_table_h = env.File(ncv_gen_dir + '/nc_opcode_table64.h')
+else:
+  ncv_opcode_table_h = env.File(ncv_gen_dir + '/nc_opcode_table.h')
+
+env.Command(
+    [ncv_opcode_table_h],
+    [ncdecode_tablegen,
+     '${STAGING_DIR}/${PROGPREFIX}ncdecode_tablegen${PROGSUFFIX}'],
+    ['${STAGING_DIR}/${PROGPREFIX}ncdecode_tablegen${PROGSUFFIX} -m%s %s' %
+     (env['TARGET_SUBARCH'], ncv_opcode_table_h)])
+
+# ======================================================================
+# Decoder unittests
+if env['TARGET_SUBARCH'] == '32':
+  # TODO(kschimpf): remove this when the validator builds as 64-bits.
+  if env['BUILD_SUBARCH'] == '32':
+    ncdecode_tests = env.ComponentProgram('ncdecode_tests',
+                                          ['ncdecode_tests.c'],
+                                          EXTRA_LIBS=['ncvalidate',
+                                                      'ncdis_util'])
+
+    node = env.CommandTest(
+        'ncdecode_tests.out',
+        [ncdecode_tests[0]],
+        )
+
+    env.AddNodeToTestSuite(node, ['small_tests'])
+
+# ======================================================================
+ncdis = env.ComponentProgram('ncdis',
+                             ['ncdis.c'],
+                             EXTRA_LIBS=['utils',
+                                         'ncvalidate',
+                                         'ncopcode_utils',
+                                         'nchelper',
+                                         'ncdis_util'])
+
+env.Requires(ncdis, crt)
+
+# ======================================================================
+# Valiator unittests
+if env['TARGET_SUBARCH'] == '32':
+  ncval_tests = env.ComponentProgram('ncval_tests',
+                                     ['ncval_tests.c'],
+                                     EXTRA_LIBS=['ncvalidate', 'nchelper'])
+  env.Requires(ncval_tests, crt)
+
+  node = env.CommandTest(
+      'ncval_tests.out',
+      [ncval_tests[0]],
+      )
+
+  env.AddNodeToTestSuite(node, ['small_tests'])
+
+# ======================================================================
+if env['TARGET_SUBARCH'] == '32':
+  nacl_cpuid = env.ComponentProgram('nacl_cpuid',
+                                    ['nacl_cpuid_test.c'],
+                                    EXTRA_LIBS=['ncvalidate'])
+  env.Requires(nacl_cpuid, crt)
+
+
+  node = env.CommandTest(
+      'nacl_cpuid_test.out',
+      [nacl_cpuid[0]])
+
+  env.AddNodeToTestSuite(node, ['large_tests'])
+
+# ======================================================================
+TEST_IMAGES_NACL=[
+    'fib_array.nexe',
+    'fib_scalar.nexe',
+    'null.nexe',
+    ]
+
+TESTDATA_DIR = 'testdata/' + env['TARGET_SUBARCH'] + '/'
+
+# ======================================================================
+# Decoder vs objdump tests
+# TODO: add tests using the toolchain binaries in the sdk
+if env.Bit('linux') and env['TARGET_SUBARCH'] == '32':
+  for vtest in TEST_IMAGES_NACL:
+    node = env.CommandTest(
+        'discmp_' + vtest + ".out",
+        ["${PYTHON}", env.File('discmp.py'), env.File('ncdis'),
+         env.File(TESTDATA_DIR + vtest)],
+        )
+    env.AddNodeToTestSuite(node, ['large_tests'])
+
+# ======================================================================
+# Decoder on sample instruction sequences.
+TARGET_ARCH_NAME =  env['TARGET_ARCHITECTURE'] + '_' + env['TARGET_SUBARCH']
+
+NCDIS_TEST_NAME = 'ncdis_' + TARGET_ARCH_NAME + '_test'
+
+ncdis_input_golden = env.File(TESTDATA_DIR + 'ncdis_test.input')
+
+ncdis_test = env.CommandTest(
+    NCDIS_TEST_NAME + '.out',
+    [ncdis[0] , '-self_document', '-commands=-'],
+    stdin=ncdis_input_golden,
+    stdout_golden=ncdis_input_golden)
+
+env.AddNodeToTestSuite(ncdis_test, ['small_tests'], NCDIS_TEST_NAME)
+
+# ======================================================================
+# Decoder on sample instruction sequences using new iterator model.
+
+NCDIS_ITER_TEST_NAME = 'ncdis_iter_' + TARGET_ARCH_NAME + '_test'
+
+ncdis_iter_input_golden = env.File(TESTDATA_DIR + 'ncdis_iter_test.input')
+
+ncdis_iter_test = env.CommandTest(
+    NCDIS_ITER_TEST_NAME + '.out',
+    [ncdis[0] , '-use_iter', '-self_document', '-commands=-'],
+    stdin=ncdis_iter_input_golden,
+    stdout_golden=ncdis_iter_input_golden)
+
+env.AddNodeToTestSuite(ncdis_iter_test, ['small_tests'], NCDIS_ITER_TEST_NAME)
+
+# Same as above, but comparing internal representation against golde files.
+
+ncdis_iter_internal_golden = env.File(TESTDATA_DIR + 'ncdis_iter_test.internal')
+
+ncdis_internal_test = env.CommandTest(
+    NCDIS_ITER_TEST_NAME + "_int.out",
+    [ncdis[0], "-use_iter", "-internal", "-commands=-"],
+    stdin=ncdis_iter_input_golden,
+    stdout_golden=ncdis_iter_internal_golden)
+
+env.AddNodeToTestSuite(ncdis_internal_test,
+                       ['small_tests'],
+                       NCDIS_ITER_TEST_NAME)
+
+# Test that we can textually define a code segment using hex values.
+ncdis_iter_hex_txt = env.File(TESTDATA_DIR + "test_hex.txt")
+
+ncdis_iter_hex_golden = env.File(TESTDATA_DIR + "test_hex.gold")
+
+ncdis_iter_hex_test = env.CommandTest(
+    NCDIS_ITER_TEST_NAME + "_hex.out",
+    [ncdis[0], "-use_iter", "-hex_text=-"],
+    stdin=ncdis_iter_hex_txt,
+    stdout_golden=ncdis_iter_hex_golden)
+
+env.AddNodeToTestSuite(ncdis_iter_hex_test,
+                       ['small_tests'],
+                       NCDIS_ITER_TEST_NAME)
+
+# ======================================================================
+# Segment register validator.
+ncval = env.ComponentProgram('ncval',
+                             ['ncval.c'],
+                             EXTRA_LIBS=['ncvalidate', 'nchelper'])
+
+env.Requires(ncval, crt)
+
+# ======================================================================
+# Validator tests against real nacl images
+# TODO: add death tests
+# TODO: add tests using binaries produced by nacl.scons files
+# TODO: consider comparing the actual output (not just exit codes)
+# Validate tests
+if env['TARGET_SUBARCH'] == '32':
+  for vtest in TEST_IMAGES_NACL:
+    node = env.CommandTest(
+        'validate_' + vtest + ".out",
+        [ncval[0], '-t', env.File(TESTDATA_DIR + vtest)],
+        )
+    env.AddNodeToTestSuite(node, ['large_tests'])
+
+# ======================================================================
+# SFI validator.
+ncval_sfi = env.ComponentProgram(
+    'ncval_sfi',
+    ['ncval_iter.c'],
+    EXTRA_LIBS=['ncvalidate_sfi',
+                'ncvalidate',
+                'ncopcode_utils',
+                'nchelper',
+                'platform',
+                'gio',
+                'utils'])
+
+env.Requires(ncval, crt)
+
+# ======================================================================
+# Tester for SFI validator.
+ncval_iter_test = env.ComponentProgram(
+    'ncval_sfi_test',
+    ['ncval_iter_test.c'],
+    EXTRA_LIBS=['ncvalidate_sfi',
+                'ncvalidate',
+                'ncopcode_utils',
+                'nchelper',
+                'platform',
+                'gio',
+                'utils'])
+
+# Directory where test files are located.
+TESTDATA_DIR = 'testdata/' + env['TARGET_SUBARCH'] + '/'
+
+# Generates base names (i.e. minus path and .val suffix) of
+# all test data input files.
+def __FilterOutTestFileBaseGen(files):
+  for f in files:
+    yield os.path.basename(f.path).replace('.val', "")
+
+if env['TARGET_SUBARCH'] == '64':
+  golden_files = Glob(TESTDATA_DIR + '*.val')
+  for vtest in __FilterOutTestFileBaseGen(golden_files):
+    TEST_PREFIX = 'ncval_test_' + vtest
+    DIS_TEST_NAME = TEST_PREFIX + "_dis"
+    node_dis = env.CommandTest(
+        DIS_TEST_NAME + ".out",
+        ['$OBJ_ROOT/src/trusted/validator_x86/ncdis',
+         '-use_iter', '-hex_text=-'],
+        stdin = env.File(TESTDATA_DIR + vtest + ".hex"),
+        stdout_golden = env.File(TESTDATA_DIR + vtest + ".dis"))
+
+    env.AddNodeToTestSuite(node_dis, ['small_tests'], DIS_TEST_NAME)
+
+    VAL_TEST_NAME = TEST_PREFIX + "_val"
+    node_val = env.CommandTest(
+        VAL_TEST_NAME + ".out",
+        [ncval_iter_test[0]],
+        stdin = env.File(TESTDATA_DIR + vtest + ".hex"),
+        stdout_golden = env.File(TESTDATA_DIR + vtest + ".val"))
+
+    env.AddNodeToTestSuite(node_val, ['small_tests'], VAL_TEST_NAME)

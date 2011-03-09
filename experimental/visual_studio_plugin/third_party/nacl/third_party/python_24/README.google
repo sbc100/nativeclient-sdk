@@ -1,0 +1,74 @@
+URL: http://www.python.org/download/releases/2.4.4/
+Version: 2.4.4
+License: notice
+License File: LICENSE
+Description: Python scripting language for Windows.
+
+URL: http://sourceforge.net/projects/pywin32/
+Version: 212
+License: notice
+License File: LICENSE-pywin32
+Description: PyWin32 extensions for Python.  Useful for COM API, etc.
+
+Local Modifications:
+* Installed Python.  Did not install for all users, just the current user.
+  Did not install any of the optional components.
+* Installed pywin32 extensions on top of Python.
+* Moved the following files which pywin32 installs in \windows\system32 to the
+  python folder:
+    * pythoncom24.dll
+    * pywintypes24.dll
+  This is the only way to get these DLLs earlier in the search order than those
+  from a local install of PyWin32.  See:
+  http://msdn.microsoft.com/en-us/library/ms682586(VS.85).aspx
+* Made a copy of pywintypes24.dll in Lib\site-packages\win32.  This is
+  necessary for the .pyd files in this directory to load it in preference to a
+  local copy in \windows\system32.
+* Deleted *.pyc *.pyo files from the tree.
+* Deleted Lib\site-packages\PyWin32.chm (help file for PyWin32).
+
+On Windows, Python is most useful with the PyWin32 extensions installed.  These
+extensions provide process control and filesystem APIs (linking, etc.) which
+are available in posix versions of Python, but not built into the Windows
+version.  Several other third-party packages such as SCons require PyWin32.
+
+RULES FOR WHERE PYTHON ADDONS SHOULD BE CHECKED IN:
+
+Most other client-side addons for Python should be checked into
+//depot/googleclient/third_party/py, rather than being directly installed in
+the same directory as Python.
+
+Follow this decision tree to determine where your addon should live:
+
+  1. Does the add-on supply a .dll file?
+        NO -  Stop, we're safe.  The add-on can live in its own subdirectory in
+              third_party/py.
+        YES - Continue to step 2.
+
+  2. Does the add-on install its .dll underneath the Windows directory?
+        NO -  Stop, we're safe.  The add-on can live in its own subdirectory in
+              third_party/py.  Your setup_env.bat file must PREPEND the
+              directory containing the .dll to the path, so that it will be
+              found before a locally-installed copy of the package.
+        YES - Continue to step 3.
+
+  3. Does the add-on supply a .pyd file?
+        NO -  Continue to step 4.
+        YES - Check if the .pyd file depends directly on the DLL.  If it does,
+              the DLL must be copied to the same directory as the .pyd.
+              Continue to step 4 to determine if the DLL must also be copied to
+              the same directory as python.exe.
+
+  4. Does the add-on call LoadLibrary(), either in its own .pyd file, or via
+     pywin32?
+        NO -  Stop, we're safe.  The add-on can live in its own subdirectory in
+              third_party/py.
+        YES - Stop, the DLL must be placed in the same directory as python.exe,
+              so the add-on must be installed in third_party/python_24.
+
+Unfortunately, PyWin32 falls into the least-hermetic category.  It installs
+.dll files into \windows\system32, which are referenced both directly by its
+.pyd files and indirectly via LoadLibrary() calls.
+
+* Duplicated python.exe as python_slave.exe to aid in killing python tasks on
+the buildbot.
