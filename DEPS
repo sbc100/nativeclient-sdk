@@ -5,7 +5,8 @@ vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
   "native_client_version": NACL_REVISION,
   "x86_toolchain_version": NACL_REVISION,
-  "valgrind_path": "http://src.chromium.org/native_client/trunk/src/native_client/src/third_party/valgrind",
+  "valgrind_path": "http://src.chromium.org/native_client/trunk/"
+    "src/native_client/src/third_party/valgrind",
   "valgrind_version": NACL_REVISION,
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
@@ -15,12 +16,21 @@ vars = {
 
 deps = {
   "src/third_party/scons":
-    Var("native_client_trunk") + "/src/third_party/scons@" + Var("native_client_version"),
+    Var("native_client_trunk") + "/src/third_party/scons@"
+    + Var("native_client_version"),
   "src/third_party/swtoolkit":
     "http://swtoolkit.googlecode.com/svn/trunk@66",
   "src/third_party/valgrind": Var("valgrind_path") + "@" +
-       Var("valgrind_version"),
-  "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version")
+    Var("valgrind_version"),
+  "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version"),
+  "src/experimental/visual_studio_plugin/third_party/nacl_sub/native_client/"
+    "src/trusted/port":
+    Var("native_client_trunk") + "/src/native_client/src/trusted/port@"
+    + Var("native_client_version"),
+  "src/experimental/visual_studio_plugin/third_party/nacl_sub/native_client/"
+    "src/trusted/gdb_rsp":
+    Var("native_client_trunk") + "/src/native_client/src/trusted/gdb_rsp@"
+    + Var("native_client_version")
 }
 
 hooks = [
