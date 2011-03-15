@@ -1,23 +1,66 @@
-#!/usr/bin/python
+#! -*- python -*-
 #
 # Copyright (c) 2010 The Native Client SDK Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Main scons script for Native Client SDK builds.
+
+Do not invoke this script directly, but instead use the hammer.sh or hammer.bat
+wrapper function.  E.g.
+
+Linux or Mac:
+  ./hammer.sh [Options...]
+
+Windows:
+  hammer.bat [Options...]
 """
 
+import multiprocessing
 import os
 import sys
+
+#------------------------------------------------------------------------------
+HELP_STRING = """
+===============================================================================
+Help for NaCl SDK
+===============================================================================
+
+* cleaning:            ./hammer.sh -c
+* build a target:      ./hammer.sh <target>
+
+Supported targets:
+  * examples          Build all of the examples
+  * docs              Build all of the Doxygen documentation
+  * installer         Build the SDK installer
+  * tests             Run all the unit tests
+  * bot               Runs everything that the build and try bots run
+
+Supported flags:
+  * DEVELOPMENT=1     Runs with development options for the installer build
+                      (currently this suppresses unneeded downloads)
+
+More targets are listed below in the automatically generated help section.
+
+===============================================================================
+Automatically generated help follows:
+===============================================================================
+"""
+
+#------------------------------------------------------------------------------
+# Perform some environment checks before running.
+# Note that hammer.sh should set NACL_SDK_ROOT before this script runs.
 
 if os.getenv('NACL_SDK_ROOT') is None:
   sys.stderr.write('NACL_SDK_ROOT must be defined as the root directory'
                    ' of NaCl SDK.\n')
   sys.exit(1)
 
-# Build a string representing the NaCl toolchain root.  This root points at the
-# platform-specific directory.
+
 def GetToolchainRoot(sdk_root=None):
+  '''Build a string representing the NaCl toolchain root.
+  This root points at the platform-specific directory.
+  '''
   if sdk_root is None:
     sdk_root = os.getenv('NACL_SDK_ROOT', '')
   if sys.platform == 'cygwin' or sys.platform.startswith('win'):
@@ -36,126 +79,137 @@ def GetToolchainRoot(sdk_root=None):
 # Check to make sure the necessary packages are installed.
 naclports_include = os.path.join(GetToolchainRoot(os.getenv('NACL_SDK_ROOT')),
                                  'nacl', 'usr', 'include')
+
 for package in ['boost', 'gmock', 'gtest']:
   if not os.path.exists(os.path.join(naclports_include, package)):
-    sys.stderr.write('Your NaCl toolchain does not have the necessary packages\n'
-                     'or the packages are not current.\n'
-                     'Run scripts/setup_naclports_packages.py\n')
-    sys.exit(1)
+    sys.stderr.write(
+        'Your NaCl toolchain does not have the necessary packages '
+        'or the packages are not current.\n'
+        'Run scripts/setup_naclports_packages.py\n')
 
-environment_list = []
 
-base_env = Environment(
-  tools = ['component_setup'],
-  CPPPATH = ['$MAIN_DIR'],
-  CPPDEFINES = [
-    'BOOST_ALL_NO_LIB',
-  ],
-  NACL_TOOLCHAIN_ROOT = GetToolchainRoot(os.getenv('NACL_SDK_ROOT'))
-)
+# By default, run with a parallel build (i.e. '-j num_jobs').
+# Use a default value proportional to the number of cpu cores on the system.
+# To run a serial build, explicitly type '-j 1' on the command line.
+SetOption('num_jobs', multiprocessing.cpu_count() + 1)
 
 #-----------------------------------------------------------------------------
-# Build environment for NaCl module.  Use this to create a basic env for both
-# 32- and 64-bit builds.
-nacl_env = base_env.Clone(
-    tools = ['naclsdk'],
-    BUILD_TYPE_DESCRIPTION = 'NaCl module',
-    BUILD_TYPE = 'nacl',
-    LIBS = ['google_nacl_imc',
-            'google_nacl_npruntime',
-            'pthread',
-            'srpc'],
-    NATIVE_CLIENT_SDK_DEFAULT_MODE = 'custom:' + base_env['NACL_TOOLCHAIN_ROOT']
-)
+# The environment_list contains all the build environments that we want to
+# specify.  Selecting a particular environment is done using the --mode option.
+# Each environment that we support gets appended to this list.
+environment_list = []
 
-nacl_env.Append(
-  BUILD_SCONSCRIPTS = [
-    '$MAIN_DIR/c_salt/c_salt.scons',
-  ],
-)
-
-nacl32_env = nacl_env.Clone(
-    CFLAGS = ['-m32'],
-    BUILD_TYPE_DESCRIPTION = '32-bit NaCl module',
-)
-nacl32_env.Append(CPPPATH = [os.path.join('$NACL_TOOLCHAIN_ROOT',
-                                          'nacl',
-                                          'usr',
-                                          'include')])
-
-nacl64_env = nacl_env.Clone(
-    CFLAGS = ['-m64'],
-    BUILD_TYPE_DESCRIPTION = '64-bit NaCl module',
-)
-nacl64_env.Append(CPPPATH = [os.path.join('$NACL_TOOLCHAIN_ROOT',
-                                          'nacl64',
-                                          'usr',
-                                          'include')])
-
-nacl32_dbg_env = nacl32_env.Clone(
-    BUILD_GROUPS = ['default'],
-    BUILD_TYPE = 'dbg32',
-    BUILD_TYPE_DESCRIPTION = '32-bit debug NaCl module',
-    tools = ['target_debug']
-)
-environment_list.append(nacl32_dbg_env)
-
-nacl64_dbg_env = nacl64_env.Clone(
-    BUILD_GROUPS = ['default'],
-    BUILD_TYPE = 'dbg64',
-    BUILD_TYPE_DESCRIPTION = '64-bit debug NaCl module',
-    tools = ['target_debug']
-)
-environment_list.append(nacl64_dbg_env)
-
-nacl32_opt_env = nacl32_env.Clone(
-    BUILD_TYPE = 'opt32',
-    BUILD_TYPE_DESCRIPTION = '32-bit optimized NaCl module',
-    tools = ['target_optimized']
-)
-environment_list.append(nacl32_opt_env)
-
-nacl64_opt_env = nacl64_env.Clone(
-    BUILD_TYPE = 'opt64',
-    BUILD_TYPE_DESCRIPTION = '64-bit optimized NaCl module',
-    tools = ['target_optimized']
-)
-environment_list.append(nacl64_opt_env)
-
-# TODO(mball) update this target after properly adding c_salt tests
-nacl_test_env = nacl32_env.Clone(
-    BUILD_TYPE = 'test',
-    BUILD_TYPE_DESCRIPTION = 'NaCl test build',
-    BUILD_SCONSCRIPTS = [
-      '$MAIN_DIR/c_salt/c_salt.scons',
-      '$MAIN_DIR/c_salt/test.scons',
-      '$MAIN_DIR/project_templates/test.scons',
+#-----------------------------------------------------------------------------
+# Create the base environment, from which all other environments are derived.
+base_env = Environment(
+    tools = ['component_setup'],
+    CPPPATH = ['$MAIN_DIR'],
+    CPPDEFINES = [
+      'BOOST_ALL_NO_LIB',
     ],
-    COMPONENT_TEST_CMDLINE = '$NACL_TOOLCHAIN_ROOT/bin/sel_ldr $PROGRAM_NAME',
-    LIBS = ['gmock', 'gtest', 'nosys', 'pthread', 'srpc',
-            'c_salt', 'google_nacl_npruntime', 'google_nacl_imc',
-            'google_nacl_pgl', 'google_nacl_gpu']
-)
-environment_list.append(nacl_test_env)
-
-# ----------------------------------------------------------
-# DOCUMENTATION HELPER
-# ----------------------------------------------------------
-
-doc_env = base_env.Clone(
-  NACL_BUILD_FAMILY = 'NO_PLATFORM',
-  BUILD_GROUPS = ['docs'],
-  BUILD_TYPE = 'doc',
-  BUILD_TYPE_DESCRIPTION = 'Doxygen build for c_salt and examples',
-  HOST_PLATFORMS = '*',
-  HOST_PLATFORM_SUFFIX='',
+    NACL_TOOLCHAIN_ROOT = GetToolchainRoot(os.getenv('NACL_SDK_ROOT')),
 )
 
-doc_env.Append(
-  BUILD_SCONSCRIPTS = [
-    'documentation/build.scons',
-  ],
+# It is possible to override these values on the command line by typing
+# something like this:
+#   PYTHON=/path/to/my/python
+#   DEVELOPMENT=1
+base_env.SetDefault(
+    PYTHON = ARGUMENTS.get('PYTHON', 'python'),
+    DEVELOPMENT = ARGUMENTS.get('DEVELOPMENT', ''),
+    MAKE = ARGUMENTS.get('MAKE', 'make'),
 )
-environment_list.append(doc_env)
 
+# The list of .scons files is order-dependent.  Scons will build their targets
+# in the order they appear.
+base_env.Append(
+    BUILD_SCONSCRIPTS = [
+        'examples/build.scons',
+        'documentation/build.scons',
+        'build_tools/build.scons',
+        'project_templates/test.scons',
+    ],
+)
+
+base_env.Help(HELP_STRING)
+
+KNOWN_TEST_SUITES = frozenset([
+    'unit',
+    ])
+
+
+def AddNodeToTestSuite(env, node, suite_names, node_name, test_size='all'):
+  '''Adds a test node to a given set of suite names
+
+  These tests are automatically added to the run_all_tests target and are
+  listed in the help screen.
+
+  This function is loosely based on a function of the same name in the
+  Native Client repository
+
+  Args:
+    env - The environment from which this function was called
+    node - A scons node (e.g., file, command, etc) to be added to set suite
+    suite_names - A list of test suite names.  For none, pass an empty list
+    node_name - The target name used for running this test
+    test_size - The relative run-time of this test: small, medium, or large
+  '''
+
+  # CommandTest can return an empty list when it silently discards a test
+  if not node:
+    return
+
+  AlwaysBuild(node)
+
+  for s in suite_names:
+    if s not in KNOWN_TEST_SUITES:
+      raise Exception('Testsuite "%s" for test "%s" is unknown' %
+                      (s, node_name))
+    env.Alias(s, node)
+
+  if test_size not in ['small', 'medium', 'large', 'all']:
+    raise Exception('Invalid test size for %s' % node_name)
+
+  # Note that COMPONENT_TEST_SIZE is set to 'large' by default, which
+  # populates a largely redundant list of 'large' tests.  Note that all
+  # tests are added to 'all', so setting test_size='all' is a no-op
+  env.ComponentTestOutput(node_name, node, COMPONENT_TEST_SIZE=test_size)
+
+base_env.AddMethod(AddNodeToTestSuite)
+
+
+def AddNodeAliases(env, node, alias_names):
+  '''Adds a node as an aliased target, makes the 'bot' target depend on that
+  node.
+
+  Args:
+    env - The calling environment
+    node - A target node to add to the build bot
+    alias_names - A list of additional aliases to add this node to
+    node_name - An optional alias name for this node
+  '''
+
+  if not node:
+    return
+
+  for s in alias_names:
+    env.Alias(s, node)
+
+base_env.AddMethod(AddNodeAliases)
+
+
+#-----------------------------------------------------------------------------
+# This is a simple environment that primarily for targets that aren't built
+# directly by scons, and therefore don't need any special environment setup
+build_env = base_env.Clone(
+    BUILD_TYPE = 'build',
+    BUILD_GROUPS = ['default', 'all'],
+    BUILD_TYPE_DESCRIPTION = 'Default build environment',
+    HOST_PLATFORMS = '*',
+    )
+
+environment_list.append(build_env)
+
+
+# -----------------------------------------------------------------------------
 BuildComponents(environment_list)

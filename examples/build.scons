@@ -1,0 +1,24 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client SDK Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+"""
+Build file for the NaCl SDK Examples
+
+Currently, this file is just a thin wrapper around Gnu make, but eventually
+we'd like to use scons to directly build all the examples.
+"""
+
+__author__ = 'mball@google.com (Matt Ball)'
+
+Import('env')
+
+node = env.Command(
+  target='examples_dummy_target',
+  source='Makefile',
+  action='cd examples && ${MAKE} -j %d' % GetOption('num_jobs'),
+)
+
+env.AddNodeAliases(node, ['examples'])

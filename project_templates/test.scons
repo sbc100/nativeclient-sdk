@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! -*- python -*-
 #
 # Copyright (c) 2010 The Native Client SDK Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
@@ -16,6 +16,7 @@ __author__ = 'mlinck@google.com (Michael Linck)'
 import os
 import sys
 
+Import('env')
 
 def RunUnitTest(env, target, source):
   """Runs unit tests using the given target as a command.
@@ -38,5 +39,12 @@ def RunUnitTest(env, target, source):
   app_env['PYTHONPATH'] = app_env['PYMOX']
   if not subprocess.call(app, env=app_env):
     open(str(target[0]),'w').write("PASSED\n")
+    return None
+  else:
+    return True
 
-Command("test.passed", 'init_project_test.py', RunUnitTest)
+cmd = env.Command("init_project_test.out", 'init_project_test.py', RunUnitTest)
+env.Depends(cmd, "init_project.py")
+
+env.AddNodeToTestSuite(cmd, [], 'run_init_project_test', 'small')
+env.AddNodeAliases(cmd, ['tests'])

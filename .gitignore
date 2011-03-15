@@ -6,14 +6,14 @@
 *.nexe
 *.o
 *.nmf
+*.gz
+*.cmd
 
-# Ignore these directories
+# Ignore all directories than contain these names
 scons-out/
-third_party/scons/
-third_party/swtoolkit/
-third_party/valgrind/
-third_party/cygwin/
-third_party/pymox/
+third_party/
 toolchain/
-build_tools/packages/
+
+# Ignore these particular directories (relative to src directory)
+/build_tools/packages/
 
