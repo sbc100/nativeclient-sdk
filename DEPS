@@ -1,10 +1,10 @@
 # Note: NACL_REVISION is used by build_tools/generate_installers.py
-NACL_REVISION = "4303"
+NACL_REVISION = "4412"
 
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
   "native_client_version": NACL_REVISION,
-  "x86_toolchain_version": NACL_REVISION,
+  "x86_toolchain_version": "4412",
   "valgrind_path": "http://src.chromium.org/native_client/trunk/"
     "src/native_client/src/third_party/valgrind",
   "valgrind_version": NACL_REVISION,
@@ -41,11 +41,5 @@ hooks = [
     "action": ["python", "src/build_tools/download_compilers.py",
                "-v", Var("x86_toolchain_version")],
   },
-  {
-    # Install and build all the third-party libs & tools.
-    # Make sure this runs after download_compilers.py.
-    "pattern": ".",
-    "action": ["python", "src/build_tools/install_third_party.py"],
-  }
 ]
 
