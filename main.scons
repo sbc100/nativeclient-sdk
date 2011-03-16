@@ -76,18 +76,6 @@ def GetToolchainRoot(sdk_root=None):
   return os.path.join(sdk_root, 'toolchain', variant)
 
 
-# Check to make sure the necessary packages are installed.
-naclports_include = os.path.join(GetToolchainRoot(os.getenv('NACL_SDK_ROOT')),
-                                 'nacl', 'usr', 'include')
-
-for package in ['boost', 'gmock', 'gtest']:
-  if not os.path.exists(os.path.join(naclports_include, package)):
-    sys.stderr.write(
-        'Your NaCl toolchain does not have the necessary packages '
-        'or the packages are not current.\n'
-        'Run scripts/setup_naclports_packages.py\n')
-
-
 # By default, run with a parallel build (i.e. '-j num_jobs').
 # Use a default value proportional to the number of cpu cores on the system.
 # To run a serial build, explicitly type '-j 1' on the command line.
@@ -213,3 +201,6 @@ environment_list.append(build_env)
 
 # -----------------------------------------------------------------------------
 BuildComponents(environment_list)
+
+# Require specifying an explicit target
+Default(None)
