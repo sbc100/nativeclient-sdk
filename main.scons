@@ -16,7 +16,6 @@ Windows:
   hammer.bat [Options...]
 """
 
-import multiprocessing
 import os
 import sys
 
@@ -79,7 +78,14 @@ def GetToolchainRoot(sdk_root=None):
 # By default, run with a parallel build (i.e. '-j num_jobs').
 # Use a default value proportional to the number of cpu cores on the system.
 # To run a serial build, explicitly type '-j 1' on the command line.
-SetOption('num_jobs', multiprocessing.cpu_count() + 1)
+CORE_COUNT = 1
+try:
+  import multiprocessing
+  CORE_COUNT = multiprocessing.cpu_count()
+except (ImportError, NotImplementedError):
+  pass
+
+SetOption('num_jobs', CORE_COUNT + 1)
 
 #-----------------------------------------------------------------------------
 # The environment_list contains all the build environments that we want to
