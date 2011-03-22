@@ -14,6 +14,13 @@ import shutil
 import subprocess
 import sys
 
+#------------------------------------------------------------------------------
+# Parameters
+
+# Revision numbers for the SDK
+MAJOR_REV = '0'
+MINOR_REV = '2'
+
 # Map the string stored in |sys.platform| into a toolchain platform specifier.
 PLATFORM_MAPPING = {
     'win32': 'win_x86',
@@ -25,6 +32,9 @@ PLATFORM_MAPPING = {
 }
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
+
+#------------------------------------------------------------------------------
+# Functions
 
 # Make all the directories in |abs_path|.  If |abs_path| points to a regular
 # file, it is removed before an attempt to make the directories.  If |abs_path|
@@ -161,6 +171,19 @@ def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT, base_dir=None):
     normalized_toolchain = os.path.abspath(toolchain)
   return normalized_toolchain
 
+
+def RawVersion():
+  '''Returns the Raw version number of the SDK in a dotted format'''
+  return '.'.join(GetVersionNumbers())
+
+
+def GetVersionNumbers():
+  '''Returns a list of 4 strings containing the version identifier'''
+  rev = str(SVNRevision())
+  build_number = os.environ.get('BUILD_NUMBER', '0')
+  return [MAJOR_REV, MINOR_REV, rev, build_number]
+
+
 # Note that this function has to be run from within a subversion working copy,
 # or a git repository that is based on a subversion parent.
 def SVNRevision():
@@ -177,8 +200,8 @@ def SVNRevision():
   else:
     return 0
 
-# Returns the version of native client based on the svn revision number.
+
+
 def VersionString():
-  rev = SVNRevision()
-  build_number = os.environ.get('BUILD_NUMBER', '0')
-  return 'native_client_sdk_0_1_%d_%s' % (rev, build_number)
+  '''Returns the version of native client based on the svn revision number.'''
+  return 'native_client_sdk_%s' % '_'.join(GetVersionNumbers())

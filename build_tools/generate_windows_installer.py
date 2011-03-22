@@ -51,12 +51,6 @@ INSTALLER_FILES = ['AUTHORS',
                    'NOTICE',
                    'README']
 
-def RawVersion():
-  rev = build_utils.SVNRevision()
-  build_number = os.environ.get('BUILD_NUMBER', '0')
-  return '0.1.%d.%s' % (rev, build_number)
-
-
 def main(argv):
   print('generate_windows_installer is starting.')
 
@@ -205,7 +199,8 @@ def main(argv):
     print "Trying to make a script: try %i..." % (i+1)
     exefile = subprocess.Popen([
         os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
-        'make_native_client_sdk.sh', '-V', RawVersion(), '-v', '-n'])
+        'make_native_client_sdk.sh', '-V',
+        build_utils.RawVersion(), '-v', '-n'])
     exefile.wait()
     if os.path.exists('done1'):
       print "NSIS script created - time to run makensis!"
@@ -215,7 +210,8 @@ def main(argv):
         print "Trying to make a script: try %i..." % (j+1)
         exefile2 = subprocess.Popen([
             os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
-            'make_native_client_sdk2.sh', '-V', RawVersion(), '-v', '-n'])
+            'make_native_client_sdk2.sh', '-V',
+            build_utils.RawVersion(), '-v', '-n'])
         exefile2.wait()
         if os.path.exists('done2'):
           print "Installer created!"
