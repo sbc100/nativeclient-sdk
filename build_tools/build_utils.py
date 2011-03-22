@@ -19,7 +19,7 @@ import sys
 
 # Revision numbers for the SDK
 MAJOR_REV = '0'
-MINOR_REV = '2'
+MINOR_REV = '3'
 
 # Map the string stored in |sys.platform| into a toolchain platform specifier.
 PLATFORM_MAPPING = {
