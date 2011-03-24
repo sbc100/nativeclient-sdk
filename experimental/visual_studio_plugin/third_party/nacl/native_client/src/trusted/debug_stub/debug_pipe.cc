@@ -19,18 +19,17 @@ using std::string;
 using std::stringstream;
 
 
-DebugPipe::DebugPipe(DebugStream *io_ptr) 
+DebugPipe::DebugPipe(DebugStream *io_ptr)
   : io_(0),
     seq_(0) {
-	io_ = io_ptr;
+  io_ = io_ptr;
 }
 
 DebugPipe::~DebugPipe() {
-	if (io_)
-	{
-		delete io_;
-		io_ = 0;
-	}
+  if (io_) {
+    delete io_;
+    io_ = 0;
+  }
 }
 
 DebugStream *DebugPipe::GetIO() {
@@ -82,63 +81,47 @@ DebugPipe::DPResult DebugPipe::SendPacket(DebugPacket *pkt) {
     // If ACKs are off, we are done.
     if (GetFlags() & DPF_IGNORE_ACK)
       break;
-    
     // Otherwise, poll for '+'
     if (GetChar(&ch) == DPR_ERROR)
-		  return DPR_ERROR;
-    
+      return DPR_ERROR;
     // Retry if we didn't get a '+'
   } while (ch != '+');
 
   return res;
 }
 
-DebugPipe::DPResult DebugPipe::SendPacketOnly(DebugPacket *pkt) {		
-	const char *ptr = pkt->GetPayload();
-	char ch;
+DebugPipe::DPResult DebugPipe::SendPacketOnly(DebugPacket *pkt) {
+  const unsigned char *ptr = (const unsigned char*)(pkt->GetPayload());
+  unsigned char ch;
   stringstream outstr;
-
-  char run_xsum = 0;
-	int32_t seq;
+  const char* curr_function = "DebugPipe::SendPacketOnly";
+  unsigned char run_xsum = 0;
+  int32_t seq;
 
   if ((pkt->GetSequence(&seq) == false) && (GetFlags() & DPF_USE_SEQ)) {
     pkt->SetSequence(seq_++);
   }
+  debug_log_info("Inside %s\n", curr_function);
+  // Signal start of response
+  outstr << '$';
 
-	// Signal start of response
-	outstr << '$';
+  // Note: we are no longer looking for sequence numbers.
 
-	// If there is a sequence, send as two nibble 8bit value + ':'
-	if (pkt->GetSequence(&seq) == DPR_OK) {
-		ch = debug_int_to_nibble((seq & 0xFF) >> 4);
-		outstr << ch;
-		run_xsum += ch;
+  // Send the main payload
+  int offs = 0;
+  while (ch = ptr[offs++]) {
+    outstr << ch;
+    run_xsum += ch;
+  }
 
-		ch = debug_int_to_nibble(seq & 0xF);
-		outstr << ch;
-		run_xsum += ch;
-
-		ch = ':';
-		outstr << ch;
-		run_xsum += ch;
-	}
-	
-	// Send the main payload
-	int offs = 0;
-	while (ch = ptr[offs++]) {
-		outstr << ch;
-		run_xsum += ch;
-	}
-
-	// Send XSUM as two nible 8bit value preceeded by '#'
-	outstr << '#';
+  // Send XSUM as two nible 8bit value preceeded by '#'
+  outstr << '#';
   ch = debug_int_to_nibble(run_xsum >> 4);
-	outstr << ch;
-	ch = debug_int_to_nibble(run_xsum & 0xF);
-	outstr << ch;
-
+  outstr << ch;
+  ch = debug_int_to_nibble(run_xsum & 0xF);
+  outstr << ch;
   delete[] ptr;
-	return SendStream(outstr.str().data());
+  return SendStream(outstr.str().data());
 }
 
 DebugPipe::DPResult DebugPipe::SendStream(const char *out) {
@@ -150,7 +133,8 @@ DebugPipe::DPResult DebugPipe::SendStream(const char *out) {
     int32_t tx = GetIO()->Write(cur, len - sent);
 
     if (tx <= 0) {
-      debug_log_warning("Send of %d bytes : '%s' failed.\n", len, out);
+      debug_log_warning("DebugPipe::SendStream %d bytes : '%s' failed.\n",
+                        len, out);
       return DPR_ERROR;
     }
 
@@ -158,50 +142,59 @@ DebugPipe::DPResult DebugPipe::SendStream(const char *out) {
   }
 
   if (GetFlags() & DPF_DEBUG_SEND)
-    debug_log_info("TX %s:%s\n", name_.data(), out);
+    debug_log_info("TX %s:%s\n", name_.c_str(), out);
   return DPR_OK;
 }
 
 
 // Attempt to receive a packet
 DebugPipe::DPResult DebugPipe::GetPacket(DebugPacket *pkt) {
-	char run_xsum, fin_xsum, ch;
+  const char *curr_function = "DebugPipe::GetPacket";
+  char run_xsum, fin_xsum, ch;
   stringstream in;
   int has_seq, offs;
 
   // If nothing is waiting, return NONE
-  if (GetIO()->DataAvail() == DPR_NO_DATA)
+  if (GetIO()->DataAvail() == DPR_NO_DATA) {
+    debug_log_warning("%s return DPR_NO_DATA\n", curr_function);
     return DPR_NO_DATA;
+  }
 
   // Toss characters until we see a start of command
-	do {
-		if (GetChar(&ch) == DPR_ERROR)
-			return DPR_ERROR;
+  do {
+    if (GetChar(&ch) == DPR_ERROR) {
+      debug_log_warning("%s return DPR_ERROR\n", curr_function);
+      return DPR_ERROR;
+    }
     in << ch;
-	} while (ch != '$');
+  } while (ch != '$');
 
  retry:
   has_seq = 1;
   offs    = 0;
 
   // If nothing is waiting, return NONE
-  if (GetIO()->DataAvail() == DPR_NO_DATA)
+  if (GetIO()->DataAvail() == DPR_NO_DATA) {
+    debug_log_warning("%s return DPR_NO_DATA 2\n", curr_function);
     return DPR_NO_DATA;
+  }
 
-	// Clear the stream
-	pkt->Clear();
+  // Clear the stream
+  pkt->Clear();
 
-	// Prepare XSUM calc
-	run_xsum = 0;
-	fin_xsum = 0;
+  // Prepare XSUM calc
+  run_xsum = 0;
+  fin_xsum = 0;
 
-	// Stream in the characters
-	while (1) {
-		if (GetChar(&ch) == DPR_ERROR)
-			return DPR_ERROR;
+  // Stream in the characters
+  while (1) {
+    if (GetChar(&ch) == DPR_ERROR) {
+      debug_log_warning("%s return DPR_ERROR 3\n", curr_function);
+      return DPR_ERROR;
+    }
 
     in << ch;
-	  // Check SEQ statemachine  xx:
+    // Check SEQ statemachine  xx:
     switch(offs) {
       case 0:
       case 1:
@@ -217,37 +210,41 @@ DebugPipe::DPResult DebugPipe::GetPacket(DebugPacket *pkt) {
     offs++;
 
     // If we see a '#' we must be done with the data
-		if (ch == '#')
-			break;
+    if (ch == '#')
+      break;
 
-		// If we see a '$' we must have missed the last cmd
+    // If we see a '$' we must have missed the last cmd
     if (ch == '$') {
-      debug_log_info("RX Missing $, retry.\n");
-			goto retry;
+      debug_log_info("%s RX Missing $, retry.\n", curr_function);
+      goto retry;
     }
-		// Keep a running XSUM
-		run_xsum += ch;
-		pkt->AddRawChar(ch);
-	}
+    // Keep a running XSUM
+    run_xsum += ch;
+    pkt->AddRawChar(ch);
+  }
 
-
-	// Get two Nibble XSUM
-	if (GetChar(&ch) == DPR_ERROR)
-		return DPR_ERROR;
+  // Get two Nibble XSUM
+  if (GetChar(&ch) == DPR_ERROR) {
+    debug_log_warning("%s return DPR_ERROR 5\n", curr_function);
+    return DPR_ERROR;
+  }
   in << ch;
-	fin_xsum  = debug_nibble_to_int(ch) << 4;
+  fin_xsum  = debug_nibble_to_int(ch) << 4;
 
-	if (GetChar(&ch) == DPR_ERROR)
-		return DPR_ERROR;
+  if (GetChar(&ch) == DPR_ERROR)
+    return DPR_ERROR;
   in << ch;
-	fin_xsum |= debug_nibble_to_int(ch);
+  fin_xsum |= debug_nibble_to_int(ch);
 
   if (GetFlags() & DPF_DEBUG_RECV) {
     string str = in.str();
-    debug_log_info("RX %s:%s\n", name_.data(), str.data());
+    debug_log_info("RX [%s] [%s]\n",
+                   str.c_str(),
+                   curr_function);
   }
 
-  // Pull off teh sequence number if we have one
+  // FIXME -- dead code below? No packets should have a sequence number
+  // Pull off the sequence number if we have one
   if (has_seq) {
     uint8_t seq;
     char ch;
@@ -255,39 +252,31 @@ DebugPipe::DPResult DebugPipe::GetPacket(DebugPacket *pkt) {
     pkt->GetByte(&seq);
     pkt->SetSequence(seq);
     pkt->GetRawChar(&ch);
+    debug_log_error("ERROR IN %s has seq is TRUE\n", curr_function);
     if (ch != ':') {
-      debug_log_error("RX mismatched SEQ.\n");
+      debug_log_error("ERROR %s RX mismatched SEQ seq=%d ch=%d.\n",
+                      curr_function, seq, ch);
       return DPR_ERROR;
     }
   }
 
-  // If ACKs are off, we are done.
-  if (GetFlags() & DPF_IGNORE_ACK)
-    return DPR_OK;
-
-	// If the XSUMs don't match, signal bad packet
-	if (fin_xsum == run_xsum) {
+  // If the XSUMs don't match, signal bad packet
+  if (fin_xsum == run_xsum) {
     char out[4] = { '+', 0, 0, 0};
-    int32_t seq;
 
-		// If we have a sequence number
-		if (pkt->GetSequence(&seq) == DPR_OK)
-		{
-			// Respond with Sequence number
-			out[1] = debug_int_to_nibble(seq >> 4);
-			out[2] = debug_int_to_nibble(seq & 0xF);
-		}     
+    // We are no longer checking for sequence number and adding one
+    // on if needed.
+    debug_log_info("%s calling SendStream [%s]\n", curr_function, out);
     return SendStream(out);
-	}
-	else {
+  } else {
     // Resend a bad XSUM and look for retransmit
-		SendStream("-");
+    SendStream("-");
+    debug_log_info("%s RX Bad XSUM, retry\n", curr_function);
+    goto retry;
+  }
 
-    debug_log_info("RX Bad XSUM, retry\n");
-		goto retry;
-	}
-
-	return DPR_OK;
+  debug_log_info("%s returning DPR_OK at bottom\n", curr_function);
+  return DPR_OK;
 }
 
 

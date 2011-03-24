@@ -234,7 +234,7 @@ namespace Google.NaClVsx.DebugSupport {
       debugEventCallback_ = pCallback;
 
       var psi = new ProcessStartInfo {
-          Arguments = string.Format("-b \"{0}\"", pszArgs),
+          Arguments = pszArgs,
           FileName = pszExe,
           WorkingDirectory = pszDir
       };

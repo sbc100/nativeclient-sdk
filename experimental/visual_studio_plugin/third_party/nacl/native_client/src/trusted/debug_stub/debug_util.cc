@@ -11,6 +11,18 @@
 #include "native_client/src/include/portability_string.h"
 #include "native_client/src/trusted/debug_stub/debug_util.h"
 
+//
+// In the short term, set |debug_file_enable| to true and then write output
+// to the FILE* |debug_fp|.  It's not pretty, but it's extremely helpful
+// to have a persistent log of the most recent run when debugging
+// the interaction between the DebugServer (sel_ldr.exe) and the code
+// that is speaking RSP.  Also, it's easy to change it to false but not
+// remove the code until we are more confident of RSP and have better testing
+// for it.
+//
+static bool debug_file_enable = true;
+static FILE* debug_fp = NULL;
+
 int debug_get_tokens(const char *in, char delim, char *out[], int max) {
   char *str   =STRDUP(in);
   char *start= str;
@@ -86,27 +98,48 @@ void debug_printf(int level, const char *format, va_list args) {
   char buffer[4096];
   vsnprintf(buffer, sizeof(buffer), format, args);
   printf("[%s] %s", s_ErrStrs[level], buffer);
+  if (debug_file_enable) {
+    // |debug_fp| is a static variable initialized to NULL.  The first time
+    // we try to use it we need to initialize it.
+    if (!debug_fp) {
+      debug_fp = fopen("c:\\src\\debug.txt", "w");
+    }
+    if (debug_fp) {
+      // If message starts with RX or TX then don't prepend error level.
+      // This makes log easy to read since we can spot RX/TX messages
+      // which are the raw transmit/receive, and then see what other
+      // logged data is associated with those messages.
+      if ((buffer[0] == 'R' || buffer[0] == 'T') && buffer[1] == 'X') {
+        fprintf(debug_fp, "%s", buffer);
+      } else {
+        fprintf(debug_fp, "[%s] %s", s_ErrStrs[level], buffer);
+      }
+      fflush(debug_fp);
+    }
+  }
 }
 
 
 void debug_log_info(const char *format, ...) {
   va_list args;
   va_start( args, format );
-  
+
   debug_printf(DPL_INFO, format, args);
 }
 
 void debug_log_warning(const char *format, ...) {
   va_list args;
   va_start( args, format );
-  
+
   debug_printf(DPL_WARN, format, args);
 }
 
 void debug_log_error(const char *format, ...) {
   va_list args;
   va_start( args, format );
-  
+
+
+
   debug_printf(DPL_ERROR, format, args);
 }
 

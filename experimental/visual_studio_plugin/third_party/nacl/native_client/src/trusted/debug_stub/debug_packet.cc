@@ -86,7 +86,6 @@ void DebugPacket::AddNumberSep(uint64_t val, char sep) {
     // Assume we have the valuse 0x00001234
     for (a=0; a < sizeof(val); a++) {
       uint8_t byte = val & 0xFF;
-      
       // Stream in with bytes reverse, starting at least significant
       // So we store 4, then 3, 2, 1
       out[nibbles++] = debug_int_to_nibble(byte & 0xF);
@@ -119,7 +118,6 @@ void DebugPacket::AddNumberSep(uint64_t val, char sep) {
 bool DebugPacket::GetNumberSep(uint64_t *val, char *sep) {
   uint64_t out = 0;
   char ch;
-  
   if (!GetRawChar(&ch))
     return false;
 
@@ -129,13 +127,12 @@ bool DebugPacket::GetNumberSep(uint64_t *val, char *sep) {
       return false;
     if (ch == '1') {
       *val = -1;
-      
       ch = 0;
       GetRawChar(&ch);
        if (sep)
           *sep = ch;
        return true;
-    }      
+    }
     return false;
   }
 
@@ -168,10 +165,10 @@ bool DebugPacket::GetNumberSep(uint64_t *val, char *sep) {
 bool DebugPacket::GetHexString(const char **sep) {
   string out;
   char ch;
-  
+
   while (GetRawChar(&ch))
     out += ch;
-  
+
   *sep = strdup(out.data());
   return true;
 }
@@ -190,7 +187,6 @@ bool DebugPacket::GetByte(uint8_t *ch) {
 
   res = GetRawChar(&seq1);
   res = GetRawChar(&seq2);
-	
   *ch  = debug_nibble_to_int(seq1) << 4;
   *ch += debug_nibble_to_int(seq2);
 
@@ -226,6 +222,24 @@ bool DebugPacket::GetPointer(void **ptr) {
   return GetBlock(ptr, sizeof(*ptr));
 }
 
+bool DebugPacket::PeekString(const char **ppstr) {
+  string str = "";
+  if (data.eof())
+    return DS_NONE;
+  str = data.str();
+  *ppstr = strdup(str.data());
+  return true;
+}
+
+bool DebugPacket::PeekChar(char *ch) {
+  string str = "";
+  if (data.eof())
+    return false;
+  str = data.str();
+  *ch = str[0];
+  return true;
+}
+
 bool DebugPacket::GetString(const char **ppstr) {
   string str = "";
   if (data.eof())
@@ -248,13 +262,12 @@ const char *DebugPacket::GetPayload() const {
 }
 
 bool DebugPacket::GetSequence(int32_t *ch) const {
-  // If we don't have one, try and read it from the stream 
+  // If we don't have one, try and read it from the stream
   if (seq == -1) {
-    
+
   }
-  
-  if (seq != -1)
-  {
+
+  if (seq != -1) {
     *ch = seq;
     return true;
   }
@@ -267,8 +280,7 @@ void DebugPacket::SetSequence(int32_t val) {
 }
 
 
-int nacl_debug_conn::DebugPacket::Read( void *ptr, int len )
-{
+int nacl_debug_conn::DebugPacket::Read( void *ptr, int len ) {
   uint8_t *p = (uint8_t *) ptr;
   int offs = 0;
 

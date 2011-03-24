@@ -98,7 +98,7 @@ namespace Google.MsAd7.BaseImpl {
     }
 
     public int Enable(int fEnable) {
-      Debug.WriteLine("PendingBreakpoint.Enable");
+      Debug.WriteLine("PendingBreakpoint.Enable: " + fEnable);
       enabled_ = fEnable != 0;
       return VSConstants.S_OK;
     }

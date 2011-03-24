@@ -15,7 +15,7 @@
  * must not contain the special characters '$' or '#' which are used by
  * the transport/framing layer to denote start and end of packets.
  *
- * All binary is expected to be cooked and convered into a pair of hex 
+ * All binary is expected to be cooked and convered into a pair of hex
  * nibbles per byte.  Data is stored as a stream, where the first char
  * is expected to be and uncooked command ID, followed by optional
  * arguments which may be raw or cooked.
@@ -30,8 +30,7 @@
 
 namespace nacl_debug_conn {
 
-class DebugPacket 
-{
+class DebugPacket {
 public:
   DebugPacket();
 
@@ -55,6 +54,8 @@ public:
   bool GetByte(uint8_t *ch);
   bool GetBlock(void *ptr, int len);
   bool GetString(const char **str);
+  bool PeekString(const char **ppstr);
+  bool PeekChar(char *ch);
   bool GetHexString(const char **str);
   bool GetPointer(void **ptr);
   bool GetWord16(uint16_t *val);
@@ -64,6 +65,8 @@ public:
 
   int Read(void *ptr, int len);
 public:
+  // GetSequence and SetSequence are DEPRECATED.  We are not sending sequence
+  // numbers or checking them anymore
   bool GetSequence(int32_t *seq) const;
   void SetSequence(int32_t seq);
 
@@ -71,7 +74,7 @@ public:
   const char *GetPayload() const;
 
 private:
-  int	seq;
+  int seq;
   std::stringstream data;
 };
 

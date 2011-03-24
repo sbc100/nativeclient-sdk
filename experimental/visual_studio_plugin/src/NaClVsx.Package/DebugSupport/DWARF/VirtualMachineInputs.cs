@@ -50,7 +50,16 @@ namespace Google.NaClVsx.DebugSupport.DWARF
     public ulong ReadMemory(ulong address, int count) {
       ulong result = 0;
       if (dbg_ != null) {
-        result = dbg_.GetU64(address);
+
+        // line below from Ian's RSP branch
+        result = dbg_.GetU64(address + dbg_.BaseAddress);
+        
+        // this is what the code originally was.  
+        //result = dbg_.GetU64(address);
+        // FIXME -- clean this up...but I am not hitting this
+        // code yet (when I set a breakpoint) so I don't want
+        // to remove the comments and FIXME until I evaluate it
+        // more
       }
       return result;
     }

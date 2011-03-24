@@ -165,6 +165,15 @@ namespace Google.NaClVsx.DebugSupport {
             object loc = entry.Attributes[DwarfAttribute.DW_AT_location];
             ulong symbolAddr = ResolveLocation(programCounter - fnBase, loc, vm);
 
+            // The next 3 lines of comments and the line of code are from
+            // Ian's rsp branch
+            // The symbol address is zero-based, but the outside world is
+            // r15 based. Offset the address by the debugger's base
+            // address to fix this.            
+            symbolAddr += dbg_.BaseAddress;
+            // FIXME: (mmortensen) I have not validate this code...or hit
+            // it in a breakpoint
+
             result.Add(
                 new Symbol {
                     Key = entry.Key,
