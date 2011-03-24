@@ -6,6 +6,6 @@
 setlocal
 
 set SCONS_DIR=%~dp0third_party\scons\scons-local
-set PYMOX=%~dp0third_party\pymox"
+set PYMOX=%~dp0third_party\pymox
 set NACL_SDK_ROOT=%~dp0
 @call %~dp0third_party\swtoolkit\hammer.bat %*

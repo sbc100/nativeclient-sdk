@@ -18,33 +18,9 @@ import sys
 
 Import('env')
 
-def RunUnitTest(env, target, source):
-  """Runs unit tests using the given target as a command.
+#TODO(mlinck) Enable this test again when it works on Windows
+cmd = env.CreatePythonUnitTest(filename='init_project_test.py',
+                               dependencies=['init_project.py'],
+                               disabled=env['IS_WINDOWS'])
 
-  The argument names of this test are not very intuitive but match what is
-  used conventionally throughout scons.  If the string "PASSED" does not
-  occur in target when this exits, the test has failed; also a scons
-  convention.
-
-  Args:
-    env: SCons's current environment.
-    target: Where to write there result of the test.
-    source: The command to run as the test.
-  """
-  import subprocess
-  app = str(source[0].abspath)
-  app_env = os.environ.copy()
-  # We have to do this because scons overrides PYTHONPATH and does not preserve
-  # what is provided by the OS.
-  app_env['PYTHONPATH'] = app_env['PYMOX']
-  if not subprocess.call(app, env=app_env):
-    open(str(target[0]),'w').write("PASSED\n")
-    return None
-  else:
-    return True
-
-cmd = env.Command("init_project_test.out", 'init_project_test.py', RunUnitTest)
-env.Depends(cmd, "init_project.py")
-
-env.AddNodeToTestSuite(cmd, [], 'run_init_project_test', 'small')
-env.AddNodeAliases(cmd, ['tests'])
+env.AddNodeToTestSuite(cmd, ['bot'], 'run_init_project_test', 'small')

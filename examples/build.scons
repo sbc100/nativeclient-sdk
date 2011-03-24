@@ -21,4 +21,4 @@ node = env.Command(
   action='cd examples && ${MAKE} -j %d' % GetOption('num_jobs'),
 )
 
-env.AddNodeAliases(node, ['examples'])
+env.AddNodeAliases(node, [], 'examples')

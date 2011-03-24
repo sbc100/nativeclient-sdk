@@ -25,4 +25,4 @@ node = env.Command(
     source='Doxyfile',
     action='${DOXYGEN} documentation/Doxyfile 2>&1 > ${TARGET}')
 AlwaysBuild(node)
-env.AddNodeAliases(node, ['docs'])
+env.AddNodeAliases(node, [], 'docs')

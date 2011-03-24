@@ -28,12 +28,18 @@ env['ENV']['ProgramFiles'] = os.environ.get('ProgramFiles', '')
 # copy of all the cygwin packages.
 installer_action = ["${PYTHON}", "${SOURCE}"]
 
-if env['DEVELOPMENT'] and env['DEVELOPMENT'] != '0':
+if env['DEVELOPMENT'] == '1':
   installer_action.append('--development')
 
 node = env.Command(
-    target='generate_installers_dummy_status.txt',
+    target='generate_installers_dummy_target.txt',
     source='generate_installers.py',
     action=' '.join(installer_action))
 
-env.AddNodeAliases(node, ['bot', 'installer'])
+env.AddNodeAliases(node, ['bot'], 'installer')
+
+#------------------------------------------------------------------------------
+# Add build_tools unit tests
+cmd = env.CreatePythonUnitTest('tests/build_utils_test.py', ['build_utils.py'])
+
+env.AddNodeToTestSuite(cmd, ['bot'], 'run_build_utils_test', 'small')

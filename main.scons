@@ -16,7 +16,10 @@ Windows:
   hammer.bat [Options...]
 """
 
+from __future__ import with_statement
+
 import os
+import subprocess
 import sys
 
 #------------------------------------------------------------------------------
@@ -32,7 +35,6 @@ Supported targets:
   * examples          Build all of the examples
   * docs              Build all of the Doxygen documentation
   * installer         Build the SDK installer
-  * tests             Run all the unit tests
   * bot               Runs everything that the build and try bots run
 
 Supported flags:
@@ -78,14 +80,14 @@ def GetToolchainRoot(sdk_root=None):
 # By default, run with a parallel build (i.e. '-j num_jobs').
 # Use a default value proportional to the number of cpu cores on the system.
 # To run a serial build, explicitly type '-j 1' on the command line.
-CORE_COUNT = 1
 try:
   import multiprocessing
   CORE_COUNT = multiprocessing.cpu_count()
 except (ImportError, NotImplementedError):
-  pass
+  CORE_COUNT = 1
 
 SetOption('num_jobs', CORE_COUNT + 1)
+print 'Building with', GetOption('num_jobs'), 'parallel jobs'
 
 #-----------------------------------------------------------------------------
 # The environment_list contains all the build environments that we want to
@@ -102,6 +104,10 @@ base_env = Environment(
       'BOOST_ALL_NO_LIB',
     ],
     NACL_TOOLCHAIN_ROOT = GetToolchainRoot(os.getenv('NACL_SDK_ROOT')),
+    ROOT_DIR = os.path.abspath(os.getcwd()),
+    IS_WINDOWS = sys.platform in ['cygwin', 'win32'],
+    IS_LINUX = sys.platform in ['linux', 'linux2'],
+    IS_MAC = sys.platform in ['darwin', 'macos'],
 )
 
 # It is possible to override these values on the command line by typing
@@ -127,9 +133,24 @@ base_env.Append(
 
 base_env.Help(HELP_STRING)
 
-KNOWN_TEST_SUITES = frozenset([
-    'unit',
+KNOWN_SUITES = frozenset([
+    'bot',
     ])
+
+
+def CheckSuiteName(suite, node_name):
+  '''Check whether a given test suite or alias name is a known name.
+
+  If the suite name is not in the approved list, then this function throws
+  an exception, with the node_name within the error message.
+
+  Args:
+    suite: a name of a suite that must be in the KNOWN_SUITES set
+    node_name: The name of the node.  This is used for error messages
+  '''
+  if suite not in KNOWN_SUITES:
+    raise Exception('Testsuite/Alias "%s" for target "%s" is unknown' %
+                    (suite, node_name))
 
 
 def AddNodeToTestSuite(env, node, suite_names, node_name, test_size='all'):
@@ -156,9 +177,7 @@ def AddNodeToTestSuite(env, node, suite_names, node_name, test_size='all'):
   AlwaysBuild(node)
 
   for s in suite_names:
-    if s not in KNOWN_TEST_SUITES:
-      raise Exception('Testsuite "%s" for test "%s" is unknown' %
-                      (s, node_name))
+    CheckSuiteName(s, node_name)
     env.Alias(s, node)
 
   if test_size not in ['small', 'medium', 'large', 'all']:
@@ -172,25 +191,100 @@ def AddNodeToTestSuite(env, node, suite_names, node_name, test_size='all'):
 base_env.AddMethod(AddNodeToTestSuite)
 
 
-def AddNodeAliases(env, node, alias_names):
-  '''Adds a node as an aliased target, makes the 'bot' target depend on that
-  node.
+def AddNodeAliases(env, node, suite_names, node_name):
+  '''Allow a given node to be built under a different name or as a suite
 
   Args:
     env - The calling environment
-    node - A target node to add to the build bot
-    alias_names - A list of additional aliases to add this node to
-    node_name - An optional alias name for this node
+    node - A target node to add to a known build alias (e.g., 'bot')
+    suite_names - A list of suite names.  For none, pass an empty list.  This
+                  node will be run whenever any of these suites are invoked.
+                  Each suite name must match a string in KNOWN_SUITES.
+    node_name - The name of this node, when run by itself
   '''
 
   if not node:
     return
 
-  for s in alias_names:
+  for s in suite_names:
+    CheckSuiteName(s, node_name)
     env.Alias(s, node)
+
+  env.Alias(node_name, node)
 
 base_env.AddMethod(AddNodeAliases)
 
+
+def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False):
+  """Returns a new build command that will run a unit test with a given file.
+
+  Args:
+    env: SCons environment
+    filename: The python file that contains the unit test
+    dependencies: An optional list of other files that this unit test uses
+    disabled: Setting this to True will prevent the test from running
+
+  Returns:
+    A SCons command node
+  """
+
+  basename = os.path.splitext(os.path.basename(filename))[0]
+  outfilename = "%s_output.txt" % basename
+
+  def RunPythonUnitTest(env, target, source):
+    """Runs unit tests using the given target as a command.
+
+    The argument names of this test are not very intuitive but match what is
+    used conventionally throughout scons.  If the string "PASSED" does not
+    occur in target when this exits, the test has failed; also a scons
+    convention.
+
+    Args:
+      env: SCons's current environment.
+      target: Where to write there result of the test.
+      source: The command to run as the test.
+
+    Returns:
+      None for good status
+      An error string for bad status
+    """
+    if disabled:
+      sys.stdout.write("Test %s is disabled.\n" % basename)
+      sys.stdout.flush()
+      return None   # return with good status
+
+    import subprocess
+
+    app = [str(env['PYTHON']), str(source[0].abspath)]
+    app_env = os.environ.copy()
+    # We have to do this because scons overrides PYTHONPATH and does
+    # not preserve what is provided by the OS.
+    python_path = [env['ROOT_DIR'], app_env['PYMOX']]
+    app_env['PYTHONPATH'] = os.pathsep.join(python_path)
+    ret_val = 'Error: General Test Failure'  # Indicates failure, by default
+    target_str = str(target[0])
+    with open(target_str, 'w') as outfile:
+      outfile.write('\n-----Begin output for Test: %s\n' % basename)
+      outfile.flush()
+      if subprocess.call(app, env=app_env, stdout=outfile, stderr=outfile):
+        outfile.write('-----Error: unit test failed\n')
+        ret_val = 'Error: Test Failure in %s' % basename
+      else:
+        ret_val = None  # Indicates success
+
+      outfile.write('-----End output for Test: %s\n' % basename)
+    with open(target_str, 'r') as resultfile:
+      sys.stdout.write(resultfile.read())
+
+    sys.stdout.flush()
+    return ret_val
+
+  cmd = env.Command(outfilename, filename, RunPythonUnitTest)
+  env.Depends(cmd, dependencies)
+
+  return cmd
+
+base_env.AddMethod(CreatePythonUnitTest)
 
 #-----------------------------------------------------------------------------
 # This is a simple environment that primarily for targets that aren't built
