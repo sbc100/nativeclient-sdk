@@ -1,3 +1,0 @@
-# Show example of "mov %esp, ... ; "add %rsp, %r15"
-44 89 ec
-4c 01 fc

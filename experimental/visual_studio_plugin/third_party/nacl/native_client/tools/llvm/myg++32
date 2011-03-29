@@ -1,2 +1,0 @@
-#!/bin/bash
-exec g++ -static -m32 $*
