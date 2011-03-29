@@ -87,7 +87,8 @@ def ExcludeFile(dir, file):
            dir + '/' + file not in VALGRIND_FILES))
 
 def main(argv):
-  print('generate_installers is starting.')
+  bot = build_utils.BotAnnotator()
+  bot.Print('generate_installers is starting.')
 
   parser = optparse.OptionParser()
   parser.add_option(
@@ -98,7 +99,7 @@ def main(argv):
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
-    print 'ERROR: invalid argument'
+    bot.Print('ERROR: invalid argument')
     sys.exit(1)
 
   # Cache the current location so we can return here before removing the
@@ -120,7 +121,8 @@ def main(argv):
   # be a problem with python's tarfile module and symlinks.
   temp_dir = os.path.join(script_dir, 'installers_temp')
   installer_dir = os.path.join(temp_dir, version_dir)
-  print('generate_installers chose installer directory: %s' % (installer_dir))
+  bot.Print('generate_installers chose installer directory: %s' %
+            (installer_dir))
   try:
     os.makedirs(installer_dir, mode=0777)
   except OSError:
@@ -136,7 +138,7 @@ def main(argv):
   toolchain = os.path.join('toolchain', variant)
 
   # Build the NaCl tools.
-  print('generate_installers is kicking off make_nacl_tools.py.')
+  bot.Print('generate_installers is kicking off make_nacl_tools.py.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
   make_nacl_tools = os.path.join(build_tools_dir,
                                  'make_nacl_tools.py')
@@ -156,7 +158,8 @@ def main(argv):
   c_salt_path = os.path.join(home_dir, 'src', 'c_salt')
 
   # Build the examples.
-  print('generate_installers is building examples.')
+  bot.BuildStep('build examples')
+  bot.Print('generate_installers is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
   make = subprocess.Popen('make install_prebuilt',
                           env=env,
@@ -167,7 +170,8 @@ def main(argv):
   # Use native tar to copy the SDK into the build location
   # because copytree has proven to be error prone and is not supported on mac.
   # We use a buffer for speed here.  -1 causes the default OS size to be used.
-  print('generate_installers is copying contents to install directory.')
+  bot.BuildStep('copy to install dir')
+  bot.Print('generate_installers is copying contents to install directory.')
   tar_src_dir = os.path.realpath(os.curdir)
   tar_cf = subprocess.Popen('tar cf - %s' %
                             (string.join(INSTALLER_CONTENTS, ' ')),
@@ -181,12 +185,12 @@ def main(argv):
   assert tar_cf.poll() == 0
 
   # Clean out the cruft.
-  print('generate_installers is cleaning up the installer directory.')
+  bot.Print('generate_installers is cleaning up the installer directory.')
   os.chdir(installer_dir)
 
   # This loop prunes the result of os.walk() at each excluded dir, so that it
   # doesn't descend into the excluded dir.
-  print('generate_installers is pruning installer directory')
+  bot.Print('generate_installers is pruning installer directory')
   for root, dirs, files in os.walk('.'):
     rm_dirs = []
     for excl in EXCLUDE_DIRS:
@@ -199,7 +203,8 @@ def main(argv):
     for rm_file in rm_files:
       os.remove(rm_file)
 
-  print('generate_installers is creating the installer archive')
+  bot.BuildStep('create archive')
+  bot.Print('generate_installers is creating the installer archive')
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
   os.chdir(temp_dir)

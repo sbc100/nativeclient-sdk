@@ -52,7 +52,8 @@ INSTALLER_FILES = ['AUTHORS',
                    'README']
 
 def main(argv):
-  print('generate_windows_installer is starting.')
+  bot = build_utils.BotAnnotator()
+  bot.Print('generate_windows_installer is starting.')
 
   parser = optparse.OptionParser()
   parser.add_option(
@@ -63,11 +64,11 @@ def main(argv):
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
-    print 'ERROR: invalid argument'
+    bot.Print('ERROR: invalid argument')
     sys.exit(1)
 
   if(options.development):
-    print 'Running in development mode.'
+    bot.Print('Running in development mode.')
 
   # Make sure that we are running python version 2.6 or higher
   (major, minor) = sys.version_info[:2]
@@ -92,8 +93,8 @@ def main(argv):
   # stuff and finally create an installer.
   temp_dir = os.path.join(script_dir, 'installers_temp')
   installer_dir = os.path.join(temp_dir, version_dir)
-  print('generate_windows_installer chose installer directory: %s' %
-        (installer_dir))
+  bot.Print('generate_windows_installer chose installer directory: %s' %
+            (installer_dir))
   try:
     os.makedirs(installer_dir, mode=0777)
   except OSError:
@@ -107,7 +108,7 @@ def main(argv):
   toolchain = os.path.join('toolchain', variant)
 
   # Build the NaCl tools.
-  print('generate_windows_installer is kicking off make_nacl_tools.py.')
+  bot.Print('generate_windows_installer is kicking off make_nacl_tools.py.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
   make_nacl_tools = os.path.join(build_tools_dir,
                                  'make_nacl_tools.py')
@@ -127,7 +128,8 @@ def main(argv):
   c_salt_path = os.path.join(home_dir, 'src', 'c_salt')
 
   # Build the examples.
-  print('generate_windows_installer is building examples.')
+  bot.BuildStep('build examples')
+  bot.Print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
   make = subprocess.Popen('make install_prebuilt',
                           env=env,
@@ -141,26 +143,27 @@ def main(argv):
 
   # In case previous run didn't succeed, clean this out so copytree can make
   # its target directories.
-  print('generate_windows_installer is cleaning out install directory.')
+  bot.BuildStep('copy to install dir')
+  bot.Print('generate_windows_installer is cleaning out install directory.')
   shutil.rmtree(installer_dir)
-  print('generate_windows_installer is copying contents to install directory.')
+  bot.Print('generate_windows_installer: copying files to install directory.')
   for copy_source_dir in INSTALLER_DIRS:
     copy_target_dir = os.path.join(installer_dir, copy_source_dir)
-    print("Copying %s to %s" % (copy_source_dir, copy_target_dir))
+    bot.Print("Copying %s to %s" % (copy_source_dir, copy_target_dir))
     shutil.copytree(copy_source_dir,
                     copy_target_dir,
                     symlinks=True,
                     ignore=shutil.ignore_patterns(*IGNORE_PATTERN))
   for copy_source_file in INSTALLER_FILES:
     copy_target_file = os.path.join(installer_dir, copy_source_file + '.txt')
-    print("Copying %s to %s" % (copy_source_file, copy_target_file))
+    bot.Print("Copying %s to %s" % (copy_source_file, copy_target_file))
     with open(copy_source_file, "U") as source_file:
       text = source_file.read().replace("\n", "\r\n")
     with open(copy_target_file, "wb") as dest_file:
       dest_file.write(text)
 
   # Clean out the cruft.
-  print('generate_windows_installer is cleaning up the installer directory.')
+  bot.Print('generate_windows_installer: cleaning up installer directory.')
   os.chdir(installer_dir)
 
   # Make everything read/write (windows needs this).
@@ -170,7 +173,8 @@ def main(argv):
     for f in files:
       os.chmod(os.path.join(root, f), stat.S_IWRITE | stat.S_IREAD)
 
-  print('generate_windows_installer is creating the installer archive')
+  bot.BuildStep('create archive')
+  bot.Print('generate_windows_installer is creating the installer archive')
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
   os.chdir(temp_dir)
@@ -191,36 +195,37 @@ def main(argv):
       env=env, shell=True)
   assert tarball.wait() == 0
 
-  print('generate_windows_installer is creating the windows installer.')
+  bot.BuildStep('create Windows installer')
+  bot.Print('generate_windows_installer is creating the windows installer.')
   os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
   if os.path.exists('done1'):
     os.remove('done1')
   for i in xrange(100):
-    print "Trying to make a script: try %i..." % (i+1)
+    bot.Print("Trying to make a script: try %i..." % (i+1))
     exefile = subprocess.Popen([
         os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
         'make_native_client_sdk.sh', '-V',
         build_utils.RawVersion(), '-v', '-n'])
     exefile.wait()
     if os.path.exists('done1'):
-      print "NSIS script created - time to run makensis!"
+      bot.Print("NSIS script created - time to run makensis!")
       if os.path.exists('done2'):
         os.remove('done2')
       for j in xrange(100):
-        print "Trying to make a script: try %i..." % (j+1)
+        bot.Print("Trying to make a script: try %i..." % (j+1))
         exefile2 = subprocess.Popen([
             os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
             'make_native_client_sdk2.sh', '-V',
             build_utils.RawVersion(), '-v', '-n'])
         exefile2.wait()
         if os.path.exists('done2'):
-          print "Installer created!"
+          bot.Print("Installer created!")
           break
       else:
-        print "Can not create installer (even after 100 tries)"
+        bot.Print("Cannot create installer (even after 100 tries)")
       break
   else:
-    print "Can not create NSIS script (even after 100 tries)"
+    bot.Print("Cannot create NSIS script (even after 100 tries)")
 
   # Clean up.
   os.chdir(home_dir)

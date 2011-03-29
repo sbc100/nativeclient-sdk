@@ -143,9 +143,13 @@ def CleanUpCheckoutDirs(options):
                                   shell=True)
 
 def BuildNaClTools(options):
+  import build_utils
+  bot = build_utils.BotAnnotator()
+  bot.BuildStep('checkout NaCl tools')
   MakeCheckoutDirs(options)
   MakeInstallDirs(options)
   Checkout(options)
+  bot.BuildStep('build NaCl tools')
   Build(options)
   Install(options, ['sel_ldr', 'ncval'])
   CleanUpCheckoutDirs(options)

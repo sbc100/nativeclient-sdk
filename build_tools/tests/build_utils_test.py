@@ -8,7 +8,6 @@
 
 __author__ = 'mball@google.com (Matt Ball)'
 
-import os
 import sys
 import unittest
 
@@ -17,10 +16,22 @@ import mox
 
 
 class TestBuildUtils(unittest.TestCase):
-  """Class for test cases to cover globally declared helper functions."""
+  """This class tests basic functionality of the build_utils package"""
+  def setUp(self):
+    self.mock_factory = mox.Mox()
 
-  def testDummy(self):
-    self.assertEqual(1, 1)
+  def testBotAnnotator(self):
+    """Unittest for the BotAnnotator class"""
+    stdout_mock = self.mock_factory.CreateMock(sys.stdout)
+    stdout_mock.write("My Bot Message\n")
+    stdout_mock.flush()
+    stdout_mock.write("@@@BUILD_STEP MyBuildStep@@@\n")
+    stdout_mock.flush()
+    self.mock_factory.ReplayAll()
+    bot = build_utils.BotAnnotator(stdout_mock)
+    bot.Print("My Bot Message")
+    bot.BuildStep("MyBuildStep")
+    self.mock_factory.VerifyAll()
 
 
 def RunTests():
