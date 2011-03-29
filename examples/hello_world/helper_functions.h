@@ -1,6 +1,6 @@
-// Copyright 2011 The Native Client SDK Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef EXAMPLES_HELLO_WORLD_HELPER_FUNCTIONS_H_
 #define EXAMPLES_HELLO_WORLD_HELPER_FUNCTIONS_H_
@@ -14,6 +14,7 @@
 /// etc.  See hello_world.cc for the code which is required for loading a NaCl
 /// application and exposing methods to JavaScript.
 
+#include <ppapi/c/pp_stdint.h>
 #include <string>
 
 namespace hello_world {
