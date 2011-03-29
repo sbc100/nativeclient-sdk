@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "third_party/nacl/native_client/src/trusted/debug_stub/debug_host.h"
+#include "debug_conn/debug_host.h"
 
 using System::String;
 using System::Byte;

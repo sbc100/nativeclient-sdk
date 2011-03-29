@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\third_party\nacl&quot;;&quot;$(SolutionDir)\..\third_party\breakpad&quot;;&quot;$(SolutionDir)\..\third_party\gdb-utils\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\src\&quot;;&quot;$(SolutionDir)\..\third_party\breakpad&quot;;&quot;$(SolutionDir)\..\third_party\gdb-utils\src&quot;;&quot;$(SolutionDir)\..\third_party\nacl_dir\&quot;"
 				PreprocessorDefinitions="NACL_WINDOWS"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
