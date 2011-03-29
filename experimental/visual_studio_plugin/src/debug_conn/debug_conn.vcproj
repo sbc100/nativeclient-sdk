@@ -311,7 +311,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\third_party\nacl_dir;..\..\..\..\third_party\platformsdk_win7\files\Include;$(VSInstallDir)\VC\atlmfc\include"
+				AdditionalIncludeDirectories="..\..\third_party\nacl_dir;..\..\..\..\third_party\platformsdk_win7\files\Include;$(VSInstallDir)\VC\atlmfc\include;.."
 				PreprocessorDefinitions="_DEBUG;&quot;_WIN32_WINNT=0x0600&quot;;&quot;WINVER=0x0600&quot;;&quot;WIN32&quot;;&quot;_WINDOWS&quot;;&quot;_HAS_EXCEPTIONS=0&quot;;&quot;NOMINMAX&quot;;&quot;_CRT_RAND_S&quot;;&quot;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS&quot;;&quot;WIN32_LEAN_AND_MEAN&quot;;&quot;_SECURE_ATL&quot;;&quot;_HAS_TR1=0&quot;;&quot;__STDC_LIMIT_MACROS=1&quot;;&quot;NACL_BLOCK_SHIFT=5&quot;;&quot;NACL_BLOCK_SIZE=32&quot;;&quot;NACL_LINUX=0&quot;;&quot;NACL_OSX=0&quot;;&quot;NACL_WINDOWS=1&quot;;&quot;__STDC_FORMAT_MACROS&quot;;&quot;NACL_STANDALONE=1&quot;;&quot;NACL_TARGET_SUBARCH=32&quot;;&quot;NACL_BUILD_SUBARCH=32&quot;;&quot;NACL_BUILD_ARCH=x86&quot;"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
