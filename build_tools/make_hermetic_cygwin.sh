@@ -72,7 +72,7 @@ fi
 # Can only happen on CygWin - we don't autoinstall tools on other platforms
 if ((need_restart)) ; then
   if ! [ -x "$PWD/hermetic_cygwin/bin/7z" ] && ! [ -x "$PWD/hermetic_cygwin/bin/7z.exe" ] ; then
-    wget http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/cygwin_mirror/hermetic_cygwin_1_7_7-0_1.exe -O cygwin_mini_setup.exe
+    wget http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/cygwin_mirror/hermetic_cygwin_1_7_9-0_1.exe -O cygwin_mini_setup.exe
     chmod a+x cygwin_mini_setup.exe
     "`cygpath $COMSPEC`" /C start /WAIT ".\\cygwin_mini_setup" /CYGPORT /S "/D=`cygpath -w $PWD/hermetic_cygwin`"
   fi
@@ -110,7 +110,7 @@ declare -A description packages
 . "${0/.sh/.conf}"
 . "`dirname \"$0\"`"/make_installer.inc
 
-CYGWIN_VERSION=1.7.7-0.1
+CYGWIN_VERSION=1.7.9-0.1
 
 mkdir -p packages{,.src,.unpacked} setup
 

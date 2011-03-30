@@ -217,7 +217,7 @@ def main(argv):
   parser.add_option(
       '-c', '--cygwin-url', dest='cygwin_url',
       default=('http://commondatastorage.googleapis.com/nativeclient-mirror/'
-               'nacl/cygwin_mirror/hermetic_cygwin_1_7_7-0_1.exe'),
+               'nacl/cygwin_mirror/hermetic_cygwin_1_7_9-0_1.exe'),
       help='cygwin installer url to download from')
   parser.add_option(
       '-v', '--version', dest='version',
