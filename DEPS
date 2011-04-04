@@ -10,6 +10,8 @@ vars = {
   "valgrind_version": NACL_REVISION,
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
+  "chromium_trunk": "http://src.chromium.org/svn/trunk",
+  "chromium_version": "78322",
 }
 # When we have ARM and PNaCl support, we'll need to add toolchain support
 # for those too.
@@ -44,6 +46,8 @@ deps = {
     "src/include":
     Var("native_client_trunk") + "/src/native_client/src/include@"
     + Var("native_client_version"),  
+  "src/third_party/ppapi": Var("chromium_trunk") + "/src/ppapi" +
+    "@" + Var("chromium_version"),
   "src/experimental/visual_studio_plugin/third_party/nacl_sub/native_client/"
     "src/trusted/port":
     Var("native_client_trunk") + "/src/native_client/src/trusted/port@"

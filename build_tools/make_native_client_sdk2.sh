@@ -89,97 +89,16 @@ if ((BASH_VERSINFO[0]<4)) ; then
   exit 1
 fi
 
-CYGWIN_PREFIX="third_party\\cygwin\\"
+CYGWIN_DIR="third_party\\\\cygwin\\\\"
+NACL_SDK_FULL_NAME="native_client_sdk_${SDK_VERSION//./_}"
 
-if ! patch --no-backup-if-mismatch <<END
---- make_native_client_sdk.nsi
-+++ make_native_client_sdk.nsi
-@@ -182,8 +182,7 @@
--SectionGroup "00000000" sec_00000000
--Section "!nacl-sdk.tgz" sec_00000000_native_client_sdk
-+Section "!Examples & documentation" sec_00000000_native_client_sdk
-   SectionIn 1 2
- SectionEnd
--Section "!naclsdk_win_x86.tgz" sec_00000000_native_client_toolchain
-+Section "!Native Client Toolchain" sec_00000000_native_client_toolchain
-   SectionIn 1 2
- SectionEnd
--SectionGroupEnd
-+SectionGroup "CygWin" sec_00000000
-@@ -427,2 +426,3 @@
- SectionEnd
-+SectionGroupEnd
- Section "" sec_PKG_native_client_toolchain
-@@ -431,2 +430,0 @@
--  CreateDirectory "\$INSTDIR\\sdk"
--  CreateDirectory "\$INSTDIR\\sdk\\nacl-sdk"
-@@ -734,4 +745,8 @@
-   File "/oname=toolchain\\win_x86\\bin\\nacl-addr2line.exe" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-addr2line.exe"
-   File "/oname=toolchain\\win_x86\\bin\\nacl-gccbug" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\bin\\nacl-gccbug"
-+  File "/oname=toolchain\\win_x86\\bin\\nacl-sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\nacl-sel_ldr.exe"
-+  File "/oname=toolchain\\win_x86\\bin\\nacl-ncval.exe" "..\\toolchain\\win_x86\\bin\\nacl-ncval.exe"
-+  File "/oname=toolchain\\win_x86\\bin\\nacl64-sel_ldr.exe" "..\\toolchain\\win_x86\\bin\\nacl64-sel_ldr.exe"
-+  File "/oname=toolchain\\win_x86\\bin\\nacl64-ncval.exe" "..\\toolchain\\win_x86\\bin\\nacl64-ncval.exe"
-   File "/oname=toolchain\\win_x86\\COPYING" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING"
-   File "/oname=toolchain\\win_x86\\COPYING.LIB" "packages.unpacked\\naclsdk_win_x86.tgz\\sdk\\nacl-sdk\\COPYING.LIB"
-@@ -1742 +1739,0 @@
--  CreateDirectory "\$INSTDIR\\native_client_sdk_${SDK_VERSION//./_}"
-@@ -2001 +2000,0 @@
--  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
-@@ -4054,6 +4046,7 @@
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}etc\\postinstall"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
-+  CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}dev"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\doc"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\doc\\bash"
-@@ -4303,4 +4299,4 @@
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
-   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\gawk.exe"
-   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk-3.1.8.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\pgawk.exe"
-   MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\gawk.1.gz" "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share\\man\\man1\\pgawk.1.gz"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\awk.exe" "gawk.exe"
-@@ -7046,6 +7040,10 @@
- Section "" sec_PKG_make
-   SectionIn 1 2
-   SetOutPath \$INSTDIR
-+  CreateDirectory "\$INSTDIR\\examples"
-+  CreateDirectory "\$INSTDIR\\examples\\hello_world"
-+  CreateDirectory "\$INSTDIR\\examples\\pi_generator"
-+  CreateDirectory "\$INSTDIR\\examples\\sine_synth"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\share"
-@@ -7433,6 +7434,7 @@
- Section "" sec_PKG_python
-   SectionIn 1 2
-   SetOutPath \$INSTDIR
-+  CreateDirectory "\$INSTDIR\\examples"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}bin"
-   CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}usr\\include"
-@@ -7471,2 +7473,3 @@
-   CreateDirectory "\$INSTDIR\\third_party\\cygwin\\usr\\share\\man\\man1"
-+  File "/oname=examples\\httpd.cmd" "packages.unpacked\\nacl-sdk.tgz\\native_client_sdk_${SDK_VERSION//./_}\\examples\\httpd.cmd"
-   File "/oname=third_party\\cygwin\\bin\\2to3" "packages.unpacked\\python3-3.1.2-1.tar.bz2\\usr\\bin\\2to3"
-@@ -9789,4 +9788,6 @@
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.exe" "python3.1.exe"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3-config" "python3.1-config"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython3.1.dll.a" "python3.1\\config\\libpython3.1.dll.a"
--  MkLink::SoftF "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python3.pc" "python-3.1.pc"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.1.exe"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.exe" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.1.exe"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3-config" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python3.1-config"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\libpython3.1.dll.a" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\python3.1\\config\\libpython3.1.dll.a"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python.pc" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python-3.1.pc"
-+  MkLink::Hard "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python3.pc" "\$INSTDIR\\${CYGWIN_PREFIX}lib\\pkgconfig\\python-3.1.pc"
-@@ -9032,3 +9034,3 @@
--  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} ""
-   !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_sdk} "Native Client SDK - examples and documentation"
-   !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000_native_client_toolchain} "Native Client SDK - toolchain"
-+  !insertmacro MUI_DESCRIPTION_TEXT \${sec_00000000} "Small POSIX-like environment. Disable if you have POSIX-like environment installed and know how to use it."
-END
+# Replace version-specific tags in the patch file with the generated values
+# using awk, then run the result through patch.
+if ! (awk '{ \
+             /%NACL_SDK_FULL_NAME%/ gsub(/%NACL_SDK_FULL_NAME%/, \
+                                         "'$NACL_SDK_FULL_NAME'"); \
+             /%CYGWIN_DIR%/ gsub(/%CYGWIN_DIR%/, "'$CYGWIN_DIR'"); \
+             print; }' nsi_patch.txt | patch --no-backup-if-mismatch)
   then
     exit 1
 fi
