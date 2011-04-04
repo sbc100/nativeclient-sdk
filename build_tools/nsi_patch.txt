@@ -1,0 +1,135 @@
+--- make_native_client_sdk.nsi	2011-04-04 12:27:04.039086000 -0600
++++ make_native_client_sdk.nsi	2011-04-04 11:54:24.758036000 -0600
+@@ -250,14 +250,13 @@
+   FileClose $R0
+   Pop $R0
+ SectionEnd
+-SectionGroup "00000000" sec_00000000
+-Section "!nacl-sdk.tgz" sec_00000000_native_client_sdk
++Section "!Examples & documentation" sec_00000000_native_client_sdk
+   SectionIn 1 2
+ SectionEnd
+-Section "!naclsdk_win_x86.tgz" sec_00000000_native_client_toolchain
++Section "!Native Client Toolchain" sec_00000000_native_client_toolchain
+   SectionIn 1 2
+ SectionEnd
+-SectionGroupEnd
++SectionGroup "CygWin" sec_00000000
+ SectionGroup "Admin" sec_Admin
+ Section "libattr1-2.4.43-1" sec_Admin_libattr1
+   SectionIn 1 2
+@@ -611,11 +610,10 @@
+ Section "-_update-info-dir-00956-1" sec__PostInstallLast__update_info_dir
+   SectionIn 1 2
+ SectionEnd
++SectionGroupEnd
+ Section "" sec_PKG_native_client_toolchain
+   SectionIn 1 2
+   SetOutPath $INSTDIR
+-  CreateDirectory "$INSTDIR\sdk"
+-  CreateDirectory "$INSTDIR\sdk\nacl-sdk"
+   CreateDirectory "$INSTDIR\toolchain\win_x86\bin"
+   CreateDirectory "$INSTDIR\toolchain\win_x86\include"
+   CreateDirectory "$INSTDIR\toolchain\win_x86\info"
+@@ -753,6 +751,10 @@
+   CreateDirectory "$INSTDIR\toolchain\win_x86\share\man\man1"
+   File "/oname=toolchain\win_x86\bin\nacl-addr2line.exe" "packages.unpacked\naclsdk_win_x86.tgz\sdk\nacl-sdk\bin\nacl-addr2line.exe"
+   File "/oname=toolchain\win_x86\bin\nacl-gccbug" "packages.unpacked\naclsdk_win_x86.tgz\sdk\nacl-sdk\bin\nacl-gccbug"
++  File "/oname=toolchain\win_x86\bin\nacl-sel_ldr.exe" "..\toolchain\win_x86\bin\nacl-sel_ldr.exe"
++  File "/oname=toolchain\win_x86\bin\nacl-ncval.exe" "..\toolchain\win_x86\bin\nacl-ncval.exe"
++  File "/oname=toolchain\win_x86\bin\nacl64-sel_ldr.exe" "..\toolchain\win_x86\bin\nacl64-sel_ldr.exe"
++  File "/oname=toolchain\win_x86\bin\nacl64-ncval.exe" "..\toolchain\win_x86\bin\nacl64-ncval.exe"
+   File "/oname=toolchain\win_x86\COPYING" "packages.unpacked\naclsdk_win_x86.tgz\sdk\nacl-sdk\COPYING"
+   File "/oname=toolchain\win_x86\COPYING.LIB" "packages.unpacked\naclsdk_win_x86.tgz\sdk\nacl-sdk\COPYING.LIB"
+   File "/oname=toolchain\win_x86\COPYING.RUNTIME" "packages.unpacked\naclsdk_win_x86.tgz\sdk\nacl-sdk\COPYING.RUNTIME"
+@@ -2074,7 +2076,6 @@
+ Section "" sec_PKG_native_client_sdk
+   SectionIn 1 2
+   SetOutPath $INSTDIR
+-  CreateDirectory "$INSTDIR\%NACL_SDK_FULL_NAME%"
+   CreateDirectory "$INSTDIR\examples"
+   CreateDirectory "$INSTDIR\examples\geturl"
+   CreateDirectory "$INSTDIR\examples\hello_world"
+@@ -2177,7 +2178,6 @@
+   File "/oname=examples\hello_world_c\hello_world_x86_32.nexe" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\hello_world_c\hello_world_x86_32.nexe"
+   File "/oname=examples\hello_world_c\hello_world_x86_64.nexe" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\hello_world_c\hello_world_x86_64.nexe"
+   File "/oname=examples\hello_world_c\Makefile" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\hello_world_c\Makefile"
+-  File "/oname=examples\httpd.cmd" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\httpd.cmd"
+   File "/oname=examples\httpd.py" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\httpd.py"
+   File "/oname=examples\index.html" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\index.html"
+   File "/oname=examples\make.cmd" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\make.cmd"
+@@ -4287,6 +4287,7 @@
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%etc\postinstall"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%bin"
++  CreateDirectory "$INSTDIR\%CYGWIN_DIR%dev"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\share"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\share\doc"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\share\doc\bash"
+@@ -4616,10 +4617,10 @@
+   File "/oname=%CYGWIN_DIR%usr\share\locale\zh_CN\LC_MESSAGES\gawk.mo" "packages.unpacked\gawk-3.1.8-1.tar.bz2\usr\share\locale\zh_CN\LC_MESSAGES\gawk.mo"
+   File "/oname=%CYGWIN_DIR%usr\share\locale\ast\LC_MESSAGES\gawk.mo" "packages.unpacked\gawk-3.1.8-1.tar.bz2\usr\share\locale\ast\LC_MESSAGES\gawk.mo"
+   File "/oname=%CYGWIN_DIR%etc\setup\gawk.lst.gz" "setup\gawk.lst.gz"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%bin\awk.exe" "$INSTDIR\%CYGWIN_DIR%bin\gawk.exe"
+   MkLink::Hard "$INSTDIR\%CYGWIN_DIR%bin\gawk-3.1.8.exe" "$INSTDIR\%CYGWIN_DIR%bin\gawk.exe"
+   MkLink::Hard "$INSTDIR\%CYGWIN_DIR%bin\pgawk-3.1.8.exe" "$INSTDIR\%CYGWIN_DIR%bin\pgawk.exe"
+   MkLink::Hard "$INSTDIR\%CYGWIN_DIR%usr\share\man\man1\gawk.1.gz" "$INSTDIR\%CYGWIN_DIR%usr\share\man\man1\pgawk.1.gz"
+-  MkLink::SoftF "$INSTDIR\%CYGWIN_DIR%bin\awk.exe" "gawk.exe"
+   Push $R0
+   FileOpen $R0 $INSTDIR\etc\setup\installed.log a
+   FileSeek $R0 0 END
+@@ -8344,6 +8345,10 @@
+ Section "" sec_PKG_make
+   SectionIn 1 2
+   SetOutPath $INSTDIR
++  CreateDirectory "$INSTDIR\examples"
++  CreateDirectory "$INSTDIR\examples\hello_world"
++  CreateDirectory "$INSTDIR\examples\pi_generator"
++  CreateDirectory "$INSTDIR\examples\sine_synth"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%bin"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\share"
+@@ -8631,6 +8636,7 @@
+ Section "" sec_PKG_python3
+   SectionIn 1 2
+   SetOutPath $INSTDIR
++  CreateDirectory "$INSTDIR\examples"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%bin"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\include"
+@@ -8667,6 +8673,7 @@
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%lib\python3.1\wsgiref"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%lib\python3.1\xml"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%lib\python3.1\xml\dom"
++  File "/oname=examples\httpd.cmd" "packages.unpacked\nacl-sdk.tgz\%NACL_SDK_FULL_NAME%\examples\httpd.cmd"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%lib\python3.1\xml\etree"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%lib\python3.1\xml\parsers"
+   CreateDirectory "$INSTDIR\%CYGWIN_DIR%lib\python3.1\xml\sax"
+@@ -10356,10 +10363,12 @@
+   File "/oname=%CYGWIN_DIR%usr\share\doc\python3\README" "packages.unpacked\python3-3.1.3-1.tar.bz2\usr\share\doc\python3\README"
+   File "/oname=%CYGWIN_DIR%usr\share\man\man1\python3.1.1.gz" "packages.unpacked\python3-3.1.3-1.tar.bz2\usr\share\man\man1\python3.1.1.gz"
+   File "/oname=%CYGWIN_DIR%etc\setup\python3.lst.gz" "setup\python3.lst.gz"
+-  MkLink::SoftF "$INSTDIR\%CYGWIN_DIR%bin\python3.exe" "python3.1.exe"
+-  MkLink::SoftF "$INSTDIR\%CYGWIN_DIR%bin\python3-config" "python3.1-config"
+-  MkLink::SoftF "$INSTDIR\%CYGWIN_DIR%lib\libpython3.1.dll.a" "python3.1\config\libpython3.1.dll.a"
+-  MkLink::SoftF "$INSTDIR\%CYGWIN_DIR%lib\pkgconfig\python3.pc" "python-3.1.pc"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%bin\python.exe" "$INSTDIR\%CYGWIN_DIR%bin\python3.1.exe"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%bin\python3.exe" "$INSTDIR\%CYGWIN_DIR%bin\python3.1.exe"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%bin\python3-config" "$INSTDIR\%CYGWIN_DIR%bin\python3.1-config"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%lib\libpython3.1.dll.a" "$INSTDIR\%CYGWIN_DIR%lib\python3.1\config\libpython3.1.dll.a"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%lib\pkgconfig\python.pc" "$INSTDIR\%CYGWIN_DIR%lib\pkgconfig\python-3.1.pc"
++  MkLink::Hard "$INSTDIR\%CYGWIN_DIR%lib\pkgconfig\python3.pc" "$INSTDIR\%CYGWIN_DIR%lib\pkgconfig\python-3.1.pc"
+   Push $R0
+   FileOpen $R0 $INSTDIR\etc\setup\installed.log a
+   FileSeek $R0 0 END
+@@ -10619,9 +10628,9 @@
+   Pop $R0
+ SectionEnd
+ !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+-  !insertmacro MUI_DESCRIPTION_TEXT ${sec_00000000} ""
+   !insertmacro MUI_DESCRIPTION_TEXT ${sec_00000000_native_client_sdk} "Native Client SDK - examples and documentation"
+   !insertmacro MUI_DESCRIPTION_TEXT ${sec_00000000_native_client_toolchain} "Native Client SDK - toolchain"
++  !insertmacro MUI_DESCRIPTION_TEXT ${sec_00000000} "Small POSIX-like environment. Disable if you have POSIX-like environment installed and know how to use it."
+   !insertmacro MUI_DESCRIPTION_TEXT ${sec_Admin} ""
+   !insertmacro MUI_DESCRIPTION_TEXT ${sec_Admin_libattr1} "Shared lib for managing filesystem extended attributes"
+   !insertmacro MUI_DESCRIPTION_TEXT ${sec_Archive} ""
