@@ -1,17 +1,19 @@
---- make_native_client_sdk.nsi	2011-04-04 12:27:04.039086000 -0600
-+++ make_native_client_sdk.nsi	2011-04-04 11:54:24.758036000 -0600
+--- make_native_client_sdk.nsi	2011-04-04 15:21:32.185956500 -0600
++++ make_native_client_sdk.nsi	2011-04-04 15:29:34.184954800 -0600
 @@ -250,14 +250,13 @@
    FileClose $R0
    Pop $R0
  SectionEnd
 -SectionGroup "00000000" sec_00000000
 -Section "!nacl-sdk.tgz" sec_00000000_native_client_sdk
+-  SectionIn 1 2
 +Section "!Examples & documentation" sec_00000000_native_client_sdk
-   SectionIn 1 2
++  SectionIn RO
  SectionEnd
 -Section "!naclsdk_win_x86.tgz" sec_00000000_native_client_toolchain
+-  SectionIn 1 2
 +Section "!Native Client Toolchain" sec_00000000_native_client_toolchain
-   SectionIn 1 2
++  SectionIn RO
  SectionEnd
 -SectionGroupEnd
 +SectionGroup "CygWin" sec_00000000
