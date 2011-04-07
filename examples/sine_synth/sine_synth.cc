@@ -1,6 +1,6 @@
-// Copyright 2010 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include <ppapi/cpp/audio.h>
 #include <ppapi/cpp/instance.h>
@@ -228,7 +228,9 @@ class SineSynthInstance : public pp::Instance {
   }
 
  private:
-  static void SineWaveCallback(void* samples, size_t buffer_size, void* data) {
+  static void SineWaveCallback(void* samples,
+                               uint32_t buffer_size,
+                               void* data) {
     SineSynthInstance* sine_synth_instance =
         reinterpret_cast<SineSynthInstance*>(data);
     const double frequency =

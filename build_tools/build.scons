@@ -21,8 +21,13 @@ Import('env')
 
 # Add the system path to this environment so that we can run gclient and such
 env.AppendENVPath('PATH', os.environ['PATH'])
-env['ENV']['VSINSTALLDIR'] = os.environ.get('VSINSTALLDIR', '')
-env['ENV']['ProgramFiles'] = os.environ.get('ProgramFiles', '')
+# Duplicate all the shell environment variables, so that various Visual Studio
+# tools will have the variables they expect (e.g. VS 2008 needs VS90COMNTOOLS).
+# Do this using "if not in" instead of update(), so that os.environ variables
+# don't override variables in env['ENV'].
+for shell_var in os.environ:
+  if shell_var not in env['ENV']:
+    env['ENV'][shell_var] = os.environ[shell_var]
 
 # The development flag tells generate_installers not to download a fresh
 # copy of all the cygwin packages.

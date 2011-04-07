@@ -1,19 +1,19 @@
 #! -*- python -*-
 #
-# Copyright (c) 2010 The Native Client Authors. All rights reserved.
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Main scons script for Native Client SDK builds.
 
-Do not invoke this script directly, but instead use the hammer.sh or hammer.bat
+Do not invoke this script directly, but instead use the scons or scons.bat
 wrapper function.  E.g.
 
 Linux or Mac:
-  ./hammer.sh [Options...]
+  ./scons [Options...]
 
 Windows:
-  hammer.bat [Options...]
+  scons.bat [Options...]
 """
 
 from __future__ import with_statement
@@ -28,8 +28,8 @@ HELP_STRING = """
 Help for NaCl SDK
 ===============================================================================
 
-* cleaning:            ./hammer.sh -c
-* build a target:      ./hammer.sh <target>
+* cleaning:            ./scons -c
+* build a target:      ./scons <target>
 
 Supported targets:
   * examples          Build all of the examples
@@ -50,7 +50,7 @@ Automatically generated help follows:
 
 #------------------------------------------------------------------------------
 # Perform some environment checks before running.
-# Note that hammer.sh should set NACL_SDK_ROOT before this script runs.
+# Note that scons should set NACL_SDK_ROOT before this script runs.
 
 if os.getenv('NACL_SDK_ROOT') is None:
   sys.stderr.write('NACL_SDK_ROOT must be defined as the root directory'

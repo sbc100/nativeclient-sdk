@@ -15,10 +15,10 @@ def main(argv):
   parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
   if sys.platform in ['cygwin', 'win32']:
     # Windows build
-    command = 'hammer.bat'
+    command = 'scons.bat'
   else:
     # Linux and Mac build
-    command = 'hammer.sh'
+    command = 'scons'
 
   params = [os.path.join(parentdir, command), 'bot'] + argv
   print 'Running ', params
