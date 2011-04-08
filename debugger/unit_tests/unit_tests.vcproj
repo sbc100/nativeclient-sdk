@@ -200,6 +200,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\core\fake_debug_api.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\fake_debuggee_process.cc"
+				>
+			</File>
+			<File
 				RelativePath=".\unit_tests.cc"
 				>
 			</File>
@@ -214,6 +222,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\core\debug_continue_policy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\core\debuggee_breakpoint.h"
 				>
 			</File>
@@ -223,6 +235,14 @@
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\core\fake_debug_api.h"
+				>
+			</File>
+			<File
+				RelativePath="..\core\fake_debuggee_process.h"
 				>
 			</File>
 		</Filter>

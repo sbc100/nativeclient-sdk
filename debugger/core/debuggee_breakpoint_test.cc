@@ -2,45 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "debugger/core/debuggee_breakpoint.h"
-#include "debugger/core/debuggee_process.h"
+#include "debugger/core/fake_debuggee_process.h"
 #include "gtest/gtest.h"
 
 namespace {
 const unsigned char kBreakpontCode = 0xCC;
-const unsigned char kFillChar = 0xA7;
 void* kBigAddr = reinterpret_cast<void*>(0xAAFFEE88);
 void* kSmallAddr = reinterpret_cast<void*>(2);
 
-// Mock DebuggeeProcess, used in DebuggeeBreakpoint unit tests.
-// Provides ReadMemory and WriteMemory methods that access internal buffer,
-// not debuggee process memory. Only single byte reads/writes are
-// supported - breakpoints are one byte instruction.
-class DebuggeeProcessMock : public debug::DebuggeeProcess {
- public:
-  DebuggeeProcessMock() : debug::DebuggeeProcess(0, NULL, 0, NULL, NULL) {
-    memset(buff, kFillChar, sizeof(buff));
-  }
-
-  virtual bool ReadMemory(const void* addr, size_t size, void* destination) {
-    intptr_t offset = reinterpret_cast<int>(addr);
-    if ((offset < sizeof(buff)) && (1 == size)) {
-      memcpy(destination, &buff[offset], size);
-      return true;
-    }
-    return false;
-  }
-
-  virtual bool WriteMemory(const void* addr, const void* source, size_t size) {
-    intptr_t offset = reinterpret_cast<int>(addr);
-    if ((offset < sizeof(buff)) && (1 == size)) {
-      memcpy(&buff[offset], source, size);
-      return true;
-    }
-    return false;
-  }
-
-  char buff[1000];
-};
 
 // Breakpoint test fixture.
 class BreakpointTest : public ::testing::Test {
@@ -54,7 +23,7 @@ class BreakpointTest : public ::testing::Test {
 
   void* big_addr_;
   void* addr_;
-  DebuggeeProcessMock proc_;
+  debug::FakeDebuggeeProcess proc_;
   debug::Breakpoint bp_;
   unsigned char orig_code_;
 };
@@ -78,7 +47,7 @@ TEST_F(BreakpointTest, UninitializedBreakpoints) {
 TEST_F(BreakpointTest, MockProcessReadOk) {
   // Make sure original code byte is correct.
   EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(orig_code_), &orig_code_));
-  EXPECT_EQ(kFillChar, orig_code_);
+  EXPECT_EQ(debug::FakeDebuggeeProcess::kFillChar, orig_code_);
 }
 
 TEST_F(BreakpointTest, MockProcessReadErr) {
@@ -90,7 +59,7 @@ TEST_F(BreakpointTest, MockProcessReadErr) {
 TEST_F(BreakpointTest, BreakpointInitialization) {
     // Tests breakpoint initialization.
   EXPECT_TRUE(bp_.Init(&proc_));
-  EXPECT_EQ(kFillChar, bp_.original_code_byte());
+  EXPECT_EQ(debug::FakeDebuggeeProcess::kFillChar, bp_.original_code_byte());
   EXPECT_TRUE(bp_.is_valid());
   unsigned char code = 0;
   EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(code), &code));
@@ -102,7 +71,7 @@ TEST_F(BreakpointTest, BreakpointRemoval) {
   EXPECT_TRUE(bp_.RecoverCodeAtBreakpoint(&proc_));
   unsigned char code = 0;
   EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(code), &code));
-  EXPECT_EQ(kFillChar, code);
+  EXPECT_EQ(debug::FakeDebuggeeProcess::kFillChar, code);
 }
 
 TEST_F(BreakpointTest, BreakpointRecovery) {
