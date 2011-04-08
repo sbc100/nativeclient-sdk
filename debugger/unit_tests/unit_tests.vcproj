@@ -196,7 +196,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\debuggee_thread_test.cpp"
+				RelativePath="..\core\debuggee_thread_test.cc"
 				>
 			</File>
 			<File
@@ -218,19 +218,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\core\debuggee_breakpoint_test.h"
-				>
-			</File>
-			<File
 				RelativePath="..\core\debuggee_process.h"
 				>
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\debuggee_thread_test.h"
 				>
 			</File>
 		</Filter>

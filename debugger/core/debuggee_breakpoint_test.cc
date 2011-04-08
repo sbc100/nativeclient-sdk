@@ -1,22 +1,9 @@
 // Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#include "debugger/core/debuggee_breakpoint_test.h"
-#include <stdio.h>
 #include "debugger/core/debuggee_breakpoint.h"
 #include "debugger/core/debuggee_process.h"
-
-namespace {
-int report_error(const char* error, const char* file, int line) {
-  printf("Test assert(%s) at %s.%d\n", error, file, line);
-  return line;
-}
-}
-
-#define my_assert(x) \
-do {\
-  if (!(x)) return report_error(#x, __FILE__, __LINE__);\
-} while (false)
+#include "gtest/gtest.h"
 
 namespace {
 const unsigned char kBreakpontCode = 0xCC;
@@ -28,7 +15,6 @@ void* kSmallAddr = reinterpret_cast<void*>(2);
 // Provides ReadMemory and WriteMemory methods that access internal buffer,
 // not debuggee process memory. Only single byte reads/writes are
 // supported - breakpoints are one byte instruction.
-
 class DebuggeeProcessMock : public debug::DebuggeeProcess {
  public:
   DebuggeeProcessMock() : debug::DebuggeeProcess(0, NULL, 0, NULL, NULL) {
@@ -55,76 +41,93 @@ class DebuggeeProcessMock : public debug::DebuggeeProcess {
 
   char buff[1000];
 };
-}  // namespace
 
-namespace debug {
-int DebuggeeBreakpointTest::Run() {
-  if (true) {
-    // Tests empty, uninitialized breakpoints.
-    debug::Breakpoint bp;
-    my_assert(NULL == bp.address());
-    my_assert(0 == bp.original_code_byte());
-    my_assert(!bp.is_valid());
-  }
-  if (true) {
-    // Tests uninitialized breakpoints.
-    void* addr = kBigAddr;
-    debug::Breakpoint bp(addr);
-    my_assert(addr == bp.address());
-    my_assert(0 == bp.original_code_byte());
-    my_assert(!bp.is_valid());
+// Breakpoint test fixture.
+class BreakpointTest : public ::testing::Test {
+ protected:
+  BreakpointTest()
+      : big_addr_(kBigAddr),
+        addr_(kSmallAddr),
+        bp_(kSmallAddr),
+        orig_code_(0) {
   }
 
-  if (true) {
-    void* big_addr = kBigAddr;
-    void* addr = kSmallAddr;
-    DebuggeeProcessMock proc;
-    debug::Breakpoint bp(addr);
-    unsigned char orig_code = 0;
+  void* big_addr_;
+  void* addr_;
+  DebuggeeProcessMock proc_;
+  debug::Breakpoint bp_;
+  unsigned char orig_code_;
+};
 
-    // Make sure original code byte is correct.
-    my_assert(proc.ReadMemory(addr, sizeof(orig_code), &orig_code));
-    my_assert(kFillChar == orig_code);
-
-    // Make sure ReadMemory fails when called with big address.
-    my_assert(!proc.ReadMemory(big_addr, sizeof(orig_code), &orig_code));
-    my_assert(kFillChar == orig_code);
-
-    // Tests breakpoint initialization.
-    my_assert(bp.Init(&proc));
-    my_assert(kFillChar == bp.original_code_byte());
-    my_assert(bp.is_valid());
-    unsigned char code = 0;
-    my_assert(proc.ReadMemory(addr, sizeof(code), &code));
-    my_assert(kBreakpontCode == code);
-
-    // Tests breakpoint removal.
-    my_assert(bp.RecoverCodeAtBreakpoint(&proc));
-    my_assert(proc.ReadMemory(addr, sizeof(code), &code));
-    my_assert(kFillChar == code);
-
-    // Tests breakpoint recovery.
-    my_assert(bp.WriteBreakpointCode(&proc));
-    my_assert(proc.ReadMemory(addr, sizeof(code), &code));
-    my_assert(kBreakpontCode == code);
-
-    // Tests breakpoint operations on invalid breakpoint.
-    bp.Invalidate();
-    my_assert(!bp.RecoverCodeAtBreakpoint(&proc));
-    my_assert(!bp.WriteBreakpointCode(&proc));
-    my_assert(bp.Init(&proc));
-    my_assert(bp.is_valid());
-  }
-
-  // Test how code handles memory access problems.
-  if (true) {
-    DebuggeeProcessMock proc;
-    debug::Breakpoint bp(kBigAddr);
-    my_assert(!bp.Init(&proc));
-    my_assert(!bp.is_valid());
-  }
-
-  return 0;  // Unit test passed.
+// Unit tests start here.
+TEST_F(BreakpointTest, EmptyBreakpoint) {
+  debug::Breakpoint bp;
+  EXPECT_EQ(NULL, bp.address());
+  EXPECT_EQ(0, bp.original_code_byte());
+  EXPECT_FALSE(bp.is_valid());
 }
-}  // namespace debug
 
+TEST_F(BreakpointTest, UninitializedBreakpoints) {
+  void* addr = kBigAddr;
+  debug::Breakpoint bp(addr);
+  EXPECT_EQ(addr, bp.address());
+  EXPECT_EQ(0, bp.original_code_byte());
+  EXPECT_FALSE(bp.is_valid());
+}
+
+TEST_F(BreakpointTest, MockProcessReadOk) {
+  // Make sure original code byte is correct.
+  EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(orig_code_), &orig_code_));
+  EXPECT_EQ(kFillChar, orig_code_);
+}
+
+TEST_F(BreakpointTest, MockProcessReadErr) {
+  // Make sure ReadMemory fails when called with big address.
+  EXPECT_FALSE(proc_.ReadMemory(big_addr_, sizeof(orig_code_), &orig_code_));
+  EXPECT_EQ(0, orig_code_);
+}
+
+TEST_F(BreakpointTest, BreakpointInitialization) {
+    // Tests breakpoint initialization.
+  EXPECT_TRUE(bp_.Init(&proc_));
+  EXPECT_EQ(kFillChar, bp_.original_code_byte());
+  EXPECT_TRUE(bp_.is_valid());
+  unsigned char code = 0;
+  EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(code), &code));
+  EXPECT_EQ(kBreakpontCode, code);
+}
+
+TEST_F(BreakpointTest, BreakpointRemoval) {
+  EXPECT_TRUE(bp_.Init(&proc_));
+  EXPECT_TRUE(bp_.RecoverCodeAtBreakpoint(&proc_));
+  unsigned char code = 0;
+  EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(code), &code));
+  EXPECT_EQ(kFillChar, code);
+}
+
+TEST_F(BreakpointTest, BreakpointRecovery) {
+  EXPECT_TRUE(bp_.Init(&proc_));
+  EXPECT_TRUE(bp_.WriteBreakpointCode(&proc_));
+  unsigned char code = 0;
+  EXPECT_TRUE(proc_.ReadMemory(addr_, sizeof(code), &code));
+  EXPECT_EQ(kBreakpontCode, code);
+}
+
+TEST_F(BreakpointTest, OpsOnInvalid) {
+  EXPECT_TRUE(bp_.Init(&proc_));
+  bp_.Invalidate();
+  EXPECT_FALSE(bp_.RecoverCodeAtBreakpoint(&proc_));
+  EXPECT_FALSE(bp_.WriteBreakpointCode(&proc_));
+  EXPECT_TRUE(bp_.Init(&proc_));
+  EXPECT_TRUE(bp_.is_valid());
+}
+
+TEST_F(BreakpointTest, OpsOnInvalidMemory) {
+  debug::Breakpoint bp(kBigAddr);
+  EXPECT_FALSE(bp.Init(&proc_));
+  EXPECT_FALSE(bp.RecoverCodeAtBreakpoint(&proc_));
+  EXPECT_FALSE(bp.WriteBreakpointCode(&proc_));
+  EXPECT_FALSE(bp.is_valid());
+}
+
+}  // namespace
