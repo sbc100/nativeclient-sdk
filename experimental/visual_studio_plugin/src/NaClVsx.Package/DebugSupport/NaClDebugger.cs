@@ -69,6 +69,11 @@ namespace Google.NaClVsx.DebugSupport {
       // FIXME -- |id| does NOT appear to be used by this function!!  
       var regs = new RegsX86_64();
       gdb_.GetRegisters(ref regs);
+      if (regs.Rip == 0) {
+        Debug.WriteLine("ERROR: regs.RIPS is 0");
+      } else {
+        Debug.WriteLine("regs.RIPS is " + String.Format("{0,4:X}", regs.Rip));
+      }
       Debug.WriteLine(" GetRegisters.... Rip=" +
         String.Format("{0,4:X}", regs.Rip) +
         " Rsp=" + String.Format("{0,4:X}", regs.Rsp) +
@@ -144,7 +149,8 @@ namespace Google.NaClVsx.DebugSupport {
       if (gdb_.HasBreakpoint(rip))
       {
         Debug.WriteLine("NaClDebugger.cs, Continue()" + 
-                        "-HasBreakpoint = true, rip=" + rip);
+                        "-HasBreakpoint = true, rip=" + 
+                        String.Format("{0,4:X}", rip));
         RemoveBreakpoint(rip);
         // First step one instruction, to prevent a race condition
         // where the IP gets back to the current line before we have
@@ -158,7 +164,13 @@ namespace Google.NaClVsx.DebugSupport {
         Debug.WriteLine("NaClDebugger.cs, Continue()-HasBreakpoint = false");
       }
 
-      var result = gdb_.RequestContinueBackground();
+      var result = gdb_.RequestContinue();
+      /// Calling RequestContinueBackground causes trouble,
+      ///   because the new sel_ldr sends a 'S05' in response
+      ///   to the 'c', and RequestContinueBackground sends
+      ///   the 'c' without listening for the reply...so the
+      ///   next command sent to sel_ldr gets the 'S05' as its
+      ///   reply.
       OnGdbContinue(result);
     }
 
@@ -237,7 +249,7 @@ namespace Google.NaClVsx.DebugSupport {
       result = gdb_.SetMemory(destAddress, src, count);
       if (result != GdbProxy.ResultCode.DHR_OK)
       {
-        throw new ApplicationException("Failed GetMemory query");
+        throw new ApplicationException("Failed SetMemory query");
       }
     }
 

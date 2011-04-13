@@ -336,10 +336,15 @@ nacl_debug_conn::DebugHost::DHResult nacl_debug_conn::DebugHost::GetRegisters( v
   outPkt.AddRawChar('g');
   debug_log_info("DebugHost::GetRegisters max=%d Calling Transact\n", max);
   res = Transact(&outPkt, &inPkt);
-  debug_log_info("DebugHost::GetRegisters, Transact returned %d\n", res);
 
+  // Log if an error occurs. On success log the length of the reply, since
+  // a short reply occurs if we get out of sync and get something like "S05"
+  // from a previous transmission instead of a long list of register values.
   if (res == DHR_OK) {
     int len = inPkt.Read(data, max);
+    debug_log_info("DebugHost::GetRegisters res=OK, max=%d len=%d\n", max, len);
+  } else {
+    debug_log_info("DebugHost::GetRegisters, bad res=%d, max=%d\n", res, max);
   }
   return res;
 }
@@ -388,7 +393,7 @@ nacl_debug_conn::DebugHost::DHResult nacl_debug_conn::DebugHost::GetMemory(uint6
   debug_log_info("DebugHost::GetMemory, Transact returned %d\n", res);
   if (res == DHR_OK) {
     len = inPkt.Read(data, max);
-
+    debug_log_info("  DebugHost::GetMemory, len=%d\n", len);
     if (len == max) {
       res = DHR_OK;
     } else {
@@ -441,6 +446,7 @@ DebugHost::DHResult DebugHost::SendAndWaitForBreak(const char* str, bool w) {
   outPkt.Clear();
   outPkt.AddString(str);
 
+  debug_log_info("DebugHost::SendAndWaitFor Break [%s] w=%d\n", str, w);
   if (NULL == pipe_)
     return DHR_LOST;
 
@@ -494,17 +500,20 @@ DebugHost::DHResult DebugHost::SendAndWaitForBreak(const char* str, bool w) {
 }
 
 DebugHost::DHResult DebugHost::RequestContinue() {
-  debug_log_info("DebugHost::RequestContinue");
-  return SendAndWaitForBreak("c", false);
+  debug_log_info("DebugHost::RequestContinue\n");
+
+  // When we send 'c', there will be a reply (e.g. "S05"), so we need to
+  // wait for it or the debug client gets out of synch with the debug_server.
+  return SendAndWaitForBreak("c", true);
 }
 
 DebugHost::DHResult DebugHost::RequestStep() {
-  debug_log_info("DebugHost::ReqeuestStep");
+  debug_log_info("DebugHost::ReqeuestStep\n");
   return SendAndWaitForBreak("s", true);
 }
 
 DebugHost::DHResult DebugHost::RequestBreak() {
-  debug_log_info("DebugHost::ReqeuestBreak");
+  debug_log_info("DebugHost::ReqeuestBreak\n");
   return SendAndWaitForBreak("\03", false);
 }
 
@@ -532,7 +541,7 @@ DebugHost::DHResult DebugHost::AddBreakpoint(uint64_t offs) {
 
   debug_log_info("DebugHost::AddBreakpoint getting memory for 0x%x\n", offs);
   GetMemory(offs, &ch, 1);
-  debug_log_info("DebugHost::AddBreakpoint got char '%c'\n", ch);
+  debug_log_info("DebugHost::AddBreakpoint got char '%d'\n", (unsigned int) ch);
   BreakpointRecord br = {
     offs,
     false,
@@ -641,9 +650,13 @@ nacl_debug_conn::DebugHost::DHResult nacl_debug_conn::DebugHost::BreakpointStatu
   // we're not concerned about the breakpoint's previous status.
   if (br.enabled && !br.suspended) {
     unsigned char ch = 0xCC;
+    debug_log_warning("conn::DebugHost::BreakpointStatusChanged enabled"
+                      " && !suspended - setting 0xCC\n");
     return SetMemory(offs, &ch, 1);
   } else {
     char ch = breaks_[offs].previousContents;
+    debug_log_warning("conn::DebugHost::BreakpointStatusChanged setting"
+                      " %c to memory\n", ch);
     return SetMemory(offs, &ch, 1);
   }
 }

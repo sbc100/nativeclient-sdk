@@ -69,8 +69,9 @@ DebugPipe::DPResult DebugPipe::SendPacket(DebugPacket *pkt) {
   char ch;
 
   // If we are ignoring ACKs..
-  if (GetFlags() & DPF_IGNORE_ACK)
+  if (GetFlags() & DPF_IGNORE_ACK) {
     return SendPacketOnly(pkt);
+  }
 
   do {
     res = SendPacketOnly(pkt);
