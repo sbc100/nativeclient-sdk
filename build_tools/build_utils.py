@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Copyright (c) 2011 The Native Client Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that be
+# Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """Small utility library of python functions used by the various package
@@ -178,10 +178,9 @@ def RawVersion():
 
 
 def GetVersionNumbers():
-  '''Returns a list of 4 strings containing the version identifier'''
+  '''Returns a list of 3 strings containing the version identifier'''
   rev = str(SVNRevision())
-  build_number = os.environ.get('BUILD_NUMBER', '0')
-  return [MAJOR_REV, MINOR_REV, rev, build_number]
+  return [MAJOR_REV, MINOR_REV, rev]
 
 
 # Note that this function has to be run from within a subversion working copy,
