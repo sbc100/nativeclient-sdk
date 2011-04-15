@@ -1,5 +1,5 @@
 # Note: NACL_REVISION is used by build_tools/generate_installers.py
-NACL_REVISION = "4768"
+NACL_REVISION = "4888"
 
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
