@@ -11,6 +11,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Google.MsAd7.BaseImpl;
 using Google.MsAd7.BaseImpl.Interfaces;
+using Google.NaClVsx.ProjectSupport;
 using Microsoft.VisualStudio.Debugger.Interop;
 using NaClVsx.DebugHelpers;
 
@@ -231,7 +232,20 @@ namespace Google.NaClVsx.DebugSupport {
     public void GetMemory(ulong sourceAddress, Array destination, uint countInBytes) {
       GdbProxy.ResultCode result;
 
-      sourceAddress += baseAddress_;
+      if (sourceAddress > baseAddress_) {
+        // FIXME (mmortensen) -- This check should eventually get removed.
+        // In the short term, it is helpful for printing errors and for setting
+        // a breakpoint to determine where we get called from when the address
+        // is not correct.
+        Debug.WriteLine("GetMemory ERROR.  sourceAddress " +
+                        String.Format("{0,4:X}", sourceAddress) + 
+                        " is larger than baseAddress " +
+                        String.Format("{0,4:X}", baseAddress_));
+      } else {
+        Debug.WriteLine("GetMemory VALID ACCESS sourceAddress " +
+                        String.Format("{0,4:X}", sourceAddress));
+        sourceAddress += baseAddress_;
+      }
 
       result = gdb_.GetMemory(sourceAddress, destination, countInBytes);
       if (result != GdbProxy.ResultCode.DHR_OK) {
@@ -276,7 +290,9 @@ namespace Google.NaClVsx.DebugSupport {
           });
       if (!evt.WaitOne(gdbTimeout_)) {
         throw new TimeoutException("GDB connection timed out");
-      }     
+      }
+
+      string full_nexe_path = NaClProjectConfig.GetLastNexe();
       gdb_.GetPath(
           (r, s, d) => {
             status = r;
@@ -284,10 +300,12 @@ namespace Google.NaClVsx.DebugSupport {
               SetPath(s);
             }
             else if (s == "") {
-              // FIXME -- this is a HACK -- I need to set the
-              // path based on Project data, rather than from
-              // querying sel_ldr
-              SetPath("c:\\src\\NACL_SDK\\src\\examples\\hello_world\\Project3\\Project3\\bin\\Debug\\Project3_x86_64.nexe");
+              // Set the path based on project data, as obtained from
+              // NaClProjectconfig.NexeList.
+              // TODO(mmortensen) -- in the future we will want to query
+              // sel_ldr for the nexe name (and maybe full path) to make sure
+              // we are running the one we built.
+              SetPath(full_nexe_path);
             }
             evt.Set();
           });

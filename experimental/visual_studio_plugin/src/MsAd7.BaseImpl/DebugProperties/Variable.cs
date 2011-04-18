@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 using System;
+using System.Diagnostics;
 using Google.MsAd7.BaseImpl.Interfaces;
 using Google.MsAd7.BaseImpl.Interfaces.SimpleSymbolTypes;
 using Microsoft.VisualStudio.Debugger.Interop;
@@ -19,6 +20,8 @@ namespace Google.MsAd7.BaseImpl.DebugProperties {
     protected override void RefreshValue(ref object value)
     {
       var result = new byte[symbol_.TypeOf.SizeOf];
+      Debug.WriteLine("RefreshValue, variable=" + symbol_.Name +
+                      " Address: " + String.Format("{0,4:X}", Address));
       Dbg.GetMemory(Address, result, (uint) result.Length);
       value = result;
     }

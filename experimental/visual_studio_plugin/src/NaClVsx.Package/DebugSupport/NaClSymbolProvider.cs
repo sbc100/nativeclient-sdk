@@ -165,15 +165,11 @@ namespace Google.NaClVsx.DebugSupport {
             object loc = entry.Attributes[DwarfAttribute.DW_AT_location];
             ulong symbolAddr = ResolveLocation(programCounter - fnBase, loc, vm);
 
-            // The next 3 lines of comments and the line of code are from
-            // Ian's rsp branch
-            // The symbol address is zero-based, but the outside world is
-            // r15 based. Offset the address by the debugger's base
-            // address to fix this.            
-            symbolAddr += dbg_.BaseAddress;
-            // FIXME: (mmortensen) I have not validate this code...or hit
-            // it in a breakpoint
-
+            // store the symbolAddr and variable name. Note that symbolAddr is
+            // relative to the base address of the NaCl app.  The base address
+            // is something like 0xC00000000, but the base gets added to this
+            // relative address (symbolAddr) later in functions like GetMemory
+            // (located in NaClDebugger.cs).
             result.Add(
                 new Symbol {
                     Key = entry.Key,
@@ -272,6 +268,16 @@ namespace Google.NaClVsx.DebugSupport {
           case IDwarfReader.CfiRuleType.Offset:
             var addr =
                 (ulong) ((long) result[rule.BaseRegister] + rule.Offset);
+            Debug.WriteLine("SymbolProvider:: result[rule.BaseRegister]: " +
+                            String.Format("{0,4:X}",
+                              result[rule.BaseRegister]) +
+                            " rule.Offset: " + rule.Offset +
+                            " addr: " + String.Format("{0,4:X}", addr) +
+                            " rule.Address: " + String.Format("{0,4:X}",
+                              rule.Address) +
+                            " BaseAddress: " + String.Format("{0,4:X}",
+                              BaseAddress));
+               
             result[rule.RegisterId] = dbg_.GetU64(addr - BaseAddress);
             break;
           case IDwarfReader.CfiRuleType.Register:

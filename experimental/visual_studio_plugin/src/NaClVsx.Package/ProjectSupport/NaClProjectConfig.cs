@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,6 +18,35 @@ namespace Google.NaClVsx.ProjectSupport
 {
   class NaClProjectConfig : ProjectConfig
   {
+    // Although the NaClProjectConfig class is not implemented as a singleton,
+    // it is what launches the debugger with a given nexe, and therefore there
+    // should (at least in the short term) be a current Nexe that we are
+    // debugging.  In order to provide the most recent Nexe launched and still
+    // have the flexibility (in the future) to have multiple nexes, as well as
+    // to keep track of all the nexes we have tried to debug in a session, 
+    // the variable |NexeList| is an ArrayList of strings.
+    // Whenever the |DebugLaunch| method is invoked, it adds the current nexe
+    // that is being launched (though sel_ldr) to the end of the list.
+    private static ArrayList NexeList = new ArrayList();
+    public static string GetLastNexe() {
+      // Current assumption -- NexeList contains only 1 nexe, but just in
+      // case we will grab the last one added to NexeList.
+      // Print an error if NexeList contanis more than 1.
+      if (NexeList.Count != 1) {
+        Debug.WriteLine("WARNING: NexeList Count is " + 
+                        NaClProjectConfig.NexeList.Count);
+        foreach (string a_nexe in NexeList)
+        {
+          Debug.WriteLine("NEXE: " + a_nexe);
+        }
+      }
+      if (NexeList.Count == 0) {
+        Debug.WriteLine("ERROR: NexeList.Count is 0");
+        return "";
+      }
+      return (string) NexeList[NexeList.Count - 1];
+    }
+
     public NaClProjectConfig(ProjectNode project, string configuration) : base(project, configuration) {
       // Currently this is hardcoded, since we only support 64-bit debugging.
       SetConfigurationProperty("TargetArch", "x86_64");
@@ -43,6 +74,7 @@ namespace Google.NaClVsx.ProjectSupport
           Path.Combine(
               Path.GetDirectoryName(this.ProjectMgr.BaseURI.Uri.LocalPath),
               GetConfigurationProperty("OutputFullPath", false));
+      NexeList.Add(nexe);
 
       info.bstrArg = string.Format("{0} {1}",
         nexe,
