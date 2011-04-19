@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "debug_conn/debug_host.h"
+#include "debug_conn/debug_target.h"
 #include "nacl_symbols.h"
-#include "native_client/src/trusted/debug_stub/debug_host.h"
-#include "native_client/src/trusted/debug_stub/debug_target.h"
 
 using namespace NaCl;
 using nacl_debug_conn::DebugHost;
