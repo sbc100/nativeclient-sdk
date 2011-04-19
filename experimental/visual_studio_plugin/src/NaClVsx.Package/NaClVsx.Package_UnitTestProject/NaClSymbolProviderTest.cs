@@ -1,4 +1,4 @@
-﻿// Copyright 2010 The Native Client Authors. All rights reserved.
+﻿// Copyright 2010 The Native Client SDK Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
@@ -26,7 +26,7 @@ namespace NaClVsx.Package_UnitTestProject {
 
     #region Additional test attributes
 
-    //
+    // 
     //You can use the following additional attributes as you write your tests:
     //
     //Use ClassInitialize to run code before running the first test in the class
@@ -72,7 +72,7 @@ namespace NaClVsx.Package_UnitTestProject {
       // loop.cc(10,0): 0x20380 (32 bytes)
       DocumentPosition pos = sym_.PositionFromAddress(baseAddr + 0x20385);
       Assert.IsNotNull(pos);
-      Assert.AreEqual(pos, new DocumentPosition("loop.cc", 10));
+      Assert.AreEqual(pos, new DocumentPosition("loop.cc", 9));
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ namespace NaClVsx.Package_UnitTestProject {
       // should have formal parameter "count" and local variable "i"
       string abspath = @"c:\hg\nvs\src\loop\loop.cc";
       ulong addr = baseAddr + 0x20380;
-      var pos = new DocumentPosition(abspath, 10);
+      var pos = new DocumentPosition(abspath, 9);
 
       IEnumerable<ulong> addr2 = sym_.AddressesFromPosition(pos);
       Assert.IsTrue(addr2.Contains(addr));
