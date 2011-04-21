@@ -7,18 +7,14 @@
 """
 Build file for the NaCl SDK Examples
 
-Currently, this file is just a thin wrapper around Gnu make, but eventually
-we'd like to use scons to directly build all the examples.
+This file runs all the scons files in the various example sub-directories.
 """
 
-__author__ = 'mball@google.com (Matt Ball)'
+example_sconscripts = ['geturl/build.scons',
+                       'hello_world/build.scons',
+                       'hello_world_c/build.scons',
+                       'pi_generator/build.scons',
+                       'sine_synth/build.scons',
+                      ]
 
-Import('env')
-
-node = env.Command(
-  target='examples_dummy_target',
-  source='Makefile',
-  action='cd examples && ${MAKE} -j %d' % GetOption('num_jobs'),
-)
-
-env.AddNodeAliases(node, [], 'examples')
+SConscript(example_sconscripts)

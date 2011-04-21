@@ -1,0 +1,21 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+"""Build file for tests of nacl_utils interface.
+
+Adapted from scons documentation: http://www.scons.org/wiki/UnitTests
+"""
+
+import os
+import sys
+
+Import('env')
+
+cmd = env.CreatePythonUnitTest(filename='nacl_utils_test.py',
+                               dependencies=['nacl_utils.py'])
+
+env.AddNodeToTestSuite(cmd, ['bot'], 'run_nacl_utils_test', 'small')
+
