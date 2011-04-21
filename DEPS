@@ -5,8 +5,6 @@ vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
   "native_client_version": NACL_REVISION,
   "x86_toolchain_version": NACL_REVISION,
-  "valgrind_path": "http://src.chromium.org/native_client/trunk/"
-    "src/native_client/src/third_party/valgrind",
   "valgrind_version": NACL_REVISION,
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
@@ -24,8 +22,11 @@ deps = {
     Var("scons_trunk") + "src/third_party/scons-2.0.1@" + Var("scons_version"),
   "src/site_scons":
     Var("scons_trunk") + "src/native_client/site_scons@" + Var("scons_version"),
-  "src/third_party/valgrind": Var("valgrind_path") + "@" +
+  "src/third_party/valgrind": Var("native_client_trunk") +
+    "/src/native_client/src/third_party/valgrind" + "@" +
     Var("valgrind_version"),
+  "src/third_party/valgrind/bin": Var("native_client_trunk") +
+    "/src/third_party/valgrind/bin" + "@" + Var("valgrind_version"),
   "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version"),
   "src/experimental/visual_studio_plugin/third_party/nacl_dir/native_client/"
     "src/shared/gio":
