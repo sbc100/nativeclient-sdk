@@ -14,16 +14,22 @@ import string
 import subprocess
 import sys
 
-# TODO(NaCl SDK team):  Put tumbler back in the package when it's ported.
-IGNORE_PATTERN = ('.download*', '.svn*', '.gitignore*', '.git*', 'tumbler*')
-INSTALLER_DIRS = ['examples',
-                  'project_templates',
-                  'third_party']
-INSTALLER_FILES = ['AUTHORS',
-                   'COPYING',
-                   'LICENSE',
-                   'NOTICE',
-                   'README']
+IGNORE_PATTERN = ('.download*', '.svn*')
+
+INSTALLER_DIRS = [
+    'examples',
+    'project_templates',
+]
+
+# Note that these files are converted to \r\n line endings and get a .txt
+# extension before inclusion into the installer.
+DOCUMENTATION_FILES = [
+    'AUTHORS',
+    'COPYING',
+    'LICENSE',
+    'NOTICE',
+    'README',
+]
 
 def main(argv):
   bot = build_utils.BotAnnotator()
@@ -128,7 +134,7 @@ def main(argv):
                     copy_target_dir,
                     symlinks=True,
                     ignore=shutil.ignore_patterns(*IGNORE_PATTERN))
-  for copy_source_file in INSTALLER_FILES:
+  for copy_source_file in DOCUMENTATION_FILES:
     copy_target_file = os.path.join(installer_dir, copy_source_file + '.txt')
     bot.Print("Copying %s to %s" % (copy_source_file, copy_target_file))
     with open(copy_source_file, "U") as source_file:
