@@ -32,3 +32,6 @@ nacl_test_64.NaClTestProgram(test_sources,
                              module_name='hello_world_test',
                              target_name='test64')
 
+# This target is used by the SDK build system to provide a prebuilt version
+# of the example in the SDK installer.
+nacl_env.InstallPrebuilt('hello_world')

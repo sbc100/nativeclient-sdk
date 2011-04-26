@@ -8,6 +8,8 @@
 modifiers.
 '''
 
+from SCons import Script
+
 import nacl_utils
 import os
 
@@ -103,7 +105,7 @@ def NaClTestProgram(env,
   This node will build the desired NaCl module with the debug flags turned on.
   The Alias node has a build action that runs the test under sel_ldr.  |env| is
   expected to have variables named 'NACL_SEL_LDR<x>', where <x> is the
-  various acrhitectures supported (e.g. NACL_SEL_LDR32 and NACL_SEL_LLDR64).
+  various architectures supported (e.g. NACL_SEL_LDR32 and NACL_SEL_LLDR64).
 
   Args:
     env: Environment to modify.
@@ -151,7 +153,7 @@ def NaClModules(env, sources, module_name, is_debug=False):
 
   Returns:
     A list of SCons build Nodes, each one with settings specific to an
-        instruction set achitecture.
+        instruction set architecture.
   '''
   return [
       nacl_utils.MakeNaClModuleEnvironment(
@@ -167,6 +169,30 @@ def NaClModules(env, sources, module_name, is_debug=False):
           arch_spec=nacl_utils.ARCH_SPECS['x86-64'],
           is_debug=is_debug),
   ]
+
+
+def InstallPrebuilt(env, module_name):
+  '''Create the 'install_prebuilt' target.
+
+  install_prebuilt is used by the SDK build machinery to provide a prebuilt
+  version of the example in the SDK installer.  This pseudo-builder adds an
+  Alias node called 'install_prebuilt' that depends on the main .nmf file of
+  the example.  The .nmf file in turn has all the right dependencies to build
+  the necessary NaCl modules.  As a final step, the opt variant directories
+  are removed.  Once this build is done, the SDK builder can include the
+  example directory in its installer.
+
+  Args:
+    env: Environment to modify.
+    module_name: The name of the module.
+
+  Returns:
+    The Alias node representing the install_prebuilt target.
+  '''
+
+  return env.Alias('install_prebuilt',
+                   source=['%s.nmf' % module_name],
+                   action=Script.Delete(['opt_x86_32', 'opt_x86_64']))
 
 
 def AllNaClModules(env, sources, module_name):
@@ -196,7 +222,7 @@ def AllNaClModules(env, sources, module_name):
 
   Returns:
     A list of SCons Environments, each one with settings specific to an
-        instruction set achitecture.
+        instruction set architecture.
   '''
   opt_nexes = env.NaClModules(sources, module_name, is_debug=False)
   env.GenerateNmf(target='%s.nmf' % module_name,
@@ -219,12 +245,13 @@ def generate(env):
 
   NOTE: SCons requires the use of this name, which fails lint.
   '''
+  env.AddMethod(AllNaClModules)
   env.AddMethod(AppendOptCCFlags)
   env.AddMethod(AppendArchFlags)
+  env.AddMethod(InstallPrebuilt)
   env.AddMethod(NaClProgram)
   env.AddMethod(NaClTestProgram)
   env.AddMethod(NaClModules)
-  env.AddMethod(AllNaClModules)
 
 
 def exists(env):
@@ -232,7 +259,7 @@ def exists(env):
     Tools.
 
   Args:
-    env: The SCons Enviroment this tool will run in.
+    env: The SCons Environment this tool will run in.
 
   Returns:
     Always returns True.

@@ -18,3 +18,6 @@ sources = ['hello_world.c']
 
 nacl_env.AllNaClModules(sources, 'hello_world')
 
+# This target is used by the SDK build system to provide a prebuilt version
+# of the example in the SDK installer.
+nacl_env.InstallPrebuilt('hello_world')

@@ -17,3 +17,7 @@ nacl_env.Append(
 sources = ['pi_generator.cc', 'pi_generator_module.cc']
 
 nacl_env.AllNaClModules(sources, 'pi_generator')
+
+# This target is used by the SDK build system to provide a prebuilt version
+# of the example in the SDK installer.
+nacl_env.InstallPrebuilt('pi_generator')

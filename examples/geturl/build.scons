@@ -17,3 +17,7 @@ nacl_env.Append(
 sources = ['geturl.cc', 'geturl_handler.cc']
 
 nacl_env.AllNaClModules(sources, 'geturl')
+
+# This target is used by the SDK build system to provide a prebuilt version
+# of the example in the SDK installer.
+nacl_env.InstallPrebuilt('geturl')

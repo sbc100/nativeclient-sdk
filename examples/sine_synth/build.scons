@@ -18,3 +18,6 @@ sources = ['sine_synth.cc']
 
 nacl_env.AllNaClModules(sources, 'sine_synth')
 
+# This target is used by the SDK build system to provide a prebuilt version
+# of the example in the SDK installer.
+nacl_env.InstallPrebuilt('sine_synth')
