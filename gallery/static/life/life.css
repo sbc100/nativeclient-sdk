@@ -1,0 +1,53 @@
+/* Copyright 2011 The Native Client SDK Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can
+ * be found in the LICENSE file.
+ */
+
+/* These div ids are used together to implement a work-around for event
+ * bubbling when using a NaCl module.  Using these div ids allows you to
+ * handle user events in the browser, instead of the events being passed into
+ * the NaCl <embed> element.  The event layer stacks on top of the NaCl layer
+ * so that it captures the user events, like this:
+ * |--------------------|
+ * | |----------------| |
+ * | | |------------| | |
+ * | | | Event layer| | |
+ * | | |------------| | |
+ * | | NaCl layer     | |
+ * | |----------------| |
+ * | Background layer   |
+ * |--------------------|
+ */
+
+/* The background layer.  This establishes a Z-stack for the event and NaCl
+ * layers.
+ */
+.background_layer {
+  position: relative;
+  z-index: 0;
+}
+
+/* The event layer.  This layer has to completely cover the NaCl layer, and
+ * have a higher z-order.  This layer captures the user events and doesn't
+ * let them get through to the NaCl layer.  Note that |width| and |height|
+ * need to match the corresponding attributes of the <embed> tag that
+ * contains the NaCl module.
+ */
+.event_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400;
+  height: 400;
+  z-index: 2;
+}
+
+/* The NaCl layer.  This layer contains the NaCl module.  It must have a
+ * lower z-index than the event layer.
+ */
+.nacl_module_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}

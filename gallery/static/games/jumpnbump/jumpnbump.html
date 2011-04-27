@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+  <!--
+  Copyright 2011 The Native Client Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+  -->
+
+  <head>
+    <title>Jump 'n Bump NaCl Demo</title>
+  </head>
+
+  <body id="bodyId" onunload="pageDidUnload()" onkeydown="return zzz_press(event)" onkeyup="return zzz_release(event)">
+
+  <h1>Jump 'n Bump Native Client Demo</h1>
+
+  <p>This is a Native Client port of the multiplayer game <a target="_blank" href="http://brainchilddesign.com/Bottom.php?Page=Games&SubPage=JnB">Jump 'n Bump</a>.</p>
+
+  <p>To play this game, you must use Google Chrome version 10.x or greater, and you must enable Native Client (type <kbd>about:flags</kbd> in the address bar, click the "Enable" link under Native Client, and restart Google Chrome).</p>
+  
+  <p>You can control three of the bunnies by using (1) the W-A-S-D keys, (2) the arrow keys, and (3) the left, middle, and right mouse buttons. The fourth bunny is not available.</p>
+
+  <p style="margin-bottom: 0;">Source code:</p>
+  <ul style="margin-top: 0;">
+    <li><a target="_blank" href="http://github.com/eugenis/jumpnbump-nacl">jumpnbump-nacl</a></li>
+    <li><a target="_blank" href="http://github.com/eugenis/sdl-nacl">sdl-nacl</a></li>
+  </ul>
+  
+  <br />
+
+  </p>
+
+  <embed name="nacl_module"
+         id="jumpnbump"
+         width=1000 height=700
+         nacl="jumpnbump.nmf"
+         type="application/x-nacl"
+         dimensions="2"/>
+
+  <br />
+
+  </body>
+
+</html>

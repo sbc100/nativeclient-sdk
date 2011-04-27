@@ -1,0 +1,51 @@
+<html>
+<head>
+  <title>Life Demo</title>
+  <meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
+  <meta HTTP-EQUIV="Expires" CONTENT="-1">
+  <link href="life.css" rel="stylesheet" type="text/css">
+  <script type="text/javascript" src="dragger.js"></script>
+  <script type="text/javascript" src="life.js"></script>
+  <script type="text/javascript">
+    life.application = new life.Application();
+
+    // This function is called when the life NaCl module is loaded.
+    function moduleDidLoad() {
+      var module =
+          document.getElementById('life');
+      life.application.moduleDidLoad(module, 'div_event_layer');
+    }
+
+    function pageDidUnload() {
+      life.application.moduleDidUnload();
+    }
+  </script>
+</head>
+<body id="bodyId" onunload="pageDidUnload();" >
+
+<h1>Conway's Life</h1>
+ <p>
+  Use the mouse to paint extra life into the simulation.
+ </p>
+
+  <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+  shows how to load multi-architecture modules.  Each entry in the "nexes"
+  object in the .nmf manifest file is a key-value pair: the key is the
+  runtime ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl
+  module.  To load the debug versions of your .nexes, set the 'nacl'
+  attribute to the _dbg.nmf version of the manifest file.
+  -->
+  <div id="div_background_layer" class="background_layer">
+    <div id="div_event_layer" class="event_layer"></div>
+    <embed name="nacl_module"
+           id="life"
+           class="nacl_module_layer"
+           width=400 height=400
+           nacl="life.nmf"
+           type="application/x-nacl"
+           dimensions="2"
+           onload="moduleDidLoad();" />
+  </div>
+<br>
+</body>
+</html>
