@@ -19,6 +19,7 @@ IGNORE_PATTERN = ('.download*', '.svn*')
 INSTALLER_DIRS = [
     'examples',
     'project_templates',
+    os.path.join('third_party', 'scons-2.0.1'),
 ]
 
 # Note that these files are converted to \r\n line endings and get a .txt
