@@ -6,6 +6,7 @@
 """Assemble the final installer for windows."""
 
 import build_utils
+import installer_contents
 import optparse
 import os
 import shutil
@@ -16,20 +17,10 @@ import sys
 
 IGNORE_PATTERN = ('.download*', '.svn*')
 
-INSTALLER_DIRS = [
-    'examples',
-    'project_templates',
-    os.path.join('third_party', 'scons-2.0.1'),
-]
-
-# Note that these files are converted to \r\n line endings and get a .txt
-# extension before inclusion into the installer.
-DOCUMENTATION_FILES = [
-    'AUTHORS',
-    'COPYING',
-    'LICENSE',
-    'NOTICE',
-    'README',
+# These are extra files that are exclusive to the Windows installer.
+EXTRA_WINDOWS_INSTALLER_CONTENTS = [
+    'examples/httpd.cmd',
+    'examples/make.cmd',
 ]
 
 def main(argv):
@@ -112,7 +103,7 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  make = subprocess.Popen('make install_prebuilt',
+  make = subprocess.Popen('scons.bat install_prebuilt',
                           env=env,
                           cwd=example_path,
                           shell=True)
@@ -128,14 +119,26 @@ def main(argv):
   bot.Print('generate_windows_installer is cleaning out install directory.')
   shutil.rmtree(installer_dir)
   bot.Print('generate_windows_installer: copying files to install directory.')
-  for copy_source_dir in INSTALLER_DIRS:
+  all_contents = installer_contents.INSTALLER_CONTENTS + \
+                 EXTRA_WINDOWS_INSTALLER_CONTENTS
+  for copy_source_dir in installer_contents.GetDirectoriesFromPathList(
+      all_contents):
     copy_target_dir = os.path.join(installer_dir, copy_source_dir)
     bot.Print("Copying %s to %s" % (copy_source_dir, copy_target_dir))
     shutil.copytree(copy_source_dir,
                     copy_target_dir,
                     symlinks=True,
                     ignore=shutil.ignore_patterns(*IGNORE_PATTERN))
-  for copy_source_file in DOCUMENTATION_FILES:
+  for copy_source_file in installer_contents.GetFilesFromPathList(
+      all_contents):
+    copy_target_file = os.path.join(installer_dir, copy_source_file)
+    bot.Print("Copying %s to %s" % (copy_source_file, copy_target_file))
+    if not os.path.exists(os.path.dirname(copy_target_file)):
+      os.makedirs(os.path.dirname(copy_target_file))
+    shutil.copy(copy_source_file, copy_target_file)
+
+  # Do special processing on the user-readable documentation files.
+  for copy_source_file in installer_contents.DOCUMENTATION_FILES:
     copy_target_file = os.path.join(installer_dir, copy_source_file + '.txt')
     bot.Print("Copying %s to %s" % (copy_source_file, copy_target_file))
     with open(copy_source_file, "U") as source_file:

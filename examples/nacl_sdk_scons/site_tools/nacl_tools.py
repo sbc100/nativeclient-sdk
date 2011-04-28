@@ -192,7 +192,8 @@ def InstallPrebuilt(env, module_name):
 
   return env.Alias('install_prebuilt',
                    source=['%s.nmf' % module_name],
-                   action=Script.Delete(['opt_x86_32', 'opt_x86_64']))
+                   action=Script.Delete([env.Dir('opt_x86_32'),
+                                         env.Dir('opt_x86_64')]))
 
 
 def AllNaClModules(env, sources, module_name):

@@ -9,6 +9,7 @@ At this time this is just a tarball.
 """
 
 import build_utils
+import installer_contents
 import optparse
 import os
 import re
@@ -20,46 +21,6 @@ import sys
 
 EXCLUDE_DIRS = ['.download',
                 '.svn']
-
-INSTALLER_CONTENTS = [
-    'AUTHORS',
-    'COPYING',
-    'LICENSE',
-    'NOTICE',
-    'README',
-    'examples/Makefile',
-    'examples/build.scons',
-    'examples/common.mk',
-    'examples/favicon.ico',
-    'examples/generate_nmf.py',
-    'examples/httpd.py',
-    'examples/index.html',
-    'examples/geturl/',
-    'examples/hello_world/',
-    'examples/hello_world_c/',
-    'examples/nacl_sdk_scons/make_nacl_env.py',
-    'examples/nacl_sdk_scons/nacl_utils.py',
-    'examples/nacl_sdk_scons/site_tools/',
-    'examples/pi_generator/',
-    'examples/scons',
-    'examples/sine_synth/',
-    'project_templates/README',
-    'project_templates/common.mk',
-    'project_templates/generate_nmf.py',
-    'project_templates/init_project.py',
-    'project_templates/c/',
-    'project_templates/cc/',
-    'project_templates/html/',
-    'third_party/scons-2.0.1/',
-    'third_party/valgrind/memcheck.sh',
-    'third_party/valgrind/tsan.sh',
-    'third_party/valgrind/nacl.supp',
-    'third_party/valgrind/nacl.ignore',
-    'third_party/valgrind/README',
-    'third_party/valgrind/bin/memcheck',
-    'third_party/valgrind/bin/tsan',
-    'toolchain/',
-]
 
 INSTALLER_NAME = 'nacl-sdk.tgz'
 
@@ -152,7 +113,7 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_installers is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  make = subprocess.Popen('make install_prebuilt',
+  make = subprocess.Popen('./scons install_prebuilt',
                           env=env,
                           cwd=example_path,
                           shell=True)
@@ -164,8 +125,13 @@ def main(argv):
   bot.BuildStep('copy to install dir')
   bot.Print('generate_installers is copying contents to install directory.')
   tar_src_dir = os.path.realpath(os.curdir)
-  tar_cf = subprocess.Popen('tar cf - %s' %
-                            (string.join(INSTALLER_CONTENTS, ' ')),
+  all_contents = installer_contents.INSTALLER_CONTENTS + \
+                 installer_contents.DOCUMENTATION_FILES
+  all_contents_string = string.join(
+      installer_contents.GetFilesFromPathList(all_contents) +
+      installer_contents.GetDirectoriesFromPathList(all_contents),
+      ' ')
+  tar_cf = subprocess.Popen('tar cf - %s' % all_contents_string,
                             bufsize=-1,
                             cwd=tar_src_dir, env=env, shell=True,
                             stdout=subprocess.PIPE)

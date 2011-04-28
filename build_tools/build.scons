@@ -45,6 +45,17 @@ env.AddNodeAliases(node, ['bot'], 'installer')
 
 #------------------------------------------------------------------------------
 # Add build_tools unit tests
-cmd = env.CreatePythonUnitTest('tests/build_utils_test.py', ['build_utils.py'])
+build_utils_test = env.CreatePythonUnitTest('tests/build_utils_test.py',
+                                            ['build_utils.py'])
+env.AddNodeToTestSuite(build_utils_test,
+                       ['bot'],
+                       'run_build_utils_test',
+                       'small')
 
-env.AddNodeToTestSuite(cmd, ['bot'], 'run_build_utils_test', 'small')
+installer_contents_test = env.CreatePythonUnitTest(
+    'tests/installer_contents_test.py', ['installer_contents.py'])
+env.AddNodeToTestSuite(installer_contents_test,
+                       ['bot'],
+                       'run_build_utils_test',
+                       'small')
+
