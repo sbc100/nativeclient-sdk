@@ -21,6 +21,7 @@ IGNORE_PATTERN = ('.download*', '.svn*')
 EXTRA_WINDOWS_INSTALLER_CONTENTS = [
     'examples/httpd.cmd',
     'examples/make.cmd',
+    'examples/scons.bat',
 ]
 
 def main(argv):
