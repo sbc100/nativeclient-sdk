@@ -59,3 +59,10 @@ env.AddNodeToTestSuite(installer_contents_test,
                        'run_build_utils_test',
                        'small')
 
+nacl_utils_test = env.CreatePythonUnitTest('nacl_sdk_scons/nacl_utils_test.py',
+                                           ['nacl_sdk_scons/nacl_utils.py'])
+env.AddNodeToTestSuite(nacl_utils_test,
+                       ['bot'],
+                       'run_nacl_utils_test',
+                       'small')
+

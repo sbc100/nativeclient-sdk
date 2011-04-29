@@ -73,9 +73,6 @@ def main(argv):
   except OSError:
     pass
 
-  env = os.environ.copy()
-  # TODO (mlinck, mball) make this unnecessary
-  env['PATH'] = cygwin_dir + ';' + env['PATH']
   # TODO(mlinck, mball): maybe get rid of this
   variant = 'win_x86'
   toolchain = os.path.join('toolchain', variant)
@@ -104,10 +101,8 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  make = subprocess.Popen('scons.bat install_prebuilt',
-                          env=env,
-                          cwd=example_path,
-                          shell=True)
+  make = subprocess.Popen(['scons.bat', 'install_prebuilt'],
+                          cwd=example_path)
   assert make.wait() == 0
 
   # On windows we use copytree to copy the SDK into the build location
@@ -169,6 +164,9 @@ def main(argv):
             ' && chmod 644 %(output)s')
   ar_name = 'nacl-sdk.tgz'
 
+  cygwin_env = os.environ.copy()
+  # TODO (mlinck, mball) make this unnecessary
+  cygwin_env['PATH'] = cygwin_dir + ';' + cygwin_env['PATH']
   # archive will be created in src\build_tools,
   # make_native_client_sdk.sh will create the real nacl-sdk.exe
   archive = os.path.join(home_dir, 'src', 'build_tools', ar_name)
@@ -177,7 +175,7 @@ def main(argv):
            {'ar_name':ar_name,
             'input':version_dir,
             'output':archive.replace('\\', '/')}),
-      env=env, shell=True)
+      env=cygwin_env, shell=True)
   assert tarball.wait() == 0
 
   bot.BuildStep('create Windows installer')

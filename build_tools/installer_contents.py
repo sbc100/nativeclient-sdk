@@ -20,6 +20,9 @@ import os
 # the '/' with the correct platform-specific path separator as defined by
 # os.path.
 INSTALLER_CONTENTS = [
+    'build_tools/nacl_sdk_scons/make_nacl_env.py',
+    'build_tools/nacl_sdk_scons/nacl_utils.py',
+    'build_tools/nacl_sdk_scons/site_tools/',
     'examples/Makefile',
     'examples/build.scons',
     'examples/common.mk',
@@ -30,9 +33,6 @@ INSTALLER_CONTENTS = [
     'examples/hello_world_c/',
     'examples/httpd.py',
     'examples/index.html',
-    'examples/nacl_sdk_scons/make_nacl_env.py',
-    'examples/nacl_sdk_scons/nacl_utils.py',
-    'examples/nacl_sdk_scons/site_tools/',
     'examples/pi_generator/',
     'examples/scons',
     'examples/sine_synth/',

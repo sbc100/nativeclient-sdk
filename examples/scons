@@ -8,22 +8,6 @@
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_DIR_ABS="$(cd "${SCRIPT_DIR}" ; pwd -P)"
 
-# Use the batch file as an entry point if on cygwin.
-if [ "x${OSTYPE}" = "xcygwin" ]; then
-  # Use extended globbing (cygwin should always have it).
-  shopt -s extglob
-  # Filter out cygwin python (everything under /usr or /bin, or *cygwin*).
-  export PATH=${PATH/#\/bin*([^:])/}
-  export PATH=${PATH//:\/bin*([^:])/}
-  export PATH=${PATH/#\/usr*([^:])/}
-  export PATH=${PATH//:\/usr*([^:])/}
-  export PATH=${PATH/#*([^:])cygwin*([^:])/}
-  export PATH=${PATH//:*([^:])cygwin*([^:])/}
-  "${SCRIPT_DIR_ABS}/scons.bat" $*
-  exit
-fi
-
-
 export NACL_SDK_ROOT="$(cd "${SCRIPT_DIR_ABS}/.." ; pwd -P)"
 
 readonly BASE_SCRIPT="${NACL_SDK_ROOT}/third_party/scons-2.0.1/script/scons"
@@ -34,6 +18,6 @@ export PYTHONPATH="${NACL_SDK_ROOT}/third_party/scons-2.0.1/engine"
 export PYMOX="${NACL_SDK_ROOT}/third_party/pymox"
 
 "${BASE_SCRIPT}" --file=build.scons \
-                 --site-dir="${SCRIPT_DIR_ABS}/nacl_sdk_scons" \
+                 --site-dir="${NACL_SDK_ROOT}/build_tools/nacl_sdk_scons" \
                  $*
 
