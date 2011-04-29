@@ -1,4 +1,8 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
+/*
+ * Copyright (c) 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
 
 /**
  * @fileoverview This file provides a BrowserChecker Javascript class.
@@ -20,24 +24,36 @@ var browser_version = browser_version || {}
 
 /**
  * Constructor for the BrowserChecker.  Sets the major version of
- * Chrome that is required to |requiredChromeVersion|.
- * @param requiredChromeVersion   The major version of chrome that
- *     is required.  If the Chrome browser version is less than
- *     |requiredChromeVersion| then |isValidBrowswer| will be set to false.
+ * Chrome that is required to |minChromeVersion|.
+ * @param minChromeVersion   The earliest major version of chrome that
+ *     is supported.  If the Chrome browser version is less than
+ *     |minChromeVersion| then |isValidBrowswer| will be set to false.
+ * @param maxChromeVersion   The latest major version of chrome that
+ *     is supported.  If the Chrome browser version is greater than
+ *     |maxChromeVersion| then |isValidBrowswer| will be set to false.
  * @param appVersion  The application version string.
  * @param plugins     The plugins that exist in the browser.
  * @constructor
  */
-browser_version.BrowserChecker = function(requiredChromeVersion, appVersion,
+browser_version.BrowserChecker = function(minChromeVersion,
+                                          maxChromeVersion, appVersion,
                                           plugins) {
 
   /**
    * Version specified by the user. This class looks to see if the browser
-   * version is >= |requiredChromeVersion_|.
+   * version is >= |minChromeVersion_|.
    * @type {integer}
    * @private
    */
-  this.requiredChromeVersion_ = requiredChromeVersion;
+  this.minChromeVersion_ = minChromeVersion;
+
+  /**
+   * Version specified by the user. This class looks to see if the browser
+   * version is <= |maxChromeVersion_|.
+   * @type {integer}
+   * @private
+   */
+  this.maxChromeVersion_ = maxChromeVersion;
 
   /**
    * List of Browser plugin objects.
@@ -52,7 +68,6 @@ browser_version.BrowserChecker = function(requiredChromeVersion, appVersion,
    * @private
    */
   this.appVersion_ = appVersion;
-
 
   /**
    * Flag used to indicate if the browser has Native Client and is if the
@@ -97,7 +112,8 @@ browser_version.BrowserChecker.StatusValues = {
   NON_CHROME_BROWSER: 2,
   CHROME_VERSION_TOO_OLD: 3,
   NACL_NOT_ENABLED: 4,
-  NOT_USING_SERVER: 5
+  NOT_USING_SERVER: 5,
+  CHROME_VERSION_TOO_NEW: 6,
 };
 
 /**
@@ -151,8 +167,8 @@ browser_version.BrowserChecker.prototype.getBrowserSupportMessage = function() {
 
 /**
  * Extracts the Chrome version from this.appVersion_ to set
- * this.chromeVersion and checks that this.chromeVersion is >=
- * this.requiredChromeVersion.
+ * |this.chromeVersion| and checks that |this.chromeVersion| is >=
+ * |this.minChromeVersion_|.
  * In addition, checks for the "NaCl" plugin as a member of
  * this.plugins_.
  */
@@ -170,7 +186,8 @@ browser_version.BrowserChecker.prototype.checkBrowser = function() {
   } else {
     this.chromeVersion_ = result[1];
     // We know we have Chrome, check version and/or plugin named NaCl
-    if (this.chromeVersion_ >= this.requiredChromeVersion_) {
+    if (this.chromeVersion_ >= this.minChromeVersion_ &&
+        this.chromeVersion_ <= this.maxChromeVersion_) {
       var found_nacl = this.pluginExists('NaCl', this.plugins_);
       if (found_nacl) {
         this.browserSupportMessage_ = 'Native Client enabled'
@@ -189,16 +206,24 @@ browser_version.BrowserChecker.prototype.checkBrowser = function() {
           // BUG: http://code.google.com/p/nativeclient/issues/detail?id=1386
           + '<a href="http://code.google.com/p/nativeclient-sdk/wiki/'
           + 'HowTo_RunModules#Step_2:_Launch_the_browser_with_--enable-nacl">'
-          + '  Run Native Client applications</a>.'
+          + '  Run Native Client applications</a>.';
         this.isValidBrowser_ = false;
         this.browserSupportStatus_ =
             browser_version.BrowserChecker.StatusValues.NACL_NOT_ENABLED;
       }
+    } else if (this.chromeVersion_ > this.maxChromeVersion_) {
+        this.browserSupportMessage_ = 'The most recent version of Google '
+          + 'Chrome that works with these Native Client examples is version '
+          + this.maxChromeVersion_ + '. Please use Chrome Version '
+          + this.maxChromeVersion_ + ' or check back soon.';
+        this.isValidBrowser_ = false;
+        this.browserSupportStatus_ =
+            browser_version.BrowserChecker.StatusValues.CHROME_VERSION_TOO_NEW;
     } else {
-      this.browserSupportMessage_ = 'Native Client cannot run'
-        + ' in Google Chrome version ' + this.chromeVersion_ + '.<br>'
-        + ' You need version ' + this.requiredChromeVersion_
-        + ' or greater.';
+      // we are in a version that is less than |minChromeVersion_|
+      this.browserSupportMessage_ = 'The minimum version of Google Chrome '
+        + ' that works with these Native Client examples is version '
+        + this.minChromeVersion_ + '.';
       this.isValidBrowser_ = false;
       this.browserSupportStatus_ =
           browser_version.BrowserChecker.StatusValues.CHROME_VERSION_TOO_OLD;
