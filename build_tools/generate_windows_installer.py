@@ -22,6 +22,7 @@ EXTRA_WINDOWS_INSTALLER_CONTENTS = [
     'examples/httpd.cmd',
     'examples/make.cmd',
     'examples/scons.bat',
+    'project_templates/scons.bat',
 ]
 
 def main(argv):
