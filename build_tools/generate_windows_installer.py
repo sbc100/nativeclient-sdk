@@ -20,9 +20,9 @@ IGNORE_PATTERN = ('.download*', '.svn*')
 # These are extra files that are exclusive to the Windows installer.
 EXTRA_WINDOWS_INSTALLER_CONTENTS = [
     'examples/httpd.cmd',
-    'examples/make.cmd',
     'examples/scons.bat',
     'project_templates/scons.bat',
+    'third_party/cygwin/',
 ]
 
 def main(argv):

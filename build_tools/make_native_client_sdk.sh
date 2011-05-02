@@ -1,32 +1,7 @@
 #!/bin/bash
-# Copyright 2010, Google Inc.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#
-#     * Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above
-# copyright notice, this list of conditions and the following disclaimer
-# in the documentation and/or other materials provided with the
-# distribution.
-#     * Neither the name of Google Inc. nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 declare NSIS=0 verbose=0
 
@@ -252,7 +227,7 @@ Section "" sec_PostInstall
   ;CreateDirectory "\$SMPROGRAMS\\Native Client SDK"
   ;CreateShortCut "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "run.py"
 
-  ; Find vcvars.bat and create make.cmd for native compilation
+  ; Find vcvars.bat for native compilation
   StrCpy \$R2 1
   \${EnableX64FSRedirection}
   ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VC" "ProductDir"
@@ -311,50 +286,10 @@ DirFound:
 WriteFiles:
   IntCmp \$PKV_make 0 Skip_all_libs
   IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs1
-  ; Please keep this list and list in create_make_cmds.sh synchronyzed
-  FileOpen \$R0 \$INSTDIR\\examples\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\examples\\hello_world\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\examples\\pi_generator\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\examples\\sine_synth\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  # TODO(NaCl SDK team): Put tumbler back in once it's been ported.
-  # FileOpen \$R0 \$INSTDIR\\examples\\tumbler\\make.cmd w
-  # FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  # FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\project_templates\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nPATH=<NACL_SDK_ROOT>/third_party/cygwin/bin;%PATH%\$\\r\$\\n\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
 Skip_debug_libs1:
   GoTo Make_file_written
 Skip_all_libs:
   IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs2
-  ; Please keep this list and list in create_make_cmds.sh synchronyzed
-  FileOpen \$R0 \$INSTDIR\\examples\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\examples\\hello_world\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\examples\\pi_generator\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\examples\\sine_synth\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
-  # TODO(NaCl SDK team): Put tumbler back in once it's been ported.
-  # FileOpen \$R0 \$INSTDIR\\examples\\tumbler\\make.cmd w
-  # FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"%~dp0..\\..\\third_party\\cygwin\\bin\\make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  # FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\project_templates\\make.cmd w
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\nsetlocal\$\\r\$\\n\$\\r\$\\nif not exist \$\"<NACL_SDK_ROOT>/third_party/cygwin/bin/make.exe\$\" goto TRY_PATH\$\\r\$\\necho Using Cygwin found in SDK\$\\r\$\\nPATH=%~dp0..\\..\\third_party\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n: Use --help to check if it's GNU make or not.  It's not full-proof check\$\\r\$\\n: but it's the best we can do in a .cmd file.\$\\r\$\\n:TRY_PATH\$\\r\$\\nmake.exe --help >NUL 2>&1\$\\r\$\\nif %ERRORLEVEL% EQU 0 (\$\\r\$\\necho Using Cygwin found in PATH\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n)\$\\r\$\\n\$\\r\$\\nif not exist \$\"%SYSTEMDRIVE%\\cygwin\\bin\\make.exe\$\" goto FAIL\$\\r\$\\necho Using Cygwin found in %SYSTEMDRIVE%\\cygwin\$\\r\$\\nPATH=%SYSTEMDRIVE%\\cygwin\\bin;%PATH%\$\\r\$\\ngoto CYGWIN_FOUND\$\\r\$\\n\$\\r\$\\n:FAIL\$\\r\$\\necho Cygwin with make is required for building and could not be found, install it first.\$\\r\$\\nexit /b 1\$\\r\$\\n\$\\r\$\\n:CYGWIN_FOUND\$\\r\$\\nmake.exe %*\$\\r\$\\n"
-  FileClose \$R0
 Skip_debug_libs2:
 Make_file_written:
   Pop \$R2
