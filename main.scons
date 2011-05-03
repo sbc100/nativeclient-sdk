@@ -36,6 +36,7 @@ Supported targets:
   * docs              Build all of the Doxygen documentation
   * installer         Build the SDK installer
   * bot               Runs everything that the build and try bots run
+  * examples          Build the examples.
 
 Supported flags:
   * DEVELOPMENT=1     Runs with development options for the installer build
@@ -128,8 +129,6 @@ base_env.Append(
         'documentation/build.scons',
         'build_tools/build.scons',
         'project_templates/test.scons',
-        # The examples dir only has tests
-        'examples/nacl_sdk_scons/test.scons',
     ],
 )
 
@@ -317,6 +316,60 @@ build_env = base_env.Clone(
     )
 
 environment_list.append(build_env)
+
+#-----------------------------------------------------------------------------
+# Add a builder for examples.  This adds an Alias() node named 'examples' that
+# is always built.  There is some special handling for the clean mode, since
+# SCons relies on actual build products for its clean processing and will not
+# run Alias() actions during clean unless they actually produce something.
+
+def ExamplesBuildCommand(env):
+  '''Return the build command used to build the examples.
+  Args:
+    env: The construction Environment that is building the examples.
+  Returns:
+    A string representing the platform-specific build command that will build
+        the examples.
+  '''
+  if env.get('IS_WINDOWS'):
+    return 'scons.bat'
+  else:
+    return './scons'
+
+
+def BuildExamples(env, target, source):
+  '''Build the examples.
+
+  This runs the build command in the 'examples' directory.
+
+  Args:
+    env: The construction Environment that is building the examples.
+    target: The target that triggered this build.  Not used.
+    source: The sources used for  this build.  Not used.
+  '''
+  subprocess.check_call(ExamplesBuildCommand(env),
+                        cwd='examples',
+                        shell=True)
+
+
+def CleanExamples(env):
+  '''Clean the examples.
+
+  This runs the clean command in the 'examples' directory.
+
+  Args:
+    env: The construction Environment that is building the examples.
+  '''
+  subprocess.check_call(ExamplesBuildCommand(env) + ' --clean',
+                        cwd='examples',
+                        shell=True)
+
+
+examples_builder = build_env.Alias('examples', [], BuildExamples)
+build_env.AlwaysBuild(examples_builder)
+# Handle the clean command.
+if GetOption('clean'):
+  CleanExamples(build_env)
 
 
 # -----------------------------------------------------------------------------
