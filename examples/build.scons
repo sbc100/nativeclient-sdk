@@ -8,6 +8,32 @@
 Build file for the NaCl SDK Examples
 
 This file runs all the scons files in the various example sub-directories.
+Do not invoke this script directly, but instead use the scons or scons.bat
+wrapper function.  E.g.
+
+Linux or Mac:
+  ./scons [Options...]
+
+Windows:
+  scons.bat [Options...]
+"""
+
+#------------------------------------------------------------------------------
+HELP_STRING = """
+===============================================================================
+Help for NaCl SDK Examples
+===============================================================================
+
+* cleaning:            ./scons -c
+* build a target:      ./scons <target>
+* clean a target:      ./scons -c <target>
+
+Supported targets:
+  * geturl             Build the geturl example.
+  * hello_world        Build the hello_world example.
+  * hello_world_c      Build the hello_world_c example.
+  * pi_generator       Build the pi_generator example.
+  * sine_synth         Build the sine_synth example.
 """
 
 example_sconscripts = ['geturl/build.scons',
@@ -16,5 +42,7 @@ example_sconscripts = ['geturl/build.scons',
                        'pi_generator/build.scons',
                        'sine_synth/build.scons',
                       ]
+
+Help(HELP_STRING)
 
 SConscript(example_sconscripts)
