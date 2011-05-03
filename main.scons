@@ -21,6 +21,7 @@ from __future__ import with_statement
 import os
 import subprocess
 import sys
+from build_tools import build_utils
 
 #------------------------------------------------------------------------------
 HELP_STRING = """
@@ -32,7 +33,6 @@ Help for NaCl SDK
 * build a target:      ./scons <target>
 
 Supported targets:
-  * examples          Build all of the examples
   * docs              Build all of the Doxygen documentation
   * installer         Build the SDK installer
   * bot               Runs everything that the build and try bots run
@@ -108,6 +108,7 @@ base_env = Environment(
     IS_WINDOWS = sys.platform in ['cygwin', 'win32'],
     IS_LINUX = sys.platform in ['linux', 'linux2'],
     IS_MAC = sys.platform in ['darwin', 'macos'],
+    JOB_COUNT = GetOption('num_jobs')
 )
 
 # It is possible to override these values on the command line by typing
@@ -216,7 +217,8 @@ def AddNodeAliases(env, node, suite_names, node_name):
 base_env.AddMethod(AddNodeAliases)
 
 
-def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False):
+def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
+                         params=[], buffered=True, banner=None):
   """Returns a new build command that will run a unit test with a given file.
 
   Args:
@@ -224,6 +226,10 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False):
     filename: The python file that contains the unit test
     dependencies: An optional list of other files that this unit test uses
     disabled: Setting this to True will prevent the test from running
+    params: Optional additional parameters for python command
+    buffered: True=stdout is buffered until entirely complete;
+              False=stdout is immediately displayed as it occurs.
+    banner: (optional) annotation banner for build/try bots
 
   Returns:
     A SCons command node
@@ -249,6 +255,10 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False):
       None for good status
       An error string for bad status
     """
+    if banner:
+      bot = build_utils.BotAnnotator()
+      bot.BuildStep(banner)
+
     if disabled:
       sys.stdout.write("Test %s is disabled.\n" % basename)
       sys.stdout.flush()
@@ -256,7 +266,7 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False):
 
     import subprocess
 
-    app = [str(env['PYTHON']), str(source[0].abspath)]
+    app = [str(env['PYTHON']), str(source[0].abspath)] + params
     app_env = os.environ.copy()
     # We have to do this because scons overrides PYTHONPATH and does
     # not preserve what is provided by the OS.
@@ -265,19 +275,28 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False):
     ret_val = 'Error: General Test Failure'  # Indicates failure, by default
     target_str = str(target[0])
     with open(target_str, 'w') as outfile:
-      outfile.write('\n-----Begin output for Test: %s\n' % basename)
-      outfile.flush()
-      if subprocess.call(app, env=app_env, stdout=outfile, stderr=outfile):
-        outfile.write('-----Error: unit test failed\n')
+      def Write(str):
+        if buffered:
+          outfile.write(str)
+          outfile.flush()
+        else:
+          sys.stdout.write(str)
+          sys.stdout.flush()
+      Write('\n-----Begin output for Test: %s\n' % basename)
+      if subprocess.call(app, env=app_env,
+                         stdout=outfile if buffered else None,
+                         stderr=outfile if buffered else None):
+        Write('-----Error: unit test failed\n')
         ret_val = 'Error: Test Failure in %s' % basename
       else:
         ret_val = None  # Indicates success
 
-      outfile.write('-----End output for Test: %s\n' % basename)
-    with open(target_str, 'r') as resultfile:
-      sys.stdout.write(resultfile.read())
+      Write('-----End output for Test: %s\n' % basename)
+    if buffered:
+      with open(target_str, 'r') as resultfile:
+        sys.stdout.write(resultfile.read())
+      sys.stdout.flush()
 
-    sys.stdout.flush()
     return ret_val
 
   cmd = env.Command(outfilename, filename, RunPythonUnitTest)
