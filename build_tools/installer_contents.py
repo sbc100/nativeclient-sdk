@@ -47,7 +47,6 @@ INSTALLER_CONTENTS = [
     'third_party/valgrind/README',
     'third_party/valgrind/bin/memcheck',
     'third_party/valgrind/bin/tsan',
-    'toolchain/',
 ]
 
 # These files are user-readable documentation files, and as such get some

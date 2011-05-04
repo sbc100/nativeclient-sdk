@@ -1,5 +1,5 @@
---- make_native_client_sdk.nsi	2011-05-02 16:44:21.814631700 -0600
-+++ make_native_client_sdk.nsi	2011-05-02 16:54:29.952439400 -0600
+--- make_native_client_sdk.nsi	2011-05-04 14:13:57.854179000 -0600
++++ make_native_client_sdk.nsi	2011-05-04 14:24:44.135109600 -0600
 @@ -250,14 +250,13 @@
    FileClose $R0
    Pop $R0
@@ -52,7 +52,7 @@
    CreateDirectory "$INSTDIR\build_tools"
    CreateDirectory "$INSTDIR\build_tools\nacl_sdk_scons"
    CreateDirectory "$INSTDIR\build_tools\nacl_sdk_scons\site_tools"
-@@ -26806,10 +26807,10 @@
+@@ -13637,10 +13638,10 @@
    File "/oname=%CYGWIN_DIR%usr\share\locale\zh_CN\LC_MESSAGES\gawk.mo" "packages.unpacked\gawk-3.1.8-1.tar.bz2\usr\share\locale\zh_CN\LC_MESSAGES\gawk.mo"
    File "/oname=%CYGWIN_DIR%usr\share\locale\ast\LC_MESSAGES\gawk.mo" "packages.unpacked\gawk-3.1.8-1.tar.bz2\usr\share\locale\ast\LC_MESSAGES\gawk.mo"
    File "/oname=%CYGWIN_DIR%etc\setup\gawk.lst.gz" "setup\gawk.lst.gz"
@@ -64,7 +64,7 @@
    Push $R0
    FileOpen $R0 $INSTDIR\etc\setup\installed.log a
    FileSeek $R0 0 END
-@@ -30387,6 +30388,7 @@
+@@ -17218,6 +17219,7 @@
    CreateDirectory "$INSTDIR\%CYGWIN_DIR%etc\postinstall"
    CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr"
    CreateDirectory "$INSTDIR\%CYGWIN_DIR%bin"
@@ -72,7 +72,7 @@
    CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\sbin"
    CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\sbin\gnupg"
    CreateDirectory "$INSTDIR\%CYGWIN_DIR%usr\share"
-@@ -32546,10 +32548,12 @@
+@@ -19377,10 +19379,12 @@
    File "/oname=%CYGWIN_DIR%usr\share\doc\python3\README" "packages.unpacked\python3-3.1.3-1.tar.bz2\usr\share\doc\python3\README"
    File "/oname=%CYGWIN_DIR%usr\share\man\man1\python3.1.1.gz" "packages.unpacked\python3-3.1.3-1.tar.bz2\usr\share\man\man1\python3.1.1.gz"
    File "/oname=%CYGWIN_DIR%etc\setup\python3.lst.gz" "setup\python3.lst.gz"
@@ -89,7 +89,7 @@
    Push $R0
    FileOpen $R0 $INSTDIR\etc\setup\installed.log a
    FileSeek $R0 0 END
-@@ -32809,9 +32813,9 @@
+@@ -19640,9 +19644,9 @@
    Pop $R0
  SectionEnd
  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN

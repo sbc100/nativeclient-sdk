@@ -24,6 +24,11 @@ EXCLUDE_DIRS = ['.download',
 
 INSTALLER_NAME = 'nacl-sdk.tgz'
 
+# These are extra files that are exclusive to the Mac and Linux installers.
+EXTRA_POSIX_INSTALLER_CONTENTS = [
+    'toolchain/',
+]
+
 # A list of all platforms that should use the Windows-based build strategy
 # (which makes a self-extracting zip instead of a tarball).
 WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
@@ -126,7 +131,8 @@ def main(argv):
   bot.Print('generate_installers is copying contents to install directory.')
   tar_src_dir = os.path.realpath(os.curdir)
   all_contents = installer_contents.INSTALLER_CONTENTS + \
-                 installer_contents.DOCUMENTATION_FILES
+                 installer_contents.DOCUMENTATION_FILES + \
+                 EXTRA_POSIX_INSTALLER_CONTENTS
   all_contents_string = string.join(
       installer_contents.GetFilesFromPathList(all_contents) +
       installer_contents.GetDirectoriesFromPathList(all_contents),
