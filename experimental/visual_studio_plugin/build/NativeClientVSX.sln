@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaClVsx.Tasks", "..\src\NaC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libelf", "..\third_party\libelf\libelf.vcproj", "{0109BC3D-693C-4423-A4EB-4F9A98F809C9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rsp_proxy", "..\src\rsp_proxy\rsp_proxy.vcproj", "{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -308,6 +310,20 @@ Global
 		{0109BC3D-693C-4423-A4EB-4F9A98F809C9}.Release|Win32.Build.0 = Release|Win32
 		{0109BC3D-693C-4423-A4EB-4F9A98F809C9}.Release|x64.ActiveCfg = Release|Win32
 		{0109BC3D-693C-4423-A4EB-4F9A98F809C9}.Release|x86.ActiveCfg = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|Win32.Build.0 = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|x64.ActiveCfg = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Debug|x86.ActiveCfg = Debug|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|Any CPU.ActiveCfg = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|Win32.ActiveCfg = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|Win32.Build.0 = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|x64.ActiveCfg = Release|Win32
+		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|x86.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
