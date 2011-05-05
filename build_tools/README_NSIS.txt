@@ -3,8 +3,11 @@ familiar with it.  If this is your first attempt, it's best to plan for this to
 take the whole day.
 
 Step 0: Make sure your toolchain dir is clean.
-  The easiest way to do this is to remove src\toolchain, src\third_party and do
-    a gclient sync.
+  The easiest way to do this is to remove these dirs and then do a gclient sync:
+    rmdir src\toolchain
+    rmdir src\third_party
+    scons -c examples
+    gclient sync
   Or: start with a fresh checkout from nothing.
 
 Step 1: Generate a base copy of make_native_client_sdk.nsi
