@@ -53,32 +53,50 @@ namespace Google.NaClVsx.ProjectSupport
       SetConfigurationProperty("NaClSDKRoot", "$(NACL_SDK_ROOT)");
     }
 
-    public override int DebugLaunch(uint grfLaunch)
-    {
+    public override int DebugLaunch(uint grfLaunch) {
       VsDebugTargetInfo info = new VsDebugTargetInfo();
       info.clsidCustom = new Guid(DebugSupport.Engine.kId);
       info.dlo = DEBUG_LAUNCH_OPERATION.DLO_CreateProcess;
 
       string host = this.ProjectMgr.GetProjectProperty("DebugHost");
       if (string.IsNullOrEmpty(host)
-          || !File.Exists(host))
-      {
-        throw new FileNotFoundException("The Debug Host property has not been specified. " +
-                            "Debugging cannot continue.\n\n" +
-                            "To specify a debug host, open the project properties and " +
-                            "select Debug from the list on the left of the window.");
+          || !File.Exists(host)) {
+        throw new FileNotFoundException(
+            "The Debug Host property has not been specified. " +
+            "Debugging cannot continue.\n\n" +
+            "To specify a debug host, open the project properties and " +
+            "select Debug from the list on the left of the window.");
       }
       info.bstrExe = host;
 
       string nexe =
           Path.Combine(
               Path.GetDirectoryName(this.ProjectMgr.BaseURI.Uri.LocalPath),
+
               GetConfigurationProperty("OutputFullPath", false));
       NexeList.Add(nexe);
 
-      info.bstrArg = string.Format("{0} {1}",
-        nexe,
-        GetConfigurationProperty("DebugArgs", false));
+      if (host.Contains("sel_ldr")) {
+        // sel_ldr needs a -g to enable debugger
+        info.bstrArg = string.Format(
+            "-g {0} {1}",
+            nexe,
+            GetConfigurationProperty("DebugArgs", false));
+      } else if (host.Contains("chrome.exe")) {
+        // chrome needs --enable-nacl-debug --no-sandbox to enable debugger
+        // FIXME:  Instead of the nexe, we will need to call chrome with
+        // an argument that is the web page:  i.e. localhost:5013
+        info.bstrArg = string.Format(
+            "--enable-nacl-debug --no-sandbox {0} {1}",
+            nexe,
+            GetConfigurationProperty("DebugArgs", false));
+      } else {
+        info.bstrArg = string.Format(
+            "{0} {1}",
+            nexe,
+            GetConfigurationProperty("DebugArgs", false));
+      }
+
 
       info.bstrCurDir = Path.GetDirectoryName(nexe);
 
@@ -86,6 +104,10 @@ namespace Google.NaClVsx.ProjectSupport
       info.grfLaunch = grfLaunch;
       info.clsidPortSupplier = typeof (NaClPortSupplier).GUID;
       info.bstrPortName = "127.0.0.1:4014";
+
+      // If we need to set env vars, this is a way to do it
+      // Environment.SetEnvironmentVariable("NACL_DEBUG_ENABLE","1");
+
       VsShellUtilities.LaunchDebugger(this.ProjectMgr.Site, info);
       return VSConstants.S_OK;
     }
