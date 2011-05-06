@@ -53,14 +53,25 @@ namespace Google.NaClVsx.ProjectSupport
       SetConfigurationProperty("NaClSDKRoot", "$(NACL_SDK_ROOT)");
     }
 
+    /// <summary>
+    /// DebugLaunch populates the VsDebugTargetInfo object, and then hands it
+    /// to VsShellUtilities to launch the debugger.
+    /// </summary>
+    /// <param name="grfLaunch">
+    /// An enumeration of launch parameters, interpreted as a
+    /// __VSDBGLAUNCHFLAGS Enumeration.
+    /// </param>
+    /// <returns>
+    /// VSConstants.S_OK if all goes well.  Otherwise VSConstants.E_UNEXPECTED
+    /// </returns>
     public override int DebugLaunch(uint grfLaunch) {
       VsDebugTargetInfo info = new VsDebugTargetInfo();
-      info.clsidCustom = new Guid(DebugSupport.Engine.kId);
+      info.clsidCustom = new Guid(Engine.kId);
       info.dlo = DEBUG_LAUNCH_OPERATION.DLO_CreateProcess;
 
-      string host = this.ProjectMgr.GetProjectProperty("DebugHost");
+      string host = ProjectMgr.GetProjectProperty("DebugHost");
       if (string.IsNullOrEmpty(host)
-          || !File.Exists(host)) {
+       || !File.Exists(host)) {
         throw new FileNotFoundException(
             "The Debug Host property has not been specified. " +
             "Debugging cannot continue.\n\n" +
@@ -69,18 +80,23 @@ namespace Google.NaClVsx.ProjectSupport
       }
       info.bstrExe = host;
 
+      if (null == ProjectMgr) {
+        return VSConstants.E_UNEXPECTED;
+      }
+
       string nexe =
           Path.Combine(
-              Path.GetDirectoryName(this.ProjectMgr.BaseURI.Uri.LocalPath),
-
+              Path.GetDirectoryName(ProjectMgr.BaseURI.Uri.LocalPath),
               GetConfigurationProperty("OutputFullPath", false));
+
+      string safeNexeString = string.Format("\"{0}\"", nexe);
       NexeList.Add(nexe);
 
       if (host.Contains("sel_ldr")) {
         // sel_ldr needs a -g to enable debugger
         info.bstrArg = string.Format(
             "-g {0} {1}",
-            nexe,
+            safeNexeString,
             GetConfigurationProperty("DebugArgs", false));
       } else if (host.Contains("chrome.exe")) {
         // chrome needs --enable-nacl-debug --no-sandbox to enable debugger
@@ -88,18 +104,16 @@ namespace Google.NaClVsx.ProjectSupport
         // an argument that is the web page:  i.e. localhost:5013
         info.bstrArg = string.Format(
             "--enable-nacl-debug --no-sandbox {0} {1}",
-            nexe,
+            safeNexeString,
             GetConfigurationProperty("DebugArgs", false));
       } else {
         info.bstrArg = string.Format(
             "{0} {1}",
-            nexe,
+            safeNexeString,
             GetConfigurationProperty("DebugArgs", false));
       }
 
-
       info.bstrCurDir = Path.GetDirectoryName(nexe);
-
       info.fSendStdoutToOutputWindow = 1;
       info.grfLaunch = grfLaunch;
       info.clsidPortSupplier = typeof (NaClPortSupplier).GUID;
