@@ -1,6 +1,6 @@
 # Note: NACL_REVISION is used by build_tools/generate_installers.py
-NACL_REVISION = "5107"
-TOOLCHAIN_REVISION = "4889"
+NACL_REVISION = "5201"
+TOOLCHAIN_REVISION = "5188"
 
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
