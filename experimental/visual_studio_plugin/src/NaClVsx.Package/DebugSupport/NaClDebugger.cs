@@ -292,27 +292,37 @@ namespace Google.NaClVsx.DebugSupport {
         throw new TimeoutException("GDB connection timed out");
       }
 
+      var regs = new RegsX86_64();
+      gdb_.GetRegisters(ref regs);
+      nexeBaseOffset_ = regs.R15;
+
       string full_nexe_path = NaClProjectConfig.GetLastNexe();
-      gdb_.GetPath(
+      // note -- LoadModuleWithPath uses |nexeBaseOffset_| which we set
+      // above by reading register |R15|
+      LoadModuleWithPath(full_nexe_path);
+      /**
+       * TODO(mmortensen): In the future we may want to
+       * query sel_ldr for the nexe name (and full path?) to
+       * make sure we are running the nexe we built...esp
+       * when we are launching through chrome and using a server
+       * to run our app.
+        gdb_.GetPath(
           (r, s, d) => {
             status = r;
             if (status == GdbProxy.ResultCode.DHR_OK && s!="") {
-              SetPath(s);
+              LoadModuleWithPath(s);
             }
             else if (s == "") {
               // Set the path based on project data, as obtained from
               // NaClProjectconfig.NexeList.
-              // TODO(mmortensen) -- in the future we will want to query
-              // sel_ldr for the nexe name (and maybe full path) to make sure
-              // we are running the one we built.
-              SetPath(full_nexe_path);
+              LoadModuleWithPath(full_nexe_path);
             }
             evt.Set();
           });
-      if (!evt.WaitOne(gdbTimeout_)) {
-        throw new TimeoutException("GDB connection timed out");
-      }
-
+        if (!evt.WaitOne(gdbTimeout_)) {
+          throw new TimeoutException("GDB connection timed out");
+        }
+      **/
       InvokeOpened(SimpleDebuggerTypes.ResultCode.Ok, path_);
 
       sendStopMessages_ = true;
@@ -354,6 +364,7 @@ namespace Google.NaClVsx.DebugSupport {
     private System.Threading.Thread gdbWorkerThread_;
     private string path_;
     private int gdbTimeout_ = 1000; // in ms
+    private ulong nexeBaseOffset_ = 0;
 //    private RegsX86_64 registers_ = new RegsX86_64();
 
     #endregion
@@ -438,15 +449,13 @@ namespace Google.NaClVsx.DebugSupport {
       }
     }
 
-    private void SetPath(string msg) {
-      // TODO(ilewis): get load offset from debuggee instead of
-      // hardcoding like this.
+    private void LoadModuleWithPath(string full_path_to_nexe) {
       string status;
-      path_ = msg;
-      Debug.WriteLine("SetPath {" + msg + "}");
-      symbols_.LoadModule(path_, 0x0000000c00000000, out status);
+      path_ = full_path_to_nexe;
+      Debug.WriteLine("LoadModuleWithPath {" + path_ + "}");
+      symbols_.LoadModule(path_, nexeBaseOffset_, out status);
       if (ModuleLoaded != null) {
-        ModuleLoaded(this, msg, status);
+        ModuleLoaded(this, path_, status);
       }
     }
 
