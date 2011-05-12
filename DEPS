@@ -32,34 +32,34 @@ deps = {
   "src/third_party/valgrind/bin": Var("native_client_trunk") +
     "/src/third_party/valgrind/bin" + "@" + Var("valgrind_version"),
   "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_dir/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/shared/gio":
     Var("native_client_trunk") + "/src/native_client/src/shared/gio@"
     + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_dir/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/shared/platform":
     Var("native_client_trunk") + "/src/native_client/src/shared/platform@"
     + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_dir/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/trusted/debug_stub":
     Var("native_client_trunk") + "/src/native_client/src/trusted/debug_stub@"
     + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_dir/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/trusted/service_runtime/include":
     Var("native_client_trunk")
     + "/src/native_client/src/trusted/service_runtime/include@"
     + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_dir/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/include":
     Var("native_client_trunk") + "/src/native_client/src/include@"
     + Var("native_client_version"),
   "src/third_party/ppapi": Var("chromium_trunk") + "/src/ppapi" +
     "@" + Var("chromium_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_sub/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/trusted/port":
     Var("native_client_trunk") + "/src/native_client/src/trusted/port@"
     + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/nacl_sub/native_client/"
+  "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/trusted/gdb_rsp":
     Var("native_client_trunk") + "/src/native_client/src/trusted/gdb_rsp@"
     + Var("native_client_version"),

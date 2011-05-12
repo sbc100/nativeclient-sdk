@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\third_party\nacl_dir;..\symbols;.."
+				AdditionalIncludeDirectories="..\..\third_party;..\symbols;.."
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;NACL_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
