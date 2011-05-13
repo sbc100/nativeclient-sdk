@@ -1,39 +1,13 @@
-# Copyright 2010, Google Inc.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#
-#     * Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above
-# copyright notice, this list of conditions and the following disclaimer
-# in the documentation and/or other materials provided with the
-# distribution.
-#     * Neither the name of Google Inc. nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#!/bin/bash
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
-
-# Information from setup.ini
-declare -A sdesc ldesc category required requires prefix version install source
+declare -A short_desc prefix install
 # Contents of categories
 declare -A category_contents
 # Packagenames: in request order and in install order
-declare -A allinstpackages instpackages reqpackages sectionin seed
+declare -A sectionin seed
 declare -a allinstalledpackages
 # Filetype info
 declare -A filetype
@@ -42,381 +16,57 @@ declare -A sanitized_name
 # Default installation type - filled in download_addon_packages if there are options
 declare definsttype=1
 
-parse_setup_ini() {
-  if ((verbose)) ; then echo "Parsing setup.ini..." >&2 ; fi
-  local package line acceptmode=0 sdescmode=0 ldescmode=0
-  while IFS= read -r line ; do
-    if [[ "${line:0:1}" = "@" ]] ; then
-      package="${line:2}"
-      acceptmode=1
-      sdescmode=0
-      ldescmode=0
-      if ((verbose)) ; then echo "Package: \"$package\"..." >&2 ; fi
-    elif [[ "$line" = "[prev]" ]] || [[ "$line" = "[test]" ]] ; then
-      acceptmode=0
-    elif ((acceptmode)) ; then
-      if ((sdescmode)) ; then
-        sdesc["$package"]="${sdesc[$package]} $line"
-        if [[ "$line" = *\"* ]] ; then
-          sdescmode=0
-        fi
-      elif ((ldescmode)) ; then
-        ldesc["$package"]="${ldesc[$package]} $line"
-        if [[ "$line" = *\"* ]] ; then
-          ldescmode=0
-        fi
-      elif [[ "${line:0:6}" = "sdesc:" ]] ; then
-        sdesc["$package"]="${line:7}"
-        if [[ "${line:7}" = *\"*\"* ]] ; then
-          sdescmode=0
-        else
-          sdescmode=1
-        fi
-        ldescmode=0
-      elif [[ "${line:0:6}" = "ldesc:" ]] ; then
-        ldesc["$package"]="${line:7}"
-        sdescmode=0
-        if [[ "${line:7}" = *\"*\"* ]] ; then
-          ldescmode=0
-        else
-          ldescmode=1
-        fi
-      elif [[ "${line:0:9}" = "category:" ]] ; then
-        category["$package"]="${line:10}"
-        for catname in ${category["$package"]} ; do
-          category_contents["$catname"]="${category_contents[$catname]} $package"
-        done
-        sdescmode=0
-        ldescmode=0
-      elif [[ "${line:0:9}" = "requires:" ]] ; then
-        requires["$package"]="${line:10}"
-        sdescmode=0
-        ldescmode=0
-      elif [[ "${line:0:8}" = "version:" ]] ; then
-        version["$package"]="${line:9}"
-        sdescmode=0
-        ldescmode=0
-      elif [[ "${line:0:8}" = "install:" ]] ; then
-        install["$package"]="${line:9}"
-        sdescmode=0
-        ldescmode=0
-      elif [[ "${line:0:7}" = "source:" ]] ; then
-        source["$package"]="${line:8}"
-        sdescmode=0
-        ldescmode=0
-      elif [[ "$line" != "" ]] &&
-           [[ "$line" != "#"* ]] ; then
-        echo "Unknown tag in \"$line\"" >&2
-        exit 1
-      fi
-    fi
-  done < setup.ini
+sanitize_var_name() {
+  local varname="$1"
+  varname="${varname//-/_}"
+  varname="${varname//./_}"
+  varname="${varname//+/X}"
+  echo -n "$varname"
 }
 
-fix_setup_inf_info() {
-  sdesc["python3"]="\"Py3K language interpreter\""
-  ldesc["python3"]="\"Python is an interpreted, interactive object-oriented programming language suitable (amongst other uses) for distributed application development, scripting, numeric computing and system testing.  Python is often compared to Tcl, Perl, Java, JavaScript, Visual Basic or Scheme.\""
-  category["python3"]="Python Interpreters"
-  category_contents["Python"]="${category_contents[Python]} python3"
-  category_contents["Interpreters"]="${category_contents[Interpreters]} python3"
-  requires["python3"]="crypt libbz2_1 libexpat1 libffi4 libgcc1 libgdbm4 libintl8 libncursesw10 libreadline7 libsqlite3_0 libopenssl098 zlib0"
-  version["python3"]="3.1.3-1"
-  install["python3"]="release-2/Python/python3/python3-3.1.3-1.tar.bz2 4975090 8debdd0eadfb8672bebcd56ffcec613c"
-  source["python3"]="release-2/Python/python3/python3-3.1.3-1-src.tar.bz2 13708191 5cf02a3eac26ddddad797c0d62e574d4"
-  sdesc["java-ecj"]="\"Eclipse Compiler for Java (library)\""
-  ldesc["java-ecj"]="\"Eclipse Compiler for Java\""
-  category["java-ecj"]="Devel Java"
-  category_contents["Devel"]="${category_contents[Devel]} java-ecj"
-  category_contents["Java"]="${category_contents[Java]} java-ecj"
-  version["java-ecj"]="3.5.2-1"
-  install["java-ecj"]="release-2/Java/ecj/java-ecj/java-ecj-3.5.2-1.tar.bz2 1667730 a1bfd9636a07197f4d2da9b90fa847c4"
-  source["java-ecj"]="release-2/Java/ecj/ecj-3.5.2-1-src.tar.bz2 1250373 30e95a55444836c884b8ca419bf7675a"
-  version["gcc4"]="4.5.2-2"
-  install["gcc4"]="release-2/gcc4/gcc4-4.5.2-2.tar.bz2 14 4059d198768f9f8dc9372dc1c54bc3c3"
-  source["gcc4"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["gcc4-ada"]="4.5.2-2"
-  requires["gcc4-ada"]="binutils w32api libgcc1 libgmp3 libintl8 libmpfr1 gcc4-core libgnat4.5 libcloog0 libmpc1 libppl"
-  install["gcc4-ada"]="release-2/gcc4/gcc4-ada/gcc4-ada-4.5.2-2.tar.bz2 14801659 9e35be7a1df1e6fbdec3d8b8dd2bb683"
-  source["gcc4-ada"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["gcc4-core"]="4.5.2-2"
-  requires["gcc4-core"]="binutils w32api libgcc1 libgomp1 libssp0 libffi4 libgmp3 libintl8 libmpfr1 libcloog0 libmpc1 libppl"
-  install["gcc4-core"]="release-2/gcc4/gcc4-core/gcc4-core-4.5.2-2.tar.bz2 10749366 d2d54395d79d3dc708f32b13ede04745"
-  source["gcc4-core"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["gcc4-fortran"]="4.5.2-2"
-  requires["gcc4-fortran"]="binutils w32api libgcc1 libgfortran3 libgmp3 libintl8 libmpfr1 gcc4-core libcloog0 libmpc1 libppl"
-  install["gcc4-fortran"]="release-2/gcc4/gcc4-fortran/gcc4-fortran-4.5.2-2.tar.bz2 4694636 3bf9e1054006751e249bc3637147a364"
-  source["gcc4-fortran"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["gcc4-g++"]="4.5.2-2"
-  requires["gcc4-g++"]="binutils libgcc1 w32api libstdc++6 libstdc++6-devel libgmp3 libintl8 libmpfr1 gcc4-core libcloog0 libmpc1 libppl"
-  install["gcc4-g++"]="release-2/gcc4/gcc4-g++/gcc4-g++-4.5.2-2.tar.bz2 4605327 48a68247e9f0b94415ef2f9cf2ae16d5"
-  source["gcc4-g++"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["gcc4-java"]="4.5.2-2"
-  requires["gcc4-java"]="binutils w32api java-ecj libgmp3 libmpfr1 gcc4-g++ gcc4-core libgcc1 libgcj11 libgcj-common libffi4 libcloog0 libintl8 libmpc1 libppl"
-  install["gcc4-java"]="release-2/gcc4/gcc4-java/gcc4-java-4.5.2-2.tar.bz2 55171538 5bfbdf64dc33383f6558d4a3a135482d"
-  source["gcc4-java"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["gcc4-objc"]="4.5.2-2"
-  requires["gcc4-objc"]="binutils w32api libgcc1 libgmp3 libintl8 libmpfr1 gcc4-core gcc4-g++ libobjc2 libcloog0 libmpc1 libppl"
-  install["gcc4-objc"]="release-2/gcc4/gcc4-objc/gcc4-objc-4.5.2-2.tar.bz2 7055504 73743b39f95e8b3c17e3437c5458570b"
-  source["gcc4-objc"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libffi4"]="4.5.2-2"
-  requires["libffi4"]="libgcc1"
-  install["libffi4"]="release-2/gcc4/libffi4/libffi4-4.5.2-2.tar.bz2 12011 8eaf537ca7d53df80e6788355e3f1ee8"
-  source["libffi4"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libgcc1"]="4.5.2-2"
-  install["libgcc1"]="release-2/gcc4/libgcc1/libgcc1-4.5.2-2.tar.bz2 39510 910da6c542c3c2ad5fe30739249157cc"
-  source["libgcc1"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libgcj-common"]="4.5.2-2"
-  requires["libgcj-common"]="bash"
-  install["libgcj-common"]="release-2/gcc4/libgcj-common/libgcj-common-4.5.2-2.tar.bz2 2120 ce12c78b3594adb5c28e9caa425fcc0a"
-  source["libgcj-common"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libgcj11"]="4.5.2-2"
-  requires["libgcj11"]="libiconv2 libgcj-common libgcc1"
-  install["libgcj11"]="release-2/gcc4/libgcj11/libgcj11-4.5.2-2.tar.bz2 9720695 835e2dd06238f02ef68aa8abda23b34b"
-  source["libgcj11"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libgfortran3"]="4.5.2-2"
-  requires["libgfortran3"]="libgcc1"
-  install["libgfortran3"]="release-2/gcc4/libgfortran3/libgfortran3-4.5.2-2.tar.bz2 202184 0ab516014a4ec94ea0de37d575947213"
-  source["libgfortran3"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libgnat4.5"]="4.5.2-2"
-  requires["libgnat4.5"]="libgcc1"
-  install["libgnat4.5"]="release-2/gcc4/libgnat4.5/libgnat4.5-4.5.2-2.tar.bz2 866495 58ff56829bbd2963f6a82ff0506c23dd"
-  source["libgnat4.5"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libgomp1"]="4.5.2-2"
-  requires["libgomp1"]="libgcc1"
-  install["libgomp1"]="release-2/gcc4/libgomp1/libgomp1-4.5.2-2.tar.bz2 19479 70c1564321405bc24b998c7ff03320d9"
-  source["libgomp1"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libobjc2"]="4.5.2-2"
-  requires["libobjc2"]="libgcc1"
-  install["libobjc2"]="release-2/gcc4/libobjc2/libobjc2-4.5.2-2.tar.bz2 37645 ecee1a9ffd111d4f09efa71420cfd6f1"
-  source["libobjc2"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libssp0"]="4.5.2-2"
-  requires["libssp0"]="libgcc1"
-  install["libssp0"]="release-2/gcc4/libssp0/libssp0-4.5.2-2.tar.bz2 3798 4b65c6fae1af2f937bbc67fa89a1564b"
-  source["libssp0"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libstdc++6"]="4.5.2-2"
-  requires["libstdc++6"]="libgcc1"
-  install["libstdc++6"]="release-2/gcc4/libstdc++6/libstdc++6-4.5.2-2.tar.bz2 245574 379df93995c956b3a0b3857ade01c2eb"
-  source["libstdc++6"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  version["libstdc++6-devel"]="4.5.2-2"
-  install["libstdc++6-devel"]="release-2/gcc4/libstdc++6-devel/libstdc++6-devel-4.5.2-2.tar.bz2 2677382 e13424866c60017939653d4d24cfd59d"
-  source["libstdc++6-devel"]="release-2/gcc4/gcc4-4.5.2-2-src.tar.bz2 66582801 18f9ca9eb0d39b2e7f81a6fa3151d1ad"
-  requires["coreutils"]="${requires[coreutils]} dash grep patch sed"
-  requires["cygwin"]="base-files ${requires[cygwin]} editrights ipc-utils run"
-  requires["dash"]="${requires[dash]} cygwin"
-  requires["libcloog-devel"]="${requires[libcloog-devel]} ppl-devel"
-  requires["zlib-devel"]="${requires[libcloog-devel]} zlib"
-}
-
-download_package_dependences() {
-  # $1 = name of the package; function is recursive
-  # $2 - Section No
-  local instname="${install[$1]/.tar.bz2*/.tar.bz2}"
-  local srcname="${source[$1]/.tar.bz2*/.tar.bz2}"
-  if [[ "$instname" != "" ]] ; then
-    if ((verbose)) ; then ( echo ; echo -n "Package: \"$1\"..." ) >&2 ; fi
-    if [ ! -e packages/"`basename \"$instname\"`" ] ; then
-      if wget http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/cygwin_mirror/packages/"`basename \"$instname\"`" -O packages/"`basename \"$instname\"`" ||
-         wget "$mirror_prefix/$instname" -O packages/"`basename \"$instname\"`" ; then
-        if ! [[ "${install[$1]}" = "${install[$1]/.tar.bz2*/.tar.bz2} `
-                stat -c "%s" packages/\"\`basename \\\"$instname\\\"\`\"` `
-                md5sum -b packages/\"\`basename \\\"$instname\\\"\`\" | cut -b -32`" ]] ; then
-          echo "Wrong file downloaded: expected ${install[$1]}" >&2
-          exit 1
-        fi
-      else
-        # Wget should have complained for us
-        exit $?
-      fi
-    fi
-    if [ ! -e packages.unpacked/"`basename \"$instname\"`" ] ; then
-      mkdir -p packages.unpacked/"`basename \"$instname\"`"
-      if ! tar xSvpf {packages,-Cpackages.unpacked}/"`basename \"$instname\"`" ; then
-        # Tar should have complained for us
-        exit $?
-      fi
-      if [[ "$1" = "base-files" ]] ; then
-        if ! patch -p0 --no-backup-if-mismatch <<END
---- packages.unpacked/`basename "$instname"`/etc/postinstall/base-files-mketc.sh
-+++ packages.unpacked/`basename "$instname"`/etc/postinstall/base-files-mketc.sh
-@@ -14,9 +14,14 @@
- WINETC="\${WINSYS32HOME}\\\\drivers\\\\etc"
- 
- if [ ! -d "\${WINETC}" ]; then
--  echo "Directory \${WINETC} does not exist; exiting" >&2
--  echo "If directory name is garbage you need to update your cygwin package" >&2
--  exit 1
-+  # Vista64 is crazy: symlink is usable, but "-f" to the original is false!
-+  if ln -s "\`/bin/cygpath -w -W\`\\\\sysnative\\\\drivers\\\\etc\\\\lmhosts.sam" /etc/lmhosts.sam && [ -f /etc/lmhosts.sam ] && rm /etc/lmhosts.sam ; then
-+    WINETC="\`/bin/cygpath -w -W\`\\\\sysnative\\\\drivers\\\\etc"
-+  else
-+    echo "Directory \${WINETC} does not exist; exiting" >&2
-+    echo "If directory name is garbage you need to update your cygwin package" >&2
-+    exit 1
-+  fi
- fi
- 
- for mketc in \$FILES
-END
-        then
-          # Patch should have complained for us
-          exit $?
-        fi
-      elif [[ "$1" = "WindowMaker" ]] ; then
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/WindowMaker/Icons/{,tmp}defaultAppIcon.tiff
-        rm packages.unpacked/"`basename \"$instname\"`"/usr/share/WindowMaker/Icons/DefaultAppIcon.tiff 2> /dev/null
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/WindowMaker/Icons/{tmp,}defaultAppIcon.tiff
-      elif [[ "$1" = "lilypond-doc" ]] ; then
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/doc/lilypond/html/Documentation/user/lilypond-learning/{,tmp}Lilypond_002dbook-templates.de.html
-        rm packages.unpacked/"`basename \"$instname\"`"/usr/share/doc/lilypond/html/Documentation/user/lilypond-learning/lilypond_002dbook-templates.de.html
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/doc/lilypond/html/Documentation/user/lilypond-learning/{tmp,}Lilypond_002dbook-templates.de.html
-      elif [[ "$1" = "ruby" ]] ; then
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/ri/1.8/system/Exception2MessageMapper/{,tmp}Fail-i.yaml
-        rm packages.unpacked/"`basename \"$instname\"`"/usr/share/ri/1.8/system/Exception2MessageMapper/fail-i.yaml
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/ri/1.8/system/Exception2MessageMapper/{tmp,}Fail-i.yaml
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/ri/1.8/system/REXML/Parsers/XPathParser/{,tmp}Predicate-i.yaml
-        rm packages.unpacked/"`basename \"$instname\"`"/usr/share/ri/1.8/system/REXML/Parsers/XPathParser/predicate-i.yaml
-        mv packages.unpacked/"`basename \"$instname\"`"/usr/share/ri/1.8/system/REXML/Parsers/XPathParser/{tmp,}tmpPredicate-i.yaml
-      fi
-      for file in packages.unpacked/"`basename \"$instname\"`"/etc/{postinstall,preremove}/*.sh ; do
-        if [ -e "$file" ] ; then
-          mv "$file" "$file".tmp
-          while IFS= read -r line ; do
-            if [[ "$line" != "while read f; do" ]] ; then
-              printf "%s\n" "$line"
-            else
-              echo "while read f; do if [ \"x\$f\" = \"x\" ] ; then break ; fi"
-            fi
-          done < "$file".tmp > "$file"
-          touch -r "$file".tmp "$file"
-          rm "$file".tmp
-        fi
-      done
-    fi
-    if [ ! -e setup/"$1".lst.gz ] ; then
-      if ! rm -f setup/"$1".lst ; then
-        # Rm should have complained for us
-        exit $?
-      fi
-      if ! tar tf {packages,-Cpackages.unpacked}/"`basename \"$instname\"`" > setup/"$1".lst ; then
-        # Tar should have complained for us
-        exit $?
-      fi
-      if ! gzip -9 setup/"$1".lst ; then
-        # Gzip should have complained for us
-        exit $?
-      fi
-    fi
-  fi
-  if [[ "$srcname" != "" ]] ; then
-    if [ ! -e packages.src/"`basename \"$srcname\"`" ] ; then
-      if wget http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/cygwin_mirror/packages.src/"`basename \"$srcname\"`" -O packages.src/"`basename \"$srcname\"`" ||
-         wget "$mirror_prefix/$srcname" -O packages.src/"`basename \"$srcname\"`" ; then
-        if ! [[ "${source[$1]}" = "${source[$1]/.tar.bz2*/.tar.bz2} `
-                stat -c "%s" packages.src/\"\`basename \\\"$srcname\\\"\`\"` `
-                md5sum -b packages.src/\"\`basename \\\"$srcname\\\"\`\" | cut -b -32`" ]] ; then
-          echo "Wrong file downloaded: expected ${install[$1]}" >&2
-          exit 1
-        fi
-      else
-        # Wget should have complained for us
-        exit $?
-      fi
-    fi
-  fi
+declare_nsis_variables() {
+  local outlist
   local pkgname
-  reqpackages["$1"]="present"
-  sectionin["$1"]="${sectionin[$1]} $2"
-  for pkgname in ${requires["$1"]} ; do
-    if [[ "${reqpackages[$pkgname]}" = "present" ]] ; then
-      if ((verbose)) ; then echo -n "." >&2 ; fi
-    else
-      download_package_dependences "$pkgname" "$2"
-    fi
+  if ((verbose)) ; then echo "Declare NSIS variables..." >&2 ; fi
+  for pkgname in "${allinstalledpackages[@]}" ; do
+    sanitized_name["$pkgname"]="`sanitize_var_name \"$pkgname\"`"
+    outlist="$outlist
+Var PKV_${sanitized_name[$pkgname]}"
   done
-  if [[ "${allinstpackages[$1]}" != "present" ]] ; then
-    allinstpackages["$1"]="present"
-    allinstalledpackages=(${allinstalledpackages[@]} "$1")
-  fi
-}
-
-download_package() {
-  # $1 - Category name
-  # $2 - Section No
-  if ((verbose)) ; then echo -n "Downloading packages in \"$1\"..." >&2 ; fi
-  local pkgname
-  reqpackages=()
-  for pkgname in ${category_contents["$1"]} ; do
-    if [[ "${reqpackages[$pkgname]}" != "present" ]] ; then
-      download_package_dependences "$pkgname" "$2"
-    fi
-    seed["$pkgname"]="${seed[$pkgname]} $2"
-  done
-  if ((verbose)) ; then echo >&2 ; fi
-}
-
-download_all_packages() {
-  # $1 - Section No
+  echo "$outlist" | sort
   local secname
   for secname in "${!category_contents[@]}" ; do
-    if [ "$secname" != "_obsolete" ] ; then
-      download_package "$secname" "$1"
-    fi
-  done
+    echo "$secname"
+  done | sort |
+  while read -r secname ; do
+    local pkgname
+    for pkgname in ${category_contents["$secname"]} ; do
+      echo "$pkgname"
+    done | sort |
+    while read -r pkgname ; do
+      echo "Var sv_${secname}_${sanitized_name[$pkgname]}"
+    done
+  done |
+  sort
 }
 
-download_addon_packages() {
-  # $1 - Start SectionN
-  local insttype pkgname sectionN="$1"
-  if ((verbose)) ; then echo -n "Downloading addon packages..." >&2 ; fi
-  if [[ "$defpackage" = "Full" ]] ; then
-    definsttype="$((sectionN-1))"
-  fi
-  local IFS=$'\n'
-  for insttype in `
-    for insttype in "${!packages[@]}" ; do
-      echo $insttype
-    done | sort
-  ` ; do
-    if [[ "$defpackage" = "$insttype" ]] ; then
-      definsttype="$sectionN"
+# $1 is the package name.  Unpacks using tar into the packages.unpacked
+# directory.  Once the package is unpacked, this fills in the file type array
+# for use later when generating the section lists.
+unpack_all_packages() {
+  for secname in "${allinstalledpackages[@]}" ; do
+    local instname=${install["$secname"]}
+    local install_dir=packages.unpacked/`basename $instname`
+    if ((verbose)) ; then
+      echo "Unpacking "$instname" to "$install_dir"..." >&2
     fi
-    reqpackages=()
-    IFS=$' \t\n'
-    for pkgname in ${packages["$insttype"]} ; do
-      if [[ "${reqpackages[$pkgname]}" != "present" ]] ; then
-        download_package_dependences "$pkgname" "$sectionN"
-      fi
-      seed["$pkgname"]="${seed[$pkgname]} $sectionN"
-    done
-    ((sectionN++))
-  done
-  if [[ "$defpackage" = "Minimal" ]] ; then
-    definsttype="$sectionN"
-  fi
-  if ((verbose)) ; then echo >&2 ; fi
-}
-
-fill_required_packages() {
-  if ((verbose)) ; then echo "Calculating dependences..." >&2 ; fi
-  local pkgname subpkgname subsubpkgname check=1
-  while ((check)) ; do
-    check=0
-    for pkgname in "${allinstalledpackages[@]}" ; do
-      if ((verbose)) ; then echo "Package: \"$pkgname\"..." >&2 ; fi
-      for subpkgname in ${requires["$pkgname"]} ; do
-        for subsubpkgname in ${requires["$subpkgname"]} ; do
-          if ! [[ " ${requires[$pkgname]} " = *" $subsubpkgname "* ]] ; then
-            requires["$pkgname"]="${requires[$pkgname]} $subsubpkgname"
-            check=1
-          fi
-        done
-      done
-    done
-  done
-  for pkgname in "${allinstalledpackages[@]}" ; do
-    for subpkgname in ${requires["$pkgname"]} ; do
-      required["$subpkgname"]="${required[$subpkgname]} $pkgname"
-    done
+    if [ ! -e $install_dir ] ; then
+      mkdir -p $install_dir
+    fi
+    if ! tar xSvpf packages/$instname -C$install_dir ; then
+      # Tar should have complained for us
+      exit $?
+    fi
   done
 }
 
@@ -424,13 +74,10 @@ fill_filetype_info() {
   local IFS="
 "
   # Corner cases: files created by post-install scripts, mistakes, etc
-  filetype=([Cygwin.ico]="file"
-            [bin]="directory"
+  filetype=([bin]="directory"
             [usr/bin]="directory"
             [lib]="directory"
             [usr/lib]="directory"
-            [bin/exim.exe]="file"
-            [bin/latex.exe]="file"
             [lib/icu/current/Makefile.inc]="file"
             [lib/rpm/rpmv.exe]="file"
             [usr/sbin/sendmail]="file"
@@ -444,7 +91,9 @@ fill_filetype_info() {
   for name in `
     for package in packages.unpacked/* ; do (
       cd $package
-      if ((verbose)) ; then echo "Archive: \"${package#*/}\"..." >&2 ; fi
+      if ((verbose)) ; then
+        echo "Find files in archive: \"${package#*/}\"..." >&2
+      fi
       find -type f
     ) done
   ` ; do
@@ -459,7 +108,9 @@ fill_filetype_info() {
   for name in `
     for package in packages.unpacked/* ; do (
       cd $package
-      if ((verbose)) ; then echo "Archive: \"${package#*/}\"..." >&2 ; fi
+      if ((verbose)) ; then
+        echo "Find directories in archive: \"${package#*/}\"..." >&2
+      fi
       find -type d
     ) done
   ` ; do
@@ -483,58 +134,6 @@ fill_filetype_info() {
       filetype["${name:2}"]="directory"
     fi
   done
-}
-
-sanitize_var_name() {
-  local varname="$1"
-  varname="${varname//-/_}"
-  varname="${varname//./_}"
-  varname="${varname//+/X}"
-  echo -n "$varname"
-}
-
-declare_nsis_variables() {
-  local outlist
-  local pkgname
-  if ((verbose)) ; then echo "Declare NSIS variables..." >&2 ; fi
-  if [[ "$defpackage" != "NONE" ]] ; then
-    echo "InstType \"Full\""
-    for pkgname in "${!packages[@]}" ; do
-      echo "InstType \"$pkgname\""
-    done | sort
-    cat <<END
-InstType "Minimal"
-
-Var SVV_CmdLineParameters
-Var SVV_InstType
-Var SVV_SelChangeInProgress
-
-!include "FileFunc.nsh"
-
-END
-  fi
-  for pkgname in "${allinstalledpackages[@]}" ; do
-    sanitized_name["$pkgname"]="`sanitize_var_name \"$pkgname\"`"
-    outlist="$outlist
-Var PKV_${sanitized_name[$pkgname]}"
-  done
-  echo "$outlist" | sort
-  local secname
-  for secname in "${!category_contents[@]}" ; do
-    echo "$secname"
-  done | sort |
-  while read -r secname ; do
-    local pkgname
-    for pkgname in ${category_contents["$secname"]} ; do
-      echo "$pkgname"
-    done | sort |
-    while read -r pkgname ; do
-      if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-        echo "Var sv_${secname}_${sanitized_name[$pkgname]}"
-      fi
-    done
-  done |
-  sort
 }
 
 generate_unpack_tarball_text() {
@@ -581,9 +180,6 @@ generate_unpack_tarball_text() {
     if [[ "$1" = "libgcj-common" ]] ; then
       echo "  CreateDirectory \"\$INSTDIR\\${prefix[$1]}lib\\security\""
     fi
-    if [[ "$1" == "cygwin" ]] ; then
-      echo "  File \"/oname=${prefix[cygwin]}Cygwin.ico\" \"setup\\Cygwin.ico\""
-    fi
     echo "$pkgcontent" | grep "^-" |
     while read -r attrs uidgid size date time filename ; do
       if [[ "$filename" != "usr/share/WindowMaker/Icons/DefaultAppIcon.tiff" ]] &&
@@ -605,7 +201,6 @@ generate_unpack_tarball_text() {
         echo "  File \"/oname=${prefix[$1]}$fname\" \"packages.unpacked\\$pkgname\\$filename\""
       fi
     done
-    echo "  File \"/oname=${prefix[coreutils]}etc\\setup\\$1.lst.gz\" \"setup\\$1.lst.gz\""
     echo "$pkgcontent" | grep "^h" |
     while read -r attrs uidgid size date time filename ; do
       local linkname="${filename/ link to */}"
@@ -630,33 +225,7 @@ generate_unpack_tarball_text() {
     while read -r attrs uidgid size date time filename ; do
       local linkname="${filename/ -> */}"
       local linktargetname="${filename/* -> /}"
-      if [[ "$linktargetname" = "/tmp/install/INSTALL/usr/share/doc/lynx/COPYHEADER" ]] ; then
-        linktargetname="/usr/share/doc/lynx/COPYHEADER"
-      elif [[ "$linktargetname" = "/tmp/install/INSTALL/usr/share/doc/lynx/COPYING" ]] ; then
-        linktargetname="/usr/share/doc/lynx/COPYING"
-      elif [[ "$linktargetname" = "../Cygwin/stunnel-4.29.README" ]] ; then
-        linktargetname="../Cygwin/stunnel.README"
-      elif [[ "$linktargetname" = "../../CHANGELOG" ]] &&
-           [[ "$linkname" = "usr/X11R6/share/tcm-2.20/help/CHANGELOG" ]] ; then
-        linktargetname="../../doc/tcm-2.20/CHANGELOG"
-      elif [[ "$linktargetname" = "../../COPYING" ]] &&
-           [[ "$linkname" = "usr/X11R6/share/tcm-2.20/help/COPYING" ]] ; then
-        linktargetname="../../doc/tcm-2.20/COPYING"
-      elif [[ "$linktargetname" = "mf-nowin.1" ]] &&
-           [[ "$linkname" = "usr/share/man/mf.1" ]] ; then
-        linkname="usr/share/man/man1/mf.1"
-        linktargetname="../../../X11R6/share/man/man1/mf.1"
-      elif [[ "$linktargetname" = "../N/NCR260VT300WPP0" ]] ; then
-         linktargetname="../N/NCR260VT300WPP0"
-      elif [[ "$linkname" = "usr/share/terminfo/e/Eterm-color" ]] ; then
-        linkname="usr/share/terminfo/E/Eterm-color"
-      elif [[ "$linktargetname" = "../../include/qt3" ]] &&
-           [[ "$linkname" = "usr/lib/qt3/include" ]] ; then
-        linktargetname= "../../usr/include/qt4"
-      elif [[ "$linktargetname" = "../../include/qt4" ]] &&
-           [[ "$linkname" = "usr/lib/qt4/include" ]] ; then
-        linktargetname= "../../usr/include/qt4"
-      elif [[ "${linktargetname:0:2}" = "./" ]] ; then
+      if [[ "${linktargetname:0:2}" = "./" ]] ; then
         linktargetname="${linktargetname:2}"
       elif [[ "${linkname:0:8}" = "usr/bin/" ]] ; then
         linkname="bin/${linkname:8}"
@@ -726,31 +295,6 @@ generate_unpack_tarball_text() {
         exit 1
       fi
     done
-    echo "$pkgcontent" |
-    grep "^-.............................................. etc/postinstall/.*\\.sh" |
-    while read -r attrs uidgid size date time filename ; do
-      cat <<END
-  FileOpen \$R0 \$INSTDIR\\postinstall.sh a
-  FileSeek \$R0 0 END
-  FileWrite \$R0 "/$filename\$\n"
-  FileClose \$R0
-END
-      # If we have a postinstall script we need coreutils to execute it!
-      if ! [[ " ${requires[$pkgname]} " = *" coreutils "* ]] ; then
-        requires["$pkgname"]="${requires[$pkgname]} coreutils"
-      fi
-      if ! [[ " ${required[coreutils]} " = *" $pkgname "* ]] ; then
-        required["coreutils"]="${requires[coreutils]} $pkgname"
-      fi
-    done
-    cat <<END
-  Push \$R0
-  FileOpen \$R0 \$INSTDIR\\etc\\setup\\installed.log a
-  FileSeek \$R0 0 END
-  FileWrite \$R0 "$1 $pkgname 0\$\n"
-  FileClose \$R0
-  Pop \$R0
-END
   fi
 }
 
@@ -767,27 +311,25 @@ generate_section_list() {
     done | sort |
     { local groupprint=1
       while read -r pkgname ; do
-        if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-          if ((groupprint)) ; then
-            if [[ "$secname" != "_PostInstallLast" ]] &&
-               [[ "$secname" != "_obsolete" ]] ; then
-              echo "SectionGroup \"$secname\" sec_$secname"
-              groupprint=0
-            fi
+        if ((groupprint)) ; then
+          if [[ "$secname" != "_PostInstallLast" ]] &&
+             [[ "$secname" != "_obsolete" ]] ; then
+            echo "SectionGroup \"$secname\" sec_$secname"
+            groupprint=0
           fi
-          local insttar="${install[$pkgname]/.tar.bz2*/}"
-          if [[ "$secname" = "_PostInstallLast" ]] ||
-             [[ "$secname" = "_obsolete" ]] ; then
-            echo -n "Section \"-${insttar/*\//}\" "
-          elif [[ " ${seed[$pkgname]} " == *" $definsttype "* ]] ; then
-            echo -n "Section \"!${insttar/*\//}\" "
-          else
-            echo -n "Section \"${insttar/*\//}\" "
-          fi
-          echo      "sec_${secname}_${sanitized_name[$pkgname]}"
-          echo "  SectionIn${sectionin[$pkgname]}"
-          echo "SectionEnd"
         fi
+        local insttar="${install[$pkgname]/.tar.bz2*/}"
+        if [[ "$secname" = "_PostInstallLast" ]] ||
+           [[ "$secname" = "_obsolete" ]] ; then
+          echo -n "Section \"-${insttar/*\//}\" "
+        elif [[ " ${seed[$pkgname]} " == *" $definsttype "* ]] ; then
+          echo -n "Section \"!${insttar/*\//}\" "
+        else
+          echo -n "Section \"${insttar/*\//}\" "
+        fi
+        echo      "sec_${secname}_${sanitized_name[$pkgname]}"
+        echo "  SectionIn${sectionin[$pkgname]}"
+        echo "SectionEnd"
       done
       if ((!groupprint)) ; then
         echo "SectionGroupEnd"
@@ -812,23 +354,17 @@ generate_section_list() {
     done | sort |
     { local groupprint=1
       while read -r pkgname ; do
-        if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-          if ((groupprint)) ; then
-            if [[ "$secname" != "_PostInstallLast" ]] &&
-               [[ "$secname" != "_obsolete" ]] ; then
-              echo "  !insertmacro MUI_DESCRIPTION_TEXT \${sec_$secname} \"\""
-              groupprint=0
-            fi
+        if ((groupprint)) ; then
+          if [[ "$secname" != "_PostInstallLast" ]] &&
+             [[ "$secname" != "_obsolete" ]] ; then
+            echo "  !insertmacro MUI_DESCRIPTION_TEXT \${sec_$secname} \"\""
+            groupprint=0
           fi
-          echo -n "  !insertmacro MUI_DESCRIPTION_TEXT \${"
-          echo -n "sec_${secname}_${sanitized_name[$pkgname]}} "
-          # Modern UI does not like long descriptions
-          #if [ "${sdesc[$pkgname]}" != "" ] ; then
-            #echo "${ldesc[$pkgname]}"
-          #else
-            echo  "${sdesc[$pkgname]}"
-          #fi
         fi
+        echo -n "  !insertmacro MUI_DESCRIPTION_TEXT \${"
+        echo -n "sec_${secname}_${sanitized_name[$pkgname]}} "
+        # Modern UI does not like long descriptions
+        echo  "${short_desc[$pkgname]}"
       done
     }
   done
@@ -839,10 +375,6 @@ generate_init_function() {
   # $1 - Section number for first options (others should follow)
   if ((verbose)) ; then echo "Declaring .onInit function..." >&2 ; fi
   echo "Function .onInit"
-  if [[ "$defpackage" != "NONE" ]] ; then
-    echo "  StrCpy \$SVV_InstType $(($definsttype-1))"
-    echo "  StrCpy \$SVV_SelChangeInProgress 0"
-  fi
   local pkgname
   for pkgname in "${allinstalledpackages[@]}" ; do
     if [[ " ${seed[$pkgname]} " == *" $definsttype "* ]] ; then
@@ -863,20 +395,13 @@ generate_init_function() {
       echo "$pkgname"
     done | sort |
     while read -r pkgname ; do
-      if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-        if [[ " ${sectionin[$pkgname]} " == *" $definsttype "* ]] ; then
-          echo "  StrCpy \$sv_${secname}_${sanitized_name[$pkgname]} 1"
-        else
-          echo "  StrCpy \$sv_${secname}_${sanitized_name[$pkgname]} 0"
-        fi
+      if [[ " ${sectionin[$pkgname]} " == *" $definsttype "* ]] ; then
+        echo "  StrCpy \$sv_${secname}_${sanitized_name[$pkgname]} 1"
+      else
+        echo "  StrCpy \$sv_${secname}_${sanitized_name[$pkgname]} 0"
       fi
     done
   done
-  if [[ "$defpackage" != "NONE" ]] ; then
-    if ((definsttype!=1)) ; then
-      echo "  SetCurInstType $((definsttype-1))"
-    fi
-  fi
   cat <<END
   \${GetParameters} \$SVV_CmdLineParameters
   Push \$R0
@@ -891,94 +416,8 @@ END
   echo -n "\$\\n  /D=InstDir - use InstDir as target instead of usual \$INSTDIR"
   echo -n "\$\\n  /NCRC - disables the CRC check"
   echo -n "\$\\n  /S - Silent install"
-  if [[ "$defpackage" != "NONE" ]] ; then
-    local insttype line
-    echo -n "\$\\nRecognized install type options:"
-    echo -n "\$\\n  /FULL - Install all availabile packages"
-    for insttype in "${!packages[@]}" ; do
-      echo "\$\\n  /`echo \"$insttype\" | tr 'a-z' 'A-Z'` - ${description[$insttype]}"
-    done | sort |
-    while IFS= read -r line ; do
-      printf "%s" "$line"
-    done
-    echo -n "\$\\n  /MINIMAL - Install only packages from \$\\\"Base\$\\\" category"
-  fi
   echo "\""
   echo "  Abort"
-  if [[ "$defpackage" != "NONE" ]] ; then
-    local sectionN="$(($1-1))"
-    local IFS=$'\n'
-    for insttype in `
-      echo "Full"
-      for insttype in "${!packages[@]}" ; do
-        echo $insttype
-      done | sort
-      echo "Minimal"
-    ` ; do
-      echo "  \${GetOptions} \$cmdLineParams \"/`echo \"$insttype\" | tr 'a-z' 'A-Z'`\" \$R0"
-      echo "  IfErrors No_$insttype +1"
-      echo "  StrCpy \$SVV_InstType $((sectionN-1))"
-      for pkgname in "${allinstalledpackages[@]}" ; do
-        if [[ " ${seed[$pkgname]} " == *" $sectionN "* ]] ; then
-          echo "  StrCpy \$PKV_${sanitized_name[$pkgname]} 9"
-        elif [[ " ${sectionin[$pkgname]} " == *" $sectionN "* ]] ; then
-          echo "  StrCpy \$PKV_${sanitized_name[$pkgname]} 1"
-        else
-          echo "  StrCpy \$PKV_${sanitized_name[$pkgname]} 0"
-        fi
-      done
-      for secname in "${!category_contents[@]}" ; do
-        echo "$secname"
-      done | sort |
-      while read -r secname ; do
-        local pkgname
-        for pkgname in ${category_contents["$secname"]} ; do
-          echo "$pkgname"
-        done | sort |
-        while read -r pkgname ; do
-          if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-            if [[ " ${sectionin[$pkgname]} " == *" $sectionN "* ]] ; then
-              echo "  StrCpy \$sv_${secname}_${sanitized_name[$pkgname]} 1"
-            else
-              echo "  StrCpy \$sv_${secname}_${sanitized_name[$pkgname]} 0"
-            fi
-          fi
-        done
-      done
-      for pkgname in "${allinstalledpackages[@]}" ; do
-        if [[ " ${seed[$pkgname]} " == *" $sectionN "* ]] ; then
-          echo "  SectionSetFlags \${sec_PKG_${sanitized_name[$pkgname]}} 9"
-        elif [[ " ${sectionin[$pkgname]} " == *" $sectionN "* ]] ; then
-          echo "  SectionSetFlags \${sec_PKG_${sanitized_name[$pkgname]}} 1"
-        else
-          echo "  SectionSetFlags \${sec_PKG_${sanitized_name[$pkgname]}} 0"
-        fi
-      done
-      for secname in "${!category_contents[@]}" ; do
-        echo "$secname"
-      done | sort |
-      while read -r secname ; do
-        local pkgname
-        for pkgname in ${category_contents["$secname"]} ; do
-          echo "$pkgname"
-        done | sort |
-        while read -r pkgname ; do
-          if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-            if [[ " ${seed[$pkgname]} " == *" $sectionN "* ]] ; then
-              echo "  SectionSetFlags \${sec_${secname}_${sanitized_name[$pkgname]}} 9"
-            elif [[ " ${sectionin[$pkgname]} " == *" $sectionN "* ]] ; then
-              echo "  SectionSetFlags \${sec_${secname}_${sanitized_name[$pkgname]}} 1"
-            else
-              echo "  SectionSetFlags \${sec_${secname}_${sanitized_name[$pkgname]}} 0"
-            fi
-          fi
-        done
-      done
-      echo "  SetCurInstType $((sectionN-1))"
-      echo "No_$insttype:"
-      ((sectionN++))
-    done
-  fi
   echo "  Pop \$R0"
   echo "FunctionEnd"
 }
@@ -992,17 +431,6 @@ Function .onSelChange
   Push \$R0
   Push \$R1
 END
-  if [[ "$defpackage" != "NONE" ]] ; then
-    cat <<END
-  Push \$R2
-  GetCurInstType \$R0
-  StrCpy \$R2 0
-  IntCmp \$R0 \$SVV_InstType +4 +1 +1
-  StrCpy \$SVV_InstType \$R0
-  IntCmp \$R0 \${NSIS_MAX_INST_TYPES} +2 +1 +1
-  StrCpy \$R2 1
-END
-  fi
   # sv_XXX/PKV_XXX variables contain information about previous state of affairs
   # Note: there are three states - 0 (not to be installed), 9 (to be installed)
   # and 1 (will be installed because some other package needs it).
@@ -1018,39 +446,18 @@ END
       echo "$pkgname"
     done | sort |
     while read -r pkgname ; do
-      if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-        if ((verbose)) ; then echo "Read state: \"$pkgname\"..." >&2 ; fi
-        local PKV_name="PKV_${sanitized_name[$pkgname]}"
-        local sc_name="${secname}_${sanitized_name[$pkgname]}"
-        echo "  SectionGetFlags \${sec_$sc_name} \$R0"
-        echo "  IntOp \$R1 \$R0 & \${SF_SELECTED}"
-        if [[ "$defpackage" == "NONE" ]] ; then
-          echo "  IntCmp \$sv_$sc_name \$R1 L4_$sc_name"
-        else
-          echo "  IntCmp \$sv_$sc_name \$R1 L2_$sc_name"
-        fi
-        echo "  IntCmp \$sv_$sc_name 0 L1_$sc_name"
-        echo "  StrCpy \$$PKV_name 0"
-        for subpkgname in ${required["$pkgname"]} ; do
-          if [[ "${allinstpackages[$subpkgname]}" = "present" ]] ; then
-            echo "  IntCmp \$PKV_${sanitized_name[$subpkgname]} 9 +2 +1 +2"
-            echo "  StrCpy \$PKV_${sanitized_name[$subpkgname]} 0"
-          fi
-        done
-        echo "  Goto L4_$sc_name"
-        echo "L1_$sc_name:"
-        if [[ "$defpackage" != "NONE" ]] ; then
-          echo "  IntCmp \$R2 0 L3_$sc_name +1 +1"
-          echo "L2_$sc_name:"
-          for subpkgname in ${seed["$pkgname"]} ; do
-            echo "  IntCmp \$SVV_InstType $((subpkgname-1)) L3_$sc_name +1 +1"
-          done
-          echo "  GoTo L4_$sc_name"
-          echo "L3_$sc_name:"
-        fi
-        echo "  StrCpy \$$PKV_name 9"
-        echo "L4_$sc_name:"
-      fi
+      if ((verbose)) ; then echo "Read state: \"$pkgname\"..." >&2 ; fi
+      local PKV_name="PKV_${sanitized_name[$pkgname]}"
+      local sc_name="${secname}_${sanitized_name[$pkgname]}"
+      echo "  SectionGetFlags \${sec_$sc_name} \$R0"
+      echo "  IntOp \$R1 \$R0 & \${SF_SELECTED}"
+      echo "  IntCmp \$sv_$sc_name \$R1 L4_$sc_name"
+      echo "  IntCmp \$sv_$sc_name 0 L1_$sc_name"
+      echo "  StrCpy \$$PKV_name 0"
+      echo "  Goto L4_$sc_name"
+      echo "L1_$sc_name:"
+      echo "  StrCpy \$$PKV_name 9"
+      echo "L4_$sc_name:"
     done
   done
   # Now we mark all packages which can be installed or not installed as
@@ -1082,15 +489,10 @@ END
       echo "$pkgname"
     done | sort |
     while read -r pkgname ; do
-      if [[ "${allinstpackages[$pkgname]}" = "present" ]] ; then
-        echo "  IntOp \$sv_${secname}_${sanitized_name[$pkgname]} \$PKV_${sanitized_name[$pkgname]} & 1"
-        echo "  SectionSetFlags \${sec_${secname}_${sanitized_name[$pkgname]}} \$PKV_${sanitized_name[$pkgname]}"
-      fi
+      echo "  IntOp \$sv_${secname}_${sanitized_name[$pkgname]} \$PKV_${sanitized_name[$pkgname]} & 1"
+      echo "  SectionSetFlags \${sec_${secname}_${sanitized_name[$pkgname]}} \$PKV_${sanitized_name[$pkgname]}"
     done
   done
-  if [[ "$defpackage" != "NONE" ]] ; then
-    echo "  Pop \$R2"
-  fi
   cat <<END
   Pop \$R1
   Pop \$R0

@@ -64,7 +64,6 @@ if ((BASH_VERSINFO[0]<4)) ; then
   exit 1
 fi
 
-CYGWIN_DIR="third_party\\\\cygwin\\\\"
 NACL_SDK_FULL_NAME="native_client_sdk_${SDK_VERSION//./_}"
 
 # Replace version-specific tags in the patch file with the generated values
@@ -72,7 +71,6 @@ NACL_SDK_FULL_NAME="native_client_sdk_${SDK_VERSION//./_}"
 if ! (awk '{ \
              /%NACL_SDK_FULL_NAME%/ gsub(/%NACL_SDK_FULL_NAME%/, \
                                          "'$NACL_SDK_FULL_NAME'"); \
-             /%CYGWIN_DIR%/ gsub(/%CYGWIN_DIR%/, "'$CYGWIN_DIR'"); \
              print; }' nsi_patch.txt | patch --no-backup-if-mismatch)
   then
     exit 1

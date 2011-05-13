@@ -86,53 +86,33 @@ if ((NSIS)) && ((CygWin)) && ! [ -d NSIS ] ; then
   cp -aiv "MkLink/Release Unicode/MkLink.dll" "NSIS/Plugins"
 fi
 
-declare -A packages
-. "${0/.sh/.conf}"
+# Solid compressor does not work if all packages take >2GB after installation
+compressor="/solid lzma"
+
 . "`dirname \"$0\"`"/make_installer.inc
 
-mkdir -p "`dirname \"$0\"`"/packages{,.src,.unpacked} setup
+mkdir -p "`dirname \"$0\"`"/packages{,.src,.unpacked}
 rm -rf packages.unpacked/{nacl-sdk.tgz,naclsdk_win_x86.tgz}
-CYGWIN_PREFIX="third_party\\cygwin\\"
 
-parse_setup_ini
-fix_setup_inf_info
-download_package_dependences bash 0
-reqpackages=()
 sectionin=()
-allinstpackages=()
-allinstalledpackages=()
 mv "`dirname \"$0\"`"/nacl-sdk.tgz packages
-version["native_client_sdk"]="$SDK_VERSION"
 install["native_client_sdk"]="nacl-sdk.tgz"
-sdesc["native_client_sdk"]="\"Native Client SDK - examples and documentation\""
-category["native_client_sdk"]="00000000"
-category_contents["00000000"]="${category_contents[00000000]} native_client_sdk"
-requires["native_client_sdk"]="native_client_toolchain"
-version["native_client_toolchain"]="$SDK_VERSION"
+short_desc["native_client_sdk"]=\
+"\"Native Client SDK - examples and documentation\""
+category_contents["00000000"]=\
+"${category_contents[00000000]} native_client_sdk"
+allinstalledpackages=("native_client_sdk")
+
 install["native_client_toolchain"]="naclsdk_win_x86.tgz"
-sdesc["native_client_toolchain"]="\"Native Client SDK - toolchain\""
-category["native_client_toolchain"]="00000000"
+short_desc["native_client_toolchain"]="\"Native Client SDK - toolchain\""
 category_contents["00000000"]="${category_contents[00000000]} native_client_toolchain"
-rm setup/*.lst.gz
-download_addon_packages 2
-if ((include_all_packages)) ; then
-  download_all_packages 1
-else
-  for pkgname in "${!sectionin[@]}" ; do
-    sectionin["$pkgname"]=" 1${sectionin[$pkgname]}"
-  done
-  for pkgname in "${!seed[@]}" ; do
-    seed["$pkgname"]=" 1${seed[$pkgname]}"
-  done
-fi
-for pkgname in "${allinstalledpackages[@]}" ; do
-   prefix["$pkgname"]="$CYGWIN_PREFIX"
-done
+allinstalledpackages=(${allinstalledpackages[@]} "native_client_toolchain")
+
 prefix["native_client_sdk"]=""
 prefix["native_client_toolchain"]=""
-fill_required_packages
-fill_filetype_info
 
+unpack_all_packages
+fill_filetype_info
 (
   cat <<END
 RequestExecutionLevel user
@@ -171,11 +151,6 @@ InstallDir "c:\\native_client_sdk_${SDK_VERSION//./_}"
 !define MUI_FINISHPAGE_LINK "Visit the Native Client site for news, FAQs and support"
 !define MUI_FINISHPAGE_LINK_LOCATION "http://code.google.com/chrome/nativeclient"
 
-;!define MUI_FINISHPAGE_RUN
-;!define MUI_FINISHPAGE_RUN_TEXT "Compile and Run Native Client Demos"
-;!define MUI_FINISHPAGE_RUN_FUNCTION CompileAndRunDemo
-;!define MUI_FINISHPAGE_NOREBOOTSUPPORT
-
 !define MUI_FINISHPAGE_SHOWREADME
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "Show release notes"
 !define MUI_FINISHPAGE_SHOWREADME_FUNCTION ShowReleaseNotes
@@ -194,115 +169,14 @@ Section "" sec_Preinstall
   AccessControlW::GrantOnFile "\$INSTDIR" "(S-1-3-1)" "Traverse + GenericRead"
   ; "Everyone" can read too
   AccessControlW::GrantOnFile "\$INSTDIR" "(S-1-1-0)" "Traverse + GenericRead"
-  CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}etc"
-  CreateDirectory "\$INSTDIR\\${CYGWIN_PREFIX}etc\\setup"
-  FileOpen \$R0 \$INSTDIR\\postinstall.sh w
-  FileWrite \$R0 'export PATH=/usr/local/bin:/usr/bin:/bin\$\\nexport CYGWIN="\$\$CYGWIN nodosfilewarning"\$\\n'
-  FileClose \$R0
-  FileOpen \$R0 \$INSTDIR\\etc\\setup\\installed.log w
-  FileWrite \$R0 "INSTALLED.DB 2\$\\n"
   FileClose \$R0
   Pop \$R0
 SectionEnd
 END
   generate_section_list
-  cat <<END
-Section "" sec_PostInstall
-  SectionIn `seq -s ' ' $((${#packages[@]}+3))`
-  Push \$R0
-  Push \$R1
-  Push \$R2
-  FileOpen \$R0 \$INSTDIR\\postinstall.sh a
-  FileSeek \$R0 0 END
-  FileWrite \$R0 "/bin/sort /etc/setup/installed.log -o /etc/setup/installed.db\$\\nrm /etc/setup/installed.log\$\\n"
-  FileClose \$R0
-  SetOutPath \$INSTDIR
-  nsExec::ExecToLog '"${CYGWIN_PREFIX}bin\\bash" -c ./postinstall.sh'
-  Delete \$INSTDIR\\postinstall.sh
-  FileOpen \$R0 \$INSTDIR\\${CYGWIN_PREFIX}CygWin.bat w
-  StrCpy \$R1 \$INSTDIR 1
-  FileWrite \$R0 "@echo off\$\\r\$\\n\$\\r\$\\n\$R1:$\r\$\\nchdir \$INSTDIR\\${CYGWIN_PREFIX//\//\\}bin\$\\r\$\\nbash --login -i$\r\$\\n"
-  FileClose \$R0
-  ;SetOutPath \$INSTDIR\examples
-  ;CreateDirectory "\$SMPROGRAMS\\Native Client SDK"
-  ;CreateShortCut "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk" "\$INSTDIR\\${CYGWIN_PREFIX}bin\\python.exe" "run.py"
-
-  ; Find vcvars.bat for native compilation
-  StrCpy \$R2 1
-  \${EnableX64FSRedirection}
-  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VC" "ProductDir"
-  IfErrors 0 DirFound
-  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VC" "ProductDir"
-  IfErrors 0 DirFound
-  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VC" "ProductDir"
-  IfErrors 0 DirFound
-  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\7.1\\Setup\\VC" "ProductDir"
-  IfErrors 0 DirFound
-  ReadRegStr \$R0 HKLM "SOFTWARE\\Microsoft\\VisualStudio\\7.0\\Setup\\VC" "ProductDir"
-  IfErrors 0 DirFound
-  ; MessageBox MB_OK "Can not find Microsoft Visual Studio location. Native compilation is not supported."
-  StrCpy \$R0 "%VS100COMNTOOLS%\\..\\..\\VC\\bin\\"
-  StrCpy \$R2 0
-DirFound:
-  ;\${If} \${RunningX64}
-  ;  IfFileExists "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat" 0 +3
-  ;  StrCpy \$R1 "\$R0bin\\x86_amd64\\vcvarsx86_amd64.bat"
-  ;  GoTo WriteFiles
-  ;  IfFileExists "\$R0bin\\amd64\\vcvarsamd64.bat" 0 +3
-  ;  StrCpy \$R1 "\$R0bin\\amd64\\vcvarsamd64.bat"
-  ;  GoTo WriteFiles
-  ;  IfFileExists "\$R0bin\\vcvarsx86_amd64.bat" 0 +3
-  ;  StrCpy \$R1 "\$R0bin\\vcvarsx86_amd64.bat"
-  ;  GoTo WriteFiles
-  ;  IfFileExists "\$R0bin\\vcvarsamd64.bat" 0 +3
-  ;  StrCpy \$R1 "\$R0bin\\vcvarsamd64.bat"
-  ;  GoTo WriteFiles
-  ;  IfFileExists "\$R0bin\\vcvars64.bat" 0 +3
-  ;  StrCpy \$R1 "\$R0bin\\vcvars64.bat"
-  ;  GoTo WriteFiles
-  ;  ; Test and use vcvarsall.bat last since it may be present but broken
-  ;  IfFileExists "\$R0vcvarsall.bat" 0 +3
-  ;  StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
-  ;  GoTo WriteFiles
-  ;  IntCmp \$R2 0 +2
-  ;  MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed with \$\\"X64 Compilers and Tools\$\\" option selected"
-  ;  StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86_amd64"
-  ;  GoTo WriteFiles
-  ;\${Else}
-    IfFileExists "\$R0bin\\vcvars32.bat" 0 +3
-    StrCpy \$R1 "\$R0bin\\vcvars32.bat"
-    GoTo WriteFiles
-    IfFileExists "\$R0vcvars32.bat" 0 +3
-    StrCpy \$R1 "\$R0vcvars32.bat"
-    GoTo WriteFiles
-    ; Test and use vcvarsall.bat last since it may be present but broken
-    IfFileExists "\$R0vcvarsall.bat" 0 +3
-    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
-    GoTo WriteFiles
-    ; IntCmp \$R2 0 +2
-    ; MessageBox MB_OK "Can not find vcvarsall.bat. Native compilation is not supported. Please make sure you have Microsoft Visual Studio installed"
-    StrCpy \$R1 "\$R0vcvarsall.bat\$\\" \$\\"x86"
-  ;\${EndIf}
-WriteFiles:
-  IntCmp \$PKV_make 0 Skip_all_libs
-  IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs1
-Skip_debug_libs1:
-  GoTo Make_file_written
-Skip_all_libs:
-  IntCmp \$PKV_native_client_sdk 0 Skip_debug_libs2
-Skip_debug_libs2:
-Make_file_written:
-  Pop \$R2
-  Pop \$R1
-  Pop \$R0
-SectionEnd
-END
   generate_init_function 2
   generate_onselchange_function
   cat <<END
-;Function CompileAndRunDemo
-;  ExecShell "open" "\$SMPROGRAMS\\Native Client SDK\\StartDemo.lnk"
-;FunctionEnd
 Function ShowReleaseNotes
   ExecShell "open" "http://code.google.com/chrome/nativeclient/docs/releasenotes.html"
 FunctionEnd

@@ -22,7 +22,6 @@ EXTRA_WINDOWS_INSTALLER_CONTENTS = [
     'examples/httpd.cmd',
     'examples/scons.bat',
     'project_templates/scons.bat',
-    'third_party/cygwin/',
 ]
 
 def main(argv):
@@ -50,15 +49,16 @@ def main(argv):
   # Cache the current location so we can return here before removing the
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
-  home_dir = os.path.realpath(os.path.join(script_dir, '..', '..'))
+  home_dir = os.path.realpath(os.path.dirname(os.path.dirname(script_dir)))
 
-  cygwin_dir = os.path.join(script_dir, '..', 'third_party', 'cygwin', 'bin')
-
-  os.chdir(home_dir)
-  os.chdir('src')
+  cygwin_dir = os.path.join(home_dir,
+                            'src',
+                            'third_party',
+                            'cygwin',
+                            'bin')
 
   version_dir = build_utils.VersionString()
-  (parent_dir, _) = os.path.split(script_dir)
+  parent_dir = os.path.dirname(script_dir)
   deps_file = os.path.join(parent_dir, 'DEPS')
   NACL_REVISION = build_utils.GetNaClRevision(deps_file)
 
@@ -91,8 +91,7 @@ def main(argv):
                           NACL_REVISION]
   if not options.development:
     make_nacl_tools_args.extend(['-c'])
-  nacl_tools = subprocess.Popen(make_nacl_tools_args)
-  assert nacl_tools.wait() == 0
+  subprocess.check_call(make_nacl_tools_args, cwd=os.path.join(home_dir, 'src'))
 
   # Build c_salt
   # TODO(dspringer): add this part.
@@ -102,9 +101,12 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  make = subprocess.Popen(['scons.bat', 'install_prebuilt'],
-                          cwd=example_path)
-  assert make.wait() == 0
+  # Make sure the examples are clened out before creating the prebuilt
+  # artifacts.
+  subprocess.check_call(['scons.bat', '-c', 'install_prebuilt'],
+                         cwd=example_path)
+  subprocess.check_call(['scons.bat', 'install_prebuilt'],
+                         cwd=example_path)
 
   # On windows we use copytree to copy the SDK into the build location
   # because there is no native tar and using cygwin's version has proven
@@ -145,10 +147,9 @@ def main(argv):
 
   # Clean out the cruft.
   bot.Print('generate_windows_installer: cleaning up installer directory.')
-  os.chdir(installer_dir)
 
   # Make everything read/write (windows needs this).
-  for root, dirs, files in os.walk('.'):
+  for root, dirs, files in os.walk(installer_dir):
     for d in dirs:
       os.chmod(os.path.join(root, d), stat.S_IWRITE | stat.S_IREAD)
     for f in files:
@@ -158,7 +159,6 @@ def main(argv):
   bot.Print('generate_windows_installer is creating the installer archive')
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
-  os.chdir(temp_dir)
 
   # Set the default shell command and output name.
   ar_cmd = ('tar cvzf %(ar_name)s %(input)s && cp %(ar_name)s %(output)s'
@@ -176,43 +176,38 @@ def main(argv):
            {'ar_name':ar_name,
             'input':version_dir,
             'output':archive.replace('\\', '/')}),
-      env=cygwin_env, shell=True)
+      cwd=temp_dir,
+      env=cygwin_env,
+      shell=True)
   assert tarball.wait() == 0
 
   bot.BuildStep('create Windows installer')
   bot.Print('generate_windows_installer is creating the windows installer.')
-  os.chdir(os.path.join(home_dir, 'src', 'build_tools'))
-  if os.path.exists('done1'):
-    os.remove('done1')
-  for i in xrange(100):
-    bot.Print("Trying to make a script: try %i..." % (i+1))
-    exefile = subprocess.Popen([
-        os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
-        'make_native_client_sdk.sh', '-V',
-        build_utils.RawVersion(), '-v', '-n'])
-    exefile.wait()
-    if os.path.exists('done1'):
-      bot.Print("NSIS script created - time to run makensis!")
-      if os.path.exists('done2'):
-        os.remove('done2')
-      for j in xrange(100):
-        bot.Print("Trying to make a script: try %i..." % (j+1))
-        exefile2 = subprocess.Popen([
-            os.path.join('..', 'third_party', 'cygwin', 'bin', 'bash.exe'),
-            'make_native_client_sdk2.sh', '-V',
-            build_utils.RawVersion(), '-v', '-n'])
-        exefile2.wait()
-        if os.path.exists('done2'):
-          bot.Print("Installer created!")
-          break
-      else:
-        bot.Print("Cannot create installer (even after 100 tries)")
-      break
-  else:
-    bot.Print("Cannot create NSIS script (even after 100 tries)")
+  build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
+  done1 = (os.path.join(build_tools_dir, 'done1'))
+  if os.path.exists(done1):
+    os.remove(done1)
+  exefile = subprocess.Popen([
+      os.path.join(cygwin_dir, 'bash.exe'),
+      'make_native_client_sdk.sh', '-V',
+      build_utils.RawVersion(), '-v', '-n'],
+      cwd=build_tools_dir)
+  exefile.wait()
+  if os.path.exists(done1):
+    done2 = (os.path.join(build_tools_dir, 'done2'))
+    bot.Print("NSIS script created - time to run makensis!")
+    if os.path.exists(done2):
+      os.remove(done2)
+    exefile2 = subprocess.Popen([
+        os.path.join(cygwin_dir, 'bash.exe'),
+        'make_native_client_sdk2.sh', '-V',
+        build_utils.RawVersion(), '-v', '-n'],
+        cwd=build_tools_dir)
+    exefile2.wait()
+    if os.path.exists(done2):
+      bot.Print("Installer created!")
 
   # Clean up.
-  os.chdir(home_dir)
   shutil.rmtree(temp_dir)
 
 
