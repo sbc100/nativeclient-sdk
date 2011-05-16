@@ -50,6 +50,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaClVsx.Package", "..\src\N
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaClVsx.Package_UnitTestProject", "..\src\NaClVsx.Package\NaClVsx.Package_UnitTestProject\NaClVsx.Package_UnitTestProject.csproj", "{FACD8324-6EE0-4F27-8F02-98519A44A0C5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CC56A11D-A46E-436B-B889-A87356551127} = {CC56A11D-A46E-436B-B889-A87356551127}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}"
 EndProject
