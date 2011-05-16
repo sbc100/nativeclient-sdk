@@ -169,6 +169,40 @@ namespace NaClVsx.Package_UnitTestProject {
       Assert.AreEqual(o, "-1234567");
     }
 
+    [TestMethod]
+    public void GetSymbolCharValueTest() {
+      // Address is for loop.cc -- line 39.  Retrieved using
+      // nacl-objdump.exe -d <loop.nexe>
+      ulong addr = baseAddr + 0x2055b;
+      IEnumerable<Symbol> symbols = sym_.GetSymbolsInScope(addr);
+      // Should have 2 vars in this scope:
+      // global variable g_gGlobalData, and local variable "c".
+      Assert.AreEqual(2, symbols.Count());
+
+      // First symbol should be for 'char c'
+      Symbol s = symbols.First();
+
+      // Make sure we can convert a 1 byte char
+      byte[] bytes = new byte[1];
+      char char_value = 'I';
+      bytes[0] = (byte)char_value; // ASCII value for 'I'
+      var arrBytes = new ArraySegment<byte>(bytes);
+      string str_obj = sym_.SymbolValueToString(s.Key, arrBytes);
+      Assert.AreEqual("73", str_obj);
+      // NOTE: since the input was a byte value of 73 for 'I'
+      // the output of this is a string with that value "73"
+      // The VSX debugger env formats this as a 'char' because
+      // of the data type of the variable, so we
+      // convert the string value to a number (e.g. "73" -> 73)
+      // and then check the char value and also format the
+      // char value in a string and check that too
+      Int16 result_ascii_val = Convert.ToInt16(str_obj);
+      char result_char = Convert.ToChar(result_ascii_val);
+      Assert.AreEqual('I', result_char);
+      Assert.AreEqual("I", String.Format(
+          "{0:c}", Convert.ToChar(result_char)));
+    }
+
     ///<summary>
     /// A test for GetNextLocation
     ///</summary>

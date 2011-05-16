@@ -31,9 +31,19 @@ void foo() {
   print_loop();
 }
 
+// We define |print_char_type| so that unit tests can validate
+// getting the value of a 1-byte character using functions such as
+// SymbolValueToString.
+void print_char_type() {
+  char c = 'I';
+  printf("c=%c\n", c);
+  fflush(stdout);
+}
+
 int main(int argc, const char *argv[]){
   printf("Hello World\n\n");
   g_GlobalData++;
   foo();
+  print_char_type();
   return 0;
 }

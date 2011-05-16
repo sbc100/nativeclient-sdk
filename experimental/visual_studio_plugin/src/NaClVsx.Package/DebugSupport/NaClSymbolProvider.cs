@@ -460,26 +460,40 @@ namespace Google.NaClVsx.DebugSupport {
       Int64 i64 = 0;
       double d64 = 0;
 
-      switch (result.SizeOf) {
-        case 1:
-          i64 = BitConverter.ToChar(bytes, 0);
-          break;
+      try {
+        switch (result.SizeOf) {
+          case 1:
+            // We don't need to convert to number first because the switch
+            // statement below will convert byte[0] to string val.
+            break;
 
-        case 2:
-          i64 = BitConverter.ToInt16(bytes, 0);
-          break;
+          case 2:
+            i64 = BitConverter.ToInt16(bytes, 0);
+            break;
 
-        case 4:
-          i64 = BitConverter.ToInt32(bytes, 0);
-          d64 = BitConverter.ToSingle(bytes, 0);
-          break;
+          case 4:
+            i64 = BitConverter.ToInt32(bytes, 0);
+            d64 = BitConverter.ToSingle(bytes, 0);
+            break;
 
-        case 8:
-          i64 = BitConverter.ToInt64(bytes, 0);
-          d64 = BitConverter.ToDouble(bytes, 0);
-          break;
+          case 8:
+            i64 = BitConverter.ToInt64(bytes, 0);
+            d64 = BitConverter.ToDouble(bytes, 0);
+            break;
+        }
+      }
+      catch (Exception e) {
+        // Without a catch here, the VSX SDK catches the exception and we
+        // just don't get a value back...  Printing helps us realize this
+        // is happening (when we had a bad conversion for case 1 previously)
+        // and also lets us set a breakpoint inside the catch.
+        Debug.WriteLine("An exception was caught when calling BitConverter!" +
+          e.ToString());
       }
 
+
+      var typeInfo = result.TypeOf;
+      Debug.WriteLine("typeOf: " + typeInfo + " size: " + result.SizeOf);
       switch (result.TypeOf) {
         case BaseType.Pointer:
           return i64.ToString("X");
