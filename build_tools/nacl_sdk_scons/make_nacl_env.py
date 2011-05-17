@@ -107,7 +107,7 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
              )
 
   # Append the common NaCl libs.  This list is order-dependent.
-  common_nacl_libs = ['platform', 'gio', 'pthread', 'srpc']
+  common_nacl_libs = ['srpc', 'imc_syscalls', 'platform', 'gio', 'pthread']
   if use_c_plus_plus_libs:
     env.Append(LIBS=['ppruntime', 'ppapi_cpp'] + common_nacl_libs)
   else:
@@ -118,4 +118,3 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
   env.Append(BUILDERS={'GenerateNmf': gen_nmf_builder})
 
   return env
-
