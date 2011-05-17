@@ -23,7 +23,7 @@
       }
     </script>
   </head>
-    <body id="bodyId" onunload="pageDidUnload()">
+  <body id="bodyId" onunload="pageDidUnload()">
     <h1>Monte Carlo Estimate for Pi</h1>
     <p>
       The Native Client module executed in this page creates a thread
@@ -40,24 +40,25 @@
       The textbox under the square
       shows the current estimate of &pi;.
     </p>
-    <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+    <!-- Load the published .nexe.  This includes the 'src' attribute which
     shows how to load multi-architecture modules.  Each entry in the "nexes"
     object in the .nmf manifest file is a key-value pair: the key is the
     runtime ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl
-    module.  To load the debug versions of your .nexes, set the 'nacl'
+    module.  To load the debug versions of your .nexes, set the 'src'
     attribute to the _dbg.nmf version of the manifest file.
-
-    Note: The 'dimensions' attribute indicates that the pi_generator .nexe will
-    use the 2D drawing device in the browser.
     -->
-    <embed name="nacl_module"
-           id="piGenerator"
-           width=200 height=200
-           nacl="pi_generator.nmf"
-           type="application/x-nacl"
-           dimensions="2"
-           onload="moduleDidLoad();" />
-    </script>
+    <div id="listener">
+      <script type="text/javascript">
+         document.getElementById('listener')
+             .addEventListener('load', moduleDidLoad, true);
+      </script>
+
+      <embed name="nacl_module"
+             id="piGenerator"
+             width=200 height=200
+             src="pi_generator.nmf"
+             type="application/x-nacl" />
+    </div>
     <br />
     <form name="form">
       <input type="text" size="15" name="pi" />
