@@ -10,64 +10,56 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ppapi/c/dev/ppb_var_deprecated.h>
-#include <ppapi/c/dev/ppp_class_deprecated.h>
-#include <ppapi/c/pp_errors.h>
-#include <ppapi/c/pp_var.h>
-#include <ppapi/c/pp_module.h>
-#include <ppapi/c/ppb.h>
-#include <ppapi/c/ppb_instance.h>
-#include <ppapi/c/ppp.h>
-#include <ppapi/c/ppp_instance.h>
+
+#include "ppapi/c/dev/ppb_var_deprecated.h"
+#include "ppapi/c/pp_completion_callback.h"
+#include "ppapi/c/pp_errors.h"
+#include "ppapi/c/pp_module.h"
+#include "ppapi/c/pp_var.h"
+#include "ppapi/c/ppb.h"
+#include "ppapi/c/ppb_core.h"
+#include "ppapi/c/ppb_instance.h"
+#include "ppapi/c/ppb_messaging.h"
+#include "ppapi/c/ppp.h"
+#include "ppapi/c/ppp_instance.h"
+#include "ppapi/c/ppp_messaging.h"
+
+struct MessageInfo {
+  PP_Instance instance;
+  struct PP_Var message;
+};
 
 static const char* const kReverseTextMethodId = "reverseText";
 static const char* const kFortyTwoMethodId = "fortyTwo";
+static const char kMessageArgumentSeparator = ':';
+static const char kNullTerminator = '\0';
 
-/**
- * Exception strings.  These are passed back to the browser when errors
- * happen during property accesses or method calls.
- */
-static const char* const kExceptionMethodNotAString =
-    "Method name is not a string";
-static const char* const kExceptionNoMethodName = "No method named ";
-
-static PP_Bool Instance_DidCreate(PP_Instance instance,
-                                  uint32_t argc,
-                                  const char* argn[],
-                                  const char* argv[]);
-static void Instance_DidDestroy(PP_Instance instance);
-static void Instance_DidChangeView(PP_Instance instance,
-                                   const struct PP_Rect* position,
-                                   const struct PP_Rect* clip);
-static void Instance_DidChangeFocus(PP_Instance instance,
-                                    PP_Bool has_focus);
-static PP_Bool Instance_HandleInputEvent(PP_Instance instance,
-                                         const struct PP_InputEvent* event);
-static struct PP_Var Instance_GetInstanceObject(PP_Instance instance);
-
+struct PPB_Messaging* ppb_messaging_interface = NULL;
+struct PPB_Var_Deprecated* ppb_var_interface = NULL;
 static PP_Module module_id = 0;
-static struct PPB_Var_Deprecated* var_interface = NULL;
-static struct PPP_Class_Deprecated ppp_class;
-static struct PPP_Instance instance_interface = {
-  &Instance_DidCreate,
-  &Instance_DidDestroy,
-  &Instance_DidChangeView,
-  &Instance_DidChangeFocus,
-  &Instance_HandleInputEvent,
-  NULL,  /* HandleDocumentLoad is not supported by NaCl modules. */
-  &Instance_GetInstanceObject,
-};
+
 
 /**
- * Returns C string contained in the @a var or NULL if @a var is not string.
+ * Returns a mutable C string contained in the @a var or NULL if @a var is not
+ * string.  This makes a copy of the string in the @ var and adds a NULL
+ * terminator.  Note that VarToUtf8() does not guarantee the NULL terminator on
+ * the returned string.  See the comments for VatToUtf8() in ppapi/c/ppb_var.h
+ * for more info.  The caller is responsible for freeing the returned memory.
  * @param[in] var PP_Var containing string.
  * @return a C string representation of @a var.
- * @note Returned pointer will be invalid after destruction of @a var.
+ * @note The caller is responsible for freeing the returned string.
  */
-static const char* VarToCStr(struct PP_Var var) {
+static char* VarToCStr(struct PP_Var var) {
   uint32_t len = 0;
-  if (NULL != var_interface)
-    return var_interface->VarToUtf8(var, &len);
+  if (ppb_var_interface != NULL) {
+    const char* var_c_str = ppb_var_interface->VarToUtf8(var, &len);
+    if (len > 0) {
+      char* c_str = (char*)malloc(len + 1);
+      memcpy(c_str, var_c_str, len);
+      c_str[len] = kNullTerminator;
+      return c_str;
+    }
+  }
   return NULL;
 }
 
@@ -78,24 +70,11 @@ static const char* VarToCStr(struct PP_Var var) {
  * @param[in] str C string to be converted to PP_Var
  * @return PP_Var containing string.
  */
-static struct PP_Var StrToVar(const char* str) {
-  if (NULL != var_interface)
-    return var_interface->VarFromUtf8(module_id, str, strlen(str));
-  return PP_MakeUndefined();
-}
-
-/**
- * Helper function to set the scripting exception.  Both @a exception and
- * @a except_string can be NULL.  If @a exception is NULL, this function does
- * nothing.
- * @param[out] exception The PP_Var representing the exception.
- * @param[in] except_string The exception string.
- */
-static void SetExceptionString(struct PP_Var* exception,
-                               const char* const except_string) {
-  if (exception) {
-    *exception = StrToVar(except_string);
+static struct PP_Var CStrToVar(const char* str) {
+  if (ppb_var_interface != NULL) {
+    return ppb_var_interface->VarFromUtf8(module_id, str, strlen(str));
   }
+  return PP_MakeUndefined();
 }
 
 /**
@@ -224,92 +203,82 @@ static PP_Bool Instance_HandleInputEvent(PP_Instance instance,
 }
 
 /**
- * Create scriptable object for the given instance.
+ * Handler that gets called after a full-frame module is instantiated based on
+ * registered MIME types.  This function is not called on NaCl modules.  This
+ * function is essentially a place-holder for the required function pointer in
+ * the PPP_Instance structure.
+ * @param[in] instance The identifier of the instance representing this NaCl
+ *     module.
+ * @param[in] url_loader A PP_Resource an open PPB_URLLoader instance.
+ * @return PP_FALSE.
+ */
+static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
+                                           PP_Resource url_loader) {
+  /* NaCl modules do not need to handle the document load function. */
+  return PP_FALSE;
+}
+
+/**
+ * Create scriptable object for the given instance.  This style of scripting
+ * has been deprecated, so this routine always returns an undefined object.
  * @param[in] instance The instance ID.
- * @return A scriptable object.
+ * @return A scriptable object, always an undefind object.
  */
 static struct PP_Var Instance_GetInstanceObject(PP_Instance instance) {
-  if (var_interface)
-    return var_interface->CreateObject(instance, &ppp_class, NULL);
   return PP_MakeUndefined();
 }
 
 /**
- * Check existence of the function associated with @a name.
- * @param[in] object unused
- * @param[in] name method name
- * @param[out] exception pointer to the exception object, unused
- * @return If the method does exist, return true.
- * If the method does not exist, return false and don't set the exception.
+ * Handler for messages coming in from the browser via postMessage.  Extracts
+ * the method call from @a message, parses it for method name and value, then
+ * calls the appropriate function.  In the case of the reverseString method, the
+ * message format is a simple colon-separated string.  The first part of the
+ * string up to the colon is the method name; after that is the string argument.
+ * @param[in] instance The instance ID.
+ * @param[in] message The contents, copied by value, of the message sent from
+ *     browser via postMessage.
  */
-static bool HelloWorld_HasMethod(void* object,
-                                 struct PP_Var name,
-                                 struct PP_Var* exception) {
-  const char* method_name = VarToCStr(name);
-  if (NULL != method_name) {
-    if ((strcmp(method_name, kReverseTextMethodId) == 0) ||
-        (strcmp(method_name, kFortyTwoMethodId) == 0)) {
-      return true;
-    }
-  } else {
-    SetExceptionString(exception, kExceptionMethodNotAString);
+void Messaging_HandleMessage(PP_Instance instance, struct PP_Var var_message) {
+  if (var_message.type != PP_VARTYPE_STRING) {
+    /* Only handle string messages */
+    return;
   }
-  return false;
-}
+  char* message = VarToCStr(var_message);
+  if (message == NULL)
+    return;
+  struct PP_Var var_result = PP_MakeUndefined();
+  if (strncmp(message, kFortyTwoMethodId, strlen(kFortyTwoMethodId)) == 0) {
+    var_result = FortyTwo();
+  } else if (strncmp(message,
+                     kReverseTextMethodId,
+                     strlen(kReverseTextMethodId)) == 0) {
+    /* Use everything after the ':' in |message| as the string argument. */
+    char* string_arg = strchr(message, kMessageArgumentSeparator);
+    if (string_arg != NULL) {
+      string_arg += 1;  /* Advance past the ':' separator. */
+      ReverseStr(string_arg);
+      var_result = CStrToVar(string_arg);
+    }
+  }
+  free(message);
 
-/**
- * Invoke the function associated with @a name.
- * @param[in] object unused
- * @param[in] name method name
- * @param[in] argc number of arguments
- * @param[in] argv array of arguments
- * @param[out] exception pointer to the exception object, unused
- * @return If the method does exist, return true.
- */
-static struct PP_Var HelloWorld_Call(void* object,
-                                     struct PP_Var name,
-                                     uint32_t argc,
-                                     struct PP_Var* argv,
-                                     struct PP_Var* exception) {
-  struct PP_Var v = PP_MakeUndefined();
-  const char* method_name = VarToCStr(name);
-  if (NULL != method_name) {
-    if (strcmp(method_name, kReverseTextMethodId) == 0) {
-      if (argc > 0) {
-        if (argv[0].type != PP_VARTYPE_STRING) {
-          v = StrToVar("Arg from Javascript is not a string!");
-        } else {
-          char* str = strdup(VarToCStr(argv[0]));
-          ReverseStr(str);
-          v = StrToVar(str);
-          free(str);
-        }
-      } else {
-        v = StrToVar("Unexpected number of args");
-      }
-    } else if (strcmp(method_name, kFortyTwoMethodId) == 0) {
-      v = FortyTwo();
-    } else {
-      size_t except_length = strlen(kExceptionNoMethodName) +
-                             strlen(method_name) + 1;
-      char* except_string = (char*)malloc(except_length);
-      snprintf(except_string,
-               except_length,
-               "%s%s",
-               kExceptionNoMethodName,
-               method_name);
-      SetExceptionString(exception, except_string);
-      free(except_string);
-    }
-  } else {
-    SetExceptionString(exception, kExceptionMethodNotAString);
+  /* Echo the return result back to browser.  Note that HandleMessage is always
+   * called on the main thread, so it's OK to post the message back to the
+   * browser directly from here.  This return post is asynchronous.
+   */
+  ppb_messaging_interface->PostMessage(instance, var_result);
+  /* If the message was created using VarFromUtf8() it needs to be released.
+   * See the comments about VarFromUtf8() in ppapi/c/ppb_var.h for more
+   * information.
+   */
+  if (var_result.type == PP_VARTYPE_STRING) {
+    ppb_var_interface->Release(var_result);
   }
-  return v;
 }
 
 /**
  * Entrypoints for the module.
- * Initialize instance interface and scriptable object class.
+ * Initialize needed interfaces: PPB_Core, PPB_Messaging and PPB_Var.
  * @param[in] a_module_id module ID
  * @param[in] get_browser pointer to PPB_GetInterface
  * @return PP_OK on success, any other value on failure.
@@ -317,12 +286,11 @@ static struct PP_Var HelloWorld_Call(void* object,
 PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
                                        PPB_GetInterface get_browser) {
   module_id = a_module_id;
-  var_interface =
+  ppb_messaging_interface =
+      (struct PPB_Messaging*)(get_browser(PPB_MESSAGING_INTERFACE));
+  ppb_var_interface =
       (struct PPB_Var_Deprecated*)(get_browser(PPB_VAR_DEPRECATED_INTERFACE));
 
-  memset(&ppp_class, 0, sizeof(ppp_class));
-  ppp_class.Call = HelloWorld_Call;
-  ppp_class.HasMethod = HelloWorld_HasMethod;
   return PP_OK;
 }
 
@@ -333,8 +301,23 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
  * @return pointer to the interface
  */
 PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
-  if (strcmp(interface_name, PPP_INSTANCE_INTERFACE) == 0)
+  if (strcmp(interface_name, PPP_INSTANCE_INTERFACE) == 0) {
+    static struct PPP_Instance instance_interface = {
+      &Instance_DidCreate,
+      &Instance_DidDestroy,
+      &Instance_DidChangeView,
+      &Instance_DidChangeFocus,
+      &Instance_HandleInputEvent,
+      &Instance_HandleDocumentLoad,
+      &Instance_GetInstanceObject
+    };
     return &instance_interface;
+  } else if (strcmp(interface_name, PPP_MESSAGING_INTERFACE) == 0) {
+    static struct PPP_Messaging messaging_interface = {
+      &Messaging_HandleMessage
+    };
+    return &messaging_interface;
+  }
   return NULL;
 }
 
