@@ -19,38 +19,23 @@
 /// CreateInstance().  In this example, the returned object is a subclass of
 /// ScriptableObject, which handles the scripting support.
 
-#include <ppapi/cpp/instance.h>
-#include <ppapi/cpp/module.h>
-#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
-#include <ppapi/cpp/var.h>
 #include <cstdio>
+#include <cstring>
 #include <string>
-#include <algorithm>  // for reverse
-
 #include "examples/hello_world/helper_functions.h"
-
-namespace {
-// Helper function to set the scripting exception.  Both |exception| and
-// |except_string| can be NULL.  If |exception| is NULL, this function does
-// nothing.
-void SetExceptionString(pp::Var* exception, const std::string& except_string) {
-  if (exception) {
-    *exception = except_string;
-  }
-}
-
-// Exception strings.  These are passed back to the browser when errors
-// happen during property accesses or method calls.
-const char* const kExceptionMethodNotAString = "Method name is not a string";
-const char* const kExceptionNoMethodName = "No method named ";
-}  // namespace
+#include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/cpp/var.h"
 
 namespace hello_world {
-/// method name for ReverseText, as seen by JavaScript code.
+/// Method name for ReverseText, as seen by JavaScript code.
 const char* const kReverseTextMethodId = "reverseText";
 
-/// method name for FortyTwo, as seen by Javascript code. @see FortyTwo()
+/// Method name for FortyTwo, as seen by Javascript code. @see FortyTwo()
 const char* const kFortyTwoMethodId = "fortyTwo";
+
+/// Separator character for the reverseText method.
+static const char kMessageArgumentSeparator = ':';
 
 /// This is the module's function that invokes FortyTwo and converts the return
 /// value from an int32_t to a pp::Var for return.
@@ -65,76 +50,8 @@ pp::Var MarshallFortyTwo() {
 /// On good input, it calls ReverseText and returns the result.  The
 /// ScriptableObject that called this function returns this string back to the
 /// browser as a JavaScript value.
-pp::Var MarshallReverseText(const std::vector<pp::Var>& args) {
-  // There should be exactly one arg, which should be an object
-  if (args.size() != 1) {
-    printf("Unexpected number of args\n");
-    return "Unexpected number of args";
-  }
-  if (!args[0].is_string()) {
-    printf("Arg %s is NOT a string\n", args[0].DebugString().c_str());
-    return "Arg from Javascript is not a string!";
-  }
-  return pp::Var(ReverseText(args[0].AsString()));
-}
-
-/// This class exposes the scripting interface for this NaCl module.  The
-/// HasMethod() method is called by the browser when executing a method call on
-/// the @a helloWorldModule object (see the reverseText() function in
-/// hello_world.html).  The name of the JavaScript function (e.g. "fortyTwo") is
-/// passed in the @a method parameter as a string pp::Var.  If HasMethod()
-/// returns @a true, then the browser will call the Call() method to actually
-/// invoke the method.
-class HelloWorldScriptableObject : public pp::deprecated::ScriptableObject {
- public:
-  /// Determines whether a given method is implemented in this object.
-  /// @param[in] method A JavaScript string containing the method name to check
-  /// @param exception Unused
-  /// @return @a true if @a method is one of the exposed method names.
-  virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
-
-  /// Invoke the function associated with @a method.  The argument list passed
-  /// via JavaScript is marshaled into a vector of pp::Vars.  None of the
-  /// functions in this example take arguments, so this vector is always empty.
-  /// @param[in] method A JavaScript string with the name of the method to call
-  /// @param[in] args A list of the JavaScript parameters passed to this method
-  /// @param exception unused
-  /// @return the return value of the invoked method
-  virtual pp::Var Call(const pp::Var& method,
-                       const std::vector<pp::Var>& args,
-                       pp::Var* exception);
-};
-
-bool HelloWorldScriptableObject::HasMethod(const pp::Var& method,
-                                           pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return false;
-  }
-  std::string method_name = method.AsString();
-  return method_name == kReverseTextMethodId ||
-      method_name == kFortyTwoMethodId;
-}
-
-pp::Var HelloWorldScriptableObject::Call(const pp::Var& method,
-                                         const std::vector<pp::Var>& args,
-                                         pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return pp::Var();
-  }
-  std::string method_name = method.AsString();
-  if (method_name == kReverseTextMethodId) {
-    // note that the vector of pp::Var |args| is passed to ReverseText
-    return MarshallReverseText(args);
-  } else if (method_name == kFortyTwoMethodId) {
-    // note that no arguments are passed in to FortyTwo.
-    return MarshallFortyTwo();
-  } else {
-    SetExceptionString(exception,
-                       std::string(kExceptionNoMethodName) + method_name);
-  }
-  return pp::Var();
+pp::Var MarshallReverseText(const std::string& text) {
+  return pp::Var(ReverseText(text));
 }
 
 /// The Instance class.  One of these exists for each instance of your NaCl
@@ -154,14 +71,40 @@ class HelloWorldInstance : public pp::Instance {
   explicit HelloWorldInstance(PP_Instance instance) : pp::Instance(instance) {}
   virtual ~HelloWorldInstance() {}
 
-  /// @return a new pp::deprecated::ScriptableObject as a JavaScript @a Var
-  /// @note The pp::Var takes over ownership of the HelloWorldScriptableObject
-  ///       and is responsible for deallocating memory.
-  virtual pp::Var GetInstanceObject() {
-    HelloWorldScriptableObject* hw_object = new HelloWorldScriptableObject();
-    return pp::Var(this, hw_object);
-  }
+  /// Called by the browser to handle the postMessage() call in Javascript.
+  /// Detects which method is being called from the message contents, and
+  /// calls the appropriate function.  Posts the result back to the browser
+  /// asynchronously.
+  /// @param[in] var_message The message posted by the browser.  The possible
+  ///     messages are 'fortyTwo' and 'reverseText:Hello World'.  Note that
+  ///     the 'reverseText' form contains the string to reverse following a ':'
+  ///     separator.
+  virtual void HandleMessage(const pp::Var& var_message);
 };
+
+void HelloWorldInstance::HandleMessage(const pp::Var& var_message) {
+  if (!var_message.is_string()) {
+    return;
+  }
+  std::string message = var_message.AsString();
+  pp::Var return_var;
+  if (message == kFortyTwoMethodId) {
+    // Note that no arguments are passed in to FortyTwo.
+    return_var = MarshallFortyTwo();
+  } else if (message.find(kReverseTextMethodId) == 0) {
+    // The argument to reverseText is everything after the first ':'.
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string string_arg = message.substr(sep_pos + 1);
+      return_var = MarshallReverseText(string_arg);
+    }
+  }
+  // Post the return result back to the browser.  Note that HandleMessage() is
+  // always called on the main thread, so it's OK to post the return message
+  // directly from here.  The return post is asynhronous: PostMessage returns
+  // immediately.
+  PostMessage(return_var);
+}
 
 /// The Module class.  The browser calls the CreateInstance() method to create
 /// an instance of you NaCl module on the web page.  The browser creates a new

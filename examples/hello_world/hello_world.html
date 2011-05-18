@@ -12,9 +12,19 @@
     helloWorldModule = null;  // Global application object.
     statusText = 'NO-STATUS';
 
+    // When the NaCl module has loaded, hook up an event listener to handle
+    // messages coming from it, and then indicate success.
     function moduleDidLoad() {
       helloWorldModule = document.getElementById('hello_world');
+      // Add a message handler that accepts messages coming from the NaCl
+      // module.
+      helloWorldModule.addEventListener('message', handleMessage, false);
       updateStatus('SUCCESS');
+    }
+
+    // Handle a message coming from the NaCl module.
+    function handleMessage(message_event) {
+      alert(message_event.data);
     }
 
     // If the page loads before the Native Client module loads, then set the
@@ -38,7 +48,7 @@
 
     function fortyTwo() {
       try {
-        alert(helloWorldModule.fortyTwo());
+        helloWorldModule.postMessage('fortyTwo');
       } catch(e) {
         alert(e.message);
       }
@@ -48,7 +58,7 @@
       try {
         // Grab the text from the text box, pass it into reverseText()
         var inputBox = document.forms.helloForm.inputBox;
-        alert(helloWorldModule.reverseText(inputBox.value));
+        helloWorldModule.postMessage('reverseText:' + inputBox.value);
       } catch(e) {
         alert(e.message);
       }
@@ -90,6 +100,11 @@
   ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
   To load the debug versions of your .nexes, set the 'src' attribute to the
   _dbg.nmf version of the manifest file.
+
+  Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+  event listener attached.  This method is used instead of attaching the 'load'
+  event listener directly to the <EMBED> element to ensure that the listener
+  is active before the NaCl module 'load' event fires.
   -->
   <div id="listener">
     <script type="text/javascript">
