@@ -1,17 +1,17 @@
-// Copyright 2010 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "examples/pi_generator/pi_generator.h"
 
-#include <ppapi/cpp/completion_callback.h>
-#include <ppapi/cpp/var.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <cassert>
 #include <cmath>
 #include <cstring>
+#include <string>
+#include "ppapi/cpp/completion_callback.h"
+#include "ppapi/cpp/var.h"
 
 namespace {
 const int kPthreadMutexSuccess = 0;
@@ -24,21 +24,7 @@ const uint32_t kBlueMask = 0xff;
 const uint32_t kRedShift = 16;
 const uint32_t kBlueShift = 0;
 
-// Helper function to set the scripting exception.  Both |exception| and
-// |except_string| can be NULL.  If |exception| is NULL, this function does
-// nothing.
-void SetExceptionString(pp::Var* exception, const std::string& except_string) {
-  if (exception) {
-    *exception = except_string;
-  }
-}
-
-// Exception strings.  These are passed back to the browser when errors
-// happen during property accesses or method calls.
-const char* const kExceptionMethodNotAString = "Method name is not a string";
-const char* const kExceptionNoMethodName = "No method named ";
-
-// This is called by the brower when the 2D context has been flushed to the
+// This is called by the browser when the 2D context has been flushed to the
 // browser window.
 void FlushCallback(void* data, int32_t result) {
   static_cast<pi_generator::PiGenerator*>(data)->set_flush_pending(false);
@@ -131,11 +117,6 @@ void PiGenerator::DidChangeView(const pp::Rect& position,
   }
 }
 
-pp::Var PiGenerator::GetInstanceObject() {
-  PiGeneratorScriptObject* script_object = new PiGeneratorScriptObject(this);
-  return pp::Var(this, script_object);
-}
-
 bool PiGenerator::Init(uint32_t argc, const char* argn[], const char* argv[]) {
   pthread_create(&compute_pi_thread_, NULL, ComputePi, this);
   return true;
@@ -153,17 +134,33 @@ uint32_t* PiGenerator::LockPixels() {
   return reinterpret_cast<uint32_t*>(pixels);
 }
 
+void PiGenerator::HandleMessage(const pp::Var& var_message) {
+  if (!var_message.is_string()) {
+    PostMessage(pp::Var(kInvalidPiValue));
+  }
+  std::string message = var_message.AsString();
+  if (message == kPaintMethodId) {
+    Paint();
+  } else {
+    PostMessage(pp::Var(kInvalidPiValue));
+  }
+}
+
 void PiGenerator::UnlockPixels() const {
   pthread_mutex_unlock(&pixel_buffer_mutex_);
 }
 
-pp::Var PiGenerator::Paint() {
+void PiGenerator::Paint() {
   ScopedMutexLock scoped_mutex(&pixel_buffer_mutex_);
   if (!scoped_mutex.is_valid()) {
-    return pp::Var(kInvalidPiValue);
+    return;
   }
   FlushPixelBuffer();
-  return pp::Var(pi());
+  // Post the current estimate of Pi back to the browser.
+  pp::Var pi_estimate(pi());
+  // Paint() is called on the main thread, so no need for CallOnMainThread()
+  // here.  It's OK to just post the message.
+  PostMessage(pi_estimate);
 }
 
 void PiGenerator::CreateContext(const pp::Size& size) {
@@ -200,35 +197,6 @@ void PiGenerator::FlushPixelBuffer() {
     return;
   set_flush_pending(true);
   graphics_2d_context_->Flush(pp::CompletionCallback(&FlushCallback, this));
-}
-
-bool PiGenerator::PiGeneratorScriptObject::HasMethod(
-    const pp::Var& method,
-    pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return false;
-  }
-  std::string method_name = method.AsString();
-  return method_name == kPaintMethodId;
-}
-
-pp::Var PiGenerator::PiGeneratorScriptObject::Call(
-    const pp::Var& method,
-    const std::vector<pp::Var>& args,
-    pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return false;
-  }
-  std::string method_name = method.AsString();
-  if (app_instance_ != NULL && method_name == kPaintMethodId) {
-    return app_instance_->Paint();
-  } else {
-    SetExceptionString(exception,
-                       std::string(kExceptionNoMethodName) + method_name);
-  }
-  return pp::Var();
 }
 
 void* PiGenerator::ComputePi(void* param) {

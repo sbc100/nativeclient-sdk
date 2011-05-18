@@ -2,7 +2,7 @@
           "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <!--
-  Copyright (c) 2010 The Native Client Authors. All rights reserved.
+  Copyright (c) 2011 The Native Client Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
   found in the LICENSE file.
   -->
@@ -12,10 +12,19 @@
       var piGenerator = null;
       var paintInterval = null;
 
+      // When the NaCl module has loaded, hook up an event listener to handle
+      // messages coming from it, and start up the paint timer.
       function moduleDidLoad() {
         piGenerator = document.getElementById('piGenerator');
-        paintInterval = setInterval(
-            "document.form.pi.value = piGenerator.paint()", 5);
+        piGenerator.addEventListener('message', handleMessage, false);
+        paintInterval = setInterval('piGenerator.postMessage("paint")', 5);
+      }
+
+      // Handle a message coming from the NaCl module.  The message payload is
+      // assumed to contain the current estimated value of Pi.  Update the Pi
+      // text display with this value.
+      function handleMessage(message_event) {
+        document.form.pi.value = message_event.data;
       }
 
       function pageDidUnload() {
@@ -46,6 +55,11 @@
     runtime ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl
     module.  To load the debug versions of your .nexes, set the 'src'
     attribute to the _dbg.nmf version of the manifest file.
+
+    Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+    event listener attached.  This method is used instead of attaching the
+    'load' event listener directly to the <EMBED> element to ensure that the
+    listener is active before the NaCl module 'load' event fires.
     -->
     <div id="listener">
       <script type="text/javascript">

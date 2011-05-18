@@ -1,26 +1,24 @@
-// Copyright 2010 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#ifndef EXAMPLES_PI_GENERATOR_H_
-#define EXAMPLES_PI_GENERATOR_H_
+#ifndef EXAMPLES_PI_GENERATOR_PI_GENERATOR_H_
+#define EXAMPLES_PI_GENERATOR_PI_GENERATOR_H_
 
-#include <ppapi/cpp/graphics_2d.h>
-#include <ppapi/cpp/image_data.h>
-#include <ppapi/cpp/instance.h>
-#include <ppapi/cpp/rect.h>
-#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
-#include <ppapi/cpp/size.h>
 #include <pthread.h>
-
 #include <map>
 #include <vector>
+#include "ppapi/cpp/graphics_2d.h"
+#include "ppapi/cpp/image_data.h"
+#include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/rect.h"
+#include "ppapi/cpp/size.h"
 
 namespace pi_generator {
 
 // The Instance class.  One of these exists for each instance of your NaCl
 // module on the web page.  The browser will ask the Module object to create
-// a new Instance for each occurence of the <embed> tag that has these
+// a new Instance for each occurrence of the <embed> tag that has these
 // attributes:
 //     type="application/x-nacl"
 //     nacl="pi_generator.nmf"
@@ -37,12 +35,16 @@ class PiGenerator : public pp::Instance {
   // Start up the ComputePi() thread.
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
 
-  // Update the graphcs context to the new size, and regnerate |pixel_buffer_|
+  // Update the graphics context to the new size, and regenerate |pixel_buffer_|
   // to fit the new size as well.
   virtual void DidChangeView(const pp::Rect& position, const pp::Rect& clip);
 
-  // The pp::Var takes over ownership of the returned script object.
-  virtual pp::Var GetInstanceObject();
+  // Called by the browser to handle the postMessage() call in Javascript.
+  // The message in this case is expected to contain the string 'paint', and
+  // if so this invokes the Paint() function.  If |var_message| is not a string
+  // type, or contains something other than 'paint', this method posts an
+  // invalid value for Pi (-1.0) back to the browser.
+  virtual void HandleMessage(const pp::Var& var_message);
 
   // Return a pointer to the pixels represented by |pixel_buffer_|.  When this
   // method returns, the underlying |pixel_buffer_| object is locked.  This
@@ -54,10 +56,10 @@ class PiGenerator : public pp::Instance {
 
   // Flushes its contents of |pixel_buffer_| to the 2D graphics context.  The
   // ComputePi() thread fills in |pixel_buffer_| pixels as it computes Pi.
-  // This method is called in response to the "paint()" method being called
-  // from JavaScript.  Returns the current value of pi as computed by the
-  // Monte Carlo method.
-  pp::Var Paint();
+  // This method is called by HandleMessage when a message containing 'paint'
+  // is received.  Echos the current value of pi as computed by the Monte Carlo
+  // method by posting the value back to the browser.
+  void Paint();
 
   bool quit() const {
     return quit_;
@@ -85,32 +87,6 @@ class PiGenerator : public pp::Instance {
   }
 
  private:
-  // This class exposes the scripting interface for this NaCl module.  The
-  // HasMethod method is called by the browser when executing a method call on
-  // the |piGenerator| object (see, e.g. the paint() function in
-  // pi_generator.html).  The name of the JavaScript function (e.g. "paint") is
-  // passed in the |method| paramter as a string pp::Var.  If HasMethod()
-  // returns |true|, then the browser will call the Call() method to actually
-  // invoke the method.
-  class PiGeneratorScriptObject : public pp::deprecated::ScriptableObject {
-   public:
-    explicit PiGeneratorScriptObject(PiGenerator* app_instance)
-        : pp::deprecated::ScriptableObject(),
-          app_instance_(app_instance) {}
-    virtual ~PiGeneratorScriptObject() {}
-    // Return |true| if |method| is one of the exposed method names.
-    virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
-
-    // Invoke the function associated with |method|.  The argument list passed
-    // in via JavaScript is marshaled into a vector of pp::Vars.  None of the
-    // functions in this example take arguments, so this vector is always empty.
-    virtual pp::Var Call(const pp::Var& method,
-                         const std::vector<pp::Var>& args,
-                         pp::Var* exception);
-   private:
-    PiGenerator* app_instance_;  // weak reference.
-  };
-
   // Create and initialize the 2D context used for drawing.
   void CreateContext(const pp::Size& size);
   // Destroy the 2D drawing context.
@@ -142,4 +118,5 @@ class PiGenerator : public pp::Instance {
 
 }  // namespace pi_generator
 
-#endif  // EXAMPLES_PI_GENERATOR_H_
+#endif  // EXAMPLES_PI_GENERATOR_PI_GENERATOR_H_
+
