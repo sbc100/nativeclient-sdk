@@ -166,6 +166,9 @@ def main(argv):
     for rm_file in rm_files:
       os.remove(rm_file)
 
+  # Update the README file with date and version number
+  build_utils.UpdateReadMe(os.path.join(installer_dir, 'README'))
+
   bot.BuildStep('create archive')
   bot.Print('generate_installers is creating the installer archive')
   # Now that the SDK directory is copied and cleaned out, tar it all up using

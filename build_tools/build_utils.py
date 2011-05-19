@@ -7,7 +7,9 @@
 installers.
 """
 
+import datetime
 import errno
+import fileinput
 import os
 import re
 import shutil
@@ -183,12 +185,17 @@ def GetVersionNumbers():
   return [MAJOR_REV, MINOR_REV, rev]
 
 
-# Note that this function has to be run from within a subversion working copy,
-# or a git repository that is based on a subversion parent.
 def SVNRevision():
-  p = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE)
+  '''Returns the Subversion revision of this file.
+
+  This file either needs to be in either a subversion repository or
+  a git repository that is sync'd to a subversion repository using git-svn.'''
+  run_path = os.path.dirname(os.path.abspath(__file__))
+  p = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE,
+                       cwd=run_path)
   if p.wait() != 0:
-    p = subprocess.Popen('git svn info', shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen('git svn info', shell=True, stdout=subprocess.PIPE,
+                         cwd=run_path)
     if p.wait() != 0:
       raise AssertionError('Cannot determine SVN revision of this repository');
 
@@ -197,7 +204,7 @@ def SVNRevision():
   if m:
     return int(m.group(1))
   else:
-    return 0
+    raise AssertionError('Cannot extract revision number from svn info')
 
 
 def VersionString():
@@ -223,3 +230,11 @@ class BotAnnotator:
     self.Print("@@@BUILD_STEP %s@@@" % name)
 
   #TODO(mball) Add the other possible build annotations, as needed
+
+
+def UpdateReadMe(filename):
+  '''Updates the README file in the SDK with the current date and version'''
+
+  for line in fileinput.input(filename, inplace=1):
+    sys.stdout.write(line.replace('${VERSION}', RawVersion())
+                     .replace('${DATE}', str(datetime.date.today())))

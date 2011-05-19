@@ -12,6 +12,9 @@ The general structure is as follows:
  3. Remove the installer directory
 """
 
+from __future__ import with_statement
+
+import datetime
 import optparse
 import os
 import shutil
@@ -39,15 +42,33 @@ def TestingClosure(_outdir, _jobs):
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
 
-    def testExamples(self):
-      '''Performs simple testing on the installed SDK'''
+    def testBuildExamples(self):
+      '''Verify that we can build the SDK examples.'''
 
       scons = 'scons.bat' if sys.platform == 'win32' else 'scons'
       path = os.path.join(_outdir, 'examples')
       command = [os.path.join(path, scons), '-j', _jobs]
 
       annotator.Print('Running %s in %s' % (command, path))
-      subprocess.check_call(command, cwd=path, shell=True)
+      subprocess.check_call(' '.join(command), cwd=path, shell=True)
+      return True
+
+    def testReadMe(self):
+      '''Check that the current build version and date are in the README file'''
+
+      filename = 'README.txt' if sys.platform == 'win32' else 'README'
+      with open(os.path.join(_outdir, filename), 'r') as file:
+        contents = file.read()
+      self.assertEqual(1, contents.count(build_utils.RawVersion()))
+
+      # Check that the README contains either the current date or yesterday's
+      # date (which happens when building over midnight)
+      self.assertEqual(
+          1,
+          contents.count(str(datetime.date.today())) +
+          contents.count(str(datetime.date.today() -
+                             datetime.timedelta(days=1))),
+          "Cannot find today's or yesterday's date in README")
       return True
 
   return TestSDK

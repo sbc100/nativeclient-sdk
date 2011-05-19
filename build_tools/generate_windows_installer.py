@@ -145,6 +145,9 @@ def main(argv):
     with open(copy_target_file, "wb") as dest_file:
       dest_file.write(text)
 
+  # Update the README.txt file with date and version number
+  build_utils.UpdateReadMe(os.path.join(installer_dir, 'README.txt'))
+
   # Clean out the cruft.
   bot.Print('generate_windows_installer: cleaning up installer directory.')
 
