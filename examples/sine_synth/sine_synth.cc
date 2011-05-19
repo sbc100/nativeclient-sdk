@@ -2,230 +2,70 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <ppapi/cpp/audio.h>
-#include <ppapi/cpp/instance.h>
-#include <ppapi/cpp/module.h>
-#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
-#include <ppapi/cpp/var.h>
-
 #include <cassert>
 #include <cmath>
 #include <limits>
 #include <sstream>
+#include "ppapi/cpp/audio.h"
+#include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/cpp/var.h"
 
 namespace {
 const char* const kPlaySoundId = "playSound";
 const char* const kStopSoundId = "stopSound";
-const char* const kFrequencyId = "frequency";
+const char* const kSetFrequencyId = "setFrequency";
+static const char kMessageArgumentSeparator = ':';
+
+const double kDefaultFrequency = 440.0;
 const double kPi = 3.141592653589;
 const double kTwoPi = 2.0 * kPi;
 // The sample count we will request.
 const uint32_t kSampleFrameCount = 4096u;
 // Only supporting stereo audio for now.
 const uint32_t kChannels = 2u;
-
-// Helper function to set the scripting exception.  Both |exception| and
-// |except_string| can be NULL.  If |exception| is NULL, this function does
-// nothing.
-void SetExceptionString(pp::Var* exception, const std::string& except_string) {
-  if (exception) {
-    *exception = except_string;
-  }
-}
-
-// Exception strings.  These are passed back to the browser when errors
-// happen during property accesses or method calls.
-const char* const kExceptionMethodNotAString = "Method name is not a string";
-const char* const kExceptionNoMethodName = "No method named ";
-const char* const kExceptionPropertyNotAString =
-    "Property name is not a string";
-const char* const kExceptionNoPropertyName = "No property named ";
-const char* const kExceptionNotANumber = "Expected a number value for ";
 }  // namespace
 
 namespace sine_synth {
-// This class exposes the scripting interface for this NaCl module.  The
-// HasMethod method is called by the browser when executing a method call on
-// the |sineSynth| object (see, e.g. the moduleDidLoad() function in
-// sine_synth.html).  The name of the JavaScript function (e.g. "playSound") is
-// passed in the |method| paramter as a string pp::Var.  If HasMethod()
-// returns |true|, then the browser will call the Call() method to actually
-// invoke the method.
-class SineSynthScriptableObject : public pp::deprecated::ScriptableObject {
- public:
-  // Single parameter ctor that recives a weak reference to an audio device.
-  explicit SineSynthScriptableObject(pp::Audio* audio)
-      : pp::deprecated::ScriptableObject(), audio_(audio), frequency_(440) {}
-  // Return |true| if |method| is one of the exposed method names.
-  virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
-  // Return |true| if |property| is one of the exposed properties.
-  virtual bool HasProperty(const pp::Var& property, pp::Var* exception);
-
-  // Invoke the function associated with |method|.  The argument list passed in
-  // via JavaScript is marshaled into a vector of pp::Vars.  None of the
-  // functions in this example take arguments, so this vector is always empty.
-  virtual pp::Var Call(const pp::Var& method,
-                       const std::vector<pp::Var>& args,
-                       pp::Var* exception);
-  // Assign the value of the property associated with |property|.  |value| is
-  // the new value of the property.
-  virtual void SetProperty(const pp::Var& property,
-                           const pp::Var& value,
-                           pp::Var* exception);
-  // Return the value of the property associated with the name |property|.
-  virtual pp::Var GetProperty(const pp::Var& property,
-                           pp::Var* exception);
-
-  double frequency() const { return frequency_; }
-  void set_frequency(double frequency) {
-    frequency_ = frequency;
-  }
-
- private:
-  bool PlaySound() {
-    audio_->StartPlayback();
-    return true;
-  }
-  bool StopSound() {
-    audio_->StopPlayback();
-    return true;
-  }
-
-  pp::Audio* const audio_;  // weak
-  double frequency_;
-};
-
-pp::Var SineSynthScriptableObject::Call(const pp::Var& method,
-                                        const std::vector<pp::Var>& args,
-                                        pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return pp::Var();
-  }
-  const std::string method_name = method.AsString();
-  if (method_name == kPlaySoundId) {
-    return pp::Var(PlaySound());
-  } else if (method_name == kStopSoundId) {
-    return pp::Var(StopSound());
-  } else {
-    SetExceptionString(exception,
-                       std::string(kExceptionNoMethodName) + method_name);
-  }
-  return pp::Var();
-}
-
-bool SineSynthScriptableObject::HasMethod(const pp::Var& method,
-                                          pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return false;
-  }
-  const std::string method_name = method.AsString();
-  return method_name == kPlaySoundId || method_name == kStopSoundId;
-}
-
-bool SineSynthScriptableObject::HasProperty(const pp::Var& property,
-                                            pp::Var* exception) {
-  if (!property.is_string()) {
-    SetExceptionString(exception, kExceptionPropertyNotAString);
-    return false;
-  }
-  const std::string property_name = property.AsString();
-  return property_name == kFrequencyId;
-}
-
-void SineSynthScriptableObject::SetProperty(const pp::Var& property,
-                                            const pp::Var& value,
-                                            pp::Var* exception) {
-  if (!property.is_string()) {
-    SetExceptionString(exception, kExceptionPropertyNotAString);
-    return;
-  }
-  std::string property_name = property.AsString();
-  if (property_name == kFrequencyId) {
-    // The value could come to us as an int32_t or a double, so we use pp::Var's
-    // is_number function which returns true when it's either kind of number.
-    if (value.is_number()) {
-      // And we get the value as an int32_t, and pp::Var does the conversion for
-      // us, if one is necessary.
-      set_frequency(value.AsDouble());
-      return;
-    } else if (value.is_string()) {
-      // We got the value as a string.  We'll try to convert it to a number.
-      std::istringstream stream(value.AsString());
-      double double_value;
-      if (stream >> double_value) {
-        set_frequency(double_value);
-        return;
-      } else {
-        std::string error_msg("Expected a number value for ");
-        error_msg += kFrequencyId;
-        error_msg += ".  Instead, got a non-numeric string: ";
-        error_msg += value.AsString();
-        SetExceptionString(exception, error_msg);
-        return;
-      }
-      SetExceptionString(exception,
-                         std::string(kExceptionNotANumber) + kFrequencyId);
-      return;
-    }
-  }
-  SetExceptionString(exception,
-                     std::string(kExceptionNoPropertyName) + property_name);
-}
-
-pp::Var SineSynthScriptableObject::GetProperty(const pp::Var& property,
-                                               pp::Var* exception) {
-  if (!property.is_string()) {
-    SetExceptionString(exception, kExceptionPropertyNotAString);
-    return pp::Var();
-  }
-  std::string property_name = property.AsString();
-  if (property_name == kFrequencyId) {
-    return pp::Var(frequency());
-  }
-  SetExceptionString(exception,
-                     std::string(kExceptionNoPropertyName) + property_name);
-  return pp::Var();
-}
-
 // The Instance class.  One of these exists for each instance of your NaCl
 // module on the web page.  The browser will ask the Module object to create
-// a new Instance for each occurence of the <embed> tag that has these
+// a new Instance for each occurrence of the <embed> tag that has these
 // attributes:
 //     type="application/x-nacl"
-//     nacl="sine_synth.nmf"
-//
-// The Instance can return a ScriptableObject representing itself.  When the
-// browser encounters JavaScript that wants to access the Instance, it calls
-// the GetInstanceObject() method.  All the scripting work is done though
-// the returned ScriptableObject.
+//     src="sine_synth.nmf"
 class SineSynthInstance : public pp::Instance {
  public:
   explicit SineSynthInstance(PP_Instance instance)
-      : pp::Instance(instance), theta_(0), scriptable_object_(NULL),
+      : pp::Instance(instance),
+        frequency_(kDefaultFrequency),
+        theta_(0),
         sample_frame_count_(kSampleFrameCount) {}
   virtual ~SineSynthInstance() {}
 
-  // The pp::Var takes over ownership of the SineSynthScriptableObject.
-  virtual pp::Var GetInstanceObject() {
-    scriptable_object_ =
-        new SineSynthScriptableObject(&audio_);
-    return pp::Var(this, scriptable_object_);
-  }
-  virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]) {
-    // Ask the device for an appropriate sample count size.
-    sample_frame_count_ =
-        pp::AudioConfig::RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100,
-                                                   kSampleFrameCount);
-    audio_ = pp::Audio(
-        this,
-        pp::AudioConfig(this,
-                        PP_AUDIOSAMPLERATE_44100,
-                        sample_frame_count_),
-        SineWaveCallback, this);
-    return true;
-  }
+  // Called by the browser once the NaCl module is loaded and ready to
+  // initialize.  Creates a Pepper audio context and initializes it. Returns
+  // true on success.  Returning false causes the NaCl module to be deleted and
+  // no other functions to be called.
+  virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
+
+  // Called by the browser to handle the postMessage() call in Javascript.
+  // |var_message| is expected to be a string that contains the name of the
+  // method to call.  Note that the setFrequency method takes a single
+  // parameter, the frequency.  The frequency parameter is encoded as a string
+  // and appended to the 'setFrequency' method name after a ':'.  Examples
+  // of possible message strings are:
+  //     playSound
+  //     stopSound
+  //     setFrequency:880
+  // If |var_message| is not a recognized method name, this method does nothing.
+  virtual void HandleMessage(const pp::Var& var_message);
+
+  // Set the frequency of the sine wave to |frequency|.  Posts a message back
+  // to the browser with the new frequency value.
+  void SetFrequency(double frequency);
+
+  // The frequency property accessor.
+  double frequency() const { return frequency_; }
 
  private:
   static void SineWaveCallback(void* samples,
@@ -233,8 +73,7 @@ class SineSynthInstance : public pp::Instance {
                                void* data) {
     SineSynthInstance* sine_synth_instance =
         reinterpret_cast<SineSynthInstance*>(data);
-    const double frequency =
-        sine_synth_instance->scriptable_object_->frequency();
+    const double frequency = sine_synth_instance->frequency();
     const double delta = kTwoPi * frequency / PP_AUDIOSAMPLERATE_44100;
     const int16_t max_int16 = std::numeric_limits<int16_t>::max();
 
@@ -258,22 +97,67 @@ class SineSynthInstance : public pp::Instance {
       }
     }
   }
-  // Audio resource. Allocated in Init()
+
   pp::Audio audio_;
+  double frequency_;
 
   // The last parameter sent to the sin function.  Used to prevent sine wave
   // skips on buffer boundaries.
   double theta_;
 
-  SineSynthScriptableObject* scriptable_object_;
-
   // The count of sample frames per channel in an audio buffer.
   uint32_t sample_frame_count_;
 };
 
+bool SineSynthInstance::Init(uint32_t argc,
+                             const char* argn[],
+                             const char* argv[]) {
+  // Ask the device for an appropriate sample count size.
+  sample_frame_count_ =
+      pp::AudioConfig::RecommendSampleFrameCount(PP_AUDIOSAMPLERATE_44100,
+                                                 kSampleFrameCount);
+  audio_ = pp::Audio(this,
+                     pp::AudioConfig(this,
+                                     PP_AUDIOSAMPLERATE_44100,
+                                     sample_frame_count_),
+                     SineWaveCallback,
+                     this);
+  return true;
+}
+
+void SineSynthInstance::HandleMessage(const pp::Var& var_message) {
+  if (!var_message.is_string()) {
+    return;
+  }
+  std::string message = var_message.AsString();
+  if (message == kPlaySoundId) {
+    audio_.StartPlayback();
+  } else if (message == kStopSoundId) {
+    audio_.StopPlayback();
+  } else if (message.find(kSetFrequencyId) == 0) {
+    // The argument to setFrequency is everything after the first ':'.
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string string_arg = message.substr(sep_pos + 1);
+      // Got the argument value as a string: try to convert it to a number.
+      std::istringstream stream(string_arg);
+      double double_value;
+      if (stream >> double_value) {
+        SetFrequency(double_value);
+        return;
+      }
+    }
+  }
+}
+
+void SineSynthInstance::SetFrequency(double frequency) {
+  frequency_ = frequency;
+  PostMessage(pp::Var(frequency_));
+}
+
 // The Module class.  The browser calls the CreateInstance() method to create
-// an instance of you NaCl module on the web page.  The browser creates a new
-// instance for each <embed> tag with type="application/x-ppapi-nacl-srpc".
+// an instance of your NaCl module on the web page.  The browser creates a new
+// instance for each <embed> tag with type="application/x-nacl".
 class SineSynthModule : public pp::Module {
  public:
   SineSynthModule() : pp::Module() {}
