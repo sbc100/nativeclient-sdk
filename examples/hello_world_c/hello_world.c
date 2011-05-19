@@ -12,12 +12,10 @@
 #include <string.h>
 
 #include "ppapi/c/dev/ppb_var_deprecated.h"
-#include "ppapi/c/pp_completion_callback.h"
 #include "ppapi/c/pp_errors.h"
 #include "ppapi/c/pp_module.h"
 #include "ppapi/c/pp_var.h"
 #include "ppapi/c/ppb.h"
-#include "ppapi/c/ppb_core.h"
 #include "ppapi/c/ppb_instance.h"
 #include "ppapi/c/ppb_messaging.h"
 #include "ppapi/c/ppp.h"
@@ -34,8 +32,8 @@ static const char* const kFortyTwoMethodId = "fortyTwo";
 static const char kMessageArgumentSeparator = ':';
 static const char kNullTerminator = '\0';
 
-struct PPB_Messaging* ppb_messaging_interface = NULL;
-struct PPB_Var_Deprecated* ppb_var_interface = NULL;
+static struct PPB_Messaging* ppb_messaging_interface = NULL;
+static struct PPB_Var_Deprecated* ppb_var_interface = NULL;
 static PP_Module module_id = 0;
 
 
@@ -183,9 +181,9 @@ static void Instance_DidChangeFocus(PP_Instance instance,
  * If the event was handled, it will not be forwarded to the web page or
  * browser. If it was not handled, it will bubble according to the normal
  * rules. So it is important that the NaCl module respond accurately with
- * whether event propogation should continue.
+ * whether event propagation should continue.
  *
- * Event propogation also controls focus. If you handle an event like a mouse
+ * Event propagation also controls focus. If you handle an event like a mouse
  * event, typically your NaCl module will be given focus. Returning false means
  * that the click will be given to a lower part of the page and your NaCl
  * module will not receive focus. This allows a plugin to be partially
@@ -222,7 +220,7 @@ static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
  * Create scriptable object for the given instance.  This style of scripting
  * has been deprecated, so this routine always returns an undefined object.
  * @param[in] instance The instance ID.
- * @return A scriptable object, always an undefind object.
+ * @return A scriptable object, always an undefined object.
  */
 static struct PP_Var Instance_GetInstanceObject(PP_Instance instance) {
   return PP_MakeUndefined();
@@ -277,7 +275,7 @@ void Messaging_HandleMessage(PP_Instance instance, struct PP_Var var_message) {
 }
 
 /**
- * Entrypoints for the module.
+ * Entry points for the module.
  * Initialize needed interfaces: PPB_Core, PPB_Messaging and PPB_Var.
  * @param[in] a_module_id module ID
  * @param[in] get_browser pointer to PPB_GetInterface
