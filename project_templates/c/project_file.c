@@ -4,69 +4,56 @@
  */
 #include <stdlib.h>
 #include <string.h>
-#include <ppapi/c/dev/ppb_var_deprecated.h>
-#include <ppapi/c/dev/ppp_class_deprecated.h>
-#include <ppapi/c/pp_errors.h>
-#include <ppapi/c/pp_module.h>
-#include <ppapi/c/pp_var.h>
-#include <ppapi/c/ppb.h>
-#include <ppapi/c/ppb_instance.h>
-#include <ppapi/c/ppp.h>
-#include <ppapi/c/ppp_instance.h>
-
-
-/* A method consists of a const char* for the method ID, and the method's
-   declaration and implementation.*/
-/* TODO(sdk_user): 1.  Add the declarations of your method IDs. */
-
-/* TODO(sdk_user): 2. Implement the methods that correspond to your method
-   IDs. */
+#include "ppapi/c/dev/ppb_var_deprecated.h"
+#include "ppapi/c/pp_errors.h"
+#include "ppapi/c/pp_module.h"
+#include "ppapi/c/pp_var.h"
+#include "ppapi/c/ppb.h"
+#include "ppapi/c/ppb_instance.h"
+#include "ppapi/c/ppb_messaging.h"
+#include "ppapi/c/ppp.h"
+#include "ppapi/c/ppp_instance.h"
+#include "ppapi/c/ppp_messaging.h"
 
 /* Note to the user: This glue code reflects the current state of affairs.  It
-   may change.  In particular, interface elements marked as deprecated will
-   disappear sometime in the near future and replaced with more elegant
-   interfaces.  As of the time of this writing, the new interfaces are not
-   available so we have to provide this code as it is written below. */
-static PP_Bool Instance_DidCreate(PP_Instance instance,
-                                  uint32_t argc,
-                                  const char* argn[],
-                                  const char* argv[]);
-static void Instance_DidDestroy(PP_Instance instance);
-static void Instance_DidChangeView(PP_Instance instance,
-                                   const struct PP_Rect* position,
-                                   const struct PP_Rect* clip);
-static void Instance_DidChangeFocus(PP_Instance instance,
-                                    PP_Bool has_focus);
-static PP_Bool Instance_HandleInputEvent(PP_Instance instance,
-                                         const struct PP_InputEvent* event);
-static struct PP_Var Instance_GetInstanceObject(PP_Instance instance);
+ * may change.  In particular, interface elements marked as deprecated will
+ * disappear sometime in the near future and replaced with more elegant
+ * interfaces.  As of the time of this writing, the new interfaces are not
+ * available so we have to provide this code as it is written below.
+ */
 
 static PP_Module module_id = 0;
+static struct PPB_Messaging* messaging_interface = NULL;
 static struct PPB_Var_Deprecated* var_interface = NULL;
-static struct PPP_Class_Deprecated ppp_class;
-static struct PPP_Instance instance_interface = {
-  &Instance_DidCreate,
-  &Instance_DidDestroy,
-  &Instance_DidChangeView,
-  &Instance_DidChangeFocus,
-  &Instance_HandleInputEvent,
-  NULL,  /* HandleDocumentLoad is not supported by NaCl modules. */
-  &Instance_GetInstanceObject,
-};
 
 /**
- * Returns the C string contained in the @a var or NULL if @a var is not
- * string.
+ * Returns a mutable C string contained in the @a var or NULL if @a var is not
+ * string.  This makes a copy of the string in the @a var and adds a NULL
+ * terminator.  Note that VarToUtf8() does not guarantee the NULL terminator on
+ * the returned string.  See the comments for VatToUtf8() in ppapi/c/ppb_var.h
+ * for more info.  The caller is responsible for freeing the returned memory.
  * @param[in] var PP_Var containing string.
- * @return a C string representation of @a var.
- * @note Returned pointer will be invalid after destruction of @a var.
+ * @return a mutable C string representation of @a var.
+ * @note The caller is responsible for freeing the returned string.
  */
-static const char* VarToCStr(struct PP_Var var) {
+/* TODO(sdk_user): 2. Uncomment this when you need it.  It is commented out so
+ * that the compiler doesn't complain about unused functions.
+ */
+#if 0
+static char* AllocateCStrFromVar(struct PP_Var var) {
   uint32_t len = 0;
-  if (NULL != var_interface)
-    return var_interface->VarToUtf8(var, &len);
+  if (var_interface != NULL) {
+    const char* var_c_str = var_interface->VarToUtf8(var, &len);
+    if (len > 0) {
+      char* c_str = (char*)malloc(len + 1);
+      memcpy(c_str, var_c_str, len);
+      c_str[len] = '\0';
+      return c_str;
+    }
+  }
   return NULL;
 }
+#endif
 
 /**
  * Creates a new string PP_Var from C string. The resulting object will be a
@@ -75,13 +62,16 @@ static const char* VarToCStr(struct PP_Var var) {
  * @param[in] str C string to be converted to PP_Var
  * @return PP_Var containing string.
  */
-/* TODO(sdk_user): 5. Just uncomment this when you need it.  It is commented
-   out so that the compiler doesn't error when compiling the raw stub. */
-/*static struct PP_Var StrToVar(const char* str) {
-  if (NULL != var_interface)
+/* TODO(sdk_user): 3. Uncomment this when you need it.  It is commented out so
+ * that the compiler doesn't complain about unused functions.
+ */
+#if 0
+static struct PP_Var AllocateVarFromCStr(const char* str) {
+  if (var_interface != NULL)
     return var_interface->VarFromUtf8(module_id, str, strlen(str));
   return PP_MakeUndefined();
-  }*/
+}
+#endif
 
 /**
  * Called when the NaCl module is instantiated on the web page. The identifier
@@ -167,9 +157,9 @@ static void Instance_DidChangeFocus(PP_Instance instance,
  * If the event was handled, it will not be forwarded to the web page or
  * browser. If it was not handled, it will bubble according to the normal
  * rules. So it is important that the NaCl module respond accurately with
- * whether event propogation should continue.
+ * whether event propagation should continue.
  *
- * Event propogation also controls focus. If you handle an event like a mouse
+ * Event propagation also controls focus. If you handle an event like a mouse
  * event, typically your NaCl module will be given focus. Returning false means
  * that the click will be given to a lower part of the page and your NaCl
  * module will not receive focus. This allows a plugin to be partially
@@ -187,77 +177,65 @@ static PP_Bool Instance_HandleInputEvent(PP_Instance instance,
 }
 
 /**
- * Creates the scriptable object for the given instance.  This is the type that
- * represents the interface we make available to code running in the browser.
+ * Handler that gets called after a full-frame module is instantiated based on
+ * registered MIME types.  This function is not called on NaCl modules.  This
+ * function is essentially a place-holder for the required function pointer in
+ * the PPP_Instance structure.
+ * @param[in] instance The identifier of the instance representing this NaCl
+ *     module.
+ * @param[in] url_loader A PP_Resource an open PPB_URLLoader instance.
+ * @return PP_FALSE.
+ */
+static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
+                                           PP_Resource url_loader) {
+  /* NaCl modules do not need to handle the document load function. */
+  return PP_FALSE;
+}
+
+/**
+ * Create scriptable object for the given instance.  This style of scripting
+ * has been deprecated, so this routine always returns an undefined object.
  * @param[in] instance The instance ID.
- * @return A scriptable object.
+ * @return A scriptable object, always an undefined object.
  */
 static struct PP_Var Instance_GetInstanceObject(PP_Instance instance) {
-  if (var_interface)
-    return var_interface->CreateObject(instance, &ppp_class, NULL);
   return PP_MakeUndefined();
 }
 
 /**
- * Check existence of the function associated with @a name.
- * @param[in] object unused
- * @param[in] name method name
- * @param[out] exception pointer to the exception object, unused
- * @return If the method does exist, return true.
- * If the method does not exist, return false and don't set the exception.
+ * Handler for messages coming in from the browser via postMessage.  The
+ * @a var_message can contain anything: a JSON string; a string that encodes
+ * method names and arguments; etc.  For example, you could use JSON.stringify
+ * in the browser to create a message that contains a method name and some
+ * parameters, something like this:
+ *   var json_message = JSON.stringify({ "myMethod" : "3.14159" });
+ *   nacl_module.postMessage(json_message);
+ * On receipt of this message in @a var_message, you could parse the JSON to
+ * retrieve the method name, match it to a function call, and then call it with
+ * the parameter.
+ * @param[in] instance The instance ID.
+ * @param[in] message The contents, copied by value, of the message sent from
+ *     browser via postMessage.
  */
-static bool <ProjectName>_HasMethod(void* object,
-                                 struct PP_Var name,
-                                 struct PP_Var* exception) {
-  const char* method_name = VarToCStr(name);
-  if (NULL != method_name) {
-    /* TODO(sdk_user): 3. Make this function return true if method_name is
-       equal to any of your method IDs. */
-  }
-  return false;
+void Messaging_HandleMessage(PP_Instance instance, struct PP_Var var_message) {
+  /* TODO(sdk_user): 1. Make this function handle the incoming message. */
 }
 
 /**
- * Invoke the function associated with @a name.
- * @param[in] object unused
- * @param[in] name method name
- * @param[in] argc number of arguments
- * @param[in] argv array of arguments
- * @param[out] exception pointer to the exception object, unused
- * @return If the method does exist, return true.
- */
-static struct PP_Var <ProjectName>_Call(void* object,
-                                     struct PP_Var name,
-                                     uint32_t argc,
-                                     struct PP_Var* argv,
-                                     struct PP_Var* exception) {
-  struct PP_Var v = PP_MakeUndefined();
-  const char* method_name = VarToCStr(name);
-  if (NULL != method_name) {
-    /* TODO(sdk_user): 4. Make this function call whatever method has
-       method_name as its method ID and return the result if appropriate.
-       Note that the result has to be converted to Var type here unless you
-       want to handle the conversion in the method itself. */
-  }
-  return v;
-}
-
-/**
- * Entrypoints for the module.
+ * Entry points for the module.
  * Initialize instance interface and scriptable object class.
- * @param[in] a_module_id module ID
- * @param[in] get_browser pointer to PPB_GetInterface
+ * @param[in] a_module_id Module ID
+ * @param[in] get_browser_interface Pointer to PPB_GetInterface
  * @return PP_OK on success, any other value on failure.
  */
 PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
-                                       PPB_GetInterface get_browser) {
+                                       PPB_GetInterface get_browser_interface) {
   module_id = a_module_id;
   var_interface =
-      (struct PPB_Var_Deprecated*)(get_browser(PPB_VAR_DEPRECATED_INTERFACE));
-
-  memset(&ppp_class, 0, sizeof(ppp_class));
-  ppp_class.Call = <ProjectName>_Call;
-  ppp_class.HasMethod = <ProjectName>_HasMethod;
+      (struct PPB_Var_Deprecated*)(get_browser_interface(
+          PPB_VAR_DEPRECATED_INTERFACE));
+  messaging_interface =
+      (struct PPB_Messaging*)(get_browser_interface(PPB_MESSAGING_INTERFACE));
   return PP_OK;
 }
 
@@ -268,8 +246,23 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
  * @return pointer to the interface
  */
 PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
-  if (strcmp(interface_name, PPP_INSTANCE_INTERFACE) == 0)
+  if (strcmp(interface_name, PPP_INSTANCE_INTERFACE) == 0) {
+    static struct PPP_Instance instance_interface = {
+      &Instance_DidCreate,
+      &Instance_DidDestroy,
+      &Instance_DidChangeView,
+      &Instance_DidChangeFocus,
+      &Instance_HandleInputEvent,
+      &Instance_HandleDocumentLoad,
+      &Instance_GetInstanceObject
+    };
     return &instance_interface;
+  } else if (strcmp(interface_name, PPP_MESSAGING_INTERFACE) == 0) {
+    static struct PPP_Messaging messaging_interface = {
+      &Messaging_HandleMessage
+    };
+    return &messaging_interface;
+  }
   return NULL;
 }
 

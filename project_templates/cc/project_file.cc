@@ -9,27 +9,22 @@
 /// method on the object returned by CreateModule().  It calls CreateInstance()
 /// each time it encounters an <embed> tag that references your NaCl module.
 ///
-/// When the browser encounters JavaScript that references your NaCl module, it
-/// calls the GetInstanceObject() method on the object returned from
-/// CreateInstance().  In this example, the returned object is a subclass of
-/// ScriptableObject, which handles the scripting support.
+/// The browser can talk to your NaCl module via the postMessage() Javascript
+/// function.  When you call postMessage() on your NaCl module from the browser,
+/// this becomes a call to the HandleMessage() method of your pp::Instance
+/// subclass.  You can send messages back to the browser by calling the
+/// PostMessage() method on your pp::Instance.  Note that these two methods
+/// (postMessage() in Javascript and PostMessage() in C++) are asynchronous.
+/// This means they return immediately - there is no waiting for the message
+/// to be handled.  This has implications in your program design, particularly
+/// when mutating property values that are exposed to both the browser and the
+/// NaCl module.
 
-#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
-#include <ppapi/cpp/instance.h>
-#include <ppapi/cpp/module.h>
-#include <ppapi/cpp/var.h>
 #include <cstdio>
 #include <string>
-
-/// These are the method names as JavaScript sees them.  Add any methods for
-/// your class here.
-namespace {
-// A method consists of a const char* for the method ID and the method's
-// declaration and implementation.
-// TODO(sdk_user): 1. Add the declarations of your method IDs.
-
-// TODO(sdk_user): 2. Implement the methods that correspond to your method IDs.
-}  // namespace
+#include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/cpp/var.h"
 
 // Note to the user: This glue code reflects the current state of affairs.  It
 // may change.  In particular, interface elements marked as deprecated will
@@ -37,70 +32,15 @@ namespace {
 // interfaces.  As of the time of this writing, the new interfaces are not
 // available so we have to provide this code as it is written below.
 
-/// This class exposes the scripting interface for this NaCl module.  The
-/// HasMethod method is called by the browser when executing a method call on
-/// the object.  The name of the JavaScript function (e.g. "fortyTwo") is
-/// passed in the |method| paramter as a string pp::Var.  If HasMethod()
-/// returns |true|, then the browser will call the Call() method to actually
-/// invoke the method.
-class <ProjectName>ScriptableObject : public pp::deprecated::ScriptableObject {
- public:
-  /// Called by the browser to decide whether @a method is provided by this
-  /// plugin's scriptable interface.
-  /// @param[in] method The name of the method
-  /// @param[out] exception A pointer to an exception.  May be used to notify
-  ///     the browser if an exception occurs.
-  /// @return true iff @a method is one of the exposed method names.
-  virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
-
-  /// Invoke the function associated with @a method.  The argument list passed
-  /// in via JavaScript is marshalled into a vector of pp::Vars.  None of the
-  /// functions in this example take arguments, so this vector is always empty.
-  /// @param[in] method The name of the method to be invoked.
-  /// @param[in] args The arguments to be passed to the method.
-  /// @param[out] exception A pointer to an exception.  May be used to notify
-  ///     the browser if an exception occurs.
-  /// @return true iff @a method was called successfully.
-  virtual pp::Var Call(const pp::Var& method,
-                       const std::vector<pp::Var>& args,
-                       pp::Var* exception);
-};
-
-bool <ProjectName>ScriptableObject::HasMethod(const pp::Var& method,
-                                             pp::Var* exception) {
-  if (!method.is_string()) {
-    return false;
-  }
-  std::string method_name = method.AsString();
-  // TODO(sdk_user): 3. Make this function return true iff method_name is equal
-  // to any of your method IDs.
-  bool has_method = false;
-  return has_method;
-}
-
-pp::Var <ProjectName>ScriptableObject::Call(const pp::Var& method,
-                                           const std::vector<pp::Var>& args,
-                                           pp::Var* exception) {
-  if (!method.is_string()) {
-    return pp::Var();
-  }
-  std::string method_name = method.AsString();
-  // TODO(sdk_user): 4. Make this function call whatever method has method_name
-  // as its method ID.
-  return pp::Var();
-}
-
 /// The Instance class.  One of these exists for each instance of your NaCl
 /// module on the web page.  The browser will ask the Module object to create
 /// a new Instance for each occurence of the <embed> tag that has these
 /// attributes:
 ///     type="application/x-nacl"
-///     nexes="ARM: <PROJECT_NAME>_arm.nexe
-///            ..."
-/// The Instance can return a ScriptableObject representing itself.  When the
-/// browser encounters JavaScript that wants to access the Instance, it calls
-/// the GetInstanceObject() method.  All the scripting work is done though
-/// the returned ScriptableObject.
+///     src="<PROJECT_NAME>.nmf"
+/// To communicate with the browser, you must override HandleMessage() for
+/// receiving messages from the borwser, and use PostMessage() to send messages
+/// back to the browser.  Note that this interface is entirely asynchronous.
 class <ProjectName>Instance : public pp::Instance {
  public:
   /// The constructor creates the plugin-side instance.
@@ -109,16 +49,19 @@ class <ProjectName>Instance : public pp::Instance {
   {}
   virtual ~<ProjectName>Instance() {}
 
-  /// The browser calls this function to get a handle, in form of a pp::Var,
-  /// to the plugin-side scriptable object.  The pp::Var takes over ownership
-  /// of said scriptable, meaning the browser can call its destructor.  The
-  /// <ProjectName>ScriptableObject is the plugin-side representation of that
-  /// scriptable object.
-  /// @return The browser's handle to the plugin side instance.
-  virtual pp::Var GetInstanceObject() {
-    <ProjectName>ScriptableObject* hw_object =
-        new <ProjectName>ScriptableObject();
-    return pp::Var(this, hw_object);
+  /// Handler for messages coming in from the browser via postMessage().  The
+  /// @a var_message can contain anything: a JSON string; a string that encodes
+  /// method names and arguments; etc.  For example, you could use
+  /// JSON.stringify in the browser to create a message that contains a method
+  /// name and some parameters, something like this:
+  ///   var json_message = JSON.stringify({ "myMethod" : "3.14159" });
+  ///   nacl_module.postMessage(json_message);
+  /// On receipt of this message in @a var_message, you could parse the JSON to
+  /// retrieve the method name, match it to a function call, and then call it
+  /// with the parameter.
+  /// @param[in] var_message The message posted by the browser.
+  virtual void HandleMessage(const pp::Var& var_message) {
+    // TODO(sdk_user): 1. Make this function handle the incoming message.
   }
 };
 
