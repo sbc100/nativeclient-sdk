@@ -1,131 +1,77 @@
-// Copyright 2010 The Native Client Authors. All rights reserved.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 // This example demonstrates how to load content of the page into NaCl module.
 
-#include <ppapi/cpp/instance.h>
-#include <ppapi/cpp/dev/scriptable_object_deprecated.h>
-#include <ppapi/cpp/url_loader.h>
-#include <ppapi/cpp/module.h>
-#include <ppapi/cpp/var.h>
 #include <cstdio>
 #include <string>
 #include "examples/geturl/geturl_handler.h"
+#include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/url_loader.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/cpp/var.h"
 
 // These are the method names as JavaScript sees them.
 namespace {
 const char* const kLoadUrlMethodId = "getUrl";
-
-// Helper function to set the scripting exception.  Both |exception| and
-// |except_string| can be NULL.  If |exception| is NULL, this function does
-// nothing.
-void SetExceptionString(pp::Var* exception, const std::string& except_string) {
-  if (exception) {
-    *exception = except_string;
-  }
-}
+static const char kMessageArgumentSeparator = ':';
 
 // Exception strings.  These are passed back to the browser when errors
 // happen during property accesses or method calls.
-const char* const kExceptionMethodNotAString = "Method name is not a string";
-const char* const kExceptionNoMethodName = "No method named ";
 const char* const kExceptionStartFailed = "GetURLHandler::Start() failed";
 const char* const kExceptionURLNotAString = "URL is not a string";
 }  // namespace
-
-// This class exposes the scripting interface for this NaCl module.
-class GetURLScriptableObject : public pp::deprecated::ScriptableObject {
- public:
-  explicit GetURLScriptableObject(pp::Instance* instance)
-      : instance_(instance) {}
-
-  // Return |true| if |method| is one of the exposed method names.
-  virtual bool HasMethod(const pp::Var& method, pp::Var* exception);
-
-  // Invoke the function associated with |method|.  The argument list passed in
-  // via JavaScript is marshaled into a vector of pp::Vars.
-  virtual pp::Var Call(const pp::Var& method,
-                       const std::vector<pp::Var>& args,
-                       pp::Var* exception);
- private:
-  pp::Instance* instance_;
-};
-
-bool GetURLScriptableObject::HasMethod(const pp::Var& method,
-                                       pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return false;
-  }
-  std::string method_name = method.AsString();
-  return method_name == kLoadUrlMethodId;
-}
-
-pp::Var GetURLScriptableObject::Call(const pp::Var& method,
-                                     const std::vector<pp::Var>& args,
-                                     pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return pp::Var();
-  }
-  std::string method_name = method.AsString();
-  if (method_name == kLoadUrlMethodId) {
-    if ((args.size() >= 1) && args[0].is_string()) {
-      std::string url = args[0].AsString();
-      printf("GetURLScriptableObject::Call('%s'', '%s'')\n",
-             method_name.c_str(),
-             url.c_str());
-      fflush(stdout);
-      GetURLHandler* handler = GetURLHandler::Create(instance_, url);
-      if (handler != NULL) {
-        // Starts asynchronous download. When download is finished or when an
-        // error occurs, |handler| calls JavaScript function
-        // reportResult(url, result, success) (defined in geturl.html) and
-        // self-destroys.
-        if (!handler->Start()) {
-          SetExceptionString(exception, kExceptionStartFailed);
-        }
-      } else {
-        const char* msg = "GetURLHandler::Create failed";
-        printf("%s\n", msg);
-        SetExceptionString(exception, msg);
-      }
-    } else {
-      SetExceptionString(exception, kExceptionURLNotAString);
-    }
-  } else {
-    SetExceptionString(exception,
-                       std::string(kExceptionNoMethodName) + method_name);
-  }
-  return pp::Var();
-}
 
 // The Instance class.  One of these exists for each instance of your NaCl
 // module on the web page.  The browser will ask the Module object to create
 // a new Instance for each occurrence of the <embed> tag that has these
 // attributes:
 //     type="application/x-nacl"
-//     nacl="geturl.nmf"
-//
-// The Instance can return a ScriptableObject representing itself.  When the
-// browser encounters JavaScript that wants to access the Instance, it calls
-// the GetInstanceObject() method.  All the scripting work is done though
-// the returned ScriptableObject.
+//     src="geturl.nmf"
 class GetURLInstance : public pp::Instance {
  public:
   explicit GetURLInstance(PP_Instance instance) : pp::Instance(instance) {}
   virtual ~GetURLInstance() {}
 
-  // The pp::Var takes over ownership of the GetURLScriptableObject.
-  virtual pp::Var GetInstanceObject() {
-    return pp::Var(this, new GetURLScriptableObject(this));
-  }
+  // Called by the browser to handle the postMessage() call in Javascript.
+  // The message in this case is expected to contain the string 'getUrl'
+  // followed by a ':' separator, then the URL to fetch.  If a valid message
+  // of the form 'getUrl:URL' is received, then start up an asynchronous
+  // download of URL.  In the event that errors occur, this method posts an
+  // error string back to the browser.
+  virtual void HandleMessage(const pp::Var& var_message);
 };
+
+void GetURLInstance::HandleMessage(const pp::Var& var_message) {
+  if (!var_message.is_string()) {
+    return;
+  }
+  std::string message = var_message.AsString();
+  if (message.find(kLoadUrlMethodId) == 0) {
+    // The argument to getUrl is everything after the first ':'.
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string url = message.substr(sep_pos + 1);
+      printf("GetURLInstance::HandleMessage('%s', '%s')\n",
+             message.c_str(),
+             url.c_str());
+      fflush(stdout);
+      GetURLHandler* handler = GetURLHandler::Create(this, url);
+      if (handler != NULL) {
+        // Starts asynchronous download. When download is finished or when an
+        // error occurs, |handler| posts the results back to the browser
+        // vis PostMessage and self-destroys.
+        handler->Start();
+      }
+    }
+  }
+}
+
 
 // The Module class.  The browser calls the CreateInstance() method to create
 // an instance of you NaCl module on the web page.  The browser creates a new
-// instance for each <embed> tag with type="application/x-ppapi-nacl-srpc".
+// instance for each <embed> tag with type="application/x-nacl".
 class GetURLModule : public pp::Module {
  public:
   GetURLModule() : pp::Module() {}

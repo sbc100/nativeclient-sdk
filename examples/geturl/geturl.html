@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <!--
-  Copyright (c) 2010 The Native Client Authors. All rights reserved.
+  Copyright (c) 2011 The Native Client Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
   found in the LICENSE file.
   -->
@@ -12,8 +13,11 @@
     geturlModule = null;  // Global application object.
     statusText = 'NO-STATUS';
 
+    // When the NaCl module has loaded, hook up an event listener to handle
+    // messages coming from it, and indicate success.
     function moduleDidLoad() {
       geturlModule = document.getElementById('geturl');
+      geturlModule.addEventListener('message', handleMessage, false);
       updateStatus('SUCCESS');
     }
 
@@ -32,17 +36,33 @@
       }
     }
 
-    function reportResult(url, result, success) {
-      var logElt = document.getElementById('GeneralOutput');
-      logElt.textContent += 'FULLY QUALIFIED URL:' + url + '\n';
+    // Called from the NaCl module via PostMessage().  The message data
+    // contains a URL followed by a '\n' separator character and the result
+    // text.  The result test itself can contain '\n' characters, only the first
+    // '\n' is considered when separating the message parameters.
+    function handleMessage(message_event) {
+      var logElt = document.getElementById('general_output');
+      // Find the first line break.  This separates the URL data from the
+      // result text.  Note that the result text can contain any number of
+      // '\n' characters, so split() won't work here.
+      var url = message_event.data;
+      var result = '';
+      var eol_pos = message_event.data.indexOf("\n");
+      if (eol_pos != -1) {
+        url = message_event.data.substring(0, eol_pos);
+        if (eol_pos < message_event.data.length - 1) {
+          result = message_event.data.substring(eol_pos + 1);
+        }
+      }
+      logElt.textContent += 'FULLY QUALIFIED URL: ' + url + '\n';
       logElt.textContent += 'RESULT:\n' + result + '\n';
     }
 
     function loadUrl() {
       try {
-        geturlModule.getUrl('geturl_success.html');
+        geturlModule.postMessage('getUrl:geturl_success.html');
       } catch(e) {
-        var logElt = document.getElementById('GeneralOutput');
+        var logElt = document.getElementById('general_output');
         logElt.textContent = "exception: " + e;
       }
     }
@@ -68,7 +88,7 @@
 <p>
 <table border=5 cellpadding=5% summary="A title and a result log">
   <tr>
-    <td valign=top><pre id='GeneralOutput' class='notrun'></pre></td>
+    <td valign=top><pre id='general_output' class='notrun'></pre></td>
   </tr>
 </table>
 
@@ -82,6 +102,11 @@
   ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
   To load the debug versions of your .nexes, set the 'src' attribute to the
   _dbg.nmf version of the manifest file.
+
+  Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+  event listener attached.  This method is used instead of attaching the
+  'load' event listener directly to the <EMBED> element to ensure that the
+  listener is active before the NaCl module 'load' event fires.
   -->
   <div id="listener">
     <script type="text/javascript">

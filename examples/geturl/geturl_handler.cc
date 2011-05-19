@@ -6,10 +6,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ppapi/c/pp_errors.h>
-#include <ppapi/c/ppb_instance.h>
-#include <ppapi/cpp/module.h>
-#include <ppapi/cpp/var.h>
+#include "ppapi/c/pp_errors.h"
+#include "ppapi/c/ppb_instance.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/cpp/var.h"
 
 namespace {
 bool IsError(int32_t result) {
@@ -24,7 +24,7 @@ GetURLHandler* GetURLHandler::Create(pp::Instance* instance,
 
 GetURLHandler::GetURLHandler(pp::Instance* instance,
                              const std::string& url)
-    : instance_id_(instance->pp_instance()),
+    : instance_(instance),
       url_(url),
       url_request_(instance),
       url_loader_(instance),
@@ -97,18 +97,9 @@ void GetURLHandler::ReportResult(const std::string& fname,
   else
     printf("GetURLHandler::ReportResult(Err). %s\n", text.c_str());
   fflush(stdout);
-  pp::Module* module = pp::Module::Get();
-  if (NULL == module)
-    return;
-
-  pp::Instance* instance = module->InstanceForPPInstance(instance_id_);
-  if (NULL == instance)
-    return;
-
-  pp::Var window = instance->GetWindowObject();
-  // calls JavaScript function reportResult(url, result, success)
-  // defined in geturl.html.
-  pp::Var exception;
-  window.Call("reportResult", fname, text, success, &exception);
+  if (instance_) {
+    pp::Var var_result(fname + "\n" + text);
+    instance_->PostMessage(var_result);
+  }
 }
 
