@@ -3437,7 +3437,7 @@ namespace Microsoft.VisualStudio.Project
 		}
 
 		/// <summary>
-		/// Defines whether the current mode of the project is in a supress command mode.
+		/// Defines whther the current mode of the project is in a supress command mode.
 		/// </summary>
 		/// <returns></returns>
 		protected internal virtual bool IsCurrentStateASuppressCommandsMode()
