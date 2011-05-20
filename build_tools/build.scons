@@ -31,10 +31,11 @@ for shell_var in os.environ:
 
 # The development flag tells generate_installers not to download a fresh
 # copy of all the cygwin packages.
-installer_action = ["${PYTHON}", "${SOURCE}"]
+installer_action = ["${PYTHON}", "${SOURCE}", "--jobs=%s" % env['JOB_COUNT']]
 
 if env['DEVELOPMENT'] == '1':
   installer_action.append('--development')
+
 
 installer_node = env.Command(
     target='generate_installers_dummy_target.txt',

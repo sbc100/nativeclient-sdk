@@ -85,9 +85,9 @@ try:
   import multiprocessing
   CORE_COUNT = multiprocessing.cpu_count()
 except (ImportError, NotImplementedError):
-  CORE_COUNT = 1
+  CORE_COUNT = 2  # Our buildbots seem to be dual-core typically
 
-SetOption('num_jobs', CORE_COUNT + 1)
+SetOption('num_jobs', CORE_COUNT * 2)
 print 'Building with', GetOption('num_jobs'), 'parallel jobs'
 
 #-----------------------------------------------------------------------------

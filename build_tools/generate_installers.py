@@ -53,6 +53,9 @@ def main(argv):
       default=False,
       help=('When set, the script will forego cleanup actions that can slow ' +
             'down subsequent runs.  Useful for testing.  Defaults to False.'))
+  parser.add_option(
+      '-j', '--jobs', dest='jobs', default='1',
+      help='Number of parallel jobs to use while building')
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
@@ -104,7 +107,9 @@ def main(argv):
                           '--toolchain',
                           toolchain,
                           '--revision',
-                          NACL_REVISION]
+                          NACL_REVISION,
+                          '--jobs',
+                          options.jobs]
   if not options.development:
     make_nacl_tools_args.extend(['-c'])
   nacl_tools = subprocess.Popen(make_nacl_tools_args)
