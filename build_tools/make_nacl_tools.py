@@ -97,9 +97,10 @@ def CleanUpCheckoutDirs(options):
     if sys.platform != 'win32':
       shutil.rmtree(options.work_dir, ignore_errors=True)
     else:
-      subprocess.check_call(['rmdir', '/Q', '/S', options.work_dir],
-                            env=os.environ.copy(),
-                            shell=True)
+      # Intentionally ignore return value since a directory might be in use.
+      subprocess.call(['rmdir', '/Q', '/S', options.work_dir],
+                      env=os.environ.copy(),
+                      shell=True)
 
 def BuildNaClTools(options):
   bot.BuildStep('checkout NaCl tools')
