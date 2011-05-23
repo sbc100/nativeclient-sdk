@@ -12,6 +12,9 @@
 		<Platform
 			Name="Win32"
 		/>
+		<Platform
+			Name="x64"
+		/>
 	</Platforms>
 	<ToolFiles>
 	</ToolFiles>
@@ -89,6 +92,79 @@
 			/>
 		</Configuration>
 		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\;&quot;..\..\third_party/gtest-1.5.0/include&quot;"
+				PreprocessorDefinitions="WIN64;_DEBUG;_CONSOLE"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				LinkIncremental="2"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
@@ -115,6 +191,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\..\;&quot;..\..\third_party/gtest-1.5.0/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -162,6 +239,82 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\..\;&quot;..\..\third_party/gtest-1.5.0/include&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				LinkIncremental="1"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -176,19 +329,47 @@
 				>
 			</File>
 			<File
-				RelativePath="..\core\debug_continue_policy.cc"
+				RelativePath="..\core\debug_api_mock.cc"
 				>
 			</File>
 			<File
-				RelativePath="..\core\debuggee_breakpoint.cc"
+				RelativePath="..\core\debug_api_mock2.cc"
 				>
 			</File>
 			<File
-				RelativePath="..\core\debuggee_breakpoint_test.cc"
+				RelativePath="..\core\debug_breakpoint.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_breakpoint_test.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_event.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_execution_engine.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_execution_engine_test.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_logger.cc"
 				>
 			</File>
 			<File
 				RelativePath="..\core\debuggee_process.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debuggee_process_mock.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debuggee_process_test.cc"
 				>
 			</File>
 			<File
@@ -197,14 +378,6 @@
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread_test.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\core\fake_debug_api.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\core\fake_debuggee_process.cc"
 				>
 			</File>
 			<File
@@ -222,11 +395,27 @@
 				>
 			</File>
 			<File
-				RelativePath="..\core\debug_continue_policy.h"
+				RelativePath="..\core\debug_api_mock.h"
 				>
 			</File>
 			<File
-				RelativePath="..\core\debuggee_breakpoint.h"
+				RelativePath="..\core\debug_api_mock2.h"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_breakpoint.h"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_event.h"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debug_logger.h"
+				>
+			</File>
+			<File
+				RelativePath="..\core\debuggee_iprocess.h"
 				>
 			</File>
 			<File
@@ -234,15 +423,11 @@
 				>
 			</File>
 			<File
+				RelativePath="..\core\debuggee_process_mock.h"
+				>
+			</File>
+			<File
 				RelativePath="..\core\debuggee_thread.h"
-				>
-			</File>
-			<File
-				RelativePath="..\core\fake_debug_api.h"
-				>
-			</File>
-			<File
-				RelativePath="..\core\fake_debuggee_process.h"
 				>
 			</File>
 		</Filter>
