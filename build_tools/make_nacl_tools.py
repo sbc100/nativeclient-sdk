@@ -47,8 +47,8 @@ def Build(options):
   '''Build 32-bit and 64-bit versions of both sel_ldr and ncval'''
   if sys.platform == 'win32':
     scons = 'scons.bat'
-    bits32 = 'vcvarsall.bat x86 &&'
-    bits64 = 'vcvarsall.bat x86_amd64 &&'
+    bits32 = 'vcvarsall.bat x86 && '
+    bits64 = 'vcvarsall.bat x86_amd64 && '
   else:
     scons = './scons'
     bits32 = ''
