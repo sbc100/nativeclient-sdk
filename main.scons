@@ -33,10 +33,11 @@ Help for NaCl SDK
 * build a target:      ./scons <target>
 
 Supported targets:
-  * docs              Build all of the Doxygen documentation
-  * installer         Build the SDK installer
   * bot               Runs everything that the build and try bots run
+  * docs              Build all of the Doxygen documentation
   * examples          Build the examples.
+  * installer         Build the SDK installer
+  * vsx_build         Build the Visual Studio Plugin
 
 Supported flags:
   * DEVELOPMENT=1     Runs with development options for the installer build
@@ -129,6 +130,7 @@ base_env.Append(
         'documentation/build.scons',
         'build_tools/build.scons',
         'project_templates/test.scons',
+        'experimental/visual_studio_plugin',
     ],
 )
 

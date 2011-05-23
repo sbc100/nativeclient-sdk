@@ -33,9 +33,7 @@ namespace NaClVsx.Package_UnitTestProject {
     [ClassInitialize]
     public static void MyClassInitialize(TestContext testContext) {
       root_ = Environment.GetEnvironmentVariable("NACL_VSX_ROOT");
-      if (root_ == null) {
-        root_ = "c:\\sample\\dir";
-      }
+      Assert.AreNotEqual(null, root_);
     }
 
     //Use ClassCleanup to run code after all tests in a class have run
