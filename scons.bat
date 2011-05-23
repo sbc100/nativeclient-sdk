@@ -18,9 +18,6 @@ set PYTHONPATH=%~dp0third_party\scons-2.0.1\engine
 :: what is provided by the OS.  The custom variable name won't be overwritten.
 set PYMOX=%~dp0third_party\pymox
 
-:: Add python, gnu_binutils and mingw to the path
-set PATH=%~dp0third_party\python_26;%PATH%
-
 :: Stop incessant CYGWIN complains about "MS-DOS style path"
 set CYGWIN=nodosfilewarning %CYGWIN%
 

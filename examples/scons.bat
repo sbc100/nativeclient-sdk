@@ -16,6 +16,9 @@ set PYTHONPATH=%NACL_SDK_ROOT%\third_party\scons-2.0.1\engine
 set PYMOX=%NACL_SDK_ROOT%\third_party\pymox
 
 :: Run the included copy of scons.
-python -O -OO "%NACL_SDK_ROOT%\third_party\scons-2.0.1\script\scons" --file=build.scons --site-dir="%NACL_SDK_ROOT%\build_tools\nacl_sdk_scons" %*
+python -O -OO "%NACL_SDK_ROOT%\third_party\scons-2.0.1\script\scons" ^
+--file=build.scons ^
+--site-dir="%NACL_SDK_ROOT%\build_tools\nacl_sdk_scons" ^
+%*
 
 :end
