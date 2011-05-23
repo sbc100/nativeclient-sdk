@@ -56,24 +56,24 @@ class IDebuggeeProcess {
 
   /// Allows process execution to continue (i.e. it calls
   /// ContinueDebugEvent() for halted thread).
-  /// Shall be called only on halted process, and only from the threat that
+  /// Shall be called only on halted process, and only from the thread that
   /// started the debuggee.
   virtual bool Continue() = 0;
 
   /// Allows process execution to continue. If thread was halted due
   /// to exception, that exception is passed to the debugee thread.
-  /// Shall be called only on halted process, and only from the threat that
+  /// Shall be called only on halted process, and only from the thread that
   /// started the debuggee.
   virtual bool ContinueAndPassExceptionToDebuggee() = 0;
 
   /// Cause halted thread to execute single CPU instruction.
-  /// Shall be called only on halted process, and only from the threat that
+  /// Shall be called only on halted process, and only from the thread that
   /// started the debuggee.
   virtual bool SingleStep() = 0;
 
   /// Cause running process to break (calls
   /// debug::DebugApi::DebugBreakProcess).
-  /// Shall not be called on halted process, and only from the threat that
+  /// Shall not be called on halted process, and only from the thread that
   /// started the debuggee.
   virtual bool Break() = 0;
 
