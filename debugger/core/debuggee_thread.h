@@ -33,9 +33,9 @@ class DebuggeeThread {
     kRunning = 1,  // thread is alive, event loop is running
     kHalted,  // thread is alive, event loop is not running
     kContinueFromBreakpoint,  // thread is single stepping from breakpoint
-    kDead  // thread is deleted by OS
+    kDead  // thread is deleted by OS, user can only call |return_code()|,
+           // |id()|, |state()| methods.
   };
-
   /// Describes a parameter type for |Continue| method.
   enum ContinueOption {
     kSingleStep,
@@ -124,7 +124,7 @@ class DebuggeeThread {
   /// ContinueDebugEvent()).
   /// If |option| is kContinueAndPassException, and thread was halted due
   /// to exception, that exception is passed to the debuggee thread.
-  void Continue(ContinueOption option);
+  bool Continue(ContinueOption option);
 
   /// Handler of debug events. DebuggeeThread has a FSM (finite state machine),
   /// and |debug_event| is an only event consumed by FSM.
@@ -154,8 +154,9 @@ class DebuggeeThread {
   void OnSingleStep(DebugEvent* debug_event);
 
   /// Resumes execution of the halted thread, asuming breapoint was triggered.
-  void ContinueFromBreakpoint();
+  bool ContinueFromBreakpoint();
 
+ private:
   int id_;
   HANDLE handle_;
   IDebuggeeProcess& parent_process_;
@@ -169,7 +170,6 @@ class DebuggeeThread {
   // Stuff related only to nexe threads.
   bool is_nacl_app_thread_;
 
- private:
   DebuggeeThread(const DebuggeeThread&);  // DISALLOW_COPY_AND_ASSIGN
   void operator=(const DebuggeeThread&);
 };

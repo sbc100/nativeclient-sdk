@@ -58,6 +58,11 @@ class DebuggeeProcess : public IDebuggeeProcess {
   virtual State state() const { return state_; }
   virtual bool IsHalted() const { return kHalted == state(); }
 
+  /// Shall be called only on dead processes (i.e. state_ == kDead).
+  /// @return exit code or exception number, if process is terminated
+  /// by exception.
+  int return_code() const { return exit_code_; }
+
   virtual DebugAPI& debug_api() { return debug_api_; }
 
   /// @return address of memory region where nexe is loaded.
@@ -210,10 +215,12 @@ class DebuggeeProcess : public IDebuggeeProcess {
   virtual void DeleteThreads();
 
   DebugAPI& debug_api_;
-  State state_;
   int id_;
   HANDLE handle_;
   HANDLE file_handle_;
+  State state_;
+  int last_debug_event_id_;
+  int exit_code_;
   std::deque<DebuggeeThread*> threads_;
   std::map<void*, Breakpoint*> breakpoints_;
   void* nexe_mem_base_;

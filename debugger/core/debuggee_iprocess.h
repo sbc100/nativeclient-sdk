@@ -21,10 +21,11 @@ class DebugEvent;
 /// https://docs.google.com/a/google.com/document/d/1lTN-IYqDd_oy9XQg9-zlNc_vbg-qyr4q2MKNEjhSA84/edit?hl=en&authkey=CJyJlOgF#
 class IDebuggeeProcess {
  public:
-  /// kRunning - process is alive, event loop is running
-  /// kHalted - process is alive, event loop is not running for halted thread
-  /// kDead - process is deleted by OS
-  enum State {kRunning, kHalted, kDead};
+  enum State {
+    kRunning,  // process is alive, event loop is running
+    kHalted,  // process is alive, event loop is not running
+    kDead  // process is deleted by OS
+  };
 
   IDebuggeeProcess() {}
   virtual ~IDebuggeeProcess() {}

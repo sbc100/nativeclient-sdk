@@ -209,12 +209,16 @@ TEST_F(DebuggeeProcessTest, ProcessExit) {
   DEBUG_EVENT wde;
   memset(&wde, 0, sizeof(wde));
   wde.dwDebugEventCode = EXIT_PROCESS_DEBUG_EVENT;
+  wde.dwThreadId = kFakeThreadId2;
   wde.dwProcessId = proc_->id();
 
   debug::DebugEvent de;
   de.set_windows_debug_event(wde);
 
   proc_->OnDebugEvent(&de);
+  EXPECT_EQ(debug::DebuggeeProcess::kHalted, proc_->state());
+
+  proc_->Continue();
   EXPECT_EQ(debug::DebuggeeProcess::kDead, proc_->state());
 }
 

@@ -125,7 +125,7 @@ void DebuggeeThread::OnBreakpoint(DebugEvent* debug_event) {
   }
 }
 
-void DebuggeeThread::Continue(ContinueOption option) {
+bool DebuggeeThread::Continue(ContinueOption option) {
   if (!IsHalted()) {
     DBG_LOG("WARN03.01",
             "msg='DebuggeeThread::Continue(%s) called while thread was in an"
@@ -133,21 +133,23 @@ void DebuggeeThread::Continue(ContinueOption option) {
             GetContinueOptionName(option),
             GetStateName(state_),
             id());
-    return;
+    return false;
   }
-  if (EXIT_THREAD_DEBUG_EVENT == last_debug_event_id_) {
-    debug_api().ContinueDebugEvent(parent_process().id(), id(), DBG_CONTINUE);
+  if ((EXIT_THREAD_DEBUG_EVENT == last_debug_event_id_) ||
+     (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id_)) {
     SetState(kDead);
-    return;
+    return (TRUE == debug_api().ContinueDebugEvent(parent_process().id(),
+                                                   id(),
+                                                   DBG_CONTINUE));
   }
+
   if (NULL != triggered_breakpoint_addr_) {
     void* flat_ip = GetIP();
     if (IsNaClAppThread())
       flat_ip = parent_process().FromNexeToFlatAddress(GetIP());
 
     if (flat_ip == triggered_breakpoint_addr_) {
-      ContinueFromBreakpoint();
-      return;
+      return ContinueFromBreakpoint();
     } else {
       // Just in case user changed IP so that it's not pointing to
       // triggered breakpoint, we need to:
@@ -167,16 +169,20 @@ void DebuggeeThread::Continue(ContinueOption option) {
   if (kContinueAndPassException == option)
     flags = DBG_EXCEPTION_NOT_HANDLED;
 
-  debug_api().ContinueDebugEvent(parent_process().id(), id(), flags);
   SetState(kRunning);
+  return (TRUE == debug_api().ContinueDebugEvent(parent_process().id(),
+                                                 id(),
+                                                 flags));
 }
 
 /// Implements first steps of 'Continue from breakpoint' algorithm,
 /// described in |DebuggeeThread::OnDebugEvent| method.
-void DebuggeeThread::ContinueFromBreakpoint() {
+bool DebuggeeThread::ContinueFromBreakpoint() {
   SetState(kContinueFromBreakpoint);
   EnableSingleStep(true);
-  debug_api().ContinueDebugEvent(parent_process().id(), id(), DBG_CONTINUE);
+  return (TRUE == debug_api().ContinueDebugEvent(parent_process().id(),
+                                                 id(),
+                                                 DBG_CONTINUE));
 }
 
 void DebuggeeThread::OnSingleStep(DebugEvent* debug_event) {
@@ -212,10 +218,6 @@ void DebuggeeThread::OnSingleStep(DebugEvent* debug_event) {
 void DebuggeeThread::OnDebugEvent(DebugEvent* debug_event) {
   DEBUG_EVENT de = debug_event->windows_debug_event();
   last_debug_event_id_ = de.dwDebugEventCode;
-  if (EXIT_THREAD_DEBUG_EVENT == last_debug_event_id_) {
-    exit_code_ = de.u.ExitThread.dwExitCode;
-  }
-
   EnableSingleStep(false);
 
   // Thread expected 'SingleStep' exception due to 'continue from breakpoint'
@@ -253,9 +255,18 @@ void DebuggeeThread::OnDebugEvent(DebugEvent* debug_event) {
     }
   }
 
+  // Now we can proceed with debug event.
   switch (de.dwDebugEventCode) {
     case OUTPUT_DEBUG_STRING_EVENT: {
       OnOutputDebugString(debug_event);
+      break;
+    }
+    case EXIT_THREAD_DEBUG_EVENT: {
+      exit_code_ = de.u.ExitThread.dwExitCode;
+      break;
+    }
+    case EXIT_PROCESS_DEBUG_EVENT: {
+      exit_code_ = de.u.ExitProcess.dwExitCode;
       break;
     }
     case EXCEPTION_DEBUG_EVENT: {
@@ -360,6 +371,9 @@ bool DebuggeeThread::SetWowContext(const WOW64_CONTEXT& context) {
 }
 
 void* DebuggeeThread::GetIP() {
+  if (!IsHalted())
+    return false;
+
   if (parent_process().IsWoW()) {
     WOW64_CONTEXT context;
     GetWowContext(&context);

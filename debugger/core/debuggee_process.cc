@@ -12,10 +12,12 @@ DebuggeeProcess::DebuggeeProcess(int id,
                                  HANDLE handle,
                                  HANDLE file_handle,
                                  DebugAPI* debug_api)
-  : state_(kRunning),
-    id_(id),
+  : id_(id),
     handle_(handle),
     file_handle_(file_handle),
+    state_(kRunning),
+    last_debug_event_id_(0),
+    exit_code_(0),
     debug_api_(*debug_api),
     nexe_mem_base_(NULL),
     nexe_entry_point_(NULL) {
@@ -232,6 +234,8 @@ void DebuggeeProcess::GetBreakpoints(std::deque<Breakpoint*>* breakpoints) {
 
 void DebuggeeProcess::OnDebugEvent(DebugEvent* debug_event) {
   DEBUG_EVENT wde = debug_event->windows_debug_event();
+  last_debug_event_id_ = wde.dwDebugEventCode;
+
   switch (wde.dwDebugEventCode) {
     case CREATE_PROCESS_DEBUG_EVENT: {
       AddThread(
@@ -246,8 +250,8 @@ void DebuggeeProcess::OnDebugEvent(DebugEvent* debug_event) {
       break;
     }
     case EXIT_PROCESS_DEBUG_EVENT: {
-      state_ = kDead;
-      return;
+      exit_code_ = wde.u.ExitProcess.dwExitCode;
+      break;
     }
   }
   DebuggeeThread* thread = GetThread(wde.dwThreadId);
@@ -256,6 +260,8 @@ void DebuggeeProcess::OnDebugEvent(DebugEvent* debug_event) {
     if (thread->IsHalted())
       state_ = kHalted;
   } else {
+    /// To prevent halting the process in case we lost the thread
+    /// object somehow.
     debug_api().ContinueDebugEvent(id(), wde.dwThreadId, DBG_CONTINUE);
   }
 }
@@ -272,8 +278,12 @@ bool DebuggeeProcess::ContinueHaltedThread(
     bool res = halted_thread->Continue(option);
     if (halted_thread->state() == DebuggeeThread::kDead)
       RemoveThread(halted_thread->id());
-    state_ = kRunning;
-    return res;
+
+    if (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id_)
+      state_ = kDead;
+    else
+      state_ = kRunning;
+    return (TRUE == res);
   }
   return false;
 }

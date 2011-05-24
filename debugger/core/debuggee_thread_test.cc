@@ -25,6 +25,9 @@ const char* kNexeUuid =
     " -event NaClThreadStart -mb c0000000 -ep 20080";
 const void* kNexeMemBaseAddr = reinterpret_cast<void*>(0xc0000000);
 const void* kNexeEntryPoint = reinterpret_cast<void*>(0x20080);
+const debug::DebuggeeThread* kNullThread =
+    reinterpret_cast<debug::DebuggeeThread*>(0);
+const char* kNullCharPtr = reinterpret_cast<char*>(0);
 
 class TestableDebuggeeThread : public debug::DebuggeeThread {
  public:
@@ -37,13 +40,25 @@ class TestableDebuggeeThread : public debug::DebuggeeThread {
   void OnDebugEvent(debug::DebugEvent* debug_event) {
     debug::DebuggeeThread::OnDebugEvent(debug_event);
   }
-  void Continue(debug::DebuggeeThread::ContinueOption option) {
-    debug::DebuggeeThread::Continue(option);
+  bool Continue(debug::DebuggeeThread::ContinueOption option) {
+    return debug::DebuggeeThread::Continue(option);
   }
   debug::IDebuggeeProcess& parent_process() {
     return debug::DebuggeeThread::parent_process();
   }
   debug::DebugAPI& debug_api() { return debug::DebuggeeThread::debug_api(); }
+
+  void SimulateBreakpointHit() {
+    DEBUG_EVENT wde;
+    memset(&wde, 0, sizeof(wde));
+    wde.dwDebugEventCode = EXCEPTION_DEBUG_EVENT;
+    wde.u.Exception.ExceptionRecord.ExceptionCode = EXCEPTION_BREAKPOINT;
+    wde.dwThreadId = id();
+
+    debug::DebugEvent de;
+    de.set_windows_debug_event(wde);
+    OnDebugEvent(&de);
+  }
 };
 
 // DebuggeeThread test fixture.
@@ -298,15 +313,65 @@ TEST_F(DebuggeeThreadTest, SetContextVerifyCallList) {
 }
 
 TEST_F(DebuggeeThreadTest, RecvAlienBreakpoint) {
-  DEBUG_EVENT wde;
-  memset(&wde, 0, sizeof(wde));
-  wde.dwDebugEventCode = EXCEPTION_DEBUG_EVENT;
-  wde.u.Exception.ExceptionRecord.ExceptionCode = EXCEPTION_BREAKPOINT;
-
-  debug::DebugEvent de;
-  de.set_windows_debug_event(wde);
-  fake_thread_->OnDebugEvent(&de);
+  fake_thread_->SimulateBreakpointHit();
   EXPECT_TRUE(fake_thread_->IsHalted());
 }
+
+TEST_F(DebuggeeThreadTest, FailContinue) {
+  fake_thread_->SimulateBreakpointHit();
+  EXPECT_TRUE(fake_thread_->IsHalted());
+  EXPECT_TRUE(fake_thread_->Continue(debug::DebuggeeThread::kContinue));
+  EXPECT_FALSE(fake_thread_->IsHalted());
+  EXPECT_FALSE(fake_thread_->Continue(debug::DebuggeeThread::kContinue));
+  EXPECT_FALSE(fake_thread_->IsHalted());
+
+  fake_thread_->SimulateBreakpointHit();
+  EXPECT_TRUE(fake_thread_->IsHalted());
+  EXPECT_TRUE(fake_thread_->Continue(debug::DebuggeeThread::kSingleStep));
+  EXPECT_FALSE(fake_thread_->IsHalted());
+  EXPECT_FALSE(fake_thread_->Continue(debug::DebuggeeThread::kSingleStep));
+  EXPECT_FALSE(fake_thread_->IsHalted());
+
+  fake_thread_->SimulateBreakpointHit();
+  EXPECT_TRUE(fake_thread_->IsHalted());
+  EXPECT_TRUE(fake_thread_->Continue(
+      debug::DebuggeeThread::kContinueAndPassException));
+  EXPECT_FALSE(fake_thread_->IsHalted());
+  EXPECT_FALSE(fake_thread_->Continue(
+      debug::DebuggeeThread::kContinueAndPassException));
+  EXPECT_FALSE(fake_thread_->IsHalted());
+}
+
+TEST_F(DebuggeeThreadTest, FailIfNotHalted) {
+  fake_thread_->SimulateBreakpointHit();
+  EXPECT_TRUE(fake_thread_->IsHalted());
+  EXPECT_TRUE(fake_thread_->Continue(debug::DebuggeeThread::kContinue));
+
+  EXPECT_FALSE(fake_thread_->IsHalted());
+  CONTEXT context;
+  EXPECT_FALSE(fake_thread_->GetContext(&context));
+  EXPECT_FALSE(fake_thread_->SetContext(context));
+
+  WOW64_CONTEXT wow_ctx;
+  EXPECT_FALSE(fake_thread_->GetWowContext(&wow_ctx));
+  EXPECT_FALSE(fake_thread_->SetWowContext(wow_ctx));
+
+  EXPECT_EQ(NULL, fake_thread_->GetIP());
+  EXPECT_FALSE(fake_thread_->SetIP(NULL));
+}
+
+TEST_F(DebuggeeThreadTest, NotFailIfHalted) {
+  EXPECT_TRUE(fake_thread_->IsHalted());
+  CONTEXT context;
+  EXPECT_TRUE(fake_thread_->GetContext(&context));
+  EXPECT_TRUE(fake_thread_->SetContext(context));
+
+  WOW64_CONTEXT wow_ctx;
+  EXPECT_TRUE(fake_thread_->GetWowContext(&wow_ctx));
+  EXPECT_TRUE(fake_thread_->SetWowContext(wow_ctx));
+
+  EXPECT_TRUE(fake_thread_->SetIP(NULL));
+}
+
 }  // namespace
 

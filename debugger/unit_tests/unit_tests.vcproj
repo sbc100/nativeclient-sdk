@@ -411,6 +411,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\core\debug_execution_engine.h"
+				>
+			</File>
+			<File
 				RelativePath="..\core\debug_logger.h"
 				>
 			</File>
