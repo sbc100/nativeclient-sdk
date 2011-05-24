@@ -106,12 +106,11 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
               PROGSUFFIX='.nexe',
              )
 
-  # Append the common NaCl libs.  This list is order-dependent.
-  common_nacl_libs = ['srpc', 'imc_syscalls', 'platform', 'gio', 'pthread']
+  # Append the common NaCl libs.
+  common_nacl_libs = ['ppapi']
   if use_c_plus_plus_libs:
-    env.Append(LIBS=['ppruntime', 'ppapi_cpp'] + common_nacl_libs)
-  else:
-    env.Append(LIBS=['ppruntime'] + common_nacl_libs)
+    common_nacl_libs.extend(['ppapi_cpp'])
+  env.Append(LIBS=common_nacl_libs)
 
   gen_nmf_builder = env.Builder(suffix='.nmf',
                                 action=nacl_utils.GenerateNmf)
