@@ -29,28 +29,32 @@ def MakeInstallDirs(options):
     os.makedirs(install_dir)
 
 def Checkout(options):
-  os.chdir(options.work_dir)
-  if not os.path.exists(".gclient"):
+  if not os.path.exists(os.path.join(options.work_dir, '.gclient')):
     # Setup client spec.
     subprocess.check_call(
         'gclient config '
         'http://src.chromium.org/native_client/trunk/src/native_client',
+        cwd=options.work_dir,
         shell=True)
   else:
     bot.Print(".gclient found, using existing configuration.")
   # Sync at the desired revision.
   subprocess.check_call(
-      'gclient sync --rev %s' % options.revision, shell=True)
+      'gclient sync --rev %s' % options.revision,
+      cwd=options.work_dir,
+      shell=True)
 
 
 def Build(options):
   '''Build 32-bit and 64-bit versions of both sel_ldr and ncval'''
+  # TODO(dspringer): Remove nacl_dir when the --nacl-dir option is added.
+  nacl_dir = os.path.join(options.work_dir, 'native_client')
   if sys.platform == 'win32':
-    scons = 'scons.bat'
+    scons = os.path.join(nacl_dir, 'scons.bat')
     bits32 = 'vcvarsall.bat x86 && '
     bits64 = 'vcvarsall.bat x86_amd64 && '
   else:
-    scons = './scons'
+    scons = os.path.join(nacl_dir, 'scons')
     bits32 = ''
     bits64 = ''
 
@@ -58,7 +62,7 @@ def Build(options):
     cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s' % (
         prefix, scons, options.jobs, options.variant, bits, target)
     bot.Print('Running "%s"' % cmd)
-    subprocess.check_call(cmd, shell=True, cwd='native_client')
+    subprocess.check_call(cmd, shell=True, cwd=nacl_dir)
 
   build_step(bits32, '32', 'sdl=none sel_ldr')
   build_step(bits64, '64', 'sdl=none sel_ldr')
@@ -70,11 +74,13 @@ def Install(options, tools):
   # Figure out where tools are and install the build artifacts into the
   # SDK tarball staging area.
   # TODO(bradnelson): add an 'install' alias to the main build for this.
-  tool_build_path_32 = os.path.join('native_client',
+  # TODO(dspringer): Remove nacl_dir when the --nacl-dir option is added.
+  nacl_dir = os.path.join(options.work_dir, 'native_client')
+  tool_build_path_32 = os.path.join(nacl_dir,
                                     'scons-out',
                                     '%s-x86-32' % (options.variant),
                                     'staging')
-  tool_build_path_64 = os.path.join('native_client',
+  tool_build_path_64 = os.path.join(nacl_dir,
                                     'scons-out',
                                     '%s-x86-64' % (options.variant),
                                     'staging')

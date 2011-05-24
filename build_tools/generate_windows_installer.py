@@ -179,7 +179,7 @@ def main(argv):
   # archive will be created in src\build_tools,
   # make_native_client_sdk.sh will create the real nacl-sdk.exe
   archive = os.path.join(home_dir, 'src', 'build_tools', ar_name)
-  tarball = subprocess.Popen(
+  subprocess.check_call(
       ar_cmd % (
            {'ar_name':ar_name,
             'input':version_dir,
@@ -187,7 +187,6 @@ def main(argv):
       cwd=temp_dir,
       env=cygwin_env,
       shell=True)
-  assert tarball.wait() == 0
 
   bot.BuildStep('create Windows installer')
   bot.Print('generate_windows_installer is creating the windows installer.')
@@ -195,23 +194,21 @@ def main(argv):
   done1 = (os.path.join(build_tools_dir, 'done1'))
   if os.path.exists(done1):
     os.remove(done1)
-  exefile = subprocess.Popen([
+  subprocess.call([
       os.path.join(cygwin_dir, 'bash.exe'),
       'make_native_client_sdk.sh', '-V',
       build_utils.RawVersion(), '-v', '-n'],
       cwd=build_tools_dir)
-  exefile.wait()
   if os.path.exists(done1):
     done2 = (os.path.join(build_tools_dir, 'done2'))
     bot.Print("NSIS script created - time to run makensis!")
     if os.path.exists(done2):
       os.remove(done2)
-    exefile2 = subprocess.Popen([
+    exefile2 = subprocess.call([
         os.path.join(cygwin_dir, 'bash.exe'),
         'make_native_client_sdk2.sh', '-V',
         build_utils.RawVersion(), '-v', '-n'],
         cwd=build_tools_dir)
-    exefile2.wait()
     if os.path.exists(done2):
       bot.Print("Installer created!")
 
