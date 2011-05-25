@@ -17,6 +17,7 @@ from __future__ import with_statement
 import datetime
 import optparse
 import os
+import platform
 import shutil
 import string
 import subprocess
@@ -38,6 +39,10 @@ def TestingClosure(_outdir, _jobs):
   Returns:
     A TestCase class that can be used by the unittest loader
   '''
+  toolchain_base = build_utils.NormalizeToolchain(base_dir=_outdir)
+  toolchain_bin = os.path.join(toolchain_base, 'bin')
+  gcc64 = os.path.join(toolchain_bin, 'nacl64-gcc')
+  sel_ldr64 = os.path.join(toolchain_bin, 'nacl64-sel_ldr')
 
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
@@ -49,8 +54,7 @@ def TestingClosure(_outdir, _jobs):
       path = os.path.join(_outdir, 'examples')
       command = [os.path.join(path, scons), '-j', _jobs]
 
-      annotator.Print('Running %s in %s' % (command, path))
-      subprocess.check_call(' '.join(command), cwd=path, shell=True)
+      annotator.Run(' '.join(command), cwd=path, shell=True)
       return True
 
     def testReadMe(self):
@@ -59,7 +63,10 @@ def TestingClosure(_outdir, _jobs):
       filename = 'README.txt' if sys.platform == 'win32' else 'README'
       with open(os.path.join(_outdir, filename), 'r') as file:
         contents = file.read()
-      self.assertEqual(1, contents.count(build_utils.RawVersion()))
+      version = build_utils.RawVersion()
+      annotator.Print('Checking that SDK version = %s' % version)
+      self.assertTrue(contents.count(version) == 1,
+                      'Version mismatch in %s' % filename)
 
       # Check that the README contains either the current date or yesterday's
       # date (which happens when building over midnight)
@@ -70,6 +77,24 @@ def TestingClosure(_outdir, _jobs):
                              datetime.timedelta(days=1))),
           "Cannot find today's or yesterday's date in README")
       return True
+
+    def testValgrind(self):
+      '''Verify that Valgrind works properly (Linux 64-bit only)'''
+
+      if (sys.platform not in ['linux', 'linux2'] or
+          platform.machine() != 'x86_64'):
+        annotator.Print('Not running on 64-bit Linux -- skip')
+        return True
+      true_basename = os.path.join(_outdir, 'true')
+      true_c_filename = '%s.c' % true_basename
+      true_nexe_filename = '%s.nexe' % true_basename
+      with open(true_c_filename, 'w') as true_file:
+        true_file.write('int main(void) { return 0; }\n')
+      annotator.Run([gcc64, '-o', true_nexe_filename, '-m64', '-O0',
+                     '-Wl,-u,have_nacl_valgrind_interceptors', '-g',
+                     true_c_filename, '-lvalgrind'])
+      memcheck = os.path.join(_outdir, 'third_party', 'valgrind', 'memcheck.sh')
+      annotator.Run([memcheck, sel_ldr64, '-Q', true_nexe_filename])
 
   return TestSDK
 

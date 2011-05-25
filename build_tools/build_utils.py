@@ -229,6 +229,33 @@ class BotAnnotator:
   def BuildStep(self, name):
     self.Print("@@@BUILD_STEP %s@@@" % name)
 
+  def Run(self, *popenargs, **kwargs):
+    '''Implements the functionality of subprocess.check_output, but also
+    prints out the command-line and the command output.
+
+    Do not set stdout to anything because this function will redirect it
+    using a pipe.
+
+    Arguments:
+      See subprocess.Popen
+
+    returns:
+      a string containing the command output
+    '''
+    if 'stdout' in kwargs:
+      raise ValueError('stdout argument not allowed, it will be overridden.')
+    command = kwargs.get("args")
+    if command is None:
+      command = popenargs[0]
+    self.Print('Running %s' % command)
+    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    output, unused_err = process.communicate()
+    self.Print(output)
+    retcode = process.poll() # Note - calling wait() can cause a deadlock
+    if retcode != 0:
+      raise subprocess.CalledProcessError(retcode, command)
+    return output
+
   #TODO(mball) Add the other possible build annotations, as needed
 
 
