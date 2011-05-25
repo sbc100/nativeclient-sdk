@@ -22,6 +22,7 @@ EXTRA_WINDOWS_INSTALLER_CONTENTS = [
     'examples/httpd.cmd',
     'examples/scons.bat',
     'project_templates/scons.bat',
+    'toolchain/',
 ]
 
 def main(argv):
@@ -176,9 +177,9 @@ def main(argv):
   cygwin_env = os.environ.copy()
   # TODO (mlinck, mball) make this unnecessary
   cygwin_env['PATH'] = cygwin_dir + ';' + cygwin_env['PATH']
-  # archive will be created in src\build_tools,
+  # archive will be created in src\build_tools\pacakges,
   # make_native_client_sdk.sh will create the real nacl-sdk.exe
-  archive = os.path.join(home_dir, 'src', 'build_tools', ar_name)
+  archive = os.path.join(home_dir, 'src', 'build_tools', 'packages', ar_name)
   subprocess.check_call(
       ar_cmd % (
            {'ar_name':ar_name,
@@ -191,26 +192,17 @@ def main(argv):
   bot.BuildStep('create Windows installer')
   bot.Print('generate_windows_installer is creating the windows installer.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
-  done1 = (os.path.join(build_tools_dir, 'done1'))
-  if os.path.exists(done1):
-    os.remove(done1)
+  # Do not check the return value of this call, because it always fails on the
+  # try bots.  The try bots always patch using the native line ending, which
+  # appends CRLF to the line endings of the make_native_client_sdk.sh script,
+  # and bash cannot deal with CRLF line endings.  The shell script runs fine
+  # on the build bots.
   subprocess.call([
       os.path.join(cygwin_dir, 'bash.exe'),
       'make_native_client_sdk.sh', '-V',
       build_utils.RawVersion(), '-v', '-n'],
       cwd=build_tools_dir)
-  if os.path.exists(done1):
-    done2 = (os.path.join(build_tools_dir, 'done2'))
-    bot.Print("NSIS script created - time to run makensis!")
-    if os.path.exists(done2):
-      os.remove(done2)
-    exefile2 = subprocess.call([
-        os.path.join(cygwin_dir, 'bash.exe'),
-        'make_native_client_sdk2.sh', '-V',
-        build_utils.RawVersion(), '-v', '-n'],
-        cwd=build_tools_dir)
-    if os.path.exists(done2):
-      bot.Print("Installer created!")
+  bot.Print("Installer created!")
 
   # Clean up.
   shutil.rmtree(temp_dir)
