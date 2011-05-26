@@ -20,18 +20,7 @@ vars = {
 # for those too.
 
 deps = {
-  "src/third_party/scons-2.0.1":
-    Var("scons_trunk") + "src/third_party/scons-2.0.1@" + Var("scons_version"),
-  "src/site_scons":
-    Var("scons_trunk") + "src/native_client/site_scons@" + Var("scons_version"),
-  "src/third_party/valgrind": Var("native_client_trunk") +
-    "/src/native_client/src/third_party/valgrind" + "@" +
-    Var("valgrind_version"),
-  "src/third_party/gtest":
-    "http://googletest.googlecode.com/svn/trunk@" + Var("gtest_rev"),
-  "src/third_party/valgrind/bin": Var("native_client_trunk") +
-    "/src/third_party/valgrind/bin" + "@" + Var("valgrind_version"),
-  "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version"),
+  # Please keep these in alphabetical order, by path
   "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/shared/gio":
     Var("native_client_trunk") + "/src/native_client/src/shared/gio@"
@@ -53,8 +42,6 @@ deps = {
     "src/include":
     Var("native_client_trunk") + "/src/native_client/src/include@"
     + Var("native_client_version"),
-  "src/third_party/ppapi": Var("chromium_trunk") + "/src/ppapi" +
-    "@" + Var("chromium_version"),
   "src/experimental/visual_studio_plugin/third_party/native_client/"
     "src/trusted/port":
     Var("native_client_trunk") + "/src/native_client/src/trusted/port@"
@@ -63,6 +50,20 @@ deps = {
     "src/trusted/gdb_rsp":
     Var("native_client_trunk") + "/src/native_client/src/trusted/gdb_rsp@"
     + Var("native_client_version"),
+  "src/site_scons":
+    Var("scons_trunk") + "src/native_client/site_scons@" + Var("scons_version"),
+  "src/third_party/gtest":
+    "http://googletest.googlecode.com/svn/trunk@" + Var("gtest_rev"),
+  "src/third_party/ppapi": Var("chromium_trunk") + "/src/ppapi" +
+    "@" + Var("chromium_version"),
+  "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version"),
+  "src/third_party/scons-2.0.1":
+    Var("scons_trunk") + "src/third_party/scons-2.0.1@" + Var("scons_version"),
+  "src/third_party/valgrind": Var("native_client_trunk") +
+    "/src/native_client/src/third_party/valgrind" + "@" +
+    Var("valgrind_version"),
+  "src/third_party/valgrind/bin": Var("native_client_trunk") +
+    "/src/third_party/valgrind/bin" + "@" + Var("valgrind_version"),
 }
 
 hooks = [
