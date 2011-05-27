@@ -109,10 +109,10 @@ def main(argv):
   example_path = os.path.join(home_dir, 'src', 'examples')
   # Make sure the examples are clened out before creating the prebuilt
   # artifacts.
-  subprocess.check_call(['scons.bat', '-c', 'install_prebuilt'],
-                         cwd=example_path)
-  subprocess.check_call(['scons.bat', 'install_prebuilt'],
-                         cwd=example_path)
+  scons_path = os.path.join(example_path, 'scons.bat')
+  subprocess.check_call([scons_path, '-c',
+                        'install_prebuilt'], cwd=example_path)
+  subprocess.check_call([scons_path, 'install_prebuilt'], cwd=example_path)
 
   # On windows we use copytree to copy the SDK into the build location
   # because there is no native tar and using cygwin's version has proven
