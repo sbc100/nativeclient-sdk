@@ -161,7 +161,6 @@ class DebuggeeThread {
   HANDLE handle_;
   IDebuggeeProcess& parent_process_;
   State state_;
-  int last_debug_event_id_;
   int exit_code_;
 
   /// Current breakpoint, if any. NULL if thread did not hit breakpoint.

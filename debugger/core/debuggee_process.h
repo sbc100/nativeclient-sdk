@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <deque>
 #include <map>
+#include "debugger/core/debug_event.h"
 #include "debugger/core/debuggee_iprocess.h"
 #include "debugger/core/debuggee_thread.h"
 
@@ -61,7 +62,12 @@ class DebuggeeProcess : public IDebuggeeProcess {
   /// Shall be called only on dead processes (i.e. state_ == kDead).
   /// @return exit code or exception number, if process is terminated
   /// by exception.
-  int return_code() const { return exit_code_; }
+  virtual int return_code() const { return exit_code_; }
+
+  /// @return reference to last received debug event
+  virtual const DebugEvent& last_debug_event() const {
+    return last_debug_event_;
+  }
 
   virtual DebugAPI& debug_api() { return debug_api_; }
 
@@ -219,8 +225,8 @@ class DebuggeeProcess : public IDebuggeeProcess {
   HANDLE handle_;
   HANDLE file_handle_;
   State state_;
-  int last_debug_event_id_;
   int exit_code_;
+  DebugEvent last_debug_event_;
   std::deque<DebuggeeThread*> threads_;
   std::map<void*, Breakpoint*> breakpoints_;
   void* nexe_mem_base_;

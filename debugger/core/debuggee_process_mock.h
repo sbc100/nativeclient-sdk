@@ -4,6 +4,7 @@
 #ifndef DEBUGGER_CORE_DEBUGGEE_PROCESS_MOCK_H_
 #define DEBUGGER_CORE_DEBUGGEE_PROCESS_MOCK_H_
 #include <deque>
+#include "debugger/core/debug_event.h"
 #include "debugger/core/debuggee_iprocess.h"
 
 namespace debug {
@@ -35,6 +36,7 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   virtual int id() const { return 0;}
   virtual State state() const { return kDead; }
   virtual bool IsHalted() const { return kHalted == state(); }
+  virtual const DebugEvent& last_debug_event() const { return debug_event_; }
   virtual void* nexe_mem_base() const { return nexe_mem_base_; }
   virtual void set_nexe_mem_base(void* addr) { nexe_mem_base_ = addr; }
   virtual void* nexe_entry_point() const { return nexe_entry_point_; }
@@ -63,6 +65,7 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   DebugAPI* debug_api_;
   void* nexe_mem_base_;
   void* nexe_entry_point_;
+  DebugEvent debug_event_;
 };
 
 }  // namespace debug

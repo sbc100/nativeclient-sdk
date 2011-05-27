@@ -38,6 +38,9 @@ class IDebuggeeProcess {
 
   virtual bool IsHalted() const = 0;
 
+  /// @return reference to last received debug event
+  virtual const DebugEvent& last_debug_event() const = 0;
+
   /// @return address of memory region where nexe is loaded.
   virtual void* nexe_mem_base() const  = 0;
 

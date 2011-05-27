@@ -16,7 +16,6 @@ DebuggeeProcess::DebuggeeProcess(int id,
     handle_(handle),
     file_handle_(file_handle),
     state_(kRunning),
-    last_debug_event_id_(0),
     exit_code_(0),
     debug_api_(*debug_api),
     nexe_mem_base_(NULL),
@@ -233,8 +232,8 @@ void DebuggeeProcess::GetBreakpoints(std::deque<Breakpoint*>* breakpoints) {
 }
 
 void DebuggeeProcess::OnDebugEvent(DebugEvent* debug_event) {
+  last_debug_event_ = *debug_event;
   DEBUG_EVENT wde = debug_event->windows_debug_event();
-  last_debug_event_id_ = wde.dwDebugEventCode;
 
   switch (wde.dwDebugEventCode) {
     case CREATE_PROCESS_DEBUG_EVENT: {
@@ -279,7 +278,9 @@ bool DebuggeeProcess::ContinueHaltedThread(
     if (halted_thread->state() == DebuggeeThread::kDead)
       RemoveThread(halted_thread->id());
 
-    if (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id_)
+    int last_debug_event_id =
+      last_debug_event_.windows_debug_event().dwDebugEventCode;
+    if (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id)
       state_ = kDead;
     else
       state_ = kRunning;

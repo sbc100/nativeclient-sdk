@@ -217,6 +217,12 @@ TEST_F(DebuggeeProcessTest, ProcessExit) {
 
   proc_->OnDebugEvent(&de);
   EXPECT_EQ(debug::DebuggeeProcess::kHalted, proc_->state());
+  EXPECT_EQ(wde.dwDebugEventCode,
+            proc_->last_debug_event().windows_debug_event().dwDebugEventCode);
+  EXPECT_EQ(wde.dwProcessId,
+            proc_->last_debug_event().windows_debug_event().dwProcessId);
+  EXPECT_EQ(wde.dwThreadId,
+            proc_->last_debug_event().windows_debug_event().dwThreadId);
 
   proc_->Continue();
   EXPECT_EQ(debug::DebuggeeProcess::kDead, proc_->state());

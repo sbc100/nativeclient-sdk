@@ -25,7 +25,6 @@ DebuggeeThread::DebuggeeThread(int id,
       handle_(handle),
       parent_process_(*parent_process),
       state_(kHalted),
-      last_debug_event_id_(0),
       exit_code_(0),
       triggered_breakpoint_addr_(NULL),
       is_nacl_app_thread_(false) {
@@ -135,8 +134,11 @@ bool DebuggeeThread::Continue(ContinueOption option) {
             id());
     return false;
   }
-  if ((EXIT_THREAD_DEBUG_EVENT == last_debug_event_id_) ||
-     (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id_)) {
+  const DebugEvent& last_debug_event = parent_process().last_debug_event();
+  int last_debug_event_id =
+      last_debug_event.windows_debug_event().dwDebugEventCode;
+  if ((EXIT_THREAD_DEBUG_EVENT == last_debug_event_id) ||
+     (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id)) {
     SetState(kDead);
     return (TRUE == debug_api().ContinueDebugEvent(parent_process().id(),
                                                    id(),
@@ -217,7 +219,6 @@ void DebuggeeThread::OnSingleStep(DebugEvent* debug_event) {
 
 void DebuggeeThread::OnDebugEvent(DebugEvent* debug_event) {
   DEBUG_EVENT de = debug_event->windows_debug_event();
-  last_debug_event_id_ = de.dwDebugEventCode;
   EnableSingleStep(false);
 
   // Thread expected 'SingleStep' exception due to 'continue from breakpoint'
