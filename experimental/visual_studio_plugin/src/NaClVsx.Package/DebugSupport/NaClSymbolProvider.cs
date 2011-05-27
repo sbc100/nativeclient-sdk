@@ -217,7 +217,7 @@ namespace Google.NaClVsx.DebugSupport {
       // we decide to make database a per-module thing too)
       BaseAddress = loadOffset;
       try {
-        DwarfParser.DwarfParseElf(path, new DwarfReaderImpl(db_, loadOffset));
+        DwarfParser.DwarfParseElf(path, new DwarfReaderImpl(db_));
         db_.BuildIndices();
         status = "ELF/DWARF symbols loaded";
         return true;

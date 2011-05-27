@@ -236,6 +236,7 @@
 				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="false"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName)\vc80.pdb"
+				GenerateXMLDocumentationFiles="false"
 				WarningLevel="3"
 				WarnAsError="false"
 				Detect64BitPortabilityProblems="false"
@@ -410,7 +411,7 @@
 			>
 		</File>
 		<File
-			RelativePath="debug_socket_impl.c"
+			RelativePath=".\debug_socket_impl.c"
 			>
 		</File>
 		<File

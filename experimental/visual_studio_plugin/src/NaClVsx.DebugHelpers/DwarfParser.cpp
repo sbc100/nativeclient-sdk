@@ -30,13 +30,12 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         uint8 offset_size,
         uint64 cu_length,
         uint8 dwarf_version) {
-      target_->StartCompilationUnit(
-        offset, address_size, offset_size, cu_length, dwarf_version);
+      target_->StartCompilationUnit();
       return NULL;
     }
 
     virtual void EndCompilationUnit(void *ctx, uint64 offset) {
-      target_->EndCompilationUnit(offset);
+      target_->EndCompilationUnit();
     }
 
     virtual void *StartDIE(void *ctx,
@@ -62,7 +61,6 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         offset,
         parent,
         static_cast<DwarfAttribute>(attr),
-        static_cast<DwarfForm>(form),
         data);
     }
 
@@ -76,7 +74,6 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         offset,
         parent,
         static_cast<DwarfAttribute>(attr),
-        static_cast<DwarfForm>(form),
         data);
     }
 
@@ -90,7 +87,6 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         offset,
         parent,
         static_cast<DwarfAttribute>(attr),
-        static_cast<DwarfForm>(form),
         gcnew DwarfReference(data));
     }
 
@@ -111,7 +107,6 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         offset,
         parent,
         static_cast<DwarfAttribute>(attr),
-        static_cast<DwarfForm>(form),
         arr);
     }
 
@@ -129,7 +124,6 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         offset,
         parent,
         static_cast<DwarfAttribute>(attr),
-        static_cast<DwarfForm>(form),
         str);
     }
 
@@ -147,9 +141,7 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
       target_->DefineFile(
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))),
         file_num,
-        dir_num,
-        mod_time,
-        length);
+        dir_num);
     }
 
     virtual void AddLine(void *ctx,
@@ -183,17 +175,8 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
         uint8 version,
         const char* augmentation,
         unsigned return_address) {
-      // NOTE: using const_cast because Marshal doesn't support const ptrs.
-      char* char_aug = const_cast<char*>(augmentation);
-      void* void_aug = static_cast<void*>(char_aug);
-
       return target_->BeginCfiEntry(
-        offset,
-        address,
-        length,
-        version,
-        Marshal::PtrToStringAnsi(IntPtr(void_aug)),
-        return_address);
+        address);
     }
 
     virtual bool AddCfiRule(

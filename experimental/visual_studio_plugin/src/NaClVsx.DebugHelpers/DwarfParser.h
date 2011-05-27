@@ -7,6 +7,14 @@
 #include <dwarf_reader/dwarf_parse.h>
 #include <dwarf_reader/dwarf_reader.h>
 
+/// <summary>
+/// The items in this file provide definitions that can be used inside C#
+/// classes.  They need to be kept in sync with the corresponding definitions
+/// in breakpad dwarf2enums.  Both are an implementation of version 2 of the
+/// DWARF spec: http://dwarfstd.org/doc/dwarf-2.0.0.pdf
+/// The nomenclature used throughout this file corresponds with the spec and
+/// thus will not follow the google style guide.
+/// </summary>
 namespace NaClVsx {
 
 // These enums do not follow the google3 style only because they are
@@ -621,47 +629,151 @@ public ref struct DwarfReference {
     return System::String::Format("[{0}]", offset); }
 };
 
+  /// <summary>
+  /// This class is responsible for assisting in parsing of the DWARF
+  /// information in a single compilation unit.  The terminology, used
+  /// throughout the class, corresponds with the terminology found in
+  /// pre-existing DWARF documentation, particularly the spec:
+  /// http://dwarfstd.org/doc/dwarf-2.0.0.pdf
+  /// The DwarfReader's job is to build up the SymbolDatabase to be
+  /// referenced while debugging as the parser is readig the debugging
+  /// information out of the binary.
+  /// </summary>
 public interface class IDwarfReader {
-  void StartCompilationUnit(
-    uint64 offset,
-    uint8 address_size,
-    uint8 offset_size,
-    uint64 cu_length,
-    uint8 dwarf_version);
-  void EndCompilationUnit(uint64 offset);
+  /// <summary>
+  /// Called when the DWARF parser encounters the start of a new
+  /// compilation unit.  A compilation unit has at least one debugging
+  /// information entry (DIE) which indicates whether the compilation unit
+  /// is a normal or a partial compilation unit.  In the code, a compilation
+  /// unit is something like a class, scope, function or template (partial).
+  /// </summary>
+  void StartCompilationUnit();
 
+  /// <summary>
+  /// Called when the DWARF parser encounters the end of a compilation unit.
+  /// </summary>
+  void EndCompilationUnit();
+
+  /// <summary>
+  /// This function is called by the parser when a new Debugging Information
+  /// Entry (DIE) is encountered in the debuggee.  It adds an entry
+  /// to the SymbolDatabase, so that its attribute information can be added
+  /// as it is being parsed.
+  /// </summary>
+  /// <param name="parent">
+  /// The key of the parent DIE, could be an outer scope, owning class,
+  /// etc...
+  /// </param>
+  /// <param name="offset">
+  /// The address that denotes the start of this DIE and its lookup key from
+  /// this point onward.
+  /// </param>
+  /// <param name="tag">
+  /// An enumeration defining the type of the DIE value.
+  /// </param>
   void StartDIE(uint64 parent, uint64 offset, DwarfTag tag);
 
+  /// <summary>
+  /// Ensure that the end of  DIE is handled properly.
+  /// </summary>
+  /// <param name="offset">
+  /// The offset (relative code address) of the DIE whose end has been
+  /// encountered.
+  /// </param>
   void EndDIE(uint64 offset);
 
+  /// <summary>
+  /// Associates the given attribute with the correct DIE's record.
+  /// </summary>
+  /// <param name="offset">
+  /// The containing DIE's lookup key.
+  /// </param>
+  /// <param name="parent">
+  /// The attribute's parent's key.  In many cases the same as the
+  /// containing DIE.
+  /// </param>
+  /// <param name="attr">
+  /// The attribute's type as defined by the DWARF spec.
+  /// </param>
+  /// <param name="data">
+  /// The value of the attribute.
+  /// </param>
   void ProcessAttribute(
     uint64 offset,
     uint64 parent,
     DwarfAttribute attr,
-    DwarfForm form,
     System::Object^ data);
 
-
+  /// <summary>
+  /// Adds knowledge of a source code directory.  This will be used to create
+  /// file entries.
+  /// </summary>
+  /// <param name="name">
+  /// The path of the dir, relative to the top of the project that is being
+  /// debugged.
+  /// </param>
+  /// <param name="dir_num">
+  /// The directory will be indexed according to this parameter.
+  /// </param>
   void DefineDir(System::String^ name, uint32 dir_num);
 
+  /// <summary>
+  /// Adds knowledge of a source code file.
+  /// </summary>
+  /// <param name="name">The file's name.</param>
+  /// <param name="file_num">
+  /// The file's will be indexed according to this parameter.
+  /// </param>
+  /// <param name="dir_num">The index of the parent directory.</param>
   void DefineFile(System::String^ name, int32 file_num,
-    uint32 dir_num, uint64 mod_time,
-    uint64 length);
+    uint32 dir_num);
 
+  /// <summary>
+  /// Called to add knowledge of a line of source code.  The line ends up
+  /// being indexed by its code address.
+  /// </summary>
+  /// <param name="address">The code address of the line.</param>
+  /// <param name="length">The number of characters in the line.</param>
+  /// <param name="file_num">The key of the file that contains the line.
+  /// </param>
+  /// <param name="line_num">The number of the line in its code file.</param>
+  /// <param name="column_num">Indicates the column of the first character in
+  /// the line.
+  /// </param>
   void AddLine(uint64 address, uint64 length, uint32 file_num,
     uint32 line_num, uint32 column_num);
 
+  /// <summary>
+  /// Adds a location of a particular piece of data to the code.  Note that
+  /// there is a many to one mapping between code locations and data.  For
+  /// example, a variable can be referenced multiple times.
+  /// </summary>
+  /// <param name="offset">The address of the data, which is used as an index
+  /// into the code.</param>
+  /// <param name="is_first_entry">Whether this is the first time this data
+  /// has been encountered in the code.
+  /// </param>
+  /// <param name="low_pc">
+  /// The beginning of the code that references the data.</param>
+  /// <param name="high_pc">
+  /// The end of the code that references the data.</param>
+  /// <param name="data">The data itself.</param>
   void AddLocListEntry(
     uint64 offset,
     bool is_first_entry,
-    uint64 lowPc,
-    uint64 highPc,
+    uint64 low_pc,
+    uint64 high_pc,
     array<System::Byte>^ data);
 
-  //
-  // IMPORTANT: this enum MUST be kept in sync with the unmanaged
-  // CFI_RuleType enum in dwarf_reader.h!!
-  //
+  /// <summary>
+  /// There are various implementations of Call Frames in different
+  /// architectures.  DWARF uses a single table type for its call frame
+  /// information descriptor, but allows the exact implementation to be
+  /// specified by call frame rules, that specify how any given register is
+  /// used/modified by the call frame.
+  /// IMPORTANT: this enum MUST be kept in sync with the unmanaged
+  /// CFI_RuleType enum in dwarf_reader.h!!
+  /// </summary>
   enum class CfiRuleType {
     Undefined,
     SameValue,
@@ -672,22 +784,49 @@ public interface class IDwarfReader {
     ValExpression,
   };
 
-  virtual bool BeginCfiEntry(
-    size_t offset,
-    uint64 address,
-    uint64 length,
-    uint8 version,
-    System::String^ augmentation,
-    unsigned return_address);
+  /// <summary>
+  /// Starts a new call frame information (CFI) entry.  This may be populated
+  /// with CFI Rules, until EndCfiEntry is called.
+  /// </summary>
+  /// <param name="address">The location of the CFI in the binary.</param>
+  /// <returns>
+  /// True if the call frame has been successfully registered.
+  /// </returns>
+  virtual bool BeginCfiEntry(uint64 address);
 
+  /// <summary>
+  /// Adds a rule to the currently active CFI.
+  /// </summary>
+  /// <param name="address">The rule's address on the call stack.</param>
+  /// <param name="register_id">The rule's register id.</param>
+  /// <param name="rule_type">
+  /// See description for rule_type and the DWARF spec.  This determines how
+  /// the other argumets can be used to determine call frame state.
+  /// </param>
+  /// <param name="base_register">
+  /// The index of the base_register (for example 15 for Native Client)
+  /// </param>
+  /// <param name="offset">
+  /// When the rule_type is "Offset" the previous frame address at runtime can
+  /// be calculated by adding this offset to the value of the base_register.
+  /// </param>
+  /// <param name="expression">
+  /// The rule_type determines how this data field is to be used.
+  /// </param>
+  /// <returns> True if the rule has been added to the call frame information
+  /// entry that is currently being parsed.
+  /// </returns>
   virtual bool AddCfiRule(
     uint64 address,
-    int reg,
-    CfiRuleType ruleType,
+    int register_id,
+    CfiRuleType rule_type,
     int base_register,
     int32 offset,
     array<System::Byte>^ expression);
 
+  /// <summary>
+  /// Called to notify the DwarfReader that the end of a CFI has been reached.
+  /// </summary>
   virtual bool EndCfiEntry();
 };
 

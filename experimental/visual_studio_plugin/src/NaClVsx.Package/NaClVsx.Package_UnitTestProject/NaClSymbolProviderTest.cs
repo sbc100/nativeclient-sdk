@@ -29,7 +29,8 @@ namespace NaClVsx.Package_UnitTestProject {
     // 
     //You can use the following additional attributes as you write your tests:
     //
-    //Use ClassInitialize to run code before running the first test in the class
+    //Use ClassInitialize to run code before running the first test in the
+    //class
     [ClassInitialize]
     public static void MyClassInitialize(TestContext testContext) {
       root_ = Environment.GetEnvironmentVariable("NACL_VSX_ROOT");
@@ -49,7 +50,8 @@ namespace NaClVsx.Package_UnitTestProject {
 
       sym_ = new NaClSymbolProvider(null);
       bool ok = sym_.LoadModule(
-          Path.Combine(root_, nexePath), baseAddr, out status);
+          Path.Combine(root_, NaClPackageTestConstants.kNexePath),
+                       NaClPackageTestConstants.kBaseAddr, out status);
       Assert.IsTrue(ok, "LoadModule failed");
     }
 
@@ -68,7 +70,8 @@ namespace NaClVsx.Package_UnitTestProject {
     [TestMethod]
     public void PositionFromAddressTest() {
       // loop.cc(10,0): 0x20320 (32 bytes)
-      DocumentPosition pos = sym_.PositionFromAddress(baseAddr + 0x20320);
+      ulong codeAddress = NaClPackageTestConstants.kBaseAddr + 0x20320;
+      DocumentPosition pos = sym_.PositionFromAddress(codeAddress);
       Assert.IsNotNull(pos);
       Assert.AreEqual(pos, new DocumentPosition("loop.cc", 9));
     }
@@ -79,7 +82,7 @@ namespace NaClVsx.Package_UnitTestProject {
     [TestMethod]
     public void AddressesFromPositionTest() {
       // loop.cc(10,0): 0x20320 (32 bytes)
-      ulong addr = baseAddr + 0x20320;
+      ulong addr = NaClPackageTestConstants.kBaseAddr + 0x20320;
       DocumentPosition pos = sym_.PositionFromAddress(addr);
       Assert.IsNotNull(pos);
 
@@ -95,7 +98,7 @@ namespace NaClVsx.Package_UnitTestProject {
       // loop.cc(10,0): 0x20320 (32 bytes)
       // should have formal parameter "count" and local variable "i"
       string abspath = root_ + @"\src\loop\loop.cc";
-      ulong addr = baseAddr + 0x20320;
+      ulong addr = NaClPackageTestConstants.kBaseAddr + 0x20320;
       // We're getting the address of the printf (line 10) but need to use
       // MSVC's internal numbering scheme at this layer, which is 0 based.
       var pos = new DocumentPosition(abspath, 9);
@@ -117,7 +120,7 @@ namespace NaClVsx.Package_UnitTestProject {
       // loop.cc(10,0): 0x20380 (32 bytes)
       // should have global variable g_gGlobalData, formal
       // parameter "count" and local variable "i"
-      ulong addr = baseAddr + 0x20380;
+      ulong addr = NaClPackageTestConstants.kBaseAddr + 0x20380;
       IEnumerable<Symbol> symbols = sym_.GetSymbolsInScope(addr);
       Assert.AreEqual(3, symbols.Count());
     }
@@ -127,7 +130,7 @@ namespace NaClVsx.Package_UnitTestProject {
       // loop.cc(10,0): 0x20380 (32 bytes)
       // should have global variable g_gGlobalData, formal
       // parameter "count" and local variable "i"
-      ulong addr = baseAddr + 0x20380;
+      ulong addr = NaClPackageTestConstants.kBaseAddr + 0x20380;
       IEnumerable<Symbol> symbols = sym_.GetSymbolsInScope(addr);
 
       // first symbol should be "i"
@@ -146,7 +149,7 @@ namespace NaClVsx.Package_UnitTestProject {
       // loop.cc(10,0): 0x20380 (32 bytes)
       // should have global variable g_gGlobalData, formal
       // parameter "count" and local variable "i"
-      ulong addr = baseAddr + 0x20380;
+      ulong addr = NaClPackageTestConstants.kBaseAddr + 0x20380;
       IEnumerable<Symbol> symbols = sym_.GetSymbolsInScope(addr);
 
       // first symbol should be "i"
@@ -171,7 +174,7 @@ namespace NaClVsx.Package_UnitTestProject {
     public void GetSymbolCharValueTest() {
       // Address is for loop.cc -- line 39.  Retrieved using
       // nacl-objdump.exe -d <loop.nexe>
-      ulong addr = baseAddr + 0x2055b;
+      ulong addr = NaClPackageTestConstants.kBaseAddr + 0x2055b;
       IEnumerable<Symbol> symbols = sym_.GetSymbolsInScope(addr);
       // Should have 2 vars in this scope:
       // global variable g_gGlobalData, and local variable "c".
@@ -222,7 +225,7 @@ namespace NaClVsx.Package_UnitTestProject {
     ///</summary>
     [TestMethod]
     public void FunctionFromAddressTest() {
-      ulong address = baseAddr + 0x20380;
+      ulong address = NaClPackageTestConstants.kBaseAddr + 0x20380;
       Function actual = sym_.FunctionFromAddress(address);
       Assert.AreEqual("print_line", actual.Name);
     }
@@ -237,14 +240,6 @@ namespace NaClVsx.Package_UnitTestProject {
     }
 
     #region Private Implementation
-
-    private static readonly ulong baseAddr = 0x00000ffc00000000;
-
-    private static readonly string codePath =
-        @"src\loop\loop.cc";
-
-    private static readonly string nexePath =
-        @"src\loop\loop.nexe";
 
     private static string root_;
     private NaClSymbolProvider sym_;

@@ -7,26 +7,24 @@ using System.Diagnostics;
 using NaClVsx;
 
 namespace Google.NaClVsx.DebugSupport.DWARF {
+  /// <summary>
+  /// The interface implemented by this class lives in
+  /// NaClVsx.DebugHelpers->Header Files->DwarfParser.h
+  /// </summary>
   class DwarfReaderImpl : IDwarfReader {
-    public DwarfReaderImpl(SymbolDatabase db, ulong baseAddr) {
+    public DwarfReaderImpl(SymbolDatabase db) {
       db_ = db;
-      base_ = baseAddr;
     }
 
     #region Implementation of IDwarfReader
 
-    public void StartCompilationUnit(ulong offset,
-                                     byte addressSize,
-                                     byte offsetSize,
-                                     ulong cuLength,
-                                     byte dwarfVersion) {
+    public void StartCompilationUnit() {
       // File and directory ids are unique only within a compilation unit.
-      files_.Clear();
       dirs_.Clear();
       compilationUnitIndex_++;
     }
 
-    public void EndCompilationUnit(ulong offset) {}
+    public void EndCompilationUnit() {}
 
     public void StartDIE(ulong parent, ulong offset, DwarfTag tag) {
       var entry =
@@ -75,7 +73,6 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     public void ProcessAttribute(ulong offset,
                                  ulong parent,
                                  DwarfAttribute attr,
-                                 DwarfForm form,
                                  object data) {
       SymbolDatabase.DebugInfoEntry entry = db_.Entries[offset];
 
@@ -115,9 +112,9 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
       }
     }
 
-    public void DefineDir(string name, uint dir_num) {
+    public void DefineDir(string name, uint dirNum) {
       try {
-        dirs_[dir_num] = name;
+        dirs_[dirNum] = name;
       }
       catch (Exception e) {
         Debug.WriteLine(e.Message);
@@ -126,9 +123,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
 
     public void DefineFile(string name,
                            int fileNum,
-                           uint dirNum,
-                           ulong modTime,
-                           ulong length) {
+                           uint dirNum) {
       ulong key = MakeFileKey((uint) fileNum);
       string relpath;
       if (!dirs_.TryGetValue(dirNum, out relpath)) {
@@ -186,10 +181,10 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
                                 ulong highPc,
                                 byte[] data) {
       if (isFirstEntry) {
-        currentLocList = offset;
+        currentLocList_ = offset;
         db_.LocLists.Add(offset, new List<SymbolDatabase.LocListEntry>());
       }
-      List<SymbolDatabase.LocListEntry> list = db_.LocLists[currentLocList];
+      List<SymbolDatabase.LocListEntry> list = db_.LocLists[currentLocList_];
       list.Add(
           new SymbolDatabase.LocListEntry {
               StartAddress = lowPc,
@@ -198,13 +193,8 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
           });
     }
 
-    public bool BeginCfiEntry(uint offset,
-                              ulong address,
-                              ulong length,
-                              byte version,
-                              string augmentation,
-                              uint returnAddress) {
-      currentFrame = new SymbolDatabase.CallFrame {Address = address};
+    public bool BeginCfiEntry(ulong address) {
+      currentFrame_ = new SymbolDatabase.CallFrame {Address = address};
       return true;
     }
 
@@ -214,7 +204,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
                            int baseRegister,
                            int offset,
                            byte[] expression) {
-      currentFrame.Rules.Add(
+      currentFrame_.Rules.Add(
           new SymbolDatabase.CallFrame.Rule {
               Address = address,
               BaseRegister = baseRegister,
@@ -227,13 +217,12 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     }
 
     public bool EndCfiEntry() {
-      if (currentFrame == null) {
+      if (currentFrame_ == null) {
         throw new DwarfParseException("Mismatched begin/end CFI entries");
-      } else {
-        db_.CallFrames.Add(currentFrame.Address, currentFrame);
       }
+      db_.CallFrames.Add(currentFrame_.Address, currentFrame_);
 
-      currentFrame = null;
+      currentFrame_ = null;
       return true;
     }
 
@@ -250,17 +239,13 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     private readonly Dictionary<uint, string> dirs_ =
         new Dictionary<uint, string>();
 
-    private readonly Dictionary<uint, string> files_ =
-        new Dictionary<uint, string>();
-
     private readonly Stack<SymbolDatabase.DebugInfoEntry> scopeStack_ =
         new Stack<SymbolDatabase.DebugInfoEntry>();
 
     private ulong attributeIndex_;
-    private ulong base_;
     private ushort compilationUnitIndex_;
-    private SymbolDatabase.CallFrame currentFrame;
-    private ulong currentLocList;
+    private SymbolDatabase.CallFrame currentFrame_;
+    private ulong currentLocList_;
 
     #endregion
   }

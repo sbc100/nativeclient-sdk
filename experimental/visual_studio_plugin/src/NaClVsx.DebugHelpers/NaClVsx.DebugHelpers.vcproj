@@ -46,8 +46,9 @@
 				PreprocessorDefinitions="NACL_WINDOWS"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
+				GenerateXMLDocumentationFiles="true"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
