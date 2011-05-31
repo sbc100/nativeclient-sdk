@@ -59,19 +59,14 @@
     }
 
     function loadUrl() {
-      try {
-        geturlModule.postMessage('getUrl:geturl_success.html');
-      } catch(e) {
-        var logElt = document.getElementById('general_output');
-        logElt.textContent = "exception: " + e;
-      }
+      geturlModule.postMessage('getUrl:geturl_success.html');
     }
 
     // Set the global status message.  If the element with id 'statusField'
     // exists, then set its HTML to the status message as well.
-    // opt_message The message test.  If this is null or undefined, then
-    // attempt to set the element with id 'statusField' to the value of
-    // |statusText|.
+    // @param opt_message The message text.  If this is null or undefined, then
+    //   attempt to set the element with id 'status_field' to the value of
+    //   @a statusText.
     function updateStatus(opt_message) {
       if (opt_message)
         statusText = opt_message;

@@ -47,21 +47,13 @@
     }
 
     function fortyTwo() {
-      try {
-        helloWorldModule.postMessage('fortyTwo');
-      } catch(e) {
-        alert(e.message);
-      }
+      helloWorldModule.postMessage('fortyTwo');
     }
 
     function reverseText() {
-      try {
-        // Grab the text from the text box, pass it into reverseText()
-        var inputBox = document.forms.helloForm.inputBox;
-        helloWorldModule.postMessage('reverseText:' + inputBox.value);
-      } catch(e) {
-        alert(e.message);
-      }
+      // Grab the text from the text box, pass it into reverseText()
+      var inputBox = document.forms.helloForm.inputBox;
+      helloWorldModule.postMessage('reverseText:' + inputBox.value);
       // Note: a |false| return tells the <form> tag to cancel the GET action
       // when submitting the form.
       return false;
