@@ -341,7 +341,7 @@ void DebuggeeThread::Kill() {
 }
 
 bool DebuggeeThread::GetContext(CONTEXT* context) {
-  if (!IsHalted())
+  if (!parent_process().IsHalted())
     return false;
 
   context->ContextFlags = CONTEXT_ALL;
@@ -349,7 +349,7 @@ bool DebuggeeThread::GetContext(CONTEXT* context) {
 }
 
 bool DebuggeeThread::SetContext(const CONTEXT& context) {
-  if (!IsHalted())
+  if (!parent_process().IsHalted())
     return false;
 
   CONTEXT context_copy = context;
@@ -357,7 +357,7 @@ bool DebuggeeThread::SetContext(const CONTEXT& context) {
 }
 
 bool DebuggeeThread::GetWowContext(WOW64_CONTEXT* context) {
-  if (!IsHalted())
+  if (!parent_process().IsHalted())
     return false;
 
   context->ContextFlags = CONTEXT_ALL;
@@ -365,14 +365,14 @@ bool DebuggeeThread::GetWowContext(WOW64_CONTEXT* context) {
 }
 
 bool DebuggeeThread::SetWowContext(const WOW64_CONTEXT& context) {
-  if (!IsHalted())
+  if (!parent_process().IsHalted())
     return false;
 
   return (debug_api().Wow64SetThreadContext(handle_, &context) != FALSE);
 }
 
 void* DebuggeeThread::GetIP() {
-  if (!IsHalted())
+  if (!parent_process().IsHalted())
     return false;
 
   if (parent_process().IsWoW()) {
@@ -391,7 +391,7 @@ void* DebuggeeThread::GetIP() {
 }
 
 bool DebuggeeThread::SetIP(void* ip) {
-  if (!IsHalted())
+  if (!parent_process().IsHalted())
     return false;
 
   if (parent_process().IsWoW()) {
