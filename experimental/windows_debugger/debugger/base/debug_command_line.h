@@ -23,6 +23,8 @@ class CommandLine {
   int GetIntSwitch(const std::string& name, int default_value) const;
   bool HasSwitch(const std::string& name) const;
 
+  std::string ToString() const;
+
  private:
   int argc_;
   char** argv_;

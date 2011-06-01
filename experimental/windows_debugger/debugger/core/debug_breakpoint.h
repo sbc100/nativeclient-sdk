@@ -50,7 +50,6 @@ class Breakpoint {
   bool is_valid_;
   IDebuggeeProcess* process_;
 
- private:
   Breakpoint(const Breakpoint&);  // DISALLOW_COPY_AND_ASSIGN
   void operator=(const Breakpoint&);
 };

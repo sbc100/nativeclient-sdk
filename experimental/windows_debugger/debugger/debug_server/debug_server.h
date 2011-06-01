@@ -7,6 +7,7 @@
 #include "debugger/base/debug_socket.h"
 #include "debugger/core/debug_api.h"
 #include "debugger/core/debug_execution_engine.h"
+#include "debugger/core/debug_logger.h"
 #include "debugger/rsp/rsp_packetizer.h"
 #include "debugger/rsp/rsp_packet.h"
 
@@ -32,19 +33,38 @@ public:
 
   // inherited from rsp::PacketVisitor
   virtual void Visit(rsp::GetStopReasonCommand* packet);
-  virtual void Visit(rsp::StopReply* packet);
   virtual void Visit(rsp::ContinueCommand* packet);
+  virtual void Visit(rsp::QuerySupportedCommand* packet);
+  virtual void Visit(rsp::QXferFeaturesReadCommand* packet);
+  virtual void Visit(rsp::SetCurrentThreadCommand* packet);
+  virtual void Visit(rsp::ReadMemoryCommand* packet);
+  virtual void Visit(rsp::WriteMemoryCommand* packet);
+  virtual void Visit(rsp::ReadRegistersCommand* packet);
+  virtual void Visit(rsp::WriteRegistersCommand* packet);
+  virtual void Visit(rsp::GetCurrentThreadCommand* packet);
+  virtual void Visit(rsp::StepCommand* packet);
+  virtual void Visit(rsp::IsThreadAliveCommand* packet);
+  virtual void Visit(rsp::GetThreadInfoCommand* packet);
 
-  void OnHaltedProcess(DebuggeeProcess* halted_process,
+  void OnHaltedProcess(IDebuggeeProcess* halted_process,
                        const DebugEvent& debug_event);
-  void SendMessage(const rsp::Packet& msg);
+  void PostRspMessage(const rsp::Packet& msg);
+  void OnUnknownCommand();
+  bool ReadGdbRegisters(Blob* blob);
+  void GdbRegistersToCONTEXT(const Blob& gdb_regs, CONTEXT* ct);
 
+ private:
   bool connection_was_established_;
   ListeningSocket listening_socket_;
   Socket debugger_connection_;
   rsp::Packetizer rsp_packetizer_;
   ExecutionEngine* execution_engine_;
   DebugAPI debug_api_;
+  Logger* logger_;
+
+  int focused_process_id_;
+  int focused_thread_id_;
+  int main_nexe_thread_id_;
 };
 }  // namespace debug
 #endif  // DEBUGGER_DEBUG_SERVER_DEBUG_SERVER_H_

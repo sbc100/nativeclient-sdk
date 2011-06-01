@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <deque>
 #include <map>
+#include "debugger/core/debug_event.h"
 #include "debugger/core/debuggee_iprocess.h"
 #include "debugger/core/debuggee_thread.h"
 
@@ -19,6 +20,14 @@ class DebugAPI;
 
 /// Class diagram (and more) is here:
 /// https://docs.google.com/a/google.com/document/d/1lTN-IYqDd_oy9XQg9-zlNc_vbg-qyr4q2MKNEjhSA84/edit?hl=en&authkey=CJyJlOgF#
+///
+/// Note: most methods shall be called from one thread, this is limitation
+/// of Windows debug API, here's links to Microsoft documentation:
+/// http://msdn.microsoft.com/en-us/library/ms681423%28v=VS.85%29.aspx
+/// http://msdn.microsoft.com/en-us/library/ms681675%28v=vs.85%29.aspx
+/// Simple accessors can be called from any thread.
+///
+/// Note: not thread-safe.
 class DebuggeeProcess : public IDebuggeeProcess {
  public:
   /// Creates a DebuggeeProcess object. There's no need to close
@@ -35,7 +44,7 @@ class DebuggeeProcess : public IDebuggeeProcess {
   DebuggeeProcess(int id,
                   HANDLE handle,
                   HANDLE file_handle,
-                  DebugAPI& debug_api);
+                  DebugAPI* debug_api);
   virtual ~DebuggeeProcess();
 
   /// @return id of the process
@@ -48,6 +57,18 @@ class DebuggeeProcess : public IDebuggeeProcess {
   virtual HANDLE file_handle() const { return file_handle_; }
 
   virtual State state() const { return state_; }
+  virtual bool IsHalted() const { return kHalted == state(); }
+
+  /// Shall be called only on dead processes (i.e. state_ == kDead).
+  /// @return exit code or exception number, if process is terminated
+  /// by exception.
+  virtual int return_code() const { return exit_code_; }
+
+  /// @return reference to last received debug event
+  virtual const DebugEvent& last_debug_event() const {
+    return last_debug_event_;
+  }
+
   virtual DebugAPI& debug_api() { return debug_api_; }
 
   /// @return address of memory region where nexe is loaded.
@@ -69,28 +90,44 @@ class DebuggeeProcess : public IDebuggeeProcess {
 
   /// Allows process execution to continue (i.e. it calls
   /// ContinueDebugEvent() for halted thread).
-  /// Shall be called only on halted process.
-  virtual void Continue();
+  /// Shall be called only on halted process, and only from the thread that
+  /// started the debuggee.
+  virtual bool Continue();
 
   /// Allows process execution to continue. If thread was halted due
   /// to exception, that exception is passed to the debugee thread.
-  /// Shall be called only on halted process.
-  virtual void ContinueAndPassExceptionToDebuggee();
+  /// Shall be called only on halted process, and only from the thread that
+  /// started the debuggee.
+  virtual bool ContinueAndPassExceptionToDebuggee();
 
   /// Cause halted thread to execute single CPU instruction.
-  /// Shall be called only on halted process.
-  virtual void SingleStep();
+  /// Shall be called only on halted process, and only from the thread that
+  /// started the debuggee.
+  /// Does not block waiting for SINGLE_STEP exception.
+  /// Other events can arrive before SINGLE_STEP due to activity of
+  /// other threads.
+  virtual bool SingleStep();
 
   /// Cause running process to break (calls
   /// debug::DebugApi::DebugBreakProcess).
-  /// Shall not be called on halted process.
-  virtual void Break();
+  /// Shall not be called on halted process, and only from the thread that
+  /// started the debuggee.
+  /// Returns before process is stopped, it just initiates breaking debuggee
+  /// process. As a result, system will create another thread in debuggee
+  /// process, and then that tread executs a trap instruction, causing
+  /// delivery of breakpoint exception to the debugger.
+  virtual bool Break();
 
-  /// Terminates all threads of the process.
-  virtual void Kill();
+  /// Initiates termination of all threads of the process.
+  /// Event loop should process exiting debug event before DebuggeeProcess
+  /// object gets into kDead state and can be safely deleted.
+  /// TODO(garianov): verify that |Kill| can be called from any thread.
+  virtual bool Kill();
 
-  /// Detaches debugger fom the process. Process is not killed.
-  virtual void Detach();
+  /// Detaches debugger fom the process. Debuggee process is not killed,
+  /// it runs freely after debugger is detached.
+  /// TODO(garianov): verify that |Detach| can be called from any thread.
+  virtual bool Detach();
 
   /// @return a pointer to the thread object, or NULL if there's
   /// no thread with such |id|.
@@ -106,24 +143,34 @@ class DebuggeeProcess : public IDebuggeeProcess {
   virtual void GetThreadIds(std::deque<int>* threads) const;
 
   /// Copies memory from debuggee process to debugger buffer.
+  /// Shall be called only on halted process. There's no harm though if you
+  /// call it on running process.
   /// @param[in] addr address (in debugger address space) from where to read.
   /// @param[in] size number of bytes to read.
   /// @param[out] destination destination buffer (in debugger address space).
+  /// TODO(garianov): verify that |ReadMemory| can be called from any thread.
   virtual bool ReadMemory(const void* addr, size_t size, void* destination);
 
   /// Copies memory from debugger to debuggee process.
+  /// Shall be called only on halted process.
   /// @param[in] addr address (in debugger address space) where to write.
   /// @param[in] size number of bytes to write.
   /// @param[in] source address of source buffer.
+  /// TODO(garianov): verify that |WriteMemory| can be called from any thread.
   virtual bool WriteMemory(const void* addr, size_t size, const void* source);
 
   /// Sets breakpoint at specified address |addr|.
+  /// Shall be called only on halted process.
+  /// Note: for NaCl threads, breakpoints are supported only in nexe code,
+  /// i.e. breakpoints in TCB won't work.
+  /// TODO(garianov): add support for breakpoints in TCB.
   /// @param[in] addr address where breakpoint shall be.
   /// @return false if process is not able to access memory at |addr|,
   /// or process is not halted, or if there is breakpoint with the same |addr|.
   virtual bool SetBreakpoint(void* addr);
 
   /// Removes breakpoint at specified address |addr|.
+  /// Shall be called only on halted process.
   /// @param[in] addr address of breakpoint.
   /// @return false if process is not halted.
   virtual bool RemoveBreakpoint(void* addr);
@@ -136,6 +183,13 @@ class DebuggeeProcess : public IDebuggeeProcess {
   /// Return all breakpoints.
   /// @param[out] breakpoints
   virtual void GetBreakpoints(std::deque<Breakpoint*>* breakpoints);
+
+  /// Converts relative pointer to flat(aka linear) process address.
+  /// Calling this function makes sense only for nexe threads,
+  /// it's safe to call for any thread.
+  /// @param[in] addr relative pointer
+  /// @return flat address
+  virtual void* FromNexeToFlatAddress(void* addr) const;
 
  protected:
   friend class ExecutionEngine;
@@ -155,7 +209,7 @@ class DebuggeeProcess : public IDebuggeeProcess {
   /// pointer to existing one is returned.
   virtual DebuggeeThread* AddThread(int id, HANDLE handle);
 
-  virtual void ContinueHaltedThread(DebuggeeThread::ContinueOption option);
+  virtual bool ContinueHaltedThread(DebuggeeThread::ContinueOption option);
 
   /// Removes DebuggeeThread object with specified |id|. System thread
   /// structures are not affected.
@@ -167,10 +221,12 @@ class DebuggeeProcess : public IDebuggeeProcess {
   virtual void DeleteThreads();
 
   DebugAPI& debug_api_;
-  State state_;
   int id_;
   HANDLE handle_;
   HANDLE file_handle_;
+  State state_;
+  int exit_code_;
+  DebugEvent last_debug_event_;
   std::deque<DebuggeeThread*> threads_;
   std::map<void*, Breakpoint*> breakpoints_;
   void* nexe_mem_base_;

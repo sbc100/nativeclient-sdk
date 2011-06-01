@@ -25,7 +25,7 @@ class ReadRegistersCommand;
 class WriteRegistersCommand;
 class ErrorReply;
 class OkReply;
-class SetCurrentThread;
+class SetCurrentThreadCommand;
 class GetCurrentThreadCommand;
 class GetCurrentThreadReply;
 class ContinueCommand;
@@ -78,7 +78,7 @@ class PacketVisitor {
   virtual void Visit(WriteRegistersCommand* packet) {}
   virtual void Visit(ErrorReply* packet) {}
   virtual void Visit(OkReply* packet) {}
-  virtual void Visit(SetCurrentThread* packet) {}
+  virtual void Visit(SetCurrentThreadCommand* packet) {}
   virtual void Visit(GetCurrentThreadCommand* packet) {}
   virtual void Visit(GetCurrentThreadReply* packet) {}
   virtual void Visit(ContinueCommand* packet) {}
@@ -106,7 +106,7 @@ class TypingPacketVisitor : public PacketVisitor {
   virtual void Visit(WriteRegistersCommand* packet) { type_ = 10;}
   virtual void Visit(ErrorReply* packet) { type_ = 11;}
   virtual void Visit(OkReply* packet) { type_ = 12;}
-  virtual void Visit(SetCurrentThread* packet) { type_ = 13;}
+  virtual void Visit(SetCurrentThreadCommand* packet) { type_ = 13;}
   virtual void Visit(GetCurrentThreadCommand* packet) { type_ = 14;}
   virtual void Visit(GetCurrentThreadReply* packet) { type_ = 15;}
   virtual void Visit(ContinueCommand* packet) { type_ = 16;}
@@ -301,7 +301,7 @@ class BlobReply : public Packet {
 
  const debug::Blob& data() const { return data_; }
  void set_data(const debug::Blob& data) { data_ = data; }
- void set_data(const void* data, size_t size);
+ void set_data(const void* data, size_t size) { data_ = debug::Blob(data, size); }
 
  protected:
   debug::Blob data_;
@@ -332,6 +332,7 @@ class WriteRegistersCommand : public Packet {
 class ErrorReply : public Packet {
  public:
   ErrorReply() : error_code_(0) {}
+  explicit ErrorReply(int code) : error_code_(code) {}
 
   virtual Packet* Create() const { return new ErrorReply; }
   virtual void AcceptVisitor(PacketVisitor* vis) { vis->Visit(this); }
@@ -358,13 +359,13 @@ class OkReply : public OneWordPacket {
 };
 
 /// "Hg" or "Hc"
-class SetCurrentThread : public Packet {
+class SetCurrentThreadCommand : public Packet {
  public:
   enum Subtype {FOR_READ, FOR_CONTINUE};
 
-  SetCurrentThread() : subtype_(FOR_CONTINUE) {}
-  explicit SetCurrentThread(Subtype subtype) : subtype_(subtype) {}
-  virtual Packet* Create() const { return new SetCurrentThread(subtype_); }
+  SetCurrentThreadCommand() : subtype_(FOR_CONTINUE) {}
+  explicit SetCurrentThreadCommand(Subtype subtype) : subtype_(subtype) {}
+  virtual Packet* Create() const { return new SetCurrentThreadCommand(subtype_); }
   virtual void AcceptVisitor(PacketVisitor* vis) { vis->Visit(this); }
   virtual bool FromBlob(const std::string& type, debug::Blob* message);
   virtual void ToBlob(debug::Blob* message) const;
@@ -452,6 +453,9 @@ class QXferReply : public Packet {
   bool eom() const { return eom_; }
   std::string body() const { return body_; }
 
+  void set_eom(bool eom) { eom_ = eom; }
+  void set_body(const std::string& body) { body_ = body; }
+
  protected:
   bool eom_;
   std::string body_;
@@ -464,6 +468,9 @@ class GetThreadInfoCommand : public Packet {
   virtual void AcceptVisitor(PacketVisitor* vis) { vis->Visit(this); }
   virtual bool FromBlob(const std::string& type, debug::Blob* message);
   virtual void ToBlob(debug::Blob* message) const;
+
+  bool get_more() const { return get_more_; }
+  void set_get_more(bool more) { get_more_ = more; }
 
  private:
   bool get_more_;

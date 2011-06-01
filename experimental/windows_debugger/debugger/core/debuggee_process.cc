@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "debugger/core/debuggee_process.h"
+#include <assert.h>
 #include "debugger/core/debug_api.h"
 #include "debugger/core/debug_breakpoint.h"
 #include "debugger/core/debug_event.h"
@@ -10,12 +11,13 @@ namespace debug {
 DebuggeeProcess::DebuggeeProcess(int id,
                                  HANDLE handle,
                                  HANDLE file_handle,
-                                 DebugAPI& debug_api)
-  : state_(kRunning),
-    id_(id),
+                                 DebugAPI* debug_api)
+  : id_(id),
     handle_(handle),
     file_handle_(file_handle),
-    debug_api_(debug_api),
+    state_(kRunning),
+    exit_code_(0),
+    debug_api_(*debug_api),
     nexe_mem_base_(NULL),
     nexe_entry_point_(NULL) {
 }
@@ -56,29 +58,41 @@ int DebuggeeProcess::GetWordSizeInBits() {
 }
 
 bool DebuggeeProcess::IsWoW() {
+#ifndef _WIN64
+  return false;
+#else
   BOOL is_wow = FALSE;
   if (!debug_api().IsWoW64Process(handle_, &is_wow))
     return false;
   return is_wow ? true : false;
+#endif
 }
 
-void DebuggeeProcess::Continue() {
-  ContinueHaltedThread(DebuggeeThread::kContinue);
+void* DebuggeeProcess::FromNexeToFlatAddress(void* addr) const {
+#ifndef _WIN64
+  addr = reinterpret_cast<char*>(addr) +
+      reinterpret_cast<size_t>(nexe_mem_base_);
+#endif
+  return addr;
 }
 
-void DebuggeeProcess::ContinueAndPassExceptionToDebuggee() {
-  ContinueHaltedThread(DebuggeeThread::kContinueAndPassException);
+bool DebuggeeProcess::Continue() {
+  return ContinueHaltedThread(DebuggeeThread::kContinue);
 }
 
-void DebuggeeProcess::SingleStep() {
-  ContinueHaltedThread(DebuggeeThread::kSingleStep);
+bool DebuggeeProcess::ContinueAndPassExceptionToDebuggee() {
+  return ContinueHaltedThread(DebuggeeThread::kContinueAndPassException);
 }
 
-void DebuggeeProcess::Break() {
-  debug_api().DebugBreakProcess(handle_);
+bool DebuggeeProcess::SingleStep() {
+  return ContinueHaltedThread(DebuggeeThread::kSingleStep);
 }
 
-void DebuggeeProcess::Kill() {
+bool DebuggeeProcess::Break() {
+  return (FALSE != debug_api().DebugBreakProcess(handle_));
+}
+
+bool DebuggeeProcess::Kill() {
   std::deque<DebuggeeThread*>::const_iterator it = threads_.begin();
   while (it != threads_.end()) {
     DebuggeeThread* thread = *it;
@@ -86,13 +100,14 @@ void DebuggeeProcess::Kill() {
     if (NULL != thread)
       thread->Kill();
   }
-  Continue();
+  return Continue();
 }
 
-void DebuggeeProcess::Detach() {
-  debug_api().DebugActiveProcessStop(id());
+bool DebuggeeProcess::Detach() {
+  BOOL res = debug_api().DebugActiveProcessStop(id());
   DeleteThreads();
   state_ = kDead;
+  return (FALSE != res);
 }
 
 DebuggeeThread* DebuggeeProcess::GetThread(int id) {
@@ -134,8 +149,7 @@ bool DebuggeeProcess::ReadMemory(const void* addr,
   // has full access to the debuggee memory.
   // The function fails if the requested read operation crosses into an area
   // of the process that is inaccessible.
-  SIZE_T rd = 0;
-  if (!debug_api().ReadProcessMemory(handle_, addr, destination, size, &rd)) {
+  if (!debug_api().ReadProcessMemory(handle_, addr, destination, size, NULL)) {
     return false;
   }
   return true;
@@ -144,16 +158,17 @@ bool DebuggeeProcess::ReadMemory(const void* addr,
 bool DebuggeeProcess::WriteMemory(const void* addr,
                                   size_t size,
                                   const void* source) {
+  if (!IsHalted())
+    return false;
   // There's no need to change memory protection, because debugger
   // has full access to the debuggee memory.
   // The function fails if the requested write operation crosses into an area
   // of the process that is inaccessible.
-  SIZE_T wr = 0;
   BOOL res = debug_api().WriteProcessMemory(handle_,
                                             const_cast<void*>(addr),
                                             source,
                                             size,
-                                            &wr);
+                                            NULL);
   if (!res) {
     return false;
   }
@@ -167,7 +182,7 @@ bool DebuggeeProcess::WriteMemory(const void* addr,
 }
 
 bool DebuggeeProcess::SetBreakpoint(void* addr) {
-  if (kHalted != state())
+  if (!IsHalted())
     return false;
 
   if (NULL != GetBreakpoint(addr))
@@ -190,16 +205,19 @@ Breakpoint* DebuggeeProcess::GetBreakpoint(void* addr) {
 }
 
 bool DebuggeeProcess::RemoveBreakpoint(void* addr) {
-  if (kHalted != state())
+  if (!IsHalted())
     return false;
+
+  bool result = true;
   std::map<void*, Breakpoint*>::iterator it = breakpoints_.find(addr);
   if (breakpoints_.end() != it) {
     Breakpoint* br = it->second;
-    br->RecoverCodeAtBreakpoint();
+    if (!br->RecoverCodeAtBreakpoint())
+      result = false;
     delete br;
     breakpoints_.erase(it);
   }
-  return true;
+  return result;
 }
 
 void DebuggeeProcess::GetBreakpoints(std::deque<Breakpoint*>* breakpoints) {
@@ -214,42 +232,61 @@ void DebuggeeProcess::GetBreakpoints(std::deque<Breakpoint*>* breakpoints) {
 }
 
 void DebuggeeProcess::OnDebugEvent(DebugEvent* debug_event) {
-  switch (debug_event->windows_debug_event_.dwDebugEventCode) {
+  last_debug_event_ = *debug_event;
+  DEBUG_EVENT wde = debug_event->windows_debug_event();
+
+  switch (wde.dwDebugEventCode) {
     case CREATE_PROCESS_DEBUG_EVENT: {
       AddThread(
-          debug_event->windows_debug_event_.dwThreadId,
-          debug_event->windows_debug_event_.u.CreateProcessInfo.hThread);
+          wde.dwThreadId,
+          wde.u.CreateProcessInfo.hThread);
       break;
     }
     case CREATE_THREAD_DEBUG_EVENT: {
       AddThread(
-          debug_event->windows_debug_event_.dwThreadId,
-          debug_event->windows_debug_event_.u.CreateThread.hThread);
+          wde.dwThreadId,
+          wde.u.CreateThread.hThread);
       break;
     }
     case EXIT_PROCESS_DEBUG_EVENT: {
-      state_ = kDead;
-      return;
+      exit_code_ = wde.u.ExitProcess.dwExitCode;
+      break;
     }
   }
-  DebuggeeThread* thread =
-      GetThread(debug_event->windows_debug_event_.dwThreadId);
+  DebuggeeThread* thread = GetThread(wde.dwThreadId);
   if (NULL != thread) {
     thread->OnDebugEvent(debug_event);
     if (thread->IsHalted())
       state_ = kHalted;
+  } else {
+    /// To prevent halting the process in case we lost the thread
+    /// object somehow.
+    debug_api().ContinueDebugEvent(id(), wde.dwThreadId, DBG_CONTINUE);
   }
 }
 
-void DebuggeeProcess::ContinueHaltedThread(
+bool DebuggeeProcess::ContinueHaltedThread(
     DebuggeeThread::ContinueOption option) {
+  if (state_ != kHalted)
+    return false;
+
   DebuggeeThread* halted_thread = GetHaltedThread();
+  assert(NULL != halted_thread);
 
   if (NULL != halted_thread) {
-    halted_thread->Continue(option);
+    bool res = halted_thread->Continue(option);
     if (halted_thread->state() == DebuggeeThread::kDead)
       RemoveThread(halted_thread->id());
+
+    int last_debug_event_id =
+      last_debug_event_.windows_debug_event().dwDebugEventCode;
+    if (EXIT_PROCESS_DEBUG_EVENT == last_debug_event_id)
+      state_ = kDead;
+    else
+      state_ = kRunning;
+    return (TRUE == res);
   }
+  return false;
 }
 
 DebuggeeThread* DebuggeeProcess::AddThread(int id, HANDLE handle) {
@@ -257,8 +294,6 @@ DebuggeeThread* DebuggeeProcess::AddThread(int id, HANDLE handle) {
   if (NULL == thread) {
     thread = new DebuggeeThread(id, handle, this);
     threads_.push_back(thread);
-  } else {
-    printf("");
   }
   return thread;
 }

@@ -37,11 +37,23 @@ BOOL DebugAPI::ReadProcessMemory(HANDLE hProcess,
                                  LPVOID lpBuffer,
                                  SIZE_T nSize,
                                  SIZE_T *lpNumberOfBytesRead) {
-  return ::ReadProcessMemory(hProcess,
-                             lpBaseAddress,
-                             lpBuffer,
-                             nSize,
-                             lpNumberOfBytesRead);
+  int pid = ::GetProcessId(hProcess);
+  SIZE_T rd = 0;
+  BOOL res = ::ReadProcessMemory(hProcess,
+                                 lpBaseAddress,
+                                 lpBuffer,
+                                 nSize,
+                                 &rd);
+  if (TRUE != res)
+    DBG_LOG("ERR02.01",
+            "msg='::ReadProcessMemory(pid=%d addr=%p len=%d) -> error' rd=%d",
+            pid,
+            lpBaseAddress,
+            nSize,
+            rd);
+  if (NULL != lpNumberOfBytesRead)
+    *lpNumberOfBytesRead = rd;
+  return res;
 }
 
 BOOL DebugAPI::WriteProcessMemory(HANDLE hProcess,

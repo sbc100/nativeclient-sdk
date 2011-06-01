@@ -5,6 +5,11 @@
 #include <string>
 
 namespace debug {
+DebugEvent::DebugEvent()
+  : nacl_debug_event_code_(kNotNaClDebugEvent) {
+  memset(&windows_debug_event_, 0, sizeof(windows_debug_event_));
+}
+
 bool DebugEvent::IsBreakpoint() const {
   return EXCEPTION_BREAKPOINT == GetExceptionCode();
 }

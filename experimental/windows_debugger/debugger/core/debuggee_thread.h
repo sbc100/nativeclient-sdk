@@ -19,15 +19,23 @@ class Breakpoint;
 ///
 /// Class diagram (and more) is here:
 /// https://docs.google.com/a/google.com/document/d/1lTN-IYqDd_oy9XQg9-zlNc_vbg-qyr4q2MKNEjhSA84/edit?hl=en&authkey=CJyJlOgF#
+///
+/// Note: most methods shall be called from one thread, this is limitation
+/// of Windows debug API, here's links to Microsoft documentation:
+/// http://msdn.microsoft.com/en-us/library/ms681423%28v=VS.85%29.aspx
+/// http://msdn.microsoft.com/en-us/library/ms681675%28v=vs.85%29.aspx
+/// Simple accessors can be called from any thread.
+///
+/// Note: not thread-safe.
 class DebuggeeThread {
  public:
   enum State {
     kRunning = 1,  // thread is alive, event loop is running
     kHalted,  // thread is alive, event loop is not running
     kContinueFromBreakpoint,  // thread is single stepping from breakpoint
-    kDead  // thread is deleted by OS
+    kDead  // thread is deleted by OS, user can only call |return_code()|,
+           // |id()|, |state()| methods.
   };
-
   /// Describes a parameter type for |Continue| method.
   enum ContinueOption {
     kSingleStep,
@@ -45,8 +53,13 @@ class DebuggeeThread {
   HANDLE handle() const { return handle_; }
   State state() const { return state_; }
 
-  /// @return true if this thread runs nexe code.
-  bool is_nexe() const { return is_nexe_; }
+  /// Shall be called only on dead threads (i.e. state_ == kDead).
+  /// @return exit code or exception number, if thread is terminated
+  /// by exception.
+  int return_code() const { return exit_code_; }
+
+  /// @return true if this thread created to run nexe code.
+  bool IsNaClAppThread() const { return is_nacl_app_thread_; }
 
   /// Used for debugging debugger.
   /// @param[in] state
@@ -66,39 +79,38 @@ class DebuggeeThread {
   /// Reads registers of the thread.
   /// Note that CONTEXT structure is defined differently
   /// on 32-bit and 64-bit windows.
+  /// Shall be called only on halted process.
   /// @return true if operation was successful.
   bool GetContext(CONTEXT* context);
 
   /// Writes registers of the thread.
+  /// Shall be called only on halted process.
   /// @return true if operation was successful.
   bool SetContext(const CONTEXT& context);
 
   /// Reads registers of the WoW thread.
   /// It should be used to work with WoW (windows-on-windows)
   /// processes - i.e. 32-bit processes running on 64-bit windows.
+  /// Shall be called only on halted process.
   /// @return true if operation was successful.
   bool GetWowContext(WOW64_CONTEXT* context);
 
   /// Writes registers of the WoW thread.
   /// It should be used to work with WoW (windows-on-windows)
   /// processes - i.e. 32-bit processes running on 64-bit windows.
+  /// Shall be called only on halted process.
   /// @return true if operation was successful.
   bool SetWowContext(const WOW64_CONTEXT& context);
 
   /// Reads IP (instruction pointer).
+  /// Shall be called only on halted process.
   /// @return value of EIP (for 32-bit process) or RIP (for 64-bit process).
   void* GetIP();
 
   /// Writes IP.
+  /// Shall be called only on halted process.
   /// Writes EIP (for 32-bit process) or RIP (for 64-bit process).
-  void SetIP(void* ip);
-
-  /// Converts relative pointer to flat(aka linear) process address.
-  /// Calling this function makes sense only for nexe threads,
-  /// it's safe to call for any thread.
-  /// @param[in] ptr relative pointer
-  /// @return flat address
-  void* FromNexeToFlatAddress(void* ptr) const;
+  bool SetIP(void* ip);
 
  protected:
   friend class DebuggeeProcess;
@@ -112,7 +124,7 @@ class DebuggeeThread {
   /// ContinueDebugEvent()).
   /// If |option| is kContinueAndPassException, and thread was halted due
   /// to exception, that exception is passed to the debuggee thread.
-  void Continue(ContinueOption option);
+  bool Continue(ContinueOption option);
 
   /// Handler of debug events. DebuggeeThread has a FSM (finite state machine),
   /// and |debug_event| is an only event consumed by FSM.
@@ -142,21 +154,21 @@ class DebuggeeThread {
   void OnSingleStep(DebugEvent* debug_event);
 
   /// Resumes execution of the halted thread, asuming breapoint was triggered.
-  void ContinueFromBreakpoint();
+  bool ContinueFromBreakpoint();
 
+ private:
   int id_;
   HANDLE handle_;
   IDebuggeeProcess& parent_process_;
   State state_;
-  int last_debug_event_id_;
+  int exit_code_;
 
   /// Current breakpoint, if any. NULL if thread did not hit breakpoint.
   void* triggered_breakpoint_addr_;
 
   // Stuff related only to nexe threads.
-  bool is_nexe_;
+  bool is_nacl_app_thread_;
 
- private:
   DebuggeeThread(const DebuggeeThread&);  // DISALLOW_COPY_AND_ASSIGN
   void operator=(const DebuggeeThread&);
 };

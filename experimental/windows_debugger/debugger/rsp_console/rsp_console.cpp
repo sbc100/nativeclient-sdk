@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
                                             0);
         if (read_bytes > 0) {
           buff[read_bytes] = 0;
-          printf("\nr>%s\n", buff);
+          printf("\nr>[%s]\n", buff);
           rsp_packetizer.OnData(buff, read_bytes);
         } else {
           break;

@@ -22,11 +22,25 @@ class DebugEvent {
     kThreadIsAboutToStart = 1
   };
 
+  DebugEvent();
+
   bool IsBreakpoint() const;
   bool IsSingleStep() const;
   int GetExceptionCode() const;
   void ToString(char* buff, size_t size) const;
 
+  DEBUG_EVENT windows_debug_event() const { return windows_debug_event_; }
+  NaClDebugEventCode nacl_debug_event_code() const {
+    return nacl_debug_event_code_;
+  }
+  void set_windows_debug_event(const DEBUG_EVENT& debug_event) {
+    windows_debug_event_ = debug_event;
+  }
+  void set_nacl_debug_event_code(NaClDebugEventCode event_code) {
+    nacl_debug_event_code_ = event_code;
+  }
+
+ private:
   DEBUG_EVENT windows_debug_event_;
   NaClDebugEventCode nacl_debug_event_code_;
 };

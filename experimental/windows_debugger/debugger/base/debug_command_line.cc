@@ -22,6 +22,30 @@ CommandLine::CommandLine(int argc, char* argv[])
 
 CommandLine::~CommandLine() {}
 
+bool HasSpace(const char* str) {
+  while(*str) {
+    if (isspace(*str++))
+      return true;
+  }
+  return false;
+}
+
+std::string CommandLine::ToString() const {
+  std::string str;
+  for (int i = 0; i < argc_; i++) {
+    if (i > 0)
+      str += " ";
+    if(HasSpace(argv_[i])) {
+      char tmp[4096] = {0};
+      _snprintf_s(tmp, sizeof(tmp), "\"%s\"");
+      str += tmp;
+    } else {
+      str += argv_[i];
+    }
+  }
+  return str;
+}
+
 std::string CommandLine::GetStringSwitch(
     const std::string& name, const std::string& default_value) const {
   std::string value = default_value;

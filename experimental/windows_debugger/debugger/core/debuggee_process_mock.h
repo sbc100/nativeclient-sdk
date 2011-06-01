@@ -4,6 +4,7 @@
 #ifndef DEBUGGER_CORE_DEBUGGEE_PROCESS_MOCK_H_
 #define DEBUGGER_CORE_DEBUGGEE_PROCESS_MOCK_H_
 #include <deque>
+#include "debugger/core/debug_event.h"
 #include "debugger/core/debuggee_iprocess.h"
 
 namespace debug {
@@ -34,18 +35,20 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
 
   virtual int id() const { return 0;}
   virtual State state() const { return kDead; }
+  virtual bool IsHalted() const { return kHalted == state(); }
+  virtual const DebugEvent& last_debug_event() const { return debug_event_; }
   virtual void* nexe_mem_base() const { return nexe_mem_base_; }
   virtual void set_nexe_mem_base(void* addr) { nexe_mem_base_ = addr; }
   virtual void* nexe_entry_point() const { return nexe_entry_point_; }
   virtual void set_nexe_entry_point(void* addr) { nexe_entry_point_ = addr; }
   virtual int GetWordSizeInBits() { return 0; }
   virtual bool IsWoW() { return 0;}
-  virtual void Continue() {}
-  virtual void ContinueAndPassExceptionToDebuggee() {}
-  virtual void SingleStep() {}
-  virtual void Break() {}
-  virtual void Kill() {}
-  virtual void Detach() {}
+  virtual bool Continue() { return false; }
+  virtual bool ContinueAndPassExceptionToDebuggee() { return false; }
+  virtual bool SingleStep() { return false; }
+  virtual bool Break() { return false; }
+  virtual bool Kill() { return false; }
+  virtual bool Detach() { return false; }
   virtual DebuggeeThread* GetThread(int id) { return NULL; }
   virtual DebuggeeThread* GetHaltedThread() { return NULL; }
   virtual void GetThreadIds(std::deque<int>* threads) const {}
@@ -55,12 +58,14 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   virtual void GetBreakpoints(std::deque<Breakpoint*>* breakpoints) {}
   virtual void OnDebugEvent(DebugEvent* debug_event) {}
   virtual DebuggeeThread* AddThread(int id, HANDLE handle) { return NULL; }
+  virtual void* FromNexeToFlatAddress(void* ptr) const { return NULL; }
 
  private:
   char buff_[kMemSize];
   DebugAPI* debug_api_;
   void* nexe_mem_base_;
   void* nexe_entry_point_;
+  DebugEvent debug_event_;
 };
 
 }  // namespace debug

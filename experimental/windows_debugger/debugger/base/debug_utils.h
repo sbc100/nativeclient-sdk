@@ -13,5 +13,6 @@ class Utils {
   static bool GetProcessCmdLine(HANDLE ProcessHandle, std::string* cmd_line);
   static int GetProcessorWordSizeInBits(HANDLE h);
   static std::string ReadUNICODE_STRING(HANDLE ProcessHandle, const UNICODE_STRING& str);
+  static bool ReadUnucodeStr(HANDLE ProcessHandle, const void* addr, std::string* str);
 };
 }  // namespace debug

@@ -41,6 +41,12 @@ Packet* Packet::CreateFromBlob(debug::Blob* message, const char* type_hint) {
   if (packet_factory_.size() == 0)
     InitFactory();
 
+  // defferentiate [Xc00020304,0:] from [X05]
+  if ((message->size() > 0) && ('X' == message->Front())) {
+    if (message->size() > 3)
+      return NULL;
+  }
+
   message->PopSpacesFromBothEnds();
 
   // Empty message can be a reply to 'm' command, or
@@ -78,6 +84,7 @@ Packet* Packet::CreateFromBlob(debug::Blob* message, const char* type_hint) {
       }
     }
   } 
+
   Packet* packet_template = packet_factory_[type];
   if (NULL != packet_template) {
     Packet* packet = packet_template->Create();
@@ -226,15 +233,13 @@ bool StopReply::FromBlob(const std::string& type, debug::Blob* message) {
     stop_reason_ = SIGNALED;
     std::string s = message->ToString();
     signal_number_ = message->PopInt8FromFront();
-  }
-  else if ("W" == type) {
+  } else if ("W" == type) {
     stop_reason_ = StopReply::EXITED;
     exit_code_ = message->PopInt8FromFront();
-  }
-  else if ("X" == type) {
+  } else if ("X" == type) {
     stop_reason_ = StopReply::TERMINATED;
     signal_number_ = message->PopInt8FromFront();
-  else if ("O" == type) {
+  } else if ("O" == type) {
     stop_reason_ = StopReply::STILL_RUNNING;
   } else {
     return false;
@@ -330,7 +335,7 @@ bool WriteMemoryCommand::FromBlob(const std::string& type, debug::Blob* message)
   len_and_data.Split(":", &tokens);
   if (tokens.size() < 2)
     return false;
-  return data_.LoadFromHexString(tokens[1]);
+  return data_.LoadFromHexString(tokens[1].ToString());
 }
 
 void WriteMemoryCommand::ToBlob(debug::Blob* message) const {
@@ -350,7 +355,7 @@ void BlobReply::AcceptVisitor(PacketVisitor* vis) {
 }
 
 bool BlobReply::FromBlob(const std::string& type, debug::Blob* message) {
-  return data_.LoadFromHexString(*message);
+  return data_.LoadFromHexString(message->ToString());
 }
 
 void BlobReply::ToBlob(debug::Blob* message) const {
@@ -359,7 +364,7 @@ void BlobReply::ToBlob(debug::Blob* message) const {
 
 bool WriteRegistersCommand::FromBlob(const std::string& type,
                                      debug::Blob* message) {
-  return data_.LoadFromHexString(*message);
+  return data_.LoadFromHexString(message->ToString());
 }
 
 void WriteRegistersCommand::ToBlob(debug::Blob* message) const {
@@ -367,17 +372,17 @@ void WriteRegistersCommand::ToBlob(debug::Blob* message) const {
   message->Append(data_.ToHexString(false));
 }
 
-bool SetCurrentThread::FromBlob(const std::string& type, debug::Blob* message) {
+bool SetCurrentThreadCommand::FromBlob(const std::string& type, debug::Blob* message) {
   if ((message->size() > 0) &&
      ('-' == message->GetAt(0)) &&
      ('1' == message->GetAt(1)))
-    thread_id_ = -1;
+    thread_id_ = -1;  // all threads
   else 
     thread_id_ = message->PopInt32FromFront();
   return true;
 }
 
-void SetCurrentThread::ToBlob(debug::Blob* message) const {
+void SetCurrentThreadCommand::ToBlob(debug::Blob* message) const {
   if (FOR_READ == subtype_)
     *message = "Hg";
   else
@@ -510,16 +515,15 @@ void InitFactory() {
   packet_factory_["E"] = new rsp::ErrorReply;
   packet_factory_["OK"] = new rsp::OkReply;
   packet_factory_["Hg"] =
-      new rsp::SetCurrentThread(rsp::SetCurrentThread::FOR_READ);
+      new rsp::SetCurrentThreadCommand(rsp::SetCurrentThreadCommand::FOR_READ);
   packet_factory_["Hc"] =
-      new rsp::SetCurrentThread(rsp::SetCurrentThread::FOR_CONTINUE);
+      new rsp::SetCurrentThreadCommand(rsp::SetCurrentThreadCommand::FOR_CONTINUE);
   packet_factory_["qC"] = new rsp::GetCurrentThreadCommand;
   packet_factory_["QC"] = new rsp::GetCurrentThreadReply;
   packet_factory_["c"] = new rsp::ContinueCommand;
   packet_factory_["s"] = new rsp::StepCommand;
   packet_factory_["T"] = new rsp::IsThreadAliveCommand;
-  packet_factory_[rsp::QXferFeaturesReadCommand::kPrefix]
-      = new rsp::QXferFeaturesReadCommand;
+  packet_factory_["qXfer:features:read:"] = new rsp::QXferFeaturesReadCommand;
   packet_factory_["qXfer$Reply"] = new rsp::QXferReply;
   packet_factory_["qfThreadInfo"] = new rsp::GetThreadInfoCommand;
   packet_factory_["qsThreadInfo"] = new rsp::GetThreadInfoCommand;

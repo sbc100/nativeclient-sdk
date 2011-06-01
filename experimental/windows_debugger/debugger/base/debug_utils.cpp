@@ -1,4 +1,4 @@
-#include "debug_utils.h"
+#include "debugger/base/debug_utils.h"
 
 namespace {
 HMODULE sm_LoadNTDLLFunctions();
@@ -64,6 +64,27 @@ std::string Utils::ReadUNICODE_STRING(HANDLE ProcessHandle, const UNICODE_STRING
     }
   }
   return result;
+}
+
+bool Utils::ReadUnucodeStr(HANDLE ProcessHandle, const void* addr_addr, std::string* str) {
+  void* addr = 0;
+  SIZE_T sz = 0;
+  ::ReadProcessMemory(ProcessHandle, addr_addr, &addr, sizeof(addr), &sz);
+  if (sz == 0)
+    return false;
+
+  char utmp[4096];
+  ::ReadProcessMemory(ProcessHandle, addr, &utmp, sizeof(utmp), &sz);
+  if (sz == 0)
+    return false;
+
+  char* a_str = (char*)malloc(sz + 1);
+  a_str[0] = 0;
+  ::WideCharToMultiByte(CP_ACP, 0, (LPCWSTR)utmp, -1, a_str, sz/2, 0, 0);
+  
+  *str = a_str;
+  delete a_str;
+  return true;
 }
 
 int Utils::GetProcessorWordSizeInBits(HANDLE h) {

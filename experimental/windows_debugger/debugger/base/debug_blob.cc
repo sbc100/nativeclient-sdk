@@ -136,12 +136,31 @@ std::string Blob::ToHexString(bool remove_leading_zeroes) const {
   return result;
 }
 
-bool Blob::LoadFromHexString(const std::string& hex_str) {
-  Blob tmp(hex_str.c_str());
-  return LoadFromHexString(tmp);
+void* Blob::ToCBuffer() const {
+  if (0 == size())
+    return NULL;
+  byte* buff = reinterpret_cast<byte*>(malloc(size()));
+  if (NULL != buff) {
+    for (size_t i = 0; i < size(); i++)
+      buff[i] = GetAt(i);
+  }
+  return buff;
 }
 
-bool Blob::LoadFromHexString(const Blob& hex_str) {
+size_t Blob::Peek(size_t offset, void* buff, size_t buff_sz) const {
+  byte* out = static_cast<byte*>(buff);
+  size_t copied_bytes = 0;
+  for (size_t i = 0; i < buff_sz; i++) {
+    size_t pos = offset + i;
+    if (pos >= size())
+      break;
+    out[i] = GetAt(pos);
+    copied_bytes++;
+  }
+  return copied_bytes;
+}
+
+bool Blob::LoadFromHexString(const std::string& hex_str) {
   Clear();
   size_t num = hex_str.size();
   for (size_t i = num; i > 0; i -= 2) {
@@ -181,7 +200,7 @@ bool Blob::Compare(const Blob& blob, size_t to_length) const {
   return true;
 }
 
-bool Blob::HasPrefix(const std::string& prefix) const {
+bool Blob::IsPrefix(const Blob& prefix) const {
   size_t num = prefix.size();
   if (size() < num)
     return false;
@@ -349,7 +368,7 @@ int BlobUniTest::Run(std::string* error) {
 
     Blob blob6(std::string("03aff0").c_str());
     Blob blob7;
-    blob7.LoadFromHexString(blob6);
+    blob7.LoadFromHexString(blob6.ToString());
     my_assert(blob7 == blob);
 
   }

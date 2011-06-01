@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;D:\src\nacl-sdk\src&quot;"
+				AdditionalIncludeDirectories="&quot;..\..\&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -115,7 +115,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;D:\src\nacl-sdk\src&quot;"
+				AdditionalIncludeDirectories="&quot;..\..\&quot;"
 				BrowseInformation="1"
 				DebugInformationFormat="3"
 			/>
@@ -231,6 +231,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			>
 			<Tool
@@ -250,6 +252,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;D:\src\nacl-sdk\src&quot;"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -416,6 +419,18 @@
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="base"
+			>
+			<File
+				RelativePath="..\base\debug_command_line.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\base\debug_command_line.h"
 				>
 			</File>
 		</Filter>
