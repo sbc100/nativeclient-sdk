@@ -40,6 +40,9 @@ INSTALLER_CONTENTS = [
     'project_templates/init_project.py',
     'project_templates/scons',
     'third_party/scons-2.0.1/',
+]
+
+LINUX_ONLY_CONTENTS = [
     'third_party/valgrind/memcheck.sh',
     'third_party/valgrind/tsan.sh',
     'third_party/valgrind/nacl.supp',
@@ -47,6 +50,11 @@ INSTALLER_CONTENTS = [
     'third_party/valgrind/README',
     'third_party/valgrind/bin/memcheck',
     'third_party/valgrind/bin/tsan',
+    'toolchain/',
+]
+
+MAC_ONLY_CONTENTS = [
+    'toolchain/',
 ]
 
 # These files are user-readable documentation files, and as such get some

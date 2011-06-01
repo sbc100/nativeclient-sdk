@@ -64,7 +64,6 @@ def main(argv):
   version_dir = build_utils.VersionString()
   parent_dir = os.path.dirname(script_dir)
   deps_file = os.path.join(parent_dir, 'DEPS')
-  NACL_REVISION = build_utils.GetNaClRevision(deps_file)
 
   # Create a temporary directory using the version string, then move the
   # contents of src to that directory, clean the directory of unwanted
@@ -87,14 +86,16 @@ def main(argv):
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
   make_nacl_tools = os.path.join(build_tools_dir,
                                  'make_nacl_tools.py')
-  make_nacl_tools_args = [sys.executable,
-                          make_nacl_tools,
-                          '--toolchain',
-                          toolchain,
-                          '--revision',
-                          NACL_REVISION,
-                          '--jobs',
-                          options.jobs]
+  make_nacl_tools_args = [
+      sys.executable,
+      make_nacl_tools,
+      '--toolchain',
+      toolchain,
+      '--jobs',
+      options.jobs,
+      '--nacl_dir',
+      os.path.join(home_dir, 'src', 'third_party', 'native_client'),
+  ]
   if not options.development:
     make_nacl_tools_args.extend(['-c'])
   subprocess.check_call(make_nacl_tools_args, cwd=os.path.join(home_dir, 'src'))

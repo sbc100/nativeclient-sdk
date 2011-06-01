@@ -1,69 +1,89 @@
-# Note: NACL_REVISION is used by build_tools/generate_installers.py
-NACL_REVISION = "5417"
-TOOLCHAIN_REVISION = "5397"
-
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": NACL_REVISION,
-  "x86_toolchain_version": TOOLCHAIN_REVISION,
-  "valgrind_version": NACL_REVISION,
+  "native_client_version": "5417",
+  # Note: The following version should exactly match the toolchain version in
+  # the native_client DEPS file at version native_client_version
+  # TODO(mball) find some clever way to extract this from NaCl DEPS
+  "x86_toolchain_version": "5397",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
-  "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_version": "79704",
-  # Grab the SCons build stuff from the NaCl repo.
-  "scons_trunk": "http://src.chromium.org/native_client/trunk/",
-  "scons_version": NACL_REVISION,
-  "gtest_rev": "267",
 }
 # When we have ARM and PNaCl support, we'll need to add toolchain support
 # for those too.
 
 deps = {
+  "nacl_deps":
+    File(Var("native_client_trunk") + "/src/native_client/DEPS@" +
+         Var("native_client_version")),
   # Please keep these in alphabetical order, by path
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/shared/gio":
-    Var("native_client_trunk") + "/src/native_client/src/shared/gio@"
-    + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/shared/platform":
-    Var("native_client_trunk") + "/src/native_client/src/shared/platform@"
-    + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/trusted/debug_stub":
-    Var("native_client_trunk") + "/src/native_client/src/trusted/debug_stub@"
-    + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/trusted/service_runtime/include":
-    Var("native_client_trunk")
-    + "/src/native_client/src/trusted/service_runtime/include@"
-    + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/include":
-    Var("native_client_trunk") + "/src/native_client/src/include@"
-    + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/trusted/port":
-    Var("native_client_trunk") + "/src/native_client/src/trusted/port@"
-    + Var("native_client_version"),
-  "src/experimental/visual_studio_plugin/third_party/native_client/"
-    "src/trusted/gdb_rsp":
-    Var("native_client_trunk") + "/src/native_client/src/trusted/gdb_rsp@"
-    + Var("native_client_version"),
   "src/site_scons":
-    Var("scons_trunk") + "src/native_client/site_scons@" + Var("scons_version"),
+    Var("native_client_trunk") + "/src/native_client/site_scons@" +
+    Var("native_client_version"),
   "src/third_party/gtest":
-    "http://googletest.googlecode.com/svn/trunk@" + Var("gtest_rev"),
-  "src/third_party/ppapi": Var("chromium_trunk") + "/src/ppapi" +
-    "@" + Var("chromium_version"),
-  "src/third_party/pymox": Var("pymox") + "@" + Var("pymox_version"),
+    From("nacl_deps", "testing/gtest"),
+  "src/third_party/native_client/base":
+    From("nacl_deps", "base"),
+  "src/third_party/native_client/build":
+    From("nacl_deps", "build"),
+  "src/third_party/native_client/native_client":
+    Var("native_client_trunk") + "/src/native_client@" +
+    Var("native_client_version"),
+  "src/third_party/native_client/ppapi":
+    From("nacl_deps", "ppapi"),
+  "src/third_party/native_client/third_party/scons-2.0.1":
+    From("nacl_deps", "third_party/scons-2.0.1"),
+  "src/third_party/ppapi":
+    From("nacl_deps", "ppapi"),
+  "src/third_party/pymox":
+    Var("pymox") + "@" + Var("pymox_version"),
   "src/third_party/scons-2.0.1":
-    Var("scons_trunk") + "src/third_party/scons-2.0.1@" + Var("scons_version"),
-  "src/third_party/valgrind": Var("native_client_trunk") +
-    "/src/native_client/src/third_party/valgrind" + "@" +
-    Var("valgrind_version"),
-  "src/third_party/valgrind/bin": Var("native_client_trunk") +
-    "/src/third_party/valgrind/bin" + "@" + Var("valgrind_version"),
+    From("nacl_deps", "third_party/scons-2.0.1"),
+}
+
+deps_os = {
+  # Please keep these in alphabetical order, by path
+  "unix": {
+    # Valgrind currently only works on Linux
+    "src/third_party/valgrind":
+      Var("native_client_trunk") +
+      "/src/native_client/src/third_party/valgrind" + "@" +
+      Var("native_client_version"),
+    "src/third_party/valgrind/bin":
+      From("nacl_deps", "native_client/src/third_party/valgrind/bin"),
+  },
+  "win": {
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/shared/gio":
+      Var("native_client_trunk") + "/src/native_client/src/shared/gio@"
+      + Var("native_client_version"),
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/shared/platform":
+      Var("native_client_trunk") + "/src/native_client/src/shared/platform@"
+      + Var("native_client_version"),
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/trusted/debug_stub":
+      Var("native_client_trunk") + "/src/native_client/src/trusted/debug_stub@"
+      + Var("native_client_version"),
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/trusted/service_runtime/include":
+      Var("native_client_trunk")
+      + "/src/native_client/src/trusted/service_runtime/include@"
+      + Var("native_client_version"),
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/include":
+      Var("native_client_trunk") + "/src/native_client/src/include@"
+      + Var("native_client_version"),
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/trusted/port":
+      Var("native_client_trunk") + "/src/native_client/src/trusted/port@"
+      + Var("native_client_version"),
+    "src/experimental/visual_studio_plugin/third_party/native_client/"
+      "src/trusted/gdb_rsp":
+      Var("native_client_trunk") + "/src/native_client/src/trusted/gdb_rsp@"
+      + Var("native_client_version"),
+    "src/third_party/native_client/third_party/mingw-w64/mingw/bin":
+      From("nacl_deps", "third_party/mingw-w64/mingw/bin"),
+  },
 }
 
 hooks = [
