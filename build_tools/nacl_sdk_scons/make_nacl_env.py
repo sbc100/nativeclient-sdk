@@ -79,7 +79,6 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
                        '-Werror',
                        '-Wall',
                        '-Wswitch-enum',
-                       '-pedantic',
                        '-pthread',
                       ],
               CPPDEFINES=[# _GNU_SOURCE ensures that strtof() gets declared.

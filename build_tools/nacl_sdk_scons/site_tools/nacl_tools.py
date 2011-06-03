@@ -25,19 +25,13 @@ def AppendOptCCFlags(env, is_debug=False):
 
   if is_debug:
     env.Append(CCFLAGS=['-O0',
-                        '-Werror',
-                        '-Wall',
                         '-g',
                        ])
   else:
     env.Append(CCFLAGS=['-O2',
-                        '-Werror',
-                        '-Wall',
-                        '-Wswitch-enum',
                         '-fno-builtin',
                         '-fno-stack-protector',
                         '-fdiagnostics-show-option',
-                        '-pedantic',
                        ])
 
 

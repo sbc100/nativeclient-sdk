@@ -12,6 +12,8 @@ nacl_env.Append(
     # Add a CPPPATH that enables the full-path #include directives, such as
     # #include "examples/sine_synth/sine_synth.h"
     CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+    # Strict ANSI compliance.
+    EXTRA_CCFLAGS=['-pedantic'],
    )
 
 sources = ['hello_world.c']
