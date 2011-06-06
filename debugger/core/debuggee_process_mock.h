@@ -34,7 +34,7 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   virtual bool WriteMemory(const void* addr, size_t size, const void* source);
 
   virtual int id() const { return 0;}
-  virtual State state() const { return kDead; }
+  virtual State state() const { return state_; }
   virtual bool IsHalted() const { return kHalted == state(); }
   virtual const DebugEvent& last_debug_event() const { return debug_event_; }
   virtual void* nexe_mem_base() const { return nexe_mem_base_; }
@@ -60,12 +60,15 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   virtual DebuggeeThread* AddThread(int id, HANDLE handle) { return NULL; }
   virtual void* FromNexeToFlatAddress(void* ptr) const { return NULL; }
 
+  void SetState(State st) { state_ = st; }
+
  private:
   char buff_[kMemSize];
   DebugAPI* debug_api_;
   void* nexe_mem_base_;
   void* nexe_entry_point_;
   DebugEvent debug_event_;
+  State state_;
 };
 
 }  // namespace debug

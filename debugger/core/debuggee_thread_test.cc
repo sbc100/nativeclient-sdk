@@ -346,6 +346,7 @@ TEST_F(DebuggeeThreadTest, FailIfNotHalted) {
   fake_thread_->SimulateBreakpointHit();
   EXPECT_TRUE(fake_thread_->IsHalted());
   EXPECT_TRUE(fake_thread_->Continue(debug::DebuggeeThread::kContinue));
+  fake_proc_->SetState(debug::IDebuggeeProcess::kRunning);
 
   EXPECT_FALSE(fake_thread_->IsHalted());
   CONTEXT context;
