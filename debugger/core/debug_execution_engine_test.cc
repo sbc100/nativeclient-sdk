@@ -1,7 +1,7 @@
 // Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#include "debugger/core/debug_api_mock2.h"
+#include "debugger/core/debug_api_mock.h"
 #include "debugger/core/debug_breakpoint.h"
 #include "debugger/core/debug_event.h"
 #include "debugger/core/debug_execution_engine.h"
@@ -73,7 +73,7 @@ class ExecutionEngineTest : public ::testing::Test {
   }
 
   TestExecutionEngine* exec_eng_;
-  debug::DebugAPIMock2 fake_debug_api_;
+  debug::DebugAPIMock fake_debug_api_;
 };
 
 TEST_F(ExecutionEngineTest, SimpleAccessors) {

@@ -137,6 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -286,6 +287,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -330,10 +332,6 @@
 			</File>
 			<File
 				RelativePath="..\core\debug_api_mock.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\core\debug_api_mock2.cc"
 				>
 			</File>
 			<File
@@ -396,10 +394,6 @@
 			</File>
 			<File
 				RelativePath="..\core\debug_api_mock.h"
-				>
-			</File>
-			<File
-				RelativePath="..\core\debug_api_mock2.h"
 				>
 			</File>
 			<File
