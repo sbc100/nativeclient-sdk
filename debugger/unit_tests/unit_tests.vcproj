@@ -335,6 +335,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\base\debug_blob.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\base\debug_blob_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\core\debug_breakpoint.cc"
 				>
 			</File>
@@ -394,6 +402,10 @@
 			</File>
 			<File
 				RelativePath="..\core\debug_api_mock.h"
+				>
+			</File>
+			<File
+				RelativePath="..\base\debug_blob.h"
 				>
 			</File>
 			<File
