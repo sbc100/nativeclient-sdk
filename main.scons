@@ -34,6 +34,7 @@ Help for NaCl SDK
 
 Supported targets:
   * bot               Runs everything that the build and try bots run
+  * debugger          Build the debugging library code and tests.
   * docs              Build all of the Doxygen documentation
   * examples          Build the examples.
   * installer         Build the SDK installer
@@ -127,10 +128,11 @@ base_env.SetDefault(
 # in the order they appear.
 base_env.Append(
     BUILD_SCONSCRIPTS = [
+        'debugger/build.scons',
         'documentation/build.scons',
         'build_tools/build.scons',
         'project_templates/test.scons',
-        'experimental/visual_studio_plugin',
+        'experimental/visual_studio_plugin/build.scons',
     ],
 )
 
@@ -193,6 +195,52 @@ def AddNodeToTestSuite(env, node, suite_names, node_name, test_size='all'):
 
 base_env.AddMethod(AddNodeToTestSuite)
 
+def ShouldBeCleaned(env, targets, suite_names, node_name):
+  '''Determines whether a given set of targets require cleaning.
+  
+  Args:
+    env - The calling environment.
+    targets - Any build artifacts to which a cleaning step might apply
+    suite_names - Any suites that might produce |targets|
+    node_name - A node that might produce |targets|
+  '''
+  if not env.GetOption('clean'):
+    return False
+
+  if len(COMMAND_LINE_TARGETS) > 0:
+    clean_this = False
+    for cl_target in COMMAND_LINE_TARGETS:
+      if cl_target in suite_names or cl_target == node_name:
+        clean_this = True
+        break
+    if not clean_this:
+      return False
+
+  for target in targets:
+    if os.path.exists(target):
+      return True
+  return False
+
+def AddCleanAction(env, targets, action, suite_names, node_name):
+  '''Adds a cleanup action that scons cannot detect automatically.
+
+  Cleaning will only occur if there is a match between the suite or nodes
+  specified on the command line, and suite_names or node_name or if no
+  suite or notes are specified on the command line.  Also, at least one of the
+  targets must exist on the file system. 
+
+  Args:
+    env - The calling environment
+    targets - Artifacts to be cleaned.
+    action - The action to be performed.  It is up to the caller to ensure
+             that |action| will actually remove |targets|
+    suite_names - Any suites to which this cleanup target applies.
+    node_name - Any nodes to which this cleanup target applies.
+  '''
+  if ShouldBeCleaned(env, targets, suite_names, node_name):
+    env.Execute(action)
+
+base_env.AddMethod(AddCleanAction)
 
 def AddNodeAliases(env, node, suite_names, node_name):
   '''Allow a given node to be built under a different name or as a suite

@@ -1,0 +1,83 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+'''Build file for building the debugger and running its tests.'''
+
+__author__ = 'mlinck@google.com (Michael Linck)'
+
+import os
+import sys
+
+Import('env')
+
+# Check to ensure that we're running on windows.
+if not env['IS_WINDOWS']:
+  Return()
+
+# Add the system path to this environment so that we can run gclient and such
+env.AppendENVPath('PATH', os.environ['PATH'])
+
+# Duplicate all the shell environment variables, so that various Visual Studio
+# tools will have the variables they expect (e.g. VS 2008 needs VS90COMNTOOLS).
+# Do this using "if not in" instead of update(), so that os.environ variables
+# don't override variables in env['ENV'].
+for shell_var in os.environ:
+  if shell_var not in env['ENV']:
+    env['ENV'][shell_var] = os.environ[shell_var]
+
+debugger_dir = os.path.join(env['ROOT_DIR'], 'debugger')
+unit_tests_dir = os.path.join(debugger_dir, 'unit_tests')
+
+# The action to build visual studio solutions.
+vs_build_action = ['vcvarsall',
+                   '&&',
+                   'devenv',
+                   '${SOURCE}',
+                   '/build']
+
+debugger_tests_solution = os.path.join(unit_tests_dir, 'unit_tests.sln')
+
+# Builds the debugger unit_tests solution.
+debugger_tests_build_command = env.Command(
+    target='debugger_tests_build_output.txt',
+    source=debugger_tests_solution,
+    action=' '.join(vs_build_action))
+
+env.AddNodeAliases(debugger_tests_build_command, ['bot'], 'debugger')
+
+# Target to clean up the debugger build
+debugger_clean_targets = [os.path.join(unit_tests_dir, 'Debug'),
+                          os.path.join(unit_tests_dir, 'Release'),
+                          os.path.join(unit_tests_dir, 'x64')]
+
+# This function is here because we can't pass the whole list of
+# directories to rmdir (windows complains if only some of them exist.)
+def SpecifyDebuggerCleanActions(targets):
+  for target in targets:
+    debugger_clean_action = ['rmdir',
+                             '/Q',
+                             '/S',
+                             target]
+    env.AddCleanAction([target],
+                       Action(' '.join(debugger_clean_action)),
+                       ['bot'],
+                       'debugger')
+
+SpecifyDebuggerCleanActions(debugger_clean_targets)
+
+# Target to run the tests
+unit_tests_exe = os.path.join(unit_tests_dir, 'Debug', 'unit_tests.exe')
+
+debugger_test_command = env.Command(target='debugger_test_results.trx',
+                                    source='',
+                                    action=unit_tests_exe,)
+
+env.Depends(debugger_test_command, [debugger_tests_build_command])
+env.AddNodeToTestSuite(
+    debugger_test_command,
+    ['bot'],
+    'run_debugger_tests',
+    'small')
