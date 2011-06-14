@@ -64,6 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -211,6 +212,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -367,6 +369,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\base\debug_socket.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\base\debug_socket_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\core\debuggee_process.cc"
 				>
 			</File>
@@ -422,6 +432,10 @@
 			</File>
 			<File
 				RelativePath="..\core\debug_logger.h"
+				>
+			</File>
+			<File
+				RelativePath="..\base\debug_socket.h"
 				>
 			</File>
 			<File
