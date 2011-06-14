@@ -227,7 +227,7 @@ def AllNaClModules(env, sources, module_name):
 
   dbg_nexes = env.NaClModules(sources, module_name, is_debug=True)
   env.GenerateNmf(target='%s_dbg.nmf' % module_name,
-                  source=opt_nexes,
+                  source=dbg_nexes,
                   nexes={'x86-32': '%s_x86_32_dbg.nexe' % module_name,
                          'x86-64': '%s_x86_64_dbg.nexe' % module_name})
 
