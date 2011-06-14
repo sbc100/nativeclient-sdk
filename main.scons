@@ -38,6 +38,7 @@ Supported targets:
   * docs              Build all of the Doxygen documentation
   * examples          Build the examples.
   * installer         Build the SDK installer
+  * toolchain         Update the toolchain's headers and libraries
   * vsx_build         Build the Visual Studio Plugin
 
 Supported flags:
@@ -69,7 +70,7 @@ def GetToolchainRoot(sdk_root=None):
     sdk_root = os.getenv('NACL_SDK_ROOT', '')
   if sys.platform == 'cygwin' or sys.platform.startswith('win'):
     variant = 'win_x86'
-  elif sys.platform in ['darwin', 'macos']:
+  elif sys.platform == 'darwin':
     variant = 'mac_x86'
   elif sys.platform in ['linux', 'linux2']:
     variant = 'linux_x86'
@@ -110,7 +111,7 @@ base_env = Environment(
     ROOT_DIR = os.path.abspath(os.getcwd()),
     IS_WINDOWS = sys.platform in ['cygwin', 'win32'],
     IS_LINUX = sys.platform in ['linux', 'linux2'],
-    IS_MAC = sys.platform in ['darwin', 'macos'],
+    IS_MAC = sys.platform == 'darwin',
     JOB_COUNT = GetOption('num_jobs')
 )
 
@@ -355,6 +356,81 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
 
 base_env.AddMethod(CreatePythonUnitTest)
 
+
+# ----------------------------------------------------------
+# Targets for updating sdk headers and libraries
+# NACL_SDK_XXX vars are defined by  site_scons/site_tools/naclsdk.py
+# NOTE: our task here is complicated by the fact that there might already be
+#       some (outdated) headers/libraries at the new location
+#       One of the hacks we employ here is to make every library depend
+#       on the installation on ALL headers (sdk_headers)
+
+# Contains all the headers to be installed
+sdk_headers = base_env.Alias('extra_sdk_update_header', [])
+# Contains all the libraries and .o files to be installed
+libs_platform = base_env.Alias('extra_sdk_libs_platform', [])
+libs = base_env.Alias('extra_sdk_libs', [])
+base_env.Alias('extra_sdk_update', [libs, libs_platform])
+
+AlwaysBuild(sdk_headers)
+
+toolchain_node = base_env.Alias('toolchain', [])
+
+def GetToolchainNode(env):
+  '''Returns the node associated with the toolchain build target'''
+  return toolchain_node
+
+base_env.AddMethod(GetToolchainNode)
+
+def AddHeaderToSdk(env, nodes, subdir = 'nacl/'):
+  """Add a header file to the toolchain.  By default, Native Client-specific
+  headers go under nacl/, but there are non-specific headers, such as
+  the OpenGLES2 headers, that go under their own subdir."""
+  dir = ARGUMENTS.get('extra_sdk_include_destination')
+  if not dir:
+    dir = os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'nacl64', 'include')
+
+  node = env.Replicate(os.path.join(dir, subdir), nodes)
+  env.Depends(sdk_headers, node)
+  env.Depends(toolchain_node, node)
+  return node
+
+base_env.AddMethod(AddHeaderToSdk)
+
+def AddLibraryToSdkHelper(env, nodes, is_lib, is_platform):
+  """"Helper function to install libs/objs into the toolchain
+  and associate the action with the extra_sdk_update.
+
+  Args:
+    env: Environment in which we were called.
+    nodes: list of libc/objs
+    is_lib: treat nodes as libs
+    is_platform: nodes are truly platform specific
+  """
+  env.Requires(nodes, sdk_headers)
+
+  dir = ARGUMENTS.get('extra_sdk_lib_destination')
+  if not dir:
+    dir = '${NACL_SDK_LIB}/'
+
+  if is_lib:
+    n = env.ReplicatePublished(dir, nodes, 'link')
+  else:
+    n = env.Replicate(dir, nodes)
+
+  if is_platform:
+    env.Alias('extra_sdk_libs_platform', n)
+  else:
+    env.Alias('extra_sdk_libs', n)
+  return n
+
+
+def AddLibraryToSdk(env, nodes, is_platform=False):
+  return AddLibraryToSdkHelper(env, nodes, True, is_platform)
+
+base_env.AddMethod(AddLibraryToSdk)
+
+
 #-----------------------------------------------------------------------------
 # This is a simple environment that primarily for targets that aren't built
 # directly by scons, and therefore don't need any special environment setup
@@ -382,9 +458,9 @@ def ExamplesBuildCommand(env):
         the examples.
   '''
   if env.get('IS_WINDOWS'):
-    return 'scons.bat'
+    return 'scons.bat --jobs=%s' % GetOption('num_jobs')
   else:
-    return './scons'
+    return './scons --jobs=%s' % GetOption('num_jobs')
 
 
 def BuildExamples(env, target, source):
@@ -415,7 +491,7 @@ def CleanExamples(env):
                         shell=True)
 
 
-examples_builder = build_env.Alias('examples', [], BuildExamples)
+examples_builder = build_env.Alias('examples', [toolchain_node], BuildExamples)
 build_env.AlwaysBuild(examples_builder)
 # Handle the clean command.
 if GetOption('clean'):

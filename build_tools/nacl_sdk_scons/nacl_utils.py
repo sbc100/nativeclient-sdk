@@ -23,7 +23,6 @@ PLATFORM_MAPPING = {
     'linux': 'linux_x86',
     'linux2': 'linux_x86',
     'darwin': 'mac_x86',
-    'macos': 'mac_x86',
 }
 
 # Various architecture spec objecs suitable for use with

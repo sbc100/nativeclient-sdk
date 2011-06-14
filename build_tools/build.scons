@@ -42,6 +42,7 @@ installer_node = env.Command(
     source='generate_installers.py',
     action=' '.join(installer_action))
 
+env.Depends(installer_node, env.GetToolchainNode())
 env.AddNodeAliases(installer_node, ['bot'], 'installer')
 
 install_file = 'nacl-sdk.exe' if sys.platform == 'win32' else 'nacl-sdk.tgz'
@@ -83,3 +84,94 @@ env.AddNodeToTestSuite(nacl_utils_test,
                        'run_nacl_utils_test',
                        'small')
 
+
+#------------------------------------------------------------------------------
+# Put together the toolchain
+
+import gyp_extract
+
+ppapi_base = os.path.join(env['ROOT_DIR'],
+                          'third_party',
+                          'native_client',
+                          'ppapi')
+
+# Load ppapi_cpp.gypi
+ppapi_cpp_gypi = gyp_extract.LoadGypFile(os.path.join(ppapi_base,
+                                                      'ppapi_cpp.gypi'))
+
+# Load ppapi_gl.gypi
+ppapi_gl_gypi = gyp_extract.LoadGypFile(os.path.join(ppapi_base,
+                                                     'ppapi_gl.gypi'))
+
+# From ppapi_cpp.gypi:ppapi_c:c/[^/]*\.h
+c_headers = gyp_extract.GypTargetSources(
+    ppapi_cpp_gypi, 'ppapi_c', 'c/[^/]*\.h')
+
+# From ppapi_cpp.gypi:ppapi_c:c/dev/[^/]*\.h
+c_dev_headers = gyp_extract.GypTargetSources(
+    ppapi_cpp_gypi, 'ppapi_c', 'c/dev/[^/]*\.h')
+
+# From ppapi_cpp.gypi:ppapi_cpp_objects:cpp/[^/]*\.h
+# From ppapi_cpp.gypi:ppapi_cpp:cpp/[^/]*\.h
+cpp_headers = (
+    gyp_extract.GypTargetSources(
+        ppapi_cpp_gypi, 'ppapi_cpp_objects', 'cpp/[^/]*\.h') +
+    gyp_extract.GypTargetSources(
+        ppapi_cpp_gypi, 'ppapi_cpp', 'cpp/[^/]*\.h')
+)
+
+# From ppapi_cpp.gypi:ppapi_cpp_objects:cpp/dev/[^/]*\.h
+cpp_dev_headers = gyp_extract.GypTargetSources(
+    ppapi_cpp_gypi, 'ppapi_cpp_objects', 'cpp/dev/[^/]*\.h')
+
+# From ppapi_gl.gypi:ppapi_gles2:.*\.h
+gles2_headers = gyp_extract.GypTargetSources(
+    ppapi_gl_gypi, 'ppapi_gles2', '.*\.h')
+
+
+c_header_install = env.AddHeaderToSdk(
+  [os.path.join(ppapi_base, h) for h in c_headers], os.path.join('ppapi', 'c'))
+c_dev_header_install = env.AddHeaderToSdk(
+  [os.path.join(ppapi_base, h) for h in c_dev_headers],
+  os.path.join('ppapi', 'c', 'dev'))
+cpp_header_install = env.AddHeaderToSdk(
+  [os.path.join(ppapi_base, h) for h in cpp_headers],
+  os.path.join('ppapi', 'cpp'))
+cpp_dev_header_install = env.AddHeaderToSdk(
+  [os.path.join(ppapi_base, h) for h in cpp_dev_headers],
+  os.path.join('ppapi', 'cpp', 'dev'))
+#env.AddLibraryToSdk(['ppapi_cpp'])
+env.Requires('ppapi_cpp', [c_header_install,
+                           c_dev_header_install,
+                           cpp_header_install,
+                           cpp_dev_header_install])
+
+# GLES2 headers go into the GLES2 subdir, Khronos headers into the KHR subdir,
+# EGL header go in the EGL subdir.
+gl_base = os.path.join(ppapi_base, 'lib', 'gl', 'include')
+egl_base = os.path.join(gl_base, 'EGL')
+egl_header_install = env.AddHeaderToSdk([
+    os.path.join(egl_base, 'egl.h'),
+    os.path.join(egl_base, 'eglext.h'),
+    os.path.join(egl_base, 'eglplatform.h'),
+    ], 'EGL')
+
+gles2_base = os.path.join(gl_base, 'GLES2')
+gles2_header_install = env.AddHeaderToSdk([
+    os.path.join(gles2_base, 'gl2.h'),
+    os.path.join(gles2_base, 'gl2ext.h'),
+    os.path.join(gles2_base, 'gl2platform.h'),
+    ], 'GLES2')
+khr_header_install = env.AddHeaderToSdk([
+    os.path.join(gl_base, 'KHR', 'khrplatform.h'),
+    ], 'KHR')
+ppapi_gles2_header_install = env.AddHeaderToSdk(
+  [os.path.join(ppapi_base, h) for h in gles2_headers],
+  os.path.join('ppapi', 'gles2'))
+#env.AddLibraryToSdk(['ppapi_gles2'])
+env.Requires('ppapi_gles2', [
+    egl_header_install,
+    gles2_header_install,
+    khr_header_install,
+    ppapi_gles2_header_install,
+])

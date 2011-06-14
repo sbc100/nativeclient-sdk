@@ -30,7 +30,6 @@ PLATFORM_MAPPING = {
     'linux': 'linux_x86',
     'linux2': 'linux_x86',
     'darwin': 'mac_x86',
-    'macos': 'mac_x86',
 }
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
@@ -218,15 +217,22 @@ class BotAnnotator:
     returns:
       a string containing the command output
     '''
-    if 'stdout' in kwargs:
-      raise ValueError('stdout argument not allowed, it will be overridden.')
+    if 'stdout' in kwargs or 'stderr' in kwargs:
+      raise ValueError('stdout or stderr argument not allowed.')
     command = kwargs.get("args")
     if command is None:
       command = popenargs[0]
     self.Print('Running %s' % command)
-    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-    output, unused_err = process.communicate()
-    self.Print(output)
+    process = subprocess.Popen(stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               *popenargs,
+                               **kwargs)
+    output, error_output = process.communicate()
+    if error_output:
+      self.Print("%s\nStdErr for %s:\n%s" % (output, command, error_output))
+    else:
+      self.Print(output)
+
     retcode = process.poll() # Note - calling wait() can cause a deadlock
     if retcode != 0:
       raise subprocess.CalledProcessError(retcode, command)

@@ -90,13 +90,7 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
                          ('_POSIX_C_SOURCE', '199506'),
                          ('_XOPEN_SOURCE', '600'),
                          ],
-              CPPPATH=[os.path.join(toolchain, 'include'),
-                       # Note: <toolchain>/nacl is a symbolic link to
-                       # <toolchain>/nacl64 on *nix systems.  However, these
-                       # links are not supported well on Windows, so the
-                       # CPPPATH points directly to nacl64.
-                       os.path.join(toolchain, 'nacl64', 'include'),
-                      ],
+              CPPPATH=[],
               LINKFLAGS=['${EXTRA_LINKFLAGS}',
                         ],
               # The NaCl envorinment makes '.nexe' executables.  If this is
