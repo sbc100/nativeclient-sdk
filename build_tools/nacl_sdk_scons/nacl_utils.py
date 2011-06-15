@@ -187,7 +187,8 @@ def MakeNaClModuleEnvironment(nacl_env,
                               sources,
                               module_name='nacl',
                               arch_spec=ARCH_SPECS['x86-32'],
-                              is_debug=False):
+                              is_debug=False,
+                              dir_prefix=''):
   '''Make a NaClProgram Node for a specific build variant.
 
   Make a NaClProgram Node in a cloned Environment.  Set the environment
@@ -211,6 +212,7 @@ def MakeNaClModuleEnvironment(nacl_env,
         |ARCH_SPECS| in nacl_utils.py for valid examples.
     is_debug: Indicates whether this program should be built for debugging or
         optimized.
+    dir_prefix: Allows user to prefix the directory with an additional string.
   Returns:
     A SCons Environment that builds the specified variant of a NaCl module.
   '''
@@ -223,5 +225,6 @@ def MakeNaClModuleEnvironment(nacl_env,
                                       arch_name,
                                       '_dbg' if is_debug else ''),
                          sources,
-                         variant_dir='%s_%s' % (debug_name, arch_name))
+                         variant_dir='%s%s_%s' %
+                             (dir_prefix, debug_name, arch_name))
 

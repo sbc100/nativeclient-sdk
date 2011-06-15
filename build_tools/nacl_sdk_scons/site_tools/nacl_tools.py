@@ -118,21 +118,26 @@ def NaClTestProgram(env,
     A list of Nodes, one for each architecture-specific test.
   '''
 
-  arch_name = '%s_%s' % nacl_utils.GetArchFromSpec(arch_spec)
-  test_program = env.NaClProgram(
-      '%s_%s_%s' % (module_name, arch_name, target_name),
-      test_sources,
-      variant_dir='test_%s' % arch_name)
-  # Tests are always built with debugging turned on.
-  env.AppendOptCCFlags(is_debug=False)
+  arch, subarch = nacl_utils.GetArchFromSpec(arch_spec)
+  arch_name = '%s_%s' % (arch, subarch)
+  # Create multi-level dictionary for sel_ldr binary name.
+  NACL_SEL_LDR = { 'x86' : {'32': '$NACL_SEL_LDR32', '64': '$NACL_SEL_LDR64' } }
+  arch_sel_ldr = NACL_SEL_LDR[arch][subarch]
+  # if |arch| and |subarch| are not found, a KeyError exception will be
+  # thrown, which will generate a stack trace for debugging.
+  test_program = nacl_utils.MakeNaClModuleEnvironment(
+                     env,
+                     test_sources,
+                     '%s_%s_%s' % (module_name, arch_name, target_name),
+                     arch_spec,
+                     is_debug=True,
+                     dir_prefix='test_')
   test_node = env.Alias(target_name,
                         source=test_program,
-                        action='$NACL_SEL_LDR32 $SOURCE')
+                        action=arch_sel_ldr + ' $SOURCE')
   # Tell SCons that |test_node| never goes out of date, so that you don't see
   # '<test_node> is up to date.'
   env.AlwaysBuild(test_node)
-
-
 
 def NaClModules(env, sources, module_name, is_debug=False):
   '''Produce one construction Environment for each supported instruction set
