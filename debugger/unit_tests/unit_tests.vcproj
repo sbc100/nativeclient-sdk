@@ -405,14 +405,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\rsp\rsp_packetizer.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\rsp\rsp_packetizer_test.cc"
-				>
-			</File>
-			<File
 				RelativePath=".\unit_tests.cc"
 				>
 			</File>
@@ -472,10 +464,6 @@
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread.h"
-				>
-			</File>
-			<File
-				RelativePath="..\rsp\rsp_packetizer.h"
 				>
 			</File>
 		</Filter>
