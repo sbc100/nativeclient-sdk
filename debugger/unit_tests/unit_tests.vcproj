@@ -405,6 +405,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rsp\rsp_blob_utils.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_blob_utils_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\rsp\rsp_packetizer.cc"
 				>
 			</File>
@@ -472,6 +480,10 @@
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_blob_utils.h"
 				>
 			</File>
 			<File

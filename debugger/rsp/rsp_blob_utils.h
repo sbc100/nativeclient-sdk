@@ -4,9 +4,12 @@
 #ifndef DEBUGGER_RSP_RSP_BLOB_UTILS_H_
 #define DEBUGGER_RSP_RSP_BLOB_UTILS_H_
 
+#include <deque>
 #include "debugger/base/debug_blob.h"
 
 namespace rsp {
+  /// These functions are used to parse RSP packets.
+  /// http://sources.redhat.com/gdb/current/onlinedocs/gdb.html#Remote-Protocol
 
   /// Removes 2 bytes from the front of this blob, converts it to integer
   /// Assumes hex test representation is in the blob.
@@ -44,5 +47,5 @@ namespace rsp {
 
 }  // namespace rsp
 
-#endif DEBUGGER_RSP_RSP_BLOB_UTILS_H_
+#endif  // DEBUGGER_RSP_RSP_BLOB_UTILS_H_
 

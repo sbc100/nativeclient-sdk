@@ -1,6 +1,6 @@
-// Copyright 2011 The Native Client SDK Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 #include "debugger/rsp/rsp_blob_utils.h"
 #include <stdarg.h>
 #include "debugger/rsp/rsp_packet.h"
@@ -63,11 +63,11 @@ void RemoveSpacesFromBothEnds(debug::Blob* blob) {
   }
 }
 
-void RemoveSpacesFromBothEnds(std::deque<debug::Blob>* tokens) {
-  std::deque<debug::Blob>::iterator it = tokens->begin();
-  while (it != tokens->end()) {
-    debug::Blob& token = *it++;
-    RemoveSpacesFromBothEnds(&token);
+void RemoveSpacesFromBothEnds(std::deque<debug::Blob>* blobs) {
+  std::deque<debug::Blob>::iterator it = blobs->begin();
+  while (it != blobs->end()) {
+    debug::Blob& blob = *it++;
+    RemoveSpacesFromBothEnds(&blob);
   }
 }
 
