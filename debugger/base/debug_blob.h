@@ -10,7 +10,7 @@
 // I'm not sure from where to get these definitions,
 // so I defined them here - for now.
 typedef unsigned char uint8_t;
-typedef unsigned long long uint32_t;  // NOLINT
+typedef unsigned int uint32_t;  // NOLINT
 typedef unsigned long long uint64_t;  // NOLINT
 
 /// Class for working with raw binary data.
