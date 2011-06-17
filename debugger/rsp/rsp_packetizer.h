@@ -7,7 +7,6 @@
 #include <deque>
 #include <string>
 #include "debugger/base/debug_blob.h"
-#include "debugger/rsp/rsp_packet_util.h"
 
 namespace rsp {
 class PacketConsumerInterface;

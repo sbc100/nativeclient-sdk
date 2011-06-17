@@ -413,6 +413,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rsp\rsp_packet_utils.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_packet_utils_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\rsp\rsp_packetizer.cc"
 				>
 			</File>
@@ -484,6 +492,10 @@
 			</File>
 			<File
 				RelativePath="..\rsp\rsp_blob_utils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_packet_utils.h"
 				>
 			</File>
 			<File
