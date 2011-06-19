@@ -102,9 +102,27 @@ namespace Google.NaClVsx.ProjectSupport
         // chrome needs --enable-nacl-debug --no-sandbox to enable debugger
         // FIXME:  Instead of the nexe, we will need to call chrome with
         // an argument that is the web page:  i.e. localhost:5013
+        // TODO(mmortensen) Rather than hard-code html_page, we need this to
+        // be set in the project, either as a property or by creating an html
+        // file in the project.
+        string html_page = "localhost:5103";
+        // TODO(mmortensen) Determine if all these flags are needed.  In the
+        // short term, the more important thing is to get the VSX/chrome 
+        // interaction to be more stable.
+        string chrome_debug_args = "--enable-file-cookies --dom-automation" +
+            " --disable-web-resources --disable-preconnect" +
+            " --no-first-run --no-default-browser-check --enable-logging" +
+            " --safebrowsing-disable-auto-update" +
+            " --no-default-browser-check " +
+            " --noerrdialogs --metrics-recording-only --enable-logging" +
+            " --allow-file-access-from-files" +
+            " --disable-tab-closeable-state-watcher --allow-file-access" +
+            " --unlimited-quota-for-files --enable-nacl" +
+            " --enable-nacl-debug --no-sandbox --log-level=3";
         info.bstrArg = string.Format(
-            "--enable-nacl-debug --no-sandbox {0} {1}",
-            safeNexeString,
+            "{0} {1} {2}",
+            chrome_debug_args,
+            html_page,
             GetConfigurationProperty("DebugArgs", false));
       } else {
         info.bstrArg = string.Format(

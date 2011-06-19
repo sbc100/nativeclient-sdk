@@ -528,7 +528,7 @@ bool DebugHost::HasBreakpoint(uint64_t offs) {
                    offs, breaks_.count(offs));
     return true;
   }
-  debug_log_info("DebugHost::HasBreakpoint did NOT found offs=0x%x\n", offs);
+  debug_log_info("DebugHost::HasBreakpoint did NOT find offset=0x%x\n", offs);
   return false;
 }
 
