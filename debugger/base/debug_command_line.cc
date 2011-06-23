@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 #include "debugger/base/debug_command_line.h"
 
+#pragma warning(disable : 4996)  // Disable sscanf warning.
+
 namespace {
 /// Prepends '-' if |name| has one '-' at the front.
 std::string NormalizeSwitchName(const std::string& name) {
@@ -117,6 +119,13 @@ int CommandLine::GetIntSwitch(const std::string& name,
   if (0 != str.size())
     return atoi(str.c_str());
   return default_value;
+}
+
+void* CommandLine::GetAddrSwitch(const std::string& name) const {
+  void* ptr = NULL;
+  std::string str = GetStringSwitch(name, "");
+  sscanf(str.c_str(), "%p", &ptr);  // NOLINT
+  return ptr;
 }
 
 bool CommandLine::HasSwitch(const std::string& name) const {

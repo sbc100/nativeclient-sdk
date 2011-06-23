@@ -62,6 +62,13 @@ class CommandLine {
   /// @return the value associated with the given switch, or |default_value|.
   int GetIntSwitch(const std::string& name, int default_value) const;
 
+  /// Returns value of the switch that is an address, example:
+  /// CommandLine cl("cmd -mem_start 0000000C00020080");
+  /// cl.GetAddrSwitch("mem_start") -> 0xC00020080 (on win64)
+  /// @param[in] name name of the switch, with two, one or no dashes.
+  /// @return the value associated with the given switch.
+  void* GetAddrSwitch(const std::string& name) const;
+
   /// @param[in] name name of the switch, with two, one or no dashes.
   /// Example: names "--flag", "-flag" or "flag" should match switches with
   /// actual names "--flag" and "-flag".
