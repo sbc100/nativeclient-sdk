@@ -114,6 +114,7 @@ class DebuggeeThread {
 
  protected:
   friend class DebuggeeProcess;
+  friend class DebuggeeProcessMock;
 
   /// @return parent process.
   IDebuggeeProcess& parent_process() { return parent_process_; }

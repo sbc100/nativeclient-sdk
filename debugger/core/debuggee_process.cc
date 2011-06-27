@@ -3,9 +3,15 @@
 // found in the LICENSE file.
 #include "debugger/core/debuggee_process.h"
 #include <assert.h>
+#include <windows.h>
+#include <algorithm>
 #include "debugger/core/debug_api.h"
 #include "debugger/core/debug_breakpoint.h"
 #include "debugger/core/debug_event.h"
+
+namespace {
+const size_t kMaxOutputDebugStringSize = 4 * 1024;
+}  // namespace
 
 namespace debug {
 DebuggeeProcess::DebuggeeProcess(int id,
@@ -178,6 +184,28 @@ bool DebuggeeProcess::WriteMemory(const void* addr,
   if (!res) {
     return false;
   }
+  return true;
+}
+
+bool DebuggeeProcess::ReadDebugString(std::string* debug_string) {
+  DEBUG_EVENT de = last_debug_event().windows_debug_event();
+  if (OUTPUT_DEBUG_STRING_EVENT != de.dwDebugEventCode)
+    return false;
+
+  // We don't support UNICODE debug strings yet.
+  if (0 != de.u.DebugString.fUnicode)
+    return false;
+
+  // Read string from debuggee address space.
+  char buff[kMaxOutputDebugStringSize];
+  size_t str_len = min(sizeof(buff) - 1, de.u.DebugString.nDebugStringLength);
+  if (ReadMemory(de.u.DebugString.lpDebugStringData, str_len, buff))
+    buff[str_len - 1] = 0;
+  else
+    return false;
+
+  if (NULL != debug_string)
+    *debug_string = buff;
   return true;
 }
 

@@ -68,9 +68,9 @@ class DebuggeeThreadTest : public ::testing::Test {
                                               GetCurrentThread(),
                                               fake_proc_);
 
-    fake_thread_ = new TestableDebuggeeThread(kFakeThreadId,
-                                              kFakeThreadHandle,
-                                              fake_proc_);
+    fake_thread_ = reinterpret_cast<TestableDebuggeeThread*>(
+        fake_proc_->AddThread(kFakeThreadId, kFakeThreadHandle));
+
     DEBUG_EVENT wde;
     memset(&wde, 0, sizeof(wde));
     wde.dwDebugEventCode = CREATE_THREAD_DEBUG_EVENT;
@@ -84,19 +84,21 @@ class DebuggeeThreadTest : public ::testing::Test {
 
   ~DebuggeeThreadTest() {
     delete fake_proc_;
-    delete fake_thread_;
+//    delete fake_thread_;
     delete no_thread_;
     delete this_thread_;
   }
 
   void InitDebugEventWithString(const char* str,
-                                 int addr,
-                                 debug::DebugEvent* de) {
+                                int addr,
+                                debug::DebugEvent* de) {
     DEBUG_EVENT wde;
     memset(&wde, 0, sizeof(wde));
     wde.dwDebugEventCode = OUTPUT_DEBUG_STRING_EVENT;
+    wde.dwThreadId = fake_thread_->id();
     wde.u.DebugString.lpDebugStringData = reinterpret_cast<char*>(addr);
     wde.u.DebugString.nDebugStringLength = static_cast<WORD>(strlen(str));
+
     fake_proc_->WriteMemory(
         wde.u.DebugString.lpDebugStringData,
         strlen(str),
@@ -181,9 +183,8 @@ TEST_F(DebuggeeThreadTest, RecvDebugStringB) {
 
 TEST_F(DebuggeeThreadTest, RecvNexeDebugString) {
   debug::DebugEvent de;
-  InitDebugEventWithString(kNexeThreadCreateMsg,
-                           2, &de);
-  fake_thread_->OnDebugEvent(&de);
+  InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
+  fake_proc_->OnDebugEvent(&de);
   EXPECT_TRUE(fake_thread_->IsHalted());
   EXPECT_TRUE(fake_thread_->IsNaClAppThread());
   EXPECT_EQ(debug::DebugEvent::kThreadIsAboutToStart,
@@ -198,7 +199,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringValidateParams) {
                            "-user_entry_pt 0000000000020080 "
                            "-initial_entry_pt 0000000008000080",
                            2, &de);
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
 
   EXPECT_TRUE(fake_thread_->IsHalted());
   EXPECT_TRUE(fake_thread_->IsNaClAppThread());
@@ -210,7 +211,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinue) {
   debug::DebugEvent de;
   InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
 
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
 
   EXPECT_TRUE(fake_thread_->IsHalted());
   EXPECT_EQ(debug::DebuggeeThread::kHalted, fake_thread_->state());
@@ -224,7 +225,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinue) {
 TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinueB) {
   debug::DebugEvent de;
   InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
 
   fake_thread_->Continue(debug::DebuggeeThread::kContinueAndPassException);
   EXPECT_FALSE(fake_thread_->IsHalted());
@@ -235,7 +236,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinueB) {
 TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinueVerifyCallList) {
   debug::DebugEvent de;
   InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
 
   fake_debug_api_.ClearCallSequence();
   fake_thread_->Continue(debug::DebuggeeThread::kContinue);
@@ -248,7 +249,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinueVerifyCallList) {
 TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndContinueVerifyCallListB) {
   debug::DebugEvent de;
   InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
 
   fake_debug_api_.ClearCallSequence();
   fake_thread_->Continue(debug::DebuggeeThread::kContinueAndPassException);
@@ -262,7 +263,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndSingleStep) {
   debug::DebugEvent de;
   InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
 
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
   EXPECT_TRUE(fake_thread_->IsHalted());
 
   fake_thread_->Continue(debug::DebuggeeThread::kSingleStep);
@@ -275,7 +276,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringAndSingleStepVerifyCallList) {
 
   debug::DebugEvent de;
   InitDebugEventWithString(kNexeThreadCreateMsg, 2, &de);
-  fake_thread_->OnDebugEvent(&de);
+  fake_proc_->OnDebugEvent(&de);
   fake_thread_->Continue(debug::DebuggeeThread::kSingleStep);
 
   std::deque<debug::DebugAPIMock::FunctionId> call_list;

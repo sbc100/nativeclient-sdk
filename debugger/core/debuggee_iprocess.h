@@ -5,6 +5,7 @@
 #define DEBUGGER_CORE_DEBUGGEE_IPROCESS_H_
 #include <windows.h>
 #include <deque>
+#include <string>
 
 /// \brief This namespace groups classes related to OOP (out-of-process)
 /// Windows debugger.
@@ -122,6 +123,14 @@ class IDebuggeeProcess {
   virtual bool WriteMemory(const void* addr,
                            size_t size,
                            const void* source) = 0;
+
+  /// Reads string passed by OUTPUT_DEBUG_STRING_EVENT.
+  /// Note: string data is located in debuggee process.
+  /// Shall be called only on halted process.
+  /// @param[out] debug_string destination for the string.
+  /// @return true if last debug event was OUTPUT_DEBUG_STRING_EVENT and
+  /// string data transfer from debuggee process was successful.
+  virtual bool ReadDebugString(std::string* debug_string) = 0;
 
   /// Sets breakpoint at specified address |addr|.
   /// Shall be called only on halted process.

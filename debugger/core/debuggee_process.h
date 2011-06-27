@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <deque>
 #include <map>
+#include <string>
 #include "debugger/core/debug_event.h"
 #include "debugger/core/debuggee_iprocess.h"
 #include "debugger/core/debuggee_thread.h"
@@ -158,6 +159,14 @@ class DebuggeeProcess : public IDebuggeeProcess {
   /// @param[in] source address of source buffer.
   /// TODO(garianov): verify that |WriteMemory| can be called from any thread.
   virtual bool WriteMemory(const void* addr, size_t size, const void* source);
+
+  /// Reads string passed by OUTPUT_DEBUG_STRING_EVENT.
+  /// Note: string data is located in debuggee process.
+  /// Shall be called only on halted process.
+  /// @param[out] debug_string destination for the string.
+  /// @return true if last debug event was OUTPUT_DEBUG_STRING_EVENT and
+  /// string data transfer from debuggee process was successful.
+  virtual bool ReadDebugString(std::string* debug_string);
 
   /// Sets breakpoint at specified address |addr|.
   /// Shall be called only on halted process.

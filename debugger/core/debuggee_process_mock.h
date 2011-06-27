@@ -4,6 +4,7 @@
 #ifndef DEBUGGER_CORE_DEBUGGEE_PROCESS_MOCK_H_
 #define DEBUGGER_CORE_DEBUGGEE_PROCESS_MOCK_H_
 #include <deque>
+#include <string>
 #include "debugger/core/debug_event.h"
 #include "debugger/core/debuggee_iprocess.h"
 
@@ -36,7 +37,9 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   virtual int id() const { return 0;}
   virtual State state() const { return state_; }
   virtual bool IsHalted() const { return kHalted == state(); }
-  virtual const DebugEvent& last_debug_event() const { return debug_event_; }
+  virtual const DebugEvent& last_debug_event() const {
+    return last_debug_event_;
+  }
   virtual void* nexe_mem_base() const { return nexe_mem_base_; }
   virtual void set_nexe_mem_base(void* addr) { nexe_mem_base_ = addr; }
   virtual void* nexe_entry_point() const { return nexe_entry_point_; }
@@ -49,15 +52,16 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   virtual bool Break() { return false; }
   virtual bool Kill() { return false; }
   virtual bool Detach() { return false; }
-  virtual DebuggeeThread* GetThread(int id) { return NULL; }
+  virtual DebuggeeThread* GetThread(int id);
   virtual DebuggeeThread* GetHaltedThread() { return NULL; }
   virtual void GetThreadIds(std::deque<int>* threads) const {}
+  virtual bool ReadDebugString(std::string* debug_string);
   virtual bool SetBreakpoint(void* addr) { return false; }
   virtual bool RemoveBreakpoint(void* addr) { return false; }
   virtual Breakpoint* GetBreakpoint(void* addr) { return NULL; }
   virtual void GetBreakpoints(std::deque<Breakpoint*>* breakpoints) {}
-  virtual void OnDebugEvent(DebugEvent* debug_event) {}
-  virtual DebuggeeThread* AddThread(int id, HANDLE handle) { return NULL; }
+  virtual void OnDebugEvent(DebugEvent* debug_event);
+  virtual DebuggeeThread* AddThread(int id, HANDLE handle);
   virtual void* FromNexeToFlatAddress(void* ptr) const { return NULL; }
 
   void SetState(State st) { state_ = st; }
@@ -67,8 +71,9 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   DebugAPI* debug_api_;
   void* nexe_mem_base_;
   void* nexe_entry_point_;
-  DebugEvent debug_event_;
+  DebugEvent last_debug_event_;
   State state_;
+  std::deque<DebuggeeThread*> threads_;
 };
 
 }  // namespace debug
