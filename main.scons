@@ -198,7 +198,7 @@ base_env.AddMethod(AddNodeToTestSuite)
 
 def ShouldBeCleaned(env, targets, suite_names, node_name):
   '''Determines whether a given set of targets require cleaning.
-  
+
   Args:
     env - The calling environment.
     targets - Any build artifacts to which a cleaning step might apply
@@ -228,7 +228,7 @@ def AddCleanAction(env, targets, action, suite_names, node_name):
   Cleaning will only occur if there is a match between the suite or nodes
   specified on the command line, and suite_names or node_name or if no
   suite or notes are specified on the command line.  Also, at least one of the
-  targets must exist on the file system. 
+  targets must exist on the file system.
 
   Args:
     env - The calling environment
@@ -382,15 +382,14 @@ def GetToolchainNode(env):
 
 base_env.AddMethod(GetToolchainNode)
 
-def AddHeaderToSdk(env, nodes, subdir = 'nacl/'):
+def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dir = None):
   """Add a header file to the toolchain.  By default, Native Client-specific
   headers go under nacl/, but there are non-specific headers, such as
   the OpenGLES2 headers, that go under their own subdir."""
-  dir = ARGUMENTS.get('extra_sdk_include_destination')
-  if not dir:
-    dir = os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'nacl64', 'include')
+  if not base_dir:
+    base_dir = os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'nacl64', 'include')
 
-  node = env.Replicate(os.path.join(dir, subdir), nodes)
+  node = env.Replicate(os.path.join(base_dir, subdir), nodes)
   env.Depends(sdk_headers, node)
   env.Depends(toolchain_node, node)
   return node

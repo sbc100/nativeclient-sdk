@@ -140,11 +140,33 @@ cpp_header_install = env.AddHeaderToSdk(
 cpp_dev_header_install = env.AddHeaderToSdk(
   [os.path.join(ppapi_base, h) for h in cpp_dev_headers],
   os.path.join('ppapi', 'cpp', 'dev'))
+
+# TODO(dspringer): Remove these lines when trusted ppapi builds are no longer
+# needed for debugging.
+# -------- 8< Cut here --------
+# From ppapi_cpp.gypi:ppapi_cpp_objects:cpp/[^/]*\.cc
+# From ppapi_cpp.gypi:ppapi_cpp:cpp/[^/]*\.cc
+cpp_trusted_sources = (
+    gyp_extract.GypTargetSources(
+        ppapi_cpp_gypi, 'ppapi_cpp_objects', 'cpp/[^/]*\.cc') +
+    gyp_extract.GypTargetSources(
+        ppapi_cpp_gypi, 'ppapi_cpp', 'cpp/[^/]*\.cc')
+)
+
+cpp_trusted_source_install = env.AddHeaderToSdk(
+  [os.path.join(ppapi_base, cpp) for cpp in cpp_trusted_sources],
+  subdir=os.path.join('ppapi', 'cpp'),
+  base_dir=os.path.join(env['ROOT_DIR'], 'third_party'))
+# -------- 8< Cut here --------
+
 #env.AddLibraryToSdk(['ppapi_cpp'])
 env.Requires('ppapi_cpp', [c_header_install,
                            c_dev_header_install,
                            cpp_header_install,
-                           cpp_dev_header_install])
+                           cpp_dev_header_install,
+                           # TODO(dspringer): Remove this when trusted ppapi
+                           # builds are no longer needed.
+                           cpp_trusted_source_install])
 
 # GLES2 headers go into the GLES2 subdir, Khronos headers into the KHR subdir,
 # EGL header go in the EGL subdir.

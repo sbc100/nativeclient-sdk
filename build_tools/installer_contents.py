@@ -43,6 +43,7 @@ INSTALLER_CONTENTS = [
 ]
 
 LINUX_ONLY_CONTENTS = [
+    'third_party/ppapi/',
     'third_party/valgrind/memcheck.sh',
     'third_party/valgrind/tsan.sh',
     'third_party/valgrind/nacl.supp',
@@ -54,6 +55,7 @@ LINUX_ONLY_CONTENTS = [
 ]
 
 MAC_ONLY_CONTENTS = [
+    'third_party/ppapi/',
     'toolchain/',
 ]
 

@@ -36,8 +36,6 @@ deps = {
     From("nacl_deps", "ppapi"),
   "src/third_party/native_client/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
-  "src/third_party/ppapi":
-    From("nacl_deps", "ppapi"),
   "src/third_party/pymox":
     Var("pymox") + "@" + Var("pymox_version"),
   "src/third_party/scons-2.0.1":
