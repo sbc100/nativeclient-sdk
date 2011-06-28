@@ -4,13 +4,13 @@
  */
 #include <stdlib.h>
 #include <string.h>
-#include "ppapi/c/dev/ppb_var_deprecated.h"
 #include "ppapi/c/pp_errors.h"
 #include "ppapi/c/pp_module.h"
 #include "ppapi/c/pp_var.h"
 #include "ppapi/c/ppb.h"
 #include "ppapi/c/ppb_instance.h"
 #include "ppapi/c/ppb_messaging.h"
+#include "ppapi/c/ppb_var.h"
 #include "ppapi/c/ppp.h"
 #include "ppapi/c/ppp_instance.h"
 #include "ppapi/c/ppp_messaging.h"
@@ -24,7 +24,7 @@
 
 static PP_Module module_id = 0;
 static struct PPB_Messaging* messaging_interface = NULL;
-static struct PPB_Var_Deprecated* var_interface = NULL;
+static struct PPB_Var* var_interface = NULL;
 
 /**
  * Returns a mutable C string contained in the @a var or NULL if @a var is not
@@ -231,9 +231,7 @@ void Messaging_HandleMessage(PP_Instance instance, struct PP_Var var_message) {
 PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
                                        PPB_GetInterface get_browser_interface) {
   module_id = a_module_id;
-  var_interface =
-      (struct PPB_Var_Deprecated*)(get_browser_interface(
-          PPB_VAR_DEPRECATED_INTERFACE));
+  var_interface = (struct PPB_Var*)(get_browser_interface(PPB_VAR_INTERFACE));
   messaging_interface =
       (struct PPB_Messaging*)(get_browser_interface(PPB_MESSAGING_INTERFACE));
   return PP_OK;

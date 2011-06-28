@@ -11,13 +11,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ppapi/c/dev/ppb_var_deprecated.h"
 #include "ppapi/c/pp_errors.h"
 #include "ppapi/c/pp_module.h"
 #include "ppapi/c/pp_var.h"
 #include "ppapi/c/ppb.h"
 #include "ppapi/c/ppb_instance.h"
 #include "ppapi/c/ppb_messaging.h"
+#include "ppapi/c/ppb_var.h"
 #include "ppapi/c/ppp.h"
 #include "ppapi/c/ppp_instance.h"
 #include "ppapi/c/ppp_messaging.h"
@@ -33,7 +33,7 @@ static const char kMessageArgumentSeparator = ':';
 static const char kNullTerminator = '\0';
 
 static struct PPB_Messaging* ppb_messaging_interface = NULL;
-static struct PPB_Var_Deprecated* ppb_var_interface = NULL;
+static struct PPB_Var* ppb_var_interface = NULL;
 static PP_Module module_id = 0;
 
 
@@ -286,8 +286,7 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
   module_id = a_module_id;
   ppb_messaging_interface =
       (struct PPB_Messaging*)(get_browser(PPB_MESSAGING_INTERFACE));
-  ppb_var_interface =
-      (struct PPB_Var_Deprecated*)(get_browser(PPB_VAR_DEPRECATED_INTERFACE));
+  ppb_var_interface = (struct PPB_Var*)(get_browser(PPB_VAR_INTERFACE));
 
   return PP_OK;
 }
