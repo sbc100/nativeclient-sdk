@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\;&quot;..\..\third_party/gtest/include&quot;"
-				PreprocessorDefinitions="WIN64;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN64;_WIN64;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -413,6 +413,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rsp\rsp_common_replies.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_control_packets.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_info_packets.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\rsp\rsp_packet_utils.cc"
 				>
 			</File>
@@ -426,6 +438,18 @@
 			</File>
 			<File
 				RelativePath="..\rsp\rsp_packetizer_test.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_packets.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_packets_test.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_threads_packets.cc"
 				>
 			</File>
 			<File
@@ -495,11 +519,31 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rsp\rsp_common_replies.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_control_packets.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_info_packets.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rsp\rsp_packet_utils.h"
 				>
 			</File>
 			<File
 				RelativePath="..\rsp\rsp_packetizer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_packets.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rsp\rsp_threads_packets.h"
 				>
 			</File>
 		</Filter>

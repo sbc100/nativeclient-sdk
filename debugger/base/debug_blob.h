@@ -141,9 +141,10 @@ class Blob {
   /// @return hex letter
   static char GetHexDigit(unsigned int value, int digit_position);
 
- protected:
+  /// @return true is blob has an element == |c|.
   bool HasByte(char c) const;
 
+ protected:
   std::deque<uint8_t> value_;
 };
 }  // namespace debug

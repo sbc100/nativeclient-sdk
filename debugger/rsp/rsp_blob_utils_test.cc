@@ -17,47 +17,78 @@ class BlobUtilsTest : public ::testing::Test {
 // Unit tests start here.
 TEST_F(BlobUtilsTest, PopInt8FromFront) {
   LoadBlob("10abcd");
-  EXPECT_EQ(0x10, rsp::PopInt8FromFront(&blob_));
+  uint8_t v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0x10, v);
   EXPECT_STREQ("abcd", blob_.ToString().c_str());
 
   LoadBlob("f");
-  EXPECT_EQ(0xf, rsp::PopInt8FromFront(&blob_));
+  v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0xf, v);
   EXPECT_STREQ("", blob_.ToString().c_str());
+
+  LoadBlob("kaka");
+  v = 0;
+  EXPECT_FALSE(rsp::PopIntFromFront(&blob_, &v));
+
+  LoadBlob("f=xxx");
+  v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0xf, v);
+  EXPECT_STREQ("=xxx", blob_.ToString().c_str());
 }
 
 TEST_F(BlobUtilsTest, PopInt32FromFront) {
   LoadBlob("a");
-  EXPECT_EQ(0xa, rsp::PopInt32FromFront(&blob_));
+  uint32_t v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0xa, v);
   EXPECT_STREQ("", blob_.ToString().c_str());
 
   LoadBlob("10abcd");
-  EXPECT_EQ(0x10abcd, rsp::PopInt32FromFront(&blob_));
+  v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0x10abcd, v);
   EXPECT_STREQ("", blob_.ToString().c_str());
 
   LoadBlob("1234567890abcdef");
   EXPECT_STREQ("1234567890abcdef", blob_.ToString().c_str());
-  EXPECT_EQ(0x12345678, rsp::PopInt32FromFront(&blob_));
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0x12345678, v);
   EXPECT_STREQ("90abcdef", blob_.ToString().c_str());
+
+  LoadBlob("bcd=0");
+  v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0xbcd, v);
+  EXPECT_STREQ("=0", blob_.ToString().c_str());
 }
 
 TEST_F(BlobUtilsTest, PopInt64FromFront) {
   LoadBlob("a");
-  EXPECT_EQ(0xa, rsp::PopInt64FromFront(&blob_));
+  uint64_t v = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0xa, v);
   EXPECT_STREQ("", blob_.ToString().c_str());
 
   LoadBlob("10abcd");
-  EXPECT_EQ(0x10abcd, rsp::PopInt64FromFront(&blob_));
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0x10abcd, v);
   EXPECT_STREQ("", blob_.ToString().c_str());
 
   LoadBlob("1234567890abcdef000");
-  EXPECT_EQ(0x1234567890abcdef, rsp::PopInt64FromFront(&blob_));
+  EXPECT_TRUE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(0x1234567890abcdef, v);
   EXPECT_STREQ("000", blob_.ToString().c_str());
 }
 
 TEST_F(BlobUtilsTest, GarbageInZeroesOut) {
   LoadBlob("klmnopqwerty");
-  EXPECT_EQ(0x0, rsp::PopInt32FromFront(&blob_));
-  EXPECT_STREQ("erty", blob_.ToString().c_str());
+  uint32_t v = 666;
+  EXPECT_FALSE(rsp::PopIntFromFront(&blob_, &v));
+  EXPECT_EQ(666, v);
+  EXPECT_STREQ("klmnopqwerty", blob_.ToString().c_str());
 }
 
 TEST_F(BlobUtilsTest, RemoveSpacesFromBothEnds) {

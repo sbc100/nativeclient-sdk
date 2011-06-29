@@ -11,26 +11,36 @@ namespace rsp {
   /// These functions are used to parse RSP packets.
   /// http://sources.redhat.com/gdb/current/onlinedocs/gdb.html#Remote-Protocol
 
-  /// Removes 2 bytes from the front of this blob, converts it to integer
+  /// Removes bytes from the front of the |blob|, converts it to integer
   /// Assumes hex test representation is in the blob.
-  /// example: {0x31, 0x30, 0x33} -> 0x10 + {0x33}
-  /// @param blob blob to perform operation on
-  /// @return popped integer
-  unsigned int PopInt8FromFront(debug::Blob* blob);
+  /// @param blob[in,out] blob to perform operation on
+  /// @param result[out] destination for the popped integer
+  /// @return false if |blob| has no valid hex characters in the front,
+  /// example: PopIntFromFront("kaka", &v) -> false
+  template <class T>
+  bool PopIntFromFront(debug::Blob* blob, T* result) {
+    if (NULL == result)
+      return false;
 
-  /// Removes 4 bytes from the front of this blob, converts it to 32bit integer
-  /// Assumes hex test representation is in the blob.
-  /// example: {0x31, 0x30, 0x33, 0x39} -> 0x1039 + {}
-  /// @param blob blob to perform operation on
-  /// @return poped integer
-  uint32_t PopInt32FromFront(debug::Blob* blob);
+    // 2 chars per 1 encoded byte
+    size_t max_bytes_to_pop = sizeof(*result) * 2;
+    size_t i = 0;
+    for (; i < max_bytes_to_pop; i++) {
+      if (0 == blob->size())
+        break;
 
-  /// Removes 8 bytes from the front of this blob, converts it to 64bit integer
-  /// Assumes hex test representation is in the blob. Example:
-  /// {0x31, 0x30, 0x33, 0x39, 0x34, 0x35, 0x36, 0x37} -> 0x10394567 + {}
-  /// @param blob blob to perform operation on
-  /// @return poped integer
-  uint64_t PopInt64FromFront(debug::Blob* blob);
+      unsigned int dig = 0;
+      if (!debug::Blob::HexCharToInt(blob->Front(), &dig))
+        break;  // Stop on first no-hex character.
+
+      blob->PopFront();
+      if (0 == i)
+        *result = dig;
+      else
+        *result = (*result << 4) + dig;
+    }
+    return (i > 0);
+  }
 
   /// removes space characters from front and from back of the blob.
   /// @param blob blob to perform operation on
