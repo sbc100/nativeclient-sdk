@@ -203,7 +203,7 @@ def MakeNaClModuleEnvironment(nacl_env,
 
   Args:
     nacl_env: A SCons construction environment.  This is typically the return
-        value of NaClEnvironemnt() (see above).
+        value of NaClEnvironment() (see above).
     sources: A list of source Nodes used to build the NaCl module.
     module_name: The name of the module.  The name of the output program
         incorporates this as its prefix.
@@ -221,6 +221,10 @@ def MakeNaClModuleEnvironment(nacl_env,
   env = nacl_env.Clone()
   env.AppendOptCCFlags(is_debug)
   env.AppendArchFlags(arch_spec)
+  if not is_debug:
+    # Strip the resulting executable if non-debug.
+    env.Append(LINKFLAGS=['--strip-all'])
+
   return env.NaClProgram('%s_%s%s' % (module_name,
                                       arch_name,
                                       '_dbg' if is_debug else ''),
