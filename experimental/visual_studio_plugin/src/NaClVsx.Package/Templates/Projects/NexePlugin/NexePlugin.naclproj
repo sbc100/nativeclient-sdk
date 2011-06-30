@@ -8,7 +8,7 @@
     <AssemblyName>$safeprojectname$</AssemblyName>
     <MainFile>NexeMain.cc</MainFile>
     <INCLUDES>-Ic:\src</INCLUDES>
-    <OPT_FLAGS>-O3</OPT_FLAGS>
+    <OPT_FLAGS></OPT_FLAGS>
     <CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
     <Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
     <LinkLibs>google_nacl_imc;google_nacl_npruntime;pthread;srpc</LinkLibs>

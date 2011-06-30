@@ -8,7 +8,7 @@
     <AssemblyName>$safeprojectname$</AssemblyName>
     <MainFile>NaClMain.c</MainFile>
 	<INCLUDES>-Ic:\src</INCLUDES>
-	<OPT_FLAGS>-O3</OPT_FLAGS>
+	<OPT_FLAGS></OPT_FLAGS>
 	<CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
 	<Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
     <DebugHost>C:\Program Files (x86)\Google\Google Native Client Support for Visual Studio\sel_ldr64.exe</DebugHost>	
