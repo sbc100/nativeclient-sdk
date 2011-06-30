@@ -15,13 +15,16 @@ The general structure is as follows:
 from __future__ import with_statement
 
 import datetime
+import httplib
 import optparse
 import os
 import platform
 import shutil
+import socket
 import string
 import subprocess
 import sys
+import time
 import unittest
 
 from build_tools import build_utils
@@ -76,6 +79,98 @@ def TestingClosure(_outdir, _jobs):
           contents.count(str(datetime.date.today() -
                              datetime.timedelta(days=1))),
           "Cannot find today's or yesterday's date in README")
+      return True
+
+    def testHttpd(self):
+      '''Test the simple HTTP server.
+
+      Run the simple server and make sure it quits when processing an URL that
+      has the ?quit=1 parameter set.  This test runs the server on the default
+      port (5103) and on a specified port.
+      '''
+
+      DEFAULT_SERVER_PORT = 5103
+
+      def runAndQuitHttpServer(port=DEFAULT_SERVER_PORT):
+        '''A small helper function to launch the simple HTTP server.
+
+        This function launches the simple HTTP server, then waits for its
+        banner output to appear.  If the banner doesn't appear within 10
+        seconds, the test fails.  The banner is checked validate that it
+        displays the right port number.
+
+        Once the server is verified as running, this function sends it a GET
+        request with the ?quit=1 URL parmeter.  It then waits to see if the
+        server process exits with a return code of 0.  If the server process
+        doesn't exit within 20 seconds, the test fails.
+
+        Args:
+          port: The port to use, defaults to 5103.
+        '''
+        path = os.path.join(_outdir, 'examples')
+        command = [sys.executable, os.path.join(path, 'httpd.py')]
+        # Add the port only if it's not the default.
+        if port != DEFAULT_SERVER_PORT:
+          command += [str(port)]
+        # Can't use annotator.Run() because the HTTP server doesn't stop, which
+        # causes Run() to hang.
+        annotator.Print('Starting server: %s' % command)
+        process = subprocess.Popen(command,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT,
+                                   cwd=path)
+        self.assertNotEqual(None, process)
+        # Wait until the process starts by trying to send it a GET request until
+        # the server responds, or until the timeout expires.  If the timeout
+        # expires, fail the test.
+        time_start = time.time()
+        time_now = time_start
+        timeout_time = time_start + 20  # 20 sec timeout.
+        output = ''
+        conn = None
+        while time_now < timeout_time:
+          conn = httplib.HTTPConnection('localhost', port)
+          try:
+            # Send the quit request.
+            conn.request("GET", "/?quit=1")
+            output = process.stdout.readline()
+            break
+          except socket.error:
+            # If the server is not listening for connections, then
+            # HTTPConnetion() raises a socket exception, not one of the
+            # exceptions defined in httplib.  In order to resend a request in
+            # this case, the original connection has to be closed and re-opened.
+            conn.close()
+            conn = None
+            time.sleep(1)  # Wait a second to try again.
+          time_now = time.time()
+
+        self.assertNotEqual(None, conn)
+        # Validate the first line of the startup banner.  An example of the
+        # full line is:
+        #   INFO:root:Starting local server on port 5103
+        self.assertTrue(output.startswith('INFO:root:Starting'))
+        self.assertEqual(1, output.count(str(port)))
+        annotator.Print('Server startup banner: %s' % output)
+
+        # Close down the connection and wait for the server to quit.
+        conn.getresponse()
+        conn.close()
+
+        # Check to see if the server quit properly.  It should quit within
+        # 0.5 seconds, so if the first poll() indicates that the process is
+        # still running, wait 1 sec and then poll again.  If the process is
+        # still running after 20 sec, then fail the test.
+        return_code = process.poll()
+        poll_count = 0
+        while return_code == None and poll_count < 20:
+          time.sleep(1)
+          return_code = process.poll()
+          poll_count += 1
+        self.assertEqual(0, return_code)
+
+      runAndQuitHttpServer()
+      runAndQuitHttpServer(5280)
       return True
 
     def testValgrind(self):
