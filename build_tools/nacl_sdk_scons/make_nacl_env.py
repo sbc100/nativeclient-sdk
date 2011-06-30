@@ -94,10 +94,13 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
               LINKFLAGS=['${EXTRA_LINKFLAGS}',
                         ],
               # The NaCl envorinment makes '.nexe' executables.  If this is
-              # not expc=licitly set, then SCons on Windows doesn't understand
+              # not explicitly set, then SCons on Windows doesn't understand
               # how to construct a Program builder properly.
               PROGSUFFIX='.nexe',
              )
+  # This supresses the "MS_DOS style path" warnings on Windows.  It's benign on
+  # all other platforms.
+  env['ENV']['CYGWIN'] = 'nodosfilewarning'
 
   # Append the common NaCl libs.
   common_nacl_libs = ['ppapi']
