@@ -96,7 +96,7 @@ def GetJSONFromNexeSpec(nexe_spec):
     A JSON string representing |nexe_spec|.
   '''
   nmf_json = '{\n'
-  nmf_json += '  "nexes": {\n'
+  nmf_json += '  "program": {\n'
 
   # Add an entry in the JSON for each specified architecture.  Note that this
   # loop emits a trailing ',' for every line but the last one.
@@ -105,9 +105,9 @@ def GetJSONFromNexeSpec(nexe_spec):
     for arch_key in nexe_spec:
       line_count -= 1
       eol_char = ',' if line_count > 0 else ''
-      nmf_json += '    "%s": "%s"%s\n' % (arch_key,
-                                          nexe_spec[arch_key],
-                                          eol_char)
+      nmf_json += '    "%s": {"url": "%s"}%s\n' % (arch_key,
+                                                   nexe_spec[arch_key],
+                                                   eol_char)
 
   nmf_json += '  }\n'
   nmf_json += '}\n'

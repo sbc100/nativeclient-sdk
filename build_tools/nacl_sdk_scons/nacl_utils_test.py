@@ -41,7 +41,7 @@ class TestNaClUtils(unittest.TestCase):
     self.assertEqual('toolchain', toolchain)
 
   def testGetJSONFromNexeSpec(self):
-    valid_empty_json = '{\n  "nexes": {\n  }\n}\n'
+    valid_empty_json = '{\n  "program": {\n  }\n}\n'
     null_json = nacl_utils.GetJSONFromNexeSpec(None)
     self.assertEqual(null_json, valid_empty_json)
     empty_json = nacl_utils.GetJSONFromNexeSpec({})
@@ -56,7 +56,7 @@ class TestNaClUtils(unittest.TestCase):
     json_lines = json.splitlines()
     self.assertEqual(len(json_lines), 7)
     self.assertEqual(json_lines[0], '{')
-    self.assertEqual(json_lines[1], '  "nexes": {')
+    self.assertEqual(json_lines[1], '  "program": {')
     self.assertTrue(json_lines[2].endswith(','))
     self.assertTrue(json_lines[3].endswith(','))
     self.assertFalse(json_lines[4].endswith(','))
@@ -68,7 +68,7 @@ class TestNaClUtils(unittest.TestCase):
     valid_arch_keys = ['"x86-32"', '"x86-64"', '"arm"']
     for line in json_lines[2:4]:
       key_value = line.split(':')
-      self.assertEqual(len(key_value), 2)
+      self.assertEqual(len(key_value), 3)
       self.assertTrue(key_value[0].lstrip().rstrip() in valid_arch_keys)
 
   def testGenerateNmf(self):
