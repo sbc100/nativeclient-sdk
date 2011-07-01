@@ -1,10 +1,11 @@
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "5832",
+  "native_client_version": "5884",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "x86_toolchain_version": "5822",
+  "x86_toolchain_version": "5860",
+  "arm_toolchain_version": "5862",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
 }
@@ -29,6 +30,8 @@ deps = {
     From("nacl_deps", "gpu/command_buffer"),
   "src/third_party/native_client/gpu/GLES2":
     From("nacl_deps", "gpu/GLES2"),
+  "src/third_party/native_client/gpu/KHR":
+    From("nacl_deps", "gpu/KHR"),
   "src/third_party/native_client/native_client":
     Var("native_client_trunk") + "/src/native_client@" +
     Var("native_client_version"),
@@ -95,5 +98,14 @@ hooks = [
     "pattern": ".",
     "action": ["python", "src/build_tools/download_compilers.py",
                "-v", Var("x86_toolchain_version")],
+  },
+  {
+    "pattern": ".",
+    "action": [
+        "python",
+        "src/third_party/native_client/native_client/build/"
+          "download_toolchains.py",
+        "--x86-version", Var("x86_toolchain_version"),
+        "--arm-version", Var("arm_toolchain_version")],
   },
 ]

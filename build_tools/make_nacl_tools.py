@@ -34,15 +34,26 @@ def Build(options):
     bits32 = ''
     bits64 = ''
 
-  def build_step(prefix, bits, target):
+  def BuildTools(prefix, bits, target):
     cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s' % (
         prefix, scons, options.jobs, options.variant, bits, target)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
-  build_step(bits32, '32', 'sdl=none sel_ldr')
-  build_step(bits64, '64', 'sdl=none sel_ldr')
-  build_step(bits32, '32', 'ncval')
-  build_step(bits64, '64', 'ncval')
+  BuildTools(bits32, '32', 'sdl=none sel_ldr ncval')
+  BuildTools(bits64, '64', 'sdl=none sel_ldr ncval')
+
+  def BuildAndInstallLibsAndHeaders(bits):
+    cmd = '%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s' % (
+        scons,
+        os.path.join(options.toolchain,
+                     'nacl64',
+                     'lib32' if bits == 32 else 'lib'),
+        os.path.join(options.toolchain, 'nacl64', 'include'),
+        bits)
+    bot.Run(cmd, shell=True, cwd=nacl_dir)
+
+  BuildAndInstallLibsAndHeaders(32)
+  BuildAndInstallLibsAndHeaders(64)
 
 
 def Install(options, tools):
@@ -122,7 +133,7 @@ def main(argv):
   (options, args) = parser.parse_args(argv)
   if args:
     parser.print_help()
-    bot.Print('ERROR: invalid argument')
+    bot.Print('ERROR: invalid argument(s): %s' % args)
     sys.exit(1)
 
   options.toolchain = os.path.abspath(options.toolchain)

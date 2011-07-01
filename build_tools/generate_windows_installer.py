@@ -77,33 +77,6 @@ def main(argv):
   except OSError:
     pass
 
-  # TODO(mlinck, mball): maybe get rid of this
-  variant = 'win_x86'
-  toolchain = os.path.join('toolchain', variant)
-
-  # Build the NaCl tools.
-  bot.Print('generate_windows_installer is kicking off make_nacl_tools.py.')
-  build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
-  make_nacl_tools = os.path.join(build_tools_dir,
-                                 'make_nacl_tools.py')
-  make_nacl_tools_args = [
-      sys.executable,
-      make_nacl_tools,
-      '--toolchain',
-      toolchain,
-      '--jobs',
-      options.jobs,
-      '--nacl_dir',
-      os.path.join(home_dir, 'src', 'third_party', 'native_client'),
-  ]
-  if not options.development:
-    make_nacl_tools_args.extend(['-c'])
-  subprocess.check_call(make_nacl_tools_args, cwd=os.path.join(home_dir, 'src'))
-
-  # Build c_salt
-  # TODO(dspringer): add this part.
-  c_salt_path = os.path.join(home_dir, 'src', 'c_salt')
-
   # Build the examples.
   bot.BuildStep('build examples')
   bot.Print('generate_windows_installer is building examples.')
@@ -207,7 +180,10 @@ def main(argv):
 
   # Clean up.
   shutil.rmtree(temp_dir)
+  return 0
 
 
 if __name__ == '__main__':
-  main(sys.argv[1:])
+  print "Directly running generate_windows_installer.py is no longer supported."
+  print "Please instead run 'scons.bat installer' from the src directory."
+  sys.exit(1)

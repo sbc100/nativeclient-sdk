@@ -376,11 +376,19 @@ AlwaysBuild(sdk_headers)
 
 toolchain_node = base_env.Alias('toolchain', [])
 
+
 def GetToolchainNode(env):
   '''Returns the node associated with the toolchain build target'''
   return toolchain_node
 
 base_env.AddMethod(GetToolchainNode)
+
+
+def GetHeadersNode(env):
+  return sdk_headers
+
+base_env.AddMethod(GetHeadersNode)
+
 
 def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dir = None):
   """Add a header file to the toolchain.  By default, Native Client-specific

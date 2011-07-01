@@ -14,6 +14,7 @@ and from ../project_templates/test.scons
 
 __author__ = 'mball@google.com (Matt Ball)'
 
+from build_tools import make_nacl_tools
 import os
 import sys
 
@@ -29,18 +30,25 @@ for shell_var in os.environ:
   if shell_var not in env['ENV']:
     env['ENV'][shell_var] = os.environ[shell_var]
 
-# The development flag tells generate_installers not to download a fresh
-# copy of all the cygwin packages.
-installer_action = ["${PYTHON}", "${SOURCE}", "--jobs=%s" % env['JOB_COUNT']]
 
-if env['DEVELOPMENT'] == '1':
-  installer_action.append('--development')
-
+def run_generate_installer(env, target, source):
+  '''Runs the generate_installer script to create the SDK installer'''
+  # The development flag tells generate_installers not to download a fresh
+  # copy of all the cygwin packages.
+  args = ["--jobs=%s" % env['JOB_COUNT']]
+  if env['DEVELOPMENT'] == '1':
+    args.append('--development')
+  if env['IS_WINDOWS']:
+    from build_tools import generate_windows_installer
+    return generate_windows_installer.main(args)
+  else:
+    from build_tools import generate_installers
+    return generate_installers.main(args)
 
 installer_node = env.Command(
     target='generate_installers_dummy_target.txt',
     source='generate_installers.py',
-    action=' '.join(installer_action))
+    action=run_generate_installer)
 
 env.Depends(installer_node, env.GetToolchainNode())
 env.AddNodeAliases(installer_node, ['bot'], 'installer')
@@ -197,3 +205,29 @@ env.Requires('ppapi_gles2', [
     khr_header_install,
     ppapi_gles2_header_install,
 ])
+
+
+#------------------------------------------------------------------------------
+#   Build sel_ldr and ncval
+
+def build_nacl_tools(env, target, source):
+  ''' Tool for running make_nacl_tools
+  This builds sel_ldr, ncval, and the nacl libraries'''
+  make_nacl_tools_args = [
+      '--toolchain',
+      env['NACL_TOOLCHAIN_ROOT'],
+      '--jobs',
+      env['JOB_COUNT'],
+      '--nacl_dir',
+      os.path.join(env['ROOT_DIR'], 'third_party', 'native_client'),
+  ]
+  if env['DEVELOPMENT'] != '1':
+    make_nacl_tools_args.extend(['-c'])
+  print make_nacl_tools_args
+  make_nacl_tools.main(make_nacl_tools_args)
+
+nacl_tools_cmd = env.Command('nacl_tools_dummy_target',
+                             'make_nacl_tools.py',
+                             build_nacl_tools)
+env.Depends(nacl_tools_cmd, env.GetHeadersNode())
+env.Depends(env.GetToolchainNode(), nacl_tools_cmd)
