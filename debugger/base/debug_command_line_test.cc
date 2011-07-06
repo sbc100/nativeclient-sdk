@@ -70,6 +70,34 @@ TEST_F(CommandLineTest, GetIntSwitch) {
   EXPECT_EQ(2345, cl_.GetIntSwitch("port", 0));
 }
 
+TEST_F(CommandLineTest, GetAddrSwitch) {
+#ifdef _WIN64
+  debug::CommandLine cl("aaaaa -event AppCreate -nap 00000000001CD3F0");
+  EXPECT_EQ(reinterpret_cast<void*>(0x00000000001CD3F0),
+            cl.GetAddrSwitch("nap"));
+
+  debug::CommandLine cl2("aaaaa -event AppCreate -mem_start 0000000C00000000");
+  EXPECT_EQ(reinterpret_cast<void*>(0x0000000C00000000),
+            cl2.GetAddrSwitch("mem_start"));
+
+  debug::CommandLine cl3("a -event AppCreate -user_entry_pt 0000000000020080");
+  EXPECT_EQ(reinterpret_cast<void*>(0x0000000000020080),
+            cl3.GetAddrSwitch("user_entry_pt"));
+#else  // _WIN32
+  debug::CommandLine cl("aaaaa -event AppCreate -nap 001CD3F0");
+  EXPECT_EQ(reinterpret_cast<void*>(0x001CD3F0),
+            cl.GetAddrSwitch("nap"));
+
+  debug::CommandLine cl2("aaaaa -event AppCreate -mem_start C0000000");
+  EXPECT_EQ(reinterpret_cast<void*>(0xC0000000),
+            cl2.GetAddrSwitch("mem_start"));
+
+  debug::CommandLine cl3("a -event AppCreate -user_entry_pt 00020080");
+  EXPECT_EQ(reinterpret_cast<void*>(0x00020080),
+            cl3.GetAddrSwitch("user_entry_pt"));
+#endif
+}
+
 TEST_F(CommandLineTest, HasSwitch) {
   EXPECT_TRUE(cl_.HasSwitch("version"));
   EXPECT_TRUE(cl_.HasSwitch("-version"));
