@@ -77,6 +77,7 @@ void DebuggeeThread::OnOutputDebugString(DebugEvent* debug_event) {
       void* user_entry_point = debug_info.GetAddrSwitch("-user_entry_pt");
       parent_process().set_nexe_mem_base(nexe_mem_base);
       parent_process().set_nexe_entry_point(user_entry_point);
+      debug_event->set_nacl_debug_event_code(DebugEvent::kAppStarted);
       DBG_LOG("TR03.03",
               "NaClAppCreate mem_base=%p entry_point=%p",
               nexe_mem_base,

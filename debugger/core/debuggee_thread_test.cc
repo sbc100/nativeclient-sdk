@@ -201,6 +201,7 @@ TEST_F(DebuggeeThreadTest, RecvNexeDebugStringValidateParams) {
                            2, &de);
   fake_proc_->OnDebugEvent(&de);
 
+  EXPECT_EQ(debug::DebugEvent::kAppStarted, de.nacl_debug_event_code());
   EXPECT_TRUE(fake_thread_->IsHalted());
   EXPECT_FALSE(fake_thread_->IsNaClAppThread());
   EXPECT_EQ(reinterpret_cast<void*>(0xC00000000), fake_proc_->nexe_mem_base());
