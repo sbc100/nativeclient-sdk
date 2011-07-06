@@ -53,6 +53,10 @@ class DebuggeeThread {
   HANDLE handle() const { return handle_; }
   State state() const { return state_; }
 
+  /// @return parent process.
+  IDebuggeeProcess& parent_process() { return parent_process_; }
+  const IDebuggeeProcess& parent_process() const { return parent_process_; }
+
   /// Shall be called only on dead threads (i.e. state_ == kDead).
   /// @return exit code or exception number, if thread is terminated
   /// by exception.
@@ -116,9 +120,6 @@ class DebuggeeThread {
   friend class DebuggeeProcess;
   friend class DebuggeeProcessMock;
 
-  /// @return parent process.
-  IDebuggeeProcess& parent_process() { return parent_process_; }
-  const IDebuggeeProcess& parent_process() const { return parent_process_; }
   DebugAPI& debug_api();
 
   /// Allows thread execution to continue (i.e. it calls
