@@ -94,6 +94,9 @@ class ExecutionEngine {
   /// @param[out] pids list of all tracked processes
   virtual void GetProcessIds(std::deque<int>* pids) const;
 
+  /// @return true if ExecutionEngine traces at least one alive process.
+  virtual bool HasAliveDebuggee();
+
   /// @return reference to latest received debug event
   DebugEvent& debug_event() { return debug_event_; }
 

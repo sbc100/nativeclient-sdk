@@ -189,5 +189,21 @@ TEST_F(ExecutionEngineTest, GetProcesses) {
 //  exec_eng_->RemoveDeadProcesses();
   EXPECT_EQ(1, exec_eng_->GetProcessesNum());
 }
+
+TEST_F(ExecutionEngineTest, HasAliveDebuggee) {
+  EXPECT_FALSE(exec_eng_->HasAliveDebuggee());
+
+  DEBUG_EVENT de;
+  memset(&de, 0, sizeof(de));
+  de.dwDebugEventCode = CREATE_PROCESS_DEBUG_EVENT;
+  de.dwProcessId = 1;
+  de.dwThreadId = 2;
+  fake_debug_api_.events_.push_back(de);
+
+  int halted_pid = NULL;
+  EXPECT_TRUE(exec_eng_->WaitForDebugEventAndDispatchIt(20, &halted_pid));
+  EXPECT_TRUE(exec_eng_->HasAliveDebuggee());
+}
+
 }  // namespace
 
