@@ -449,6 +449,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\nacl-gdb_server\rsp_stop_from_debug_event.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\nacl-gdb_server\rsp_stop_from_debug_event_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\rsp\rsp_threads_packets.cc"
 				>
 			</File>
@@ -540,6 +548,10 @@
 			</File>
 			<File
 				RelativePath="..\rsp\rsp_packets.h"
+				>
+			</File>
+			<File
+				RelativePath="..\nacl-gdb_server\rsp_stop_from_debug_event.h"
 				>
 			</File>
 			<File
