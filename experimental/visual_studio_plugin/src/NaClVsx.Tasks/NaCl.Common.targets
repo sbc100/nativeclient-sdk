@@ -18,6 +18,16 @@
     <archflag>-m64</archflag>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetArch)' == 'x86_32'">
+    <StartProgram>$(NaClSDKRoot)\sel_ldr.exe</StartProgram>
+    <archlinkflag>-melf32_nacl</archlinkflag>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetArch)' == 'x86_64'">
+    <StartProgram>$(NaClSDKRoot)\sel_ldr64.exe</StartProgram>
+    <archlinkflag>-melf64_nacl</archlinkflag>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
@@ -63,7 +73,7 @@
           Outputs="$(OutputFullPath)">
     <MakeDir Directories="$(OutputPath)"/>
     <NaClExec Command="$(gcc)"
-              Arguments="@(Lib -> '-L%(FullPath)', ' ') @(Obj, ' ') @(LinkLibs -> '-l%(Identity)', ' ') $(archflag)  -o $(OutputFullPath)"
+              Arguments="@(Lib -> '-L%(FullPath)', ' ') @(Obj, ' ') @(LinkLibs -> '-l%(Identity)', ' ') $(archlinkflag) $(archflag) -o $(OutputFullPath)"
               ToolPath="$(NaClSDKRoot)\toolchain\win_x86\bin\"/>
   </Target>
 
