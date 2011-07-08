@@ -405,6 +405,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\nacl-gdb_server\gdb_registers.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\nacl-gdb_server\gdb_registers_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\rsp\rsp_blob_utils.cc"
 				>
 			</File>
@@ -520,6 +528,10 @@
 			</File>
 			<File
 				RelativePath="..\core\debuggee_thread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\nacl-gdb_server\gdb_registers.h"
 				>
 			</File>
 			<File
