@@ -1,6 +1,6 @@
-// Copyright 2011 The Native Client Authors.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 /**
  * @fileoverview  Implement a virtual trackball in the tumbler.Trackball

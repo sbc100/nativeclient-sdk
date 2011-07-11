@@ -1,6 +1,6 @@
-// Copyright 2011 The Native Client Authors.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 /**
  * @fileoverview  This class implements a mouse-drag event.  It registers for
@@ -9,7 +9,7 @@
  * DRAG_START, DRAG and DRAG_END.
  */
 
-// Requires tumbler
+// Requires bind
 
 /**
  * Constructor for the Dragger.  Register for mousedown events that happen on
@@ -130,19 +130,5 @@ tumbler.Dragger.prototype.onMouseUp = function(event) {
   var i;
   for (i = 0; i < this.listeners_.length; ++i) {
     this.listeners_[i].handleEndDrag(this.target_, dragEndEvent);
-  }
-}
-
-/**
- * Bind a scope to a function.  Used to bind an object to |this| for event
- * handlers.
- * @param {!Object} scope The scope in which the function executes.  |scope|
- *     becomes |this| during function execution.
- * @return {function} the bound version of the original function.
- */
-Function.prototype.bind = function(scope) {
-  var boundContext = this;
-  return function() {
-    return boundContext.apply(scope, arguments);
   }
 }
