@@ -1,29 +1,56 @@
-// Copyright 2011 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include "examples/tumbler/scripting_bridge.h"
-
-#include <string>
+#include "experimental/tumbler/scripting_bridge.h"
 
 namespace {
-// Helper function to set the scripting exception.  Both |exception| and
-// |except_string| can be NULL.  If |exception| is NULL, this function does
-// nothing.
-void SetExceptionString(pp::Var* exception, const std::string& except_string) {
-  if (exception) {
-    *exception = except_string;
+const char* const kWhiteSpaceCharacters = " \t";
+
+// Helper function to pull out the next token in |token_string|.  A token is
+// delimited by whitespace.  Scanning begins at |*pos|, if pos goes beyond the
+// end of |token_string|, it is set to std::string::npos and an empty string
+// is returned.  On return, |*pos| will point to the beginning of the next
+// token. |pos| must not be NULL.
+const std::string ScanToken(const std::string& token_string, size_t* pos) {
+  std::string token;
+  if (*pos == std::string::npos) {
+    return token;
   }
+  size_t token_start_pos = token_string.find_first_not_of(kWhiteSpaceCharacters,
+                                                          *pos);
+  size_t token_end_pos = token_string.find_first_of(kWhiteSpaceCharacters,
+                                                    token_start_pos);
+  if (token_start_pos != std::string::npos) {
+    token = token_string.substr(token_start_pos, token_end_pos);
+  }
+  *pos = token_end_pos;
+  return token;
 }
 
-// Exception strings.  These are passed back to the browser when errors
-// happen during property accesses or method calls.
-const char* const kExceptionMethodNotAString = "Method name is not a string";
-const char* const kExceptionNoMethodName = "No method named ";
-const char* const kExceptionPropertyNotAString =
-    "Property name is not a string";
-const char* const kExceptionNoPropertyName = "No property named ";
-const char* const kExceptionSetPropertyFailed = "Set property failed: ";
+// Take a string of the form 'name:value' and split it into two strings, one
+// containing 'name' and the other 'value'.  If the ':' separator is missing,
+// or is the last character in |parameter|, |parameter| is copied to
+// |param_name|, |param_value| is left unchanged and false is returned.
+bool ParseParameter(const std::string& parameter,
+                    std::string* param_name,
+                    std::string* param_value) {
+  bool success = false;
+  size_t sep_pos = parameter.find_first_of(':');
+  if (sep_pos != std::string::npos) {
+    *param_name = parameter.substr(0, sep_pos);
+    if (sep_pos < parameter.length() - 1) {
+      *param_value = parameter.substr(sep_pos + 1);
+      success = true;
+    } else {
+      success = false;
+    }
+  } else {
+    *param_name = parameter;
+    success = false;
+  }
+  return success;
+}
 }  // namespace
 
 namespace tumbler {
@@ -38,94 +65,31 @@ bool ScriptingBridge::AddMethodNamed(const std::string& method_name,
   return true;
 }
 
-bool ScriptingBridge::AddPropertyNamed(
-    const std::string& property_name,
-    SharedPropertyAccessorCallbackExecutor property_accessor,
-    SharedPropertyMutatorCallbackExecutor property_mutator) {
-  if (property_name.size() == 0 || property_accessor == NULL)
-    return false;
-  property_accessor_dictionary_.insert(
-      std::pair<std::string,
-      SharedPropertyAccessorCallbackExecutor>(property_name,
-                                              property_accessor));
-  if (property_mutator) {
-    property_mutator_dictionary_.insert(
-        std::pair<std::string,
-        SharedPropertyMutatorCallbackExecutor>(property_name,
-                                               property_mutator));
-  }
-  return true;
-}
-
-bool ScriptingBridge::HasMethod(const pp::Var& method, pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return false;
-  }
-  MethodDictionary::const_iterator i;
-  i = method_dictionary_.find(method.AsString());
-  return i != method_dictionary_.end();
-}
-
-bool ScriptingBridge::HasProperty(const pp::Var& name, pp::Var* exception) {
-  if (!name.is_string()) {
-    SetExceptionString(exception, kExceptionPropertyNotAString);
-    return false;
-  }
-  PropertyAccessorDictionary::const_iterator i;
-  i = property_accessor_dictionary_.find(name.AsString());
-  return i != property_accessor_dictionary_.end();
-}
-
-pp::Var ScriptingBridge::GetProperty(const pp::Var& name, pp::Var* exception) {
-  if (!name.is_string()) {
-    SetExceptionString(exception, kExceptionPropertyNotAString);
-    return pp::Var();
-  }
-  PropertyAccessorDictionary::iterator i;
-  i = property_accessor_dictionary_.find(name.AsString());
-  if (i != property_accessor_dictionary_.end()) {
-    return (*i->second).Execute(*this);
-  }
-  SetExceptionString(exception,
-                     std::string(kExceptionNoPropertyName) + name.AsString());
-  return pp::Var();
-}
-
-void ScriptingBridge::SetProperty(const pp::Var& name,
-                                  const pp::Var& value,
-                                  pp::Var* exception) {
-  if (!name.is_string()) {
-    SetExceptionString(exception, kExceptionPropertyNotAString);
-    return;
-  }
-  PropertyMutatorDictionary::iterator i;
-  i = property_mutator_dictionary_.find(name.AsString());
-  if (i != property_mutator_dictionary_.end()) {
-    if (!(*i->second).Execute(*this, value)) {
-      SetExceptionString(exception,
-                         std::string(kExceptionSetPropertyFailed) +
-                         name.AsString());
-      return;
+bool ScriptingBridge::InvokeMethod(const std::string& method) {
+  size_t current_pos = 0;
+  const std::string method_name = ScanToken(method, &current_pos);
+  MethodDictionary::iterator method_iter;
+  method_iter = method_dictionary_.find(method_name);
+  if (method_iter != method_dictionary_.end()) {
+    // Pull out the method parameters and build a dictionary that maps
+    // parameter names to values.
+    std::map<std::string, std::string> param_dict;
+    while (current_pos != std::string::npos) {
+      const std::string parameter = ScanToken(method, &current_pos);
+      if (parameter.length()) {
+        std::string param_name;
+        std::string param_value;
+        if (ParseParameter(parameter, &param_name, &param_value)) {
+          // Note that duplicate parameter names will override each other.  The
+          // last one in the method string will be used.
+          param_dict[param_name] = param_value;
+        }
+      }
     }
+    (*method_iter->second).Execute(*this, param_dict);
+    return true;
   }
-}
-
-pp::Var ScriptingBridge::Call(const pp::Var& method,
-                              const std::vector<pp::Var>& args,
-                              pp::Var* exception) {
-  if (!method.is_string()) {
-    SetExceptionString(exception, kExceptionMethodNotAString);
-    return pp::Var();
-  }
-  MethodDictionary::iterator i;
-  i = method_dictionary_.find(method.AsString());
-  if (i != method_dictionary_.end()) {
-    return (*i->second).Execute(*this, args);
-  }
-  SetExceptionString(exception,
-                     std::string(kExceptionNoMethodName) + method.AsString());
-  return pp::Var();
+  return false;
 }
 
 }  // namespace tumbler

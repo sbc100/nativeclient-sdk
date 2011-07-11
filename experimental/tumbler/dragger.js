@@ -13,19 +13,19 @@
 
 /**
  * Constructor for the Dragger.  Register for mousedown events that happen on
- * |opt_target|.  If |opt_target| is null or undefined, then this object observes
- * mousedown on the whole document.
+ * |opt_target|.  If |opt_target| is null or undefined, then this object
+ * observes mousedown on the whole document.
  * @param {?Element} opt_target The event target.  Defaults to the whole
  *     document.
  * @constructor
  */
-tumbler.Dragger = function(target) {
+tumbler.Dragger = function(opt_target) {
   /**
    * The event target.
    * @type {Element}
    * @private
    */
-  this.target_ = target || document;
+  this.target_ = opt_target || document;
 
   /**
    * The array of objects that get notified of drag events.  Each object in

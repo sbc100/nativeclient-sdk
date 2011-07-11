@@ -1,20 +1,23 @@
-// Copyright 2011 The Native Client Authors. All rights reserved.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "examples/tumbler/cube.h"
+#include "experimental/tumbler/cube.h"
 
 #include <algorithm>
 
-#include "examples/tumbler/shader_util.h"
-#include "examples/tumbler/transforms.h"
+#include "experimental/tumbler/shader_util.h"
+#include "experimental/tumbler/transforms.h"
 
 namespace tumbler {
 
 static const size_t kVertexCount = 24;
 static const int kIndexCount = 36;
 
-Cube::Cube() : width_(1), height_(1) {
+Cube::Cube(SharedOpenGLContext opengl_context)
+    : opengl_context_(opengl_context),
+      width_(1),
+      height_(1) {
   eye_[0] = eye_[1] = 0.0f;
   eye_[2] = 2.0f;
   orientation_[0] = 0.0f;

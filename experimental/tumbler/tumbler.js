@@ -52,11 +52,35 @@ tumbler.Application.prototype.dragger_ = null;
 tumbler.Application.prototype.loadTimer_ = null;
 
 /**
+ * The ids used for elements in the DOM.  The Tumlber Application expects these
+ * elements to exist.
+ * @enum {string}
+ * @private
+ */
+tumbler.Application.DomIds_ = {
+  MODULE: 'tumbler',  // The <embed> element representing the NaCl module
+  VIEW: 'tumbler_view'  // The <div> containing the NaCl element.
+}
+
+/**
  * Called by the module loading function once the module has been loaded.
  * @param {?Element} nativeModule The instance of the native module.
  */
 tumbler.Application.prototype.moduleDidLoad = function(nativeModule) {
   this.module_ = nativeModule;
+
+  /**
+   * Set the camera orientation property on the NaCl module.
+   * @param {Array.<number>} orientation A 4-element array representing the
+   *     camera orientation as a quaternion.
+   */
+  this.module_.setCameraOrientation = function(orientation) {
+      var methodString = 'setCameraOrientation ' +
+                         'orientation:' +
+                         JSON.stringify(orientation);
+      this.postMessage(methodString);
+  }
+
   this.trackball_ = new tumbler.Trackball();
   this.dragger_ = new tumbler.Dragger(this.module_);
   this.dragger_.addDragListener(this.trackball_);
@@ -80,12 +104,23 @@ tumbler.Application.prototype.assert = function(cond, message) {
  * is allocated and all the events get wired up.
  * @param {?String} opt_contentDivName The id of a DOM element in which to
  *     embed the Native Client module.  If unspecified, defaults to
- *     DEFAULT_DIV_NAME.  The DOM element must exist.
+ *     VIEW.  The DOM element must exist.
  */
 tumbler.Application.prototype.run = function(opt_contentDivName) {
-  contentDivName = opt_contentDivName || tumbler.Application.DEFAULT_DIV_NAME;
+  contentDivName = opt_contentDivName || tumbler.Application.DomIds_.VIEW;
   var contentDiv = document.getElementById(contentDivName);
   this.assert(contentDiv, "Missing DOM element '" + contentDivName + "'");
+
+  // Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+  // event listener attached.  This method is used instead of attaching the
+  // 'load' event listener directly to the <EMBED> element to ensure that the
+  // listener is active before the NaCl module 'load' event fires.
+  contentDiv.addEventListener('load', function() {
+      var module =
+          document.getElementById(tumbler.Application.DomIds_.MODULE);
+      tumbler.application.moduleDidLoad(module);
+    }, true);
+
   // Load the published .nexe.  This includes the 'nacl' attribute which
   // shows how to load multi-architecture modules.  Each entry in the "nexes"
   // object in the  .nmf manifest file is a key-value pair: the key is the
@@ -93,21 +128,8 @@ tumbler.Application.prototype.run = function(opt_contentDivName) {
   // NaCl module.  To load the debug versions of your .nexes, set the 'nacl'
   //  attribute to the _dbg.nmf version of the manifest file.
   contentDiv.innerHTML = '<embed id="'
-                         + tumbler.Application.TUMBLER_MODULE_NAME + '" '
-                         + 'nacl=tumbler.nmf '
+                         + tumbler.Application.DomIds_.MODULE + '" '
+                         + 'src=tumbler.nmf '
                          + 'type="application/x-nacl" '
-                         + 'width="480" height="480" '
-                         + 'onload="moduleDidLoad()" />'
+                         + 'width="480" height="480" />'
 }
-
-/**
- * The name for the pepper module element.
- * @type {string}
- */
-tumbler.Application.TUMBLER_MODULE_NAME = 'tumbler';
-
-/**
- * The default name for the 3D content div element.
- * @type {string}
- */
-tumbler.Application.DEFAULT_DIV_NAME = 'tumbler_content';

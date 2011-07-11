@@ -204,8 +204,8 @@ tumbler.Trackball.prototype.rollToPoint = function(dragPoint) {
 /**
  * Handle the drag START event: grab the current camera orientation from the
  * sending view and set up the virtual trackball.
- * @param {!tumbler.Application} view The view controller that called
- *     this method.
+ * @param {!tumbler.Application} view The view controller that called this
+ *     method.
  * @param {!tumbler.DragEvent} dragStartEvent The DRAG_START event that
  *     triggered this handler.
  */
@@ -214,7 +214,7 @@ tumbler.Trackball.prototype.handleStartDrag =
   // Cache the camera orientation.  The orientations from the trackball as it
   // rolls are concatenated to this orientation and pushed back into the
   // plugin on the other side of the JavaScript bridge.
-  controller.getCameraOrientation(this.cameraOrientation_);
+  controller.setCameraOrientation(this.cameraOrientation_);
   // Invert the y-coordinate for the trackball computations.
   var frameSize = { width: controller.offsetWidth,
                     height: controller.offsetHeight };
@@ -227,10 +227,10 @@ tumbler.Trackball.prototype.handleStartDrag =
  * Handle the drag DRAG event: concatenate the current orientation to the
  * cached orientation.  Send this final value through to the GSPlugin via the
  * setValueForKey() method.
- * @param {!tumbler.Application} view The view controller that called
- *     this method.
- * @param {!tumbler.DragEvent} dragEvent The DRAG event that triggered
- *     this handler.
+ * @param {!tumbler.Application} view The view controller that called this
+ *     method.
+ * @param {!tumbler.DragEvent} dragEvent The DRAG event that triggered this
+ *     handler.
  */
 tumbler.Trackball.prototype.handleDrag =
     function(controller, dragEvent) {
@@ -246,12 +246,11 @@ tumbler.Trackball.prototype.handleDrag =
 
 /**
  * Handle the drag END event: get the final orientation and concatenate it to
- * the cached orientation.  Send this final value through to the GSPlugin via
- * the setValueForKey() method.
- * @param {!tumbler.Application} view The view controller that called
- *     this method.
- * @param {!tumbler.DragEvent} dragEndEvent The DRAG_END event that
- *     triggered this handler.
+ * the cached orientation.
+ * @param {!tumbler.Application} view The view controller that called this
+ *     method.
+ * @param {!tumbler.DragEvent} dragEndEvent The DRAG_END event that triggered
+ *     this handler.
  */
 tumbler.Trackball.prototype.handleEndDrag =
     function(controller, dragEndEvent) {
@@ -260,9 +259,9 @@ tumbler.Trackball.prototype.handleEndDrag =
                     height: controller.offsetHeight };
   var flippedY = { x: dragEndEvent.clientX,
                    y: frameSize.height - dragEndEvent.clientY };
-  controller.setCameraOrientation(
-      tumbler.multQuaternions(this.rollToPoint(flippedY),
-                              this.cameraOrientation_));
+  this.cameraOrientation_ = tumbler.multQuaternions(this.rollToPoint(flippedY),
+                                                    this.cameraOrientation_);
+  controller.setCameraOrientation(this.cameraOrientation_);
 };
 
 /**

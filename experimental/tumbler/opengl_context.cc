@@ -1,11 +1,11 @@
-// Copyright 2011 The Ginsu Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include "examples/tumbler/opengl_context.h"
+#include "experimental/tumbler/opengl_context.h"
 
-#include <ppapi/gles2/gl2ext_ppapi.h>
 #include <pthread.h>
+#include "ppapi/gles2/gl2ext_ppapi.h"
 
 namespace {
 // This is called by the brower when the 3D context has been flushed to the
@@ -16,6 +16,16 @@ void FlushCallback(void* data, int32_t result) {
 }  // namespace
 
 namespace tumbler {
+
+OpenGLContext::OpenGLContext(pp::Instance* instance)
+    : pp::Graphics3DClient_Dev(instance),
+      flush_pending_(false) {
+  pp::Module* module = pp::Module::Get();
+  assert(module);
+  gles2_interface_ = static_cast<const struct PPB_OpenGLES2_Dev*>(
+      module->GetBrowserInterface(PPB_OPENGLES2_DEV_INTERFACE));
+  assert(gles2_interface_);
+}
 
 OpenGLContext::~OpenGLContext() {
   glSetCurrentContextPPAPI(0);

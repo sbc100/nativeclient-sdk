@@ -1,20 +1,22 @@
-// Copyright 2011 The Native Client Authors. All Rights Reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef EXAMPLES_TUMBLER_CUBE_H_
 #define EXAMPLES_TUMBLER_CUBE_H_
 
-#include <boost/noncopyable.hpp>
 #include <GLES2/gl2.h>
+#include <vector>
+#include "experimental/tumbler/opengl_context.h"
+#include "experimental/tumbler/opengl_context_ptrs.h"
 
 namespace tumbler {
 
 // The Cube class provides a place to implement 3D rendering.  It has a
 // frame that it occupies in a browser window.
-class Cube : public boost::noncopyable {
+class Cube {
  public:
-  Cube();
+  explicit Cube(SharedOpenGLContext opengl_context);
   ~Cube();
 
   // Called once when a new RenderContext is first bound to the view.  The
@@ -43,13 +45,15 @@ class Cube : public boost::noncopyable {
   }
 
   // Accessor/mutator for the camera orientation.
-  void GetOrientation(float* orientation) const {
-    orientation[0] = static_cast<float>(orientation_[0]);
-    orientation[1] = static_cast<float>(orientation_[1]);
-    orientation[2] = static_cast<float>(orientation_[2]);
-    orientation[3] = static_cast<float>(orientation_[3]);
+  void GetOrientation(std::vector<float>* orientation) const {
+    if (!orientation)
+      return;
+    (*orientation)[0] = static_cast<float>(orientation_[0]);
+    (*orientation)[1] = static_cast<float>(orientation_[1]);
+    (*orientation)[2] = static_cast<float>(orientation_[2]);
+    (*orientation)[3] = static_cast<float>(orientation_[3]);
   }
-  void SetOrientation(const float* orientation) {
+  void SetOrientation(const std::vector<float>& orientation) {
     orientation_[0] = static_cast<GLfloat>(orientation[0]);
     orientation_[1] = static_cast<GLfloat>(orientation[1]);
     orientation_[2] = static_cast<GLfloat>(orientation[2]);
@@ -72,6 +76,7 @@ class Cube : public boost::noncopyable {
   // Assumes that |model_view| is a 4x4 matrix.
   void ComputeModelViewTransform(GLfloat* model_view);
 
+  SharedOpenGLContext opengl_context_;
   int width_;
   int height_;
   GLuint shader_program_object_;  // The compiled shaders.

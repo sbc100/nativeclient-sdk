@@ -1,11 +1,11 @@
-// Copyright 2011 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include <ppapi/cpp/instance.h>
-#include <ppapi/cpp/module.h>
-#include <ppapi/gles2/gl2ext_ppapi.h>
-#include "examples/tumbler/tumbler.h"
+#include "experimental/tumbler/tumbler.h"
+#include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/module.h"
+#include "ppapi/gles2/gl2ext_ppapi.h"
 
 /// The Module class.  The browser calls the CreateInstance() method to create
 /// an instance of your NaCl module on the web page.  The browser creates a new

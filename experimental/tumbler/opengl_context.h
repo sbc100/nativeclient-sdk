@@ -1,6 +1,6 @@
-// Copyright 2011 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef EXAMPLES_TUMBLER_OPENGL_CONTEXT_H_
 #define EXAMPLES_TUMBLER_OPENGL_CONTEXT_H_
@@ -8,33 +8,38 @@
 ///
 /// @file
 /// OpenGLContext manages the OpenGL context in the browser that is associated
-/// with a @a c_salt::Instance instance.
-/// @see c_salt/embedded_app.h
+/// with a @a pp::Instance instance.
 ///
 
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <ppapi/cpp/dev/context_3d_dev.h>
-#include <ppapi/cpp/dev/surface_3d_dev.h>
-#include <ppapi/cpp/instance.h>
 #include <pthread.h>
 
 #include <algorithm>
 #include <string>
 
-#include "examples/tumbler/opengl_context_ptrs.h"
+#include "experimental/tumbler/opengl_context_ptrs.h"
+#include "ppapi/c/dev/ppb_opengles_dev.h"
+#include "ppapi/cpp/dev/context_3d_dev.h"
+#include "ppapi/cpp/dev/graphics_3d_client_dev.h"
+#include "ppapi/cpp/dev/graphics_3d_dev.h"
+#include "ppapi/cpp/dev/surface_3d_dev.h"
+#include "ppapi/cpp/instance.h"
 
 namespace tumbler {
 
 /// OpenGLContext manages an OpenGL rendering context in the browser.
 ///
-class OpenGLContext : public boost::noncopyable {
+class OpenGLContext : public pp::Graphics3DClient_Dev {
  public:
-  OpenGLContext() : flush_pending_(false) {}
+  explicit OpenGLContext(pp::Instance* instance);
 
   /// Release all the in-browser resources used by this context, and make this
   /// context invalid.
   virtual ~OpenGLContext();
+
+  /// The Graphics3DClient interfcace.
+  virtual void Graphics3DContextLost() {
+    assert(!"Unexpectedly lost graphics context");
+  }
 
   /// Make @a this the current 3D context in @a instance.
   /// @param instance The instance of the NaCl module that will receive the
@@ -52,6 +57,16 @@ class OpenGLContext : public boost::noncopyable {
   /// example, when resizing the context's viewing area.
   void InvalidateContext(pp::Instance* instance);
 
+  /// The OpenGL ES 2.0 interface.
+  const struct PPB_OpenGLES2_Dev* gles2() const {
+    return gles2_interface_;
+  }
+
+  /// The PP_Resource needed to make GLES2 calls through the Pepper interface.
+  const PP_Resource gl_context() const {
+    return context_.pp_resource();
+  }
+
   /// Indicate whether a flush is pending.  This can only be called from the
   /// main thread; it is not thread safe.
   bool flush_pending() const {
@@ -65,6 +80,8 @@ class OpenGLContext : public boost::noncopyable {
   pp::Context3D_Dev context_;
   pp::Surface3D_Dev surface_;
   bool flush_pending_;
+
+  const struct PPB_OpenGLES2_Dev* gles2_interface_;
 };
 
 }  // namespace tumbler
