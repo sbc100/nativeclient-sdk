@@ -51,6 +51,7 @@ vsx_build_all_command = env.Command(
     source=nacl_vsx_solution,
     action=' '.join(vs_build_action))
 
+env.Depends(vsx_build_all_command, env.GetToolchainNode())
 env.AddNodeAliases(vsx_build_all_command, ['bot'], 'vsx_build')
 
 # This command does not lend itself to running all tests in a VSX solution, so

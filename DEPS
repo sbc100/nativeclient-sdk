@@ -1,11 +1,11 @@
 vars = {
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "5884",
+  "native_client_version": "5943",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "x86_toolchain_version": "5860",
-  "arm_toolchain_version": "5862",
+  "x86_toolchain_version": "5940",
+  "arm_toolchain_version": "5940",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
 }
