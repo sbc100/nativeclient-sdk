@@ -75,15 +75,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NaClPackageTestUtils.cs" />
     <Compile Include="DwarfReaderImplTest.cs" />
     <Compile Include="ErrorBreakpointEnumeratorTest.cs" />
     <Compile Include="ErrorBreakpointResolutionTest.cs" />
     <Compile Include="ErrorBreakpointTest.cs" />
     <Compile Include="BreakpointRequestMock.cs" />
-    <Compile Include="NaClPackageTestConstants.cs" />
     <Compile Include="NaClSymbolProviderTest.cs" />
     <Compile Include="PackageTest.cs" />
     <Compile Include="SimpleDebuggerMock.cs" />
+    <Compile Include="SymbolDatabaseTest.cs" />
     <Compile Include="SymbolProviderMock.cs" />
     <!---->
     <!---->

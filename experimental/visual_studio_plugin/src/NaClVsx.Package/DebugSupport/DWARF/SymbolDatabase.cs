@@ -277,11 +277,10 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     #region Nested type: DebugInfoAttribute
 
     public class DebugInfoAttribute {
-      public ulong Key; // offset from beginning of dwarf section
-
+      // Offset from beginning of dwarf section.
+      public ulong Key;
+      // Key of the DebugInfoEntry that this attribute helps describe.
       public ulong ParentKey;
-                   // Key of the DebugInfoEntry that owns this attribute
-
       public DwarfAttribute Tag;
       public object Value;
     }
@@ -293,10 +292,8 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     public class DebugInfoEntry {
       public ulong Key;
       public DwarfTag Tag;
-
       public ulong ParentKey;
       public DebugInfoEntry OuterScope;
-
       public Dictionary<DwarfAttribute, object> Attributes =
           new Dictionary<DwarfAttribute, object>();
     }

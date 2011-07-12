@@ -32,7 +32,7 @@ namespace Google.NaClVsx.DebugSupport {
     }
 
     /// <summary>
-    /// This function exist separately from AddressFromPosition because the 
+    /// This function exists separately from AddressFromPosition because the 
     /// debugger needs different rules for matching addresses.  If no address
     /// is found that matches "position" exactly, this function will return
     /// addresses for the next appropriate position if there is one.
@@ -109,7 +109,6 @@ namespace Google.NaClVsx.DebugSupport {
 
       // There are any number of reasons why this could have failed completely
       if (addresses.Count() == 0) {
-        // TODO(mlinck) construct a severe error for this breakpoint.
         var resolution = new ErrorBreakpointResolution();
         resolution.Type = enum_BP_ERROR_TYPE.BPET_GENERAL_ERROR;
         resolution.Message = "Could not set a breakpoint at the requested location.";
@@ -183,7 +182,6 @@ namespace Google.NaClVsx.DebugSupport {
       if (location.Line >= originalLine) {
         // This could be suitable breakpoint if the current location's
         // line is in the same scope as the original line.
-        // TODO(mlinck) Does this address need a base offset?
         SymbolDatabase.DebugInfoEntry scope =
             database_.GetScopeForAddress(location.StartAddress);
 
