@@ -30,7 +30,7 @@ namespace NaClVsx.Package_UnitTestProject {
       throw new NotImplementedException();
     }
 
-    public IEnumerable<Symbol> GetSymbolsInScope(ulong programCounter) {
+    public IEnumerable<Symbol> GetSymbolsInScope(ulong instructionAddress) {
       throw new NotImplementedException();
     }
 

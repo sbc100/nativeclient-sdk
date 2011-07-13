@@ -75,6 +75,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebugInfoEntryTest.cs" />
     <Compile Include="NaClPackageTestUtils.cs" />
     <Compile Include="DwarfReaderImplTest.cs" />
     <Compile Include="ErrorBreakpointEnumeratorTest.cs" />

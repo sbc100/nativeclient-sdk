@@ -58,17 +58,34 @@ namespace NaClVsx.Package_UnitTestProject {
       Assert.IsTrue(address > sym_.BaseAddress);
     }
 
-    ///<summary>
-    ///A test for GetSymbolsInScope
-    ///</summary>
+    /// <summary>
+    /// A test for GetSymbolsInScope.  We should test a function that is not at
+    /// the beginning of the file, to make sure the debugger can disambiguate.
+    /// We should also test the beginning and end of its scope to make sure that
+    /// there are no off-by-one errors.
+    /// </summary>
     [TestMethod]
     public void GetSymbolsInScopeTest() {
-      // loop.cc(10,0)
-      // should have global variable g_gGlobalData, formal
-      // parameter "count" and local variable "i"
-      ulong addr = GetAddressForPosition(GetLoopCCPath(), 9);
-      IEnumerable<Symbol> symbols = sym_.GetSymbolsInScope(addr);
-      Assert.AreEqual(3, symbols.Count());
+      // This is the beginning of the main function. (Note that the lines are
+      // 0-indexed in this context, so we're really looking at line 44. If the
+      // function being tested works, we should get 5 symbols: argc, argv,
+      // g_GlobalData, x, and y.
+      var pos = new DocumentPosition(GetLoopCCPath(), 43);
+      var expectedNames = new List<string> {
+          "x",
+          "y",
+          "argc",
+          "argv",
+          "g_GlobalData"
+      };
+      TestForSymbolsInScopeAt(pos, expectedNames);
+      
+      // This is the line of the closing paren, at which the local variables
+      // should be out of scope.
+      pos = new DocumentPosition(GetLoopCCPath(), 50);
+      expectedNames.Remove("x");
+      expectedNames.Remove("y");
+      TestForSymbolsInScopeAt(pos, expectedNames);
     }
 
     [TestMethod]
@@ -194,6 +211,20 @@ namespace NaClVsx.Package_UnitTestProject {
 
     private static string GetLoopCCPath() {
       return root_ + @"\src\loop\loop.cc";
+    }
+
+    private void TestForSymbolsInScopeAt(DocumentPosition position,
+      IEnumerable<string> expectedSymbols) {
+        var addresses = sym_.AddressesFromPosition(position);
+        var address = addresses.First();
+        
+        var symbols = sym_.GetSymbolsInScope(address);
+        Assert.AreEqual(expectedSymbols.Count(), symbols.Count());
+
+        foreach (var symbol in symbols)
+        {
+          Assert.IsTrue(expectedSymbols.Contains(symbol.Name));
+        }
     }
 
     #endregion

@@ -289,15 +289,6 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
 
     #region Nested type: DebugInfoEntry
 
-    public class DebugInfoEntry {
-      public ulong Key;
-      public DwarfTag Tag;
-      public ulong ParentKey;
-      public DebugInfoEntry OuterScope;
-      public Dictionary<DwarfAttribute, object> Attributes =
-          new Dictionary<DwarfAttribute, object>();
-    }
-
     #endregion
 
     #region Nested type: LocListEntry

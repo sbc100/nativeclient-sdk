@@ -41,7 +41,9 @@ void print_char_type() {
 }
 
 int main(int argc, const char *argv[]){
-  printf("Hello World\n\n");
+  int x = 0;
+  int y = 9;
+  printf("Hello World\n\n x: %d y: %d", x, y);
   g_GlobalData++;
   foo();
   print_char_type();

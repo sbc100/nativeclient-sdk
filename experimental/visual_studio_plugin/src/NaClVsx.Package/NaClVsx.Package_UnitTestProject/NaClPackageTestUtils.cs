@@ -48,7 +48,7 @@ namespace NaClVsx.Package_UnitTestProject
     /// <summary>
     /// The base address at which symbol information should start in nexe code.
     /// </summary>
-    public static readonly ulong kBaseAddr = 0x00000ffc00000000;
+    public static readonly ulong kBaseAddr = 0x0000000c00000000;
 
     /// <summary>
     /// The location realtive to the  at which the loop nexe is to be found.

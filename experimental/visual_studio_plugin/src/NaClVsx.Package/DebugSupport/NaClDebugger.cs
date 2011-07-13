@@ -166,12 +166,12 @@ namespace Google.NaClVsx.DebugSupport {
       }
 
       var result = gdb_.RequestContinue();
-      /// Calling RequestContinueBackground causes trouble,
-      ///   because the new sel_ldr sends a 'S05' in response
-      ///   to the 'c', and RequestContinueBackground sends
-      ///   the 'c' without listening for the reply...so the
-      ///   next command sent to sel_ldr gets the 'S05' as its
-      ///   reply.
+      // Calling RequestContinueBackground causes trouble,
+      // because the new sel_ldr sends a 'S05' in response
+      // to the 'c', and RequestContinueBackground sends
+      // the 'c' without listening for the reply...so the
+      // next command sent to sel_ldr gets the 'S05' as its
+      // reply.
       OnGdbContinue(result);
     }
 

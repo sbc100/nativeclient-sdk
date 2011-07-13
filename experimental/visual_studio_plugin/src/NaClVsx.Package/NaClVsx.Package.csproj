@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugSupport\BreakpointInfo.cs" />
+    <Compile Include="DebugSupport\DWARF\DebugInfoEntry.cs" />
     <Compile Include="DebugSupport\NaClPort.cs" />
     <Compile Include="DebugSupport\NaClPortSupplier.cs" />
     <Compile Include="DebugSupport\NaClDebugProcess.cs" />

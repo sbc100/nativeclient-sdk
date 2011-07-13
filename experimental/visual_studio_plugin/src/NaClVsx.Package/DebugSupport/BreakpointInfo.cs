@@ -182,7 +182,7 @@ namespace Google.NaClVsx.DebugSupport {
       if (location.Line >= originalLine) {
         // This could be suitable breakpoint if the current location's
         // line is in the same scope as the original line.
-        SymbolDatabase.DebugInfoEntry scope =
+        DebugInfoEntry scope =
             database_.GetScopeForAddress(location.StartAddress);
 
         IEnumerable<SymbolDatabase.SourceLocation> sortedLocationsInScope =
@@ -195,7 +195,7 @@ namespace Google.NaClVsx.DebugSupport {
           // This could still be a suitable breakpoint if this scope entry
           // is for a subscope of a function that begins before the 
           // original line.
-          SymbolDatabase.DebugInfoEntry outerScope = scope.OuterScope;
+          DebugInfoEntry outerScope = scope.OuterScope;
 
           IEnumerable<SymbolDatabase.SourceLocation> sortedLocationsInOuterScope
               =

@@ -28,7 +28,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
 
     public void StartDIE(ulong parent, ulong offset, DwarfTag tag) {
       var entry =
-          new SymbolDatabase.DebugInfoEntry {
+          new DebugInfoEntry {
               Key = offset,
               OuterScope = scopeStack_.PeekOrDefault(),
               ParentKey = parent,
@@ -39,7 +39,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     }
 
     public void EndDIE(ulong offset) {
-      SymbolDatabase.DebugInfoEntry entry = db_.Entries[offset];
+      DebugInfoEntry entry = db_.Entries[offset];
 
       // If this DIE is a scope, it should at this point be at the top of the
       // scope stack.
@@ -74,7 +74,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
                                  ulong parent,
                                  DwarfAttribute attr,
                                  object data) {
-      SymbolDatabase.DebugInfoEntry entry = db_.Entries[offset];
+      DebugInfoEntry entry = db_.Entries[offset];
 
       ulong key = attributeIndex_++;
       db_.Attributes.Add(
@@ -239,8 +239,8 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     private readonly Dictionary<uint, string> dirs_ =
         new Dictionary<uint, string>();
 
-    private readonly Stack<SymbolDatabase.DebugInfoEntry> scopeStack_ =
-        new Stack<SymbolDatabase.DebugInfoEntry>();
+    private readonly Stack<DebugInfoEntry> scopeStack_ =
+        new Stack<DebugInfoEntry>();
 
     private ulong attributeIndex_;
     private ushort compilationUnitIndex_;

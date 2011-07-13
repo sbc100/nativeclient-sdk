@@ -163,7 +163,7 @@ namespace NaClVsx.Package_UnitTestProject
     public void EntriesTest()
     {
       SymbolDatabaseConstructorTest();
-      var entry = new SymbolDatabase.DebugInfoEntry {
+      var entry = new DebugInfoEntry {
           Key = 1,
           OuterScope = null,
           ParentKey = 0,
@@ -355,7 +355,7 @@ namespace NaClVsx.Package_UnitTestProject
     private TestContext testContextInstance_;
     private SymbolDatabase target_;
 
-    private readonly SymbolDatabase.DebugInfoEntry parentDIE_ = GenerateDIE(
+    private readonly DebugInfoEntry parentDIE_ = GenerateDIE(
           290, null, 279, DwarfTag.DW_TAG_compile_unit);
 
     // Constants that are used in more than one place for validation purposes
@@ -406,7 +406,7 @@ namespace NaClVsx.Package_UnitTestProject
     private void AddTestDIEs() {
       // Add DIEs to be indexed by parent (these are a few values captured from
       // a test run with a lot of output enabled.
-      var dieList = new List<SymbolDatabase.DebugInfoEntry> {
+      var dieList = new List<DebugInfoEntry> {
           GenerateDIE(11, null, 0, DwarfTag.DW_TAG_compile_unit),
           GenerateDIE(155, null, 144, DwarfTag.DW_TAG_compile_unit),
           parentDIE_,
@@ -531,13 +531,13 @@ namespace NaClVsx.Package_UnitTestProject
     /// lacks a constructor.
     /// </summary>
     /// <returns>An instance of a debug info entry.</returns>
-    private static SymbolDatabase.DebugInfoEntry GenerateDIE(
+    private static DebugInfoEntry GenerateDIE(
       ulong key,
-      SymbolDatabase.DebugInfoEntry scope,
+      DebugInfoEntry scope,
       ulong parentKey,
       DwarfTag tag)
     {
-      return new SymbolDatabase.DebugInfoEntry
+      return new DebugInfoEntry
       {
         Key = key,
         OuterScope = scope,
@@ -584,7 +584,7 @@ namespace NaClVsx.Package_UnitTestProject
     /// <returns></returns>
     private static SymbolDatabase.ScopeTransition GenerateScopeTransition(
       ulong address,
-      SymbolDatabase.DebugInfoEntry entry) {
+      DebugInfoEntry entry) {
       return new SymbolDatabase.ScopeTransition {
           Address = address,
           Entry = entry

@@ -91,10 +91,10 @@ namespace Google.MsAd7.BaseImpl.Interfaces {
     /// <summary>
     /// All symbols in the same scope as |programCounter|.
     /// </summary>
-    /// <param name="programCounter">The address of any entity in the program being debugged.
+    /// <param name="instructionAddress">The address of any entity in the program being debugged.
     /// </param>
     /// <returns>All symbols in the same scope as |programCounter|</returns>
-    IEnumerable<Symbol> GetSymbolsInScope(UInt64 programCounter);
+    IEnumerable<Symbol> GetSymbolsInScope(UInt64 instructionAddress);
     /// <summary>
     /// All addresses in the same scope as |programCounter|.
     /// </summary>
