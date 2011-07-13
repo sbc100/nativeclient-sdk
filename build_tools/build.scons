@@ -101,6 +101,9 @@ import gyp_extract
 ppapi_base = os.path.join(env['ROOT_DIR'],
                           'third_party',
                           'native_client',
+                          'native_client',
+                          'src',
+                          'third_party',
                           'ppapi')
 
 # Load ppapi_cpp.gypi

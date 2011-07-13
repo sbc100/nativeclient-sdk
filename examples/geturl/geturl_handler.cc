@@ -13,7 +13,7 @@
 
 namespace {
 bool IsError(int32_t result) {
-  return ((PP_OK != result) && (PP_ERROR_WOULDBLOCK != result));
+  return ((PP_OK != result) && (PP_OK_COMPLETIONPENDING != result));
 }
 }  // namespace
 
@@ -39,7 +39,7 @@ GetURLHandler::~GetURLHandler() {
 bool GetURLHandler::Start() {
   pp::CompletionCallback cc = cc_factory_.NewCallback(&GetURLHandler::OnOpen);
   int32_t res = url_loader_.Open(url_request_, cc);
-  if (PP_ERROR_WOULDBLOCK != res)
+  if (PP_OK_COMPLETIONPENDING != res)
     cc.Run(res);
 
   return !IsError(res);
@@ -78,7 +78,7 @@ void GetURLHandler::ReadBody() {
   int32_t res = url_loader_.ReadResponseBody(buffer_,
                                              sizeof(buffer_),
                                              cc);
-  if (PP_ERROR_WOULDBLOCK != res)
+  if (PP_OK_COMPLETIONPENDING != res)
     cc.Run(res);
 }
 
