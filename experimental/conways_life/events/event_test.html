@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2011 The Native Client Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <title>Life Event Tests</title>
+  <link rel="stylesheet" type="text/css" href="jsunit/css/jsUnitStyle.css">
+  <link rel="stylesheet" type="text/css" href="life.css" />
+  <script src="closure/closure/goog/base.js"></script>
+  <script src="jsunit/app/jsUnitCore.js"></script>
+  <script type="text/javascript">
+    goog.require('goog.events.Event');
+    goog.require('goog.testing.events');
+    goog.require('goog.testing.jsunit');
+  </script>
+  <script type="text/javascript" src="events/event.js"></script>
+  <script type="text/javascript" src="events/eventtype.js"></script>
+  <script type="text/javascript">
+  /**
+   * @fileoverview  These unit tests are for the Life Event object.
+   */
+
+  /**
+   * Test the default Event constructor.
+   */
+  function testContructor() {
+    var event = new uikit.events.Event(ginsu.events.EventType.ACTION);
+    assertEquals(uikit.events.Event.DEFAULT_EVENT_ID, event.eventId());
+    assertEquals(uikit.events.EventType.ACTION, event.type);
+  }
+
+  /**
+   * Test the extended constructor that set the event id.
+   */
+  function testEventIdContructor() {
+    var event = new uikit.events.Event(uikit.events.EventType.ACTION,
+        document, 'my_event_id');
+    assertEquals(uikit.events.EventType.ACTION, event.type);
+    assertEquals('my_event_id', event.eventId());
+  }
+
+  /**
+   * Test for the event id accessor/mutator.
+   */
+  function testEventId() {
+    var event = new uikit.events.Event(uikit.events.EventType.ACTION);
+    assertEquals(uikit.events.EventType.ACTION, event.type);
+    assertEquals(uikit.events.Event.DEFAULT_EVENT_ID, event.eventId());
+    event.setEventId('my_event_id');
+    assertEquals('my_event_id', event.eventId());
+  }
+
+  </script>
+</head>
+</html>

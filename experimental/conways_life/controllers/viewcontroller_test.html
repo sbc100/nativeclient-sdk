@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2010 The Ginsu Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <title>Ginsu ViewController Tests</title>
+  <link rel="stylesheet" type="text/css" href="jsunit/css/jsUnitStyle.css">
+  <link rel="stylesheet" type="text/css" href="css/ginsu.css"/>
+  <script src="closure/closure/goog/base.js"></script>
+  <script src="jsunit/app/jsUnitCore.js"></script>
+  <script type="text/javascript">
+    goog.require('goog.dom');
+    goog.require('goog.math');
+    goog.require('goog.events.EventTarget');
+    goog.require('goog.functions');
+    goog.require('goog.fx.Dragger');
+    goog.require('goog.fx.DragEvent');
+    goog.require('goog.testing.MockControl');
+    goog.require('goog.testing.events');
+    goog.require('goog.testing.jsunit');
+  </script>
+  <script type="text/javascript" src="events/dragger.js"></script>
+  <script type="text/javascript" src="events/event.js"></script>
+  <script type="text/javascript" src="events/eventtype.js"></script>
+  <script type="text/javascript" src="tools/tool.js"></script>
+  <script type="text/javascript" src="tools/orbittool.js"></script>
+  <script type="text/javascript" src="controllers/viewcontroller.js"> </script>
+  <script type="text/javascript">
+    goog.require('ginsu.events.Dragger');
+    goog.require('ginsu.tools.Tool');
+    goog.require('ginsu.controllers.ViewController');
+  </script>
+
+  <script type="text/javascript">
+  /**
+   * @fileoverview  These unit tests are for the Ginsu ViewController
+   */
+
+  /**
+   * The global mock controller.  Instanced in setUp().
+   */
+  var mockControl_;
+
+  /**
+   * Set function for each test, called by the testing framework at the
+   * start of each test.  Creates the 'gs_container' div and mocks the
+   * GSPlugin API.
+   */
+  function setUp() {
+    mockControl_ = new goog.testing.MockControl();
+    createTestingDivs();
+    createGinsuMocks();
+  }
+
+  function tearDown() {
+    mockControl_.$tearDown();
+    deleteTestingDivs();
+  }
+
+  /**
+   * Test the ViewController empty constructor, this should throw an error.
+   */
+  function testEmptyConstructor() {
+    var viewController = null;
+    var caughtException = false;
+    try {
+      viewController = new ginsu.controllers.ViewController();
+    } catch(e) {
+      // This is correct behavior.
+      caughtException = true;
+    }
+    assertTrue('ViewController empty constructor', caughtException);
+    assertNull(viewController);
+  }
+
+  /**
+   * Test the ViewController constructor, passing in a valid DOM element. 
+   */
+  function testConstructor() {
+    var gsViewElement = goog.dom.getElement('ginsu_view');
+    assertNotNull(gsViewElement);
+
+    var gsView = null;
+    try {
+      gsView = new ginsu.controllers.ViewController(gsViewElement);
+    } catch(e) {
+      fail('ViewController constructor');
+    }
+    assertNotNull(gsView);
+    assertNotNull(gsView.dragListener_);
+    assertTrue('ViewController must listen for start-drag events',
+        goog.events.hasListener(gsView.dragListener_,
+            goog.fx.Dragger.EventType.START, false));
+    assertTrue('ViewController must listen for drag events',
+        goog.events.hasListener(gsView.dragListener_,
+            goog.fx.Dragger.EventType.DRAG, false));
+    assertTrue('ViewController must listen for end-drag events',
+        goog.events.hasListener(gsView.dragListener_,
+            goog.fx.Dragger.EventType.END, false));
+  }
+
+  /**
+   * Test the frame function.
+   */
+  function testFrame() {
+    var gsViewElement = goog.dom.getElement('ginsu_view');
+    assertNotNull(gsViewElement);
+    var gsView = new ginsu.controllers.ViewController(gsViewElement);
+    var frame = gsView.frame();
+    assertEquals(0, frame.x);
+    assertEquals(0, frame.y);
+    assertEquals(gsViewElement.clientWidth, frame.width);
+    assertEquals(gsViewElement.clientHeight, frame.height);
+  }
+
+  /**
+   * Build the div elements used by the application.
+   */
+  function createTestingDivs() {
+    var backgroundDiv = goog.dom.createDom('div', {
+        'id': 'background',
+        'style': 'position:absolute; top:0; left:0; height:200; width:200;'
+      });
+    goog.dom.appendChild(document.body, backgroundDiv);
+    goog.dom.appendChild(backgroundDiv, goog.dom.createDom('div', {
+        'id': 'ginsu_toolbar', 'class': 'goog-toolbar'
+      }));
+    goog.dom.appendChild(backgroundDiv, goog.dom.createDom('div', {
+        'id': 'ginsu_view', 'class': 'ginsu_view'
+      }));
+  }
+
+  /**
+   * Remove all the div elements created during setup, so that later test
+   * runs don't have duplicate elements.
+   */
+  function deleteTestingDivs() {
+    var backgroundDiv = goog.dom.$('background');
+    goog.dom.removeChildren(backgroundDiv);
+    goog.dom.removeNode(backgroundDiv);
+  }
+
+  /**
+   * Attach mock functions to the |ginsu_view| element that mimic the
+   * Ginsu API.  There are only three entry points, and they
+   * don't get tested here (they are tested in the client code) so it's
+   * best to just stub them out.
+   */
+  function createGinsuMocks() {
+    var gsMockDiv = goog.dom.getElement('ginsu_view');
+    gsMockDiv.valueForKey = goog.functions.constant([0, 0, 0, 1]);
+    gsMockDiv.setValueForKey = function(mockOrientation) {};
+    gsMockDiv.logMessage = function(message) {
+      top.console.log(message);
+    };
+  }
+
+  </script>
+</head>
+</html>
