@@ -100,11 +100,11 @@ life.Application.prototype.disposeInternal = function() {
 /**
  * Called by the module loading function once the module has been loaded. Wire
  * up a Dragger object to @a this.
- * @param {?String} opt_contentDivId The id of a DOM element which captures
- *     the UI events.  If unspecified, defaults to DEFAULT_DIV_ID.  The DOM
- *     element must exist.
+ * @param {?String} opt_naclModuleId The id of an <EMBED> element which
+ *     contains the NaCl module.  If unspecified, defaults to DomIds_.MODULE.
+ *     If the DOM element doesn't exist, the program asserts and exits.
  */
-life.Application.prototype.moduleDidLoad = function() {
+life.Application.prototype.moduleDidLoad = function(opt_naclModuleId) {
   // Listen for 'unload' in order to terminate cleanly.
   goog.events.listen(window, goog.events.EventType.UNLOAD, this.terminate);
 
@@ -141,8 +141,9 @@ life.Application.prototype.moduleDidLoad = function() {
       this.handlePanelDidSave_, false, this);
 
   // Set up the view controller, it contains the NaCl module.
-  var nativeModule = document.getElementById(life.Application.DomIds_.MODULE);
-  this.viewController_ = new life.controllers.ViewController(nativeModule);
+  var naclModuleId = opt_naclModuleId || life.Application.DomIds_.MODULE;
+  this.viewController_ = new life.controllers.ViewController(
+      document.getElementById(naclModuleId));
   this.viewController_.setAutomatonRules(this.automatonRules_);
   // Initialize the module with the default stamp.
   this.currentStampId_ = this.viewController_.DEFAULT_STAMP_ID;
@@ -369,23 +370,32 @@ life.Application.prototype.assert = function(cond, message) {
 }
 
 /**
- * The run() method starts and 'runs' the application.  An <embed> tag is
- * injected into the <div> element |opt_viewDivName| which causes the Ginsu NaCl
- * module to be loaded.  Once loaded, the moduleDidLoad() method is called.
+ * The run() method starts and 'runs' the application.  An <EMBED> tag is
+ * injected into the <DIV> element |opt_viewDivName| which causes the NaCl
+ * module to be loaded.  Once loaded, the moduleDidLoad() method is called via
+ * a 'load' event handler that is attached to the <DIV> element.
  * @param {?String} opt_viewDivName The id of a DOM element in which to
- *     embed the Ginsu module.  If unspecified, defaults to DomIds_.VIEW.  The
+ *     embed the NaCl module.  If unspecified, defaults to DomIds_.VIEW.  The
  *     DOM element must exist.
  */
 life.Application.prototype.run = function(opt_viewDivName) {
   var viewDivName = opt_viewDivName || life.Application.DomIds_.VIEW;
   var viewDiv = document.getElementById(viewDivName);
   this.assert(viewDiv, "Missing DOM element '" + viewDivName + "'");
+
+  // A small handler for the 'load' event.  It stops propagation of the 'load'
+  // event and then calls moduleDidLoad().  The handler is bound to |this| so
+  // that the calling context of the closure makes |this| point to this
+  // instance of the life.Applicaiton object.
+  var loadEventHandler = function(loadEvent) {
+    this.moduleDidLoad(life.Application.DomIds_.MODULE);
+  }
+
   // Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
   // event listener attached.  This method is used instead of attaching the
   // 'load' event listener directly to the <EMBED> element to ensure that the
   // listener is active before the NaCl module 'load' event fires.
-  viewDiv.addEventListener(
-      'load', goog.bind(this.moduleDidLoad, this), true);
+  viewDiv.addEventListener('load', goog.bind(loadEventHandler, this), true);
 
   var viewSize = goog.style.getSize(viewDiv);
   viewDiv.innerHTML = '<embed id="' + life.Application.DomIds_.MODULE + '" ' +
