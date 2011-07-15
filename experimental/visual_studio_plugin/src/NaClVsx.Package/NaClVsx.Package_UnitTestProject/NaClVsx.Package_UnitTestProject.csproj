@@ -82,6 +82,7 @@
     <Compile Include="ErrorBreakpointResolutionTest.cs" />
     <Compile Include="ErrorBreakpointTest.cs" />
     <Compile Include="BreakpointRequestMock.cs" />
+    <Compile Include="NaClProjectConfigTest.cs" />
     <Compile Include="NaClSymbolProviderTest.cs" />
     <Compile Include="PackageTest.cs" />
     <Compile Include="SimpleDebuggerMock.cs" />

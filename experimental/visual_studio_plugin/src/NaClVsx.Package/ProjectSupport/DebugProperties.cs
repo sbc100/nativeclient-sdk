@@ -18,7 +18,7 @@ namespace Google.NaClVsx.ProjectSupport
     }
 
     [Category("Launch")]
-    [DisplayName("Hosting Process (Service Runtime)")]
+    [DisplayName("Hosting Process (chrome or sel_ldr)")]
     [ProjectProperty("DebugHost", true)]
     [Editor(typeof(FileNameEditor), typeof(UITypeEditor))]
     public string HostProgram
@@ -37,7 +37,46 @@ namespace Google.NaClVsx.ProjectSupport
       set { args_ = value; IsDirty = true; }
     }
 
+    [Category("ChromeUrl")]
+    [DisplayName("Html for web application")]
+    [ProjectProperty("Html", true)]
+    public string HtmlPage
+    {
+      get { return htmlPage_; }
+      set { htmlPage_ = value; IsDirty = true; }
+    }
+    [Category("ChromeUrl")]
+    [DisplayName("Web server hostname")]
+    [ProjectProperty("LaunchHostname", true)]
+    public string LaunchHost
+    {
+      get { return launchHost_; }
+      set { launchHost_ = value; IsDirty = true; }
+    }
+    [Category("ChromeUrl")]
+    [DisplayName("Web server port")]
+    [ProjectProperty("LaunchPort", true)]
+    public string LaunchPort
+    {
+      get { return launchPort_; }
+      set { launchPort_ = value; IsDirty = true; }
+    }
+
+    [Category("WebServer")]
+    [DisplayName("Httpd Server")]
+    [ProjectProperty("WebServer", true)]
+    public string WebServerProgram
+    {
+      get { return webServerProgram_; }
+      set { webServerProgram_ = value; IsDirty = true; }
+    }
+
+
     private string hostProgram_;
     private string args_;
+    private string htmlPage_;
+    private string launchHost_;
+    private string launchPort_;
+    private string webServerProgram_;
   }
 }
