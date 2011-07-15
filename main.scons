@@ -395,7 +395,9 @@ def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dir = None):
   headers go under nacl/, but there are non-specific headers, such as
   the OpenGLES2 headers, that go under their own subdir."""
   if not base_dir:
-    base_dir = os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'nacl64', 'include')
+    base_dir = os.path.join(env['NACL_TOOLCHAIN_ROOT'],
+                            'x86_64-nacl',
+                            'include')
 
   node = env.Replicate(os.path.join(base_dir, subdir), nodes)
   env.Depends(sdk_headers, node)

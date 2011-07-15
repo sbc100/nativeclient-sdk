@@ -44,7 +44,7 @@ def TestingClosure(_outdir, _jobs):
   '''
   toolchain_base = build_utils.NormalizeToolchain(base_dir=_outdir)
   toolchain_bin = os.path.join(toolchain_base, 'bin')
-  gcc64 = os.path.join(toolchain_bin, 'nacl64-gcc')
+  gcc64 = os.path.join(toolchain_bin, 'x86_64-nacl-gcc')
   sel_ldr64 = os.path.join(toolchain_bin, 'nacl64-sel_ldr')
 
   class TestSDK(unittest.TestCase):

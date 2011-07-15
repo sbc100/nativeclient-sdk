@@ -217,16 +217,6 @@ static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
 }
 
 /**
- * Create scriptable object for the given instance.  This style of scripting
- * has been deprecated, so this routine always returns an undefined object.
- * @param[in] instance The instance ID.
- * @return A scriptable object, always an undefined object.
- */
-static struct PP_Var Instance_GetInstanceObject(PP_Instance instance) {
-  return PP_MakeUndefined();
-}
-
-/**
  * Handler for messages coming in from the browser via postMessage.  Extracts
  * the method call from @a message, parses it for method name and value, then
  * calls the appropriate function.  In the case of the reverseString method, the
@@ -306,7 +296,6 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
       &Instance_DidChangeFocus,
       &Instance_HandleInputEvent,
       &Instance_HandleDocumentLoad,
-      &Instance_GetInstanceObject
     };
     return &instance_interface;
   } else if (strcmp(interface_name, PPP_MESSAGING_INTERFACE) == 0) {

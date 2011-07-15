@@ -46,9 +46,9 @@ def Build(options):
     cmd = '%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s' % (
         scons,
         os.path.join(options.toolchain,
-                     'nacl64',
+                     'x86_64-nacl',
                      'lib32' if bits == 32 else 'lib'),
-        os.path.join(options.toolchain, 'nacl64', 'include'),
+        os.path.join(options.toolchain, 'x86_64-nacl', 'include'),
         bits)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
