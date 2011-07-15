@@ -53,7 +53,8 @@ namespace rsp {
   /// Writes formatted data to Blob.
   /// @param blob blob to perform operation on
   /// @param[in] fmt string that contains the text to be written to the Blob.
-  void Format(debug::Blob* blob, const char* fmt, ...);
+  /// @return reference to |blob|
+  debug::Blob& Format(debug::Blob* blob, const char* fmt, ...);
 
 }  // namespace rsp
 

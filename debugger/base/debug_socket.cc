@@ -192,11 +192,13 @@ size_t Socket::Write(const void* buff, size_t buff_len, int wait_ms) {
     Close();
     return 0;
   }
-  size_t bytes_send = 0;
+  int bytes_send = 0;
   if (FD_ISSET(sock_, &socks)) {
     bytes_send = send(sock_, static_cast<const char*>(buff), buff_len, 0);
-    if (bytes_send < 0)
+    if (bytes_send < 0) {
       Close();
+      return 0;
+    }
   }
   return bytes_send;
 }

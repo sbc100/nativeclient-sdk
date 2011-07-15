@@ -377,6 +377,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\nacl-gdb_server\debug_server.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\nacl-gdb_server\debug_server_test.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\base\debug_socket.cc"
 				>
 			</File>
@@ -508,6 +516,10 @@
 			</File>
 			<File
 				RelativePath="..\core\debug_logger.h"
+				>
+			</File>
+			<File
+				RelativePath="..\nacl-gdb_server\debug_server.h"
 				>
 			</File>
 			<File

@@ -31,7 +31,7 @@ void RemoveSpacesFromBothEnds(std::deque<debug::Blob>* blobs) {
   }
 }
 
-void Format(debug::Blob* blob, const char* fmt, ...) {
+debug::Blob& Format(debug::Blob* blob, const char* fmt, ...) {
   va_list marker;
   va_start(marker, fmt);
   char buff[rsp::kMaxRspPacketSize * 2];
@@ -41,6 +41,7 @@ void Format(debug::Blob* blob, const char* fmt, ...) {
     buff[res] = 0;
     blob->FromString(buff);
   }
+  return *blob;
 }
 }  // namespace rsp
 
