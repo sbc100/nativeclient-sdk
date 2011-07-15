@@ -223,6 +223,16 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
       }
     }
 
+    /// <summary>
+    /// Retrieves a row in a table for a given address.
+    /// TODO(mlinck): This does not recognize when a value is out of bounds.
+    /// </summary>
+    /// <typeparam name="T">The type of the lookup table to use.</typeparam>
+    /// <param name="address">The address to use as key.</param>
+    /// <param name="table">The lookup table to use.</param>
+    /// <param name="index">The index to allow for quicker lookup.</param>
+    /// <returns>An entry in the table that frames the address or the last
+    /// value in the table if the address is out of bounds.</returns>
     private static T GetRowForAddress<T>(ulong address,
                                          IDictionary<ulong, T> table,
                                          List<ulong> index) where T : class {

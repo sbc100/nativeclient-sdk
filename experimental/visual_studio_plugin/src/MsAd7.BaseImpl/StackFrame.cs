@@ -13,9 +13,17 @@ using Microsoft.VisualStudio.Debugger.Interop;
 
 namespace Google.MsAd7.BaseImpl {
   /// <summary>
-  ///   StackFrame represents a frame on the stack. It also implements
-  ///   IDebugExpressionContext2, because the current stack frame determines
-  ///   how expressions should be evaluated.
+  /// StackFrame represents a frame on the stack. It also implements
+  /// IDebugExpressionContext2, because the current stack frame determines
+  /// how expressions should be evaluated.
+  /// A stackframe consist of:
+  /// Code Context: The location of the first line of the compilation unit
+  /// that describes the scope in this stack frame.  Generally the location
+  /// of an opening parenthesis.
+  /// Thread ID: The thread id.
+  /// Module: The name of a nexe, its code address, and it's fully qualified
+  /// location.
+  /// Function: A function's name and DWARF Id.
   /// </summary>
   public class StackFrame : IDebugStackFrame2, IDebugExpressionContext2 {
     public StackFrame(RegisterSet rset,
@@ -227,6 +235,12 @@ namespace Google.MsAd7.BaseImpl {
       return VSConstants.S_OK;
     }
 
+    /// <summary>
+    /// EnumProperties is called by the Visual Studio Debugger to get
+    /// information about each stack frame that applies to the thread being
+    /// debugged.  Detailed infromation about the parameters can be found on
+    /// msdn.
+    /// </summary>
     public int EnumProperties(enum_DEBUGPROP_INFO_FLAGS dwFields,
                               uint nRadix,
                               ref Guid guidFilter,
@@ -262,6 +276,12 @@ namespace Google.MsAd7.BaseImpl {
       return VSConstants.S_OK;
     }
 
+    /// <summary>
+    /// Gets the symbols that are defined in the current scope and adds them
+    /// to this frame's property information.  The information being gathered
+    /// here will help the debugger retrieve the values of specific variables
+    /// later.
+    /// </summary>
     private void RefreshProperties() {
       properties_.Clear();
 

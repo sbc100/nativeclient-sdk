@@ -29,6 +29,12 @@ namespace Google.NaClVsx.DebugSupport {
 
     #region Implementation of IDebugThread2
 
+    /// <summary>
+    /// Called by the Visual Studio Debugger to retrieve the stack frames for
+    /// this thread.  On halt, this will be called on eacth thread.  Detailed
+    /// information about the arguments and required usage can be found on
+    /// msdn.
+    /// </summary>
     public int EnumFrameInfo(enum_FRAMEINFO_FLAGS dwFieldSpec,
                              uint nRadix,
                              out IEnumDebugFrameInfo2 ppEnum) {
@@ -113,8 +119,7 @@ namespace Google.NaClVsx.DebugSupport {
 
       // The following properties are currently bogus.
       //
-      if (dwFields.HasFlag(enum_THREADPROPERTY_FIELDS.TPF_LOCATION))
-      {
+      if (dwFields.HasFlag(enum_THREADPROPERTY_FIELDS.TPF_LOCATION)) {
         ptp[0].bstrLocation = "THREADPROPERTY: Location";
       }
       if(dwFields.HasFlag(enum_THREADPROPERTY_FIELDS.TPF_PRIORITY)) {
@@ -139,37 +144,39 @@ namespace Google.NaClVsx.DebugSupport {
     }
 
     #endregion
-
+    /// <summary>
+    /// Gets the frame information for the current stack frame.  This means
+    /// getting a snapshot of the register state for each each frame in the
+    /// stack so that memory address information can be derived at a later
+    /// stage.
+    /// </summary>
+    /// <param name="stack"></param>
     protected void RefreshFrameInfo(List<StackFrame> stack) {
       stack.Clear();
+      var regs = (RegsX86_64)program_.Dbg.GetRegisters(tid_);
+      var rset = new RegisterSet(RegisterSetSchema.DwarfAmd64Integer, null);
 
-      
-      RegsX86_64 regs = new RegsX86_64();
-      regs = (RegsX86_64)program_.Dbg.GetRegisters(0);
-
-      RegisterSet rset = new RegisterSet(RegisterSetSchema.DwarfAmd64Integer, null);
-
-      // TODO: need a less hacky way to initialize a RegisterSet from a RegsX86_64.
+      // TODO: need a less hacky way to initialize a RegisterSet from a 
+      // RegsX86_64.
       foreach (var registerDef in RegisterSetSchema.DwarfAmd64Integer.Registers) {
         if (!registerDef.Pseudo) {
           rset[registerDef.Index] = regs[registerDef.Index];
         }
       }
-
-        while(rset != null && rset["RIP"] != 0)
-        {
-          stack.Add(new StackFrame(rset, this, program_.MainModule, program_.Dbg));
-
-          //
-          // Get the register values of the previous frame.
-          //
-          NaClSymbolProvider sym = program_.Dbg.Symbols as NaClSymbolProvider;
-          rset = sym.GetPreviousFrameState(rset);
+      while (rset["RIP"] != 0) {
+        stack.Add(new StackFrame(rset, this, program_.MainModule, program_.Dbg));
+        // Get the register values of the previous frame.
+        NaClSymbolProvider sym = program_.Dbg.Symbols as NaClSymbolProvider;
+        var nextRset = sym.GetPreviousFrameState(rset);
+        // The toolchain creates a dummy frame at the outermost scope.  Gdb
+        // has some way to get past the dummy frame, but strict application of
+        // the DWARF spec makes it look circular to us.  TODO: investigate why
+        if (nextRset == null || nextRset["RIP"] == rset["RIP"]) {
+          break;
         }
-
-
+        rset = nextRset;
+      }
     }
-
 
     #region Private Implementation
 

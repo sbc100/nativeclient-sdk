@@ -240,9 +240,21 @@ namespace Google.NaClVsx.DebugSupport {
 
     #endregion
 
+    /// <summary>
+    /// Uses a CallFrame record from the Symbol Database to apply a set of
+    /// rules to the current registerset, in order to derive the register
+    /// state for the next outer stack frame.
+    /// </summary>
+    /// <param name="currentRegisters"></param>
+    /// <returns></returns>
     public RegisterSet GetPreviousFrameState(RegisterSet currentRegisters) {
+      ulong rip = currentRegisters["RIP"];
+      var pc = rip - BaseAddress;
+      if (pc > BaseAddress) {
+        return null;
+      }
       SymbolDatabase.CallFrame frame =
-          db_.GetCallFrameForAddress(currentRegisters["RIP"] - BaseAddress);
+        db_.GetCallFrameForAddress(rip - BaseAddress);
       if (frame == null) {
         return null;
       }
@@ -250,21 +262,22 @@ namespace Google.NaClVsx.DebugSupport {
       var result = currentRegisters.Clone() as RegisterSet;
       var rules = new Dictionary<int, SymbolDatabase.CallFrame.Rule>();
 
-
-      //
       // Find all of the rules that apply at the current address.
       // Rules are stored in ascending order of address. If two
       // rules exist for the same register, then the one with the
       // highest address wins.
-      //
       foreach (SymbolDatabase.CallFrame.Rule rule in frame.Rules) {
-        if (rule.Address > currentRegisters["RIP"]) {
+        if (rule.Address > rip) {
           break;
         }
-
         rules[rule.RegisterId] = rule;
       }
 
+      // First we will hit the CFA rule and calculate the value of the previous
+      // Frame offset.  Once we have that, the rest of the registers are
+      // updated using memory locations that are relative to the previous CFA.
+      // TODO(mlinck): This seems to end up with stackframes that represent the
+      // functions' return locations, not the call site.
       foreach (SymbolDatabase.CallFrame.Rule rule in rules.Values) {
         switch (rule.RuleType) {
           case IDwarfReader.CfiRuleType.Expression:
@@ -272,17 +285,21 @@ namespace Google.NaClVsx.DebugSupport {
           case IDwarfReader.CfiRuleType.Offset:
             var addr =
                 (ulong) ((long) result[rule.BaseRegister] + rule.Offset);
-            Debug.WriteLine("SymbolProvider:: result[rule.BaseRegister]: " +
-                            String.Format("{0,4:X}",
-                              result[rule.BaseRegister]) +
-                            " rule.Offset: " + rule.Offset +
-                            " addr: " + String.Format("{0,4:X}", addr) +
-                            " rule.Address: " + String.Format("{0,4:X}",
-                              rule.Address) +
-                            " BaseAddress: " + String.Format("{0,4:X}",
-                              BaseAddress));
-               
-            result[rule.RegisterId] = dbg_.GetU64(addr - BaseAddress);
+            Debug.WriteLine(
+                "SymbolProvider:: result[rule.BaseRegister]: " +
+                String.Format(
+                    "{0,4:X}",
+                    result[rule.BaseRegister]) +
+                " rule.Offset: " + rule.Offset +
+                " addr: " + String.Format("{0,4:X}", addr) +
+                " rule.Address: " + String.Format(
+                    "{0,4:X}",
+                    rule.Address) +
+                " BaseAddress: " + String.Format(
+                    "{0,4:X}",
+                    BaseAddress));
+            var newValue = dbg_.GetU64(addr - BaseAddress);
+            result[rule.RegisterId] = newValue;
             break;
           case IDwarfReader.CfiRuleType.Register:
             result[rule.RegisterId] = result[rule.BaseRegister];
@@ -298,8 +315,10 @@ namespace Google.NaClVsx.DebugSupport {
           case IDwarfReader.CfiRuleType.ValExpression:
             throw new NotImplementedException();
           case IDwarfReader.CfiRuleType.ValOffset:
-            result[rule.RegisterId] =
-                (ulong) ((long) result[rule.BaseRegister] + rule.Offset);
+            var baseValue = (long) result[rule.BaseRegister];
+            var offset = (long) rule.Offset;
+            newValue = (ulong) (baseValue + offset);
+            result[rule.RegisterId] = newValue;
             break;
           default:
             throw new IndexOutOfRangeException("Bad rule type for CFI");
