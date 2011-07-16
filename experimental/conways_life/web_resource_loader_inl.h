@@ -148,7 +148,7 @@ void WebResourceLoader<Delegate>::ReadNextDataBlock() {
   // Get the next block of data.
   pp::CompletionCallback cc = MakeCallback(kDataReceived);
   int32_t rv = url_loader_.ReadResponseBody(buffer_, buffer_size_, cc);
-  if (rv != PP_ERROR_WOULDBLOCK) {
+  if (rv != PP_OK_COMPLETIONPENDING) {
     cc.Run(rv);
   }
 }
@@ -163,7 +163,7 @@ void WebResourceLoader<Delegate>::StartDownload(int32_t result,
   pp::URLRequestInfo request(instance_);
   InitializeRequest(url, &request);
   int32_t rv = url_loader_.Open(request, cc);
-  if (rv != PP_ERROR_WOULDBLOCK) {
+  if (rv != PP_OK_COMPLETIONPENDING) {
     // Getting here isn't necessarily an error. It indicates that the call to
     // Open did not take place asynchronously. That can happen, for instance,
     // when the resource data comes out of the cache. In any case, we simply
