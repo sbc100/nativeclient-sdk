@@ -220,7 +220,8 @@ namespace Google.NaClVsx.ProjectSupport
             " --allow-file-access-from-files" +
             " --disable-tab-closeable-state-watcher --allow-file-access" +
             " --unlimited-quota-for-files --enable-nacl" +
-            " --enable-nacl-debug --no-sandbox --log-level=3";
+            " --enable-nacl-debug --no-sandbox --log-level=3" +
+            " --incognito";           
         info.bstrArg = string.Format(
             "{0} {1} {2}",
             chrome_debug_args,
