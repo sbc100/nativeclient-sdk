@@ -230,9 +230,10 @@ TEST_F(DebugServerTest, StartNexeProc) {
   mock_debug_api_.events_.push_back(de2);
 
   srv_->DoWork(0);
-  EXPECT_CSTREQ("S13", ReceiveReply());
+  srv_->DoWork(0);
   debug::IDebuggeeProcess* proc = srv_->GetFocusedProc();
   EXPECT_NE(reinterpret_cast<void*>(NULL), proc);
+  EXPECT_CSTREQ("S13", RPC("?"));
 }
 
 TEST_F(DebugServerTest, StartNexeProcAndContinue) {
@@ -735,8 +736,8 @@ bool DebugServerTest::StartNaClProc() {
   InitDebugEventWithString(kNexeThreadCreateMsg, &wde2);
   mock_debug_api_.events_.push_back(wde2);
   srv_->DoWork(0);
-  std::string recv = ReceiveReply();
-  return recv == "S13";
+  srv_->DoWork(0);
+  return true;
 }
 
 bool DebugServerTest::WaitForOneMoreCommand() {

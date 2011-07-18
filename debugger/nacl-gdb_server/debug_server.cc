@@ -43,7 +43,8 @@ DebugServer::DebugServer(DebugAPI* debug_api)
       client_connected_(false),
       execution_engine_(NULL),
       focused_process_id_(0),
-      focused_thread_id_(0) {
+      focused_thread_id_(0),
+      continue_from_halt_(false) {
 }
 
 DebugServer::~DebugServer() {
@@ -115,8 +116,6 @@ bool DebugServer::ProcessExited() const {
 void DebugServer::HandleExecutionEngine(int wait_ms) {
   if (kExiting == state_)
     return;
-  if ((kStarting == state_) && execution_engine_->HasAliveDebuggee())
-    state_ = kRunning;
   if ((kRunning == state_) && !execution_engine_->HasAliveDebuggee()) {
     printf("Exiting: no alive debuggee.\n");
     Quit();
@@ -193,8 +192,14 @@ void DebugServer::OnHaltedProcess(IDebuggeeProcess* halted_process,
     focused_process_id_ = halted_process->id();
   focused_thread_id_ = halted_process->GetHaltedThread()->id();
 
-  if (client_connection_.IsConnected())
+  // Don't send rsp::StopReply on the first halt of debuggee.
+  // Do send rsp::StopReply in all other cases, because application
+  // was running due to 'Continue' or 'Step' commands.
+  if (state_ == kRunning)
     SendRspMessageToClient(rsp::CreateStopReplyPacket(debug_event));
+
+  if (kStarting == state_)
+    state_ = kRunning;
 }
 
 void DebugServer::SendRspMessageToClient(const rsp::Packet& msg) {
@@ -278,8 +283,10 @@ void DebugServer::Visit(rsp::GetStopReasonCommand* packet) {
 
 void DebugServer::Visit(rsp::ContinueCommand* packet) {
   IDebuggeeProcess* proc = GetFocusedProcess();
-  if (NULL != proc)
+  if (NULL != proc) {
+    continue_from_halt_ = true;
     proc->Continue();
+  }
 }
 
 void DebugServer::Visit(rsp::QuerySupportedCommand* packet) {
@@ -428,6 +435,8 @@ void DebugServer::Visit(rsp::StepCommand* packet) {
   if (NULL != proc) {
     if (!proc->SingleStep())
       SendErrorReply(kErrorSingleStepFailed);
+    else
+      continue_from_halt_ = true;
   }
 }
 

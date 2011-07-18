@@ -134,6 +134,9 @@ class DebugServer : public rsp::PacketConsumerInterface,
   ExecutionEngine* execution_engine_;
   int focused_process_id_;
   int focused_thread_id_;
+
+  // So that we don't send unsolicited rsp::StopReply.
+  bool continue_from_halt_;
 };
 }  // namespace debug
 #endif  // DEBUGGER_NACL_GDB_SERVER_DEBUG_SERVER_H_
