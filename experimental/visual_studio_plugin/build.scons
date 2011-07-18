@@ -56,7 +56,7 @@ env.AddNodeAliases(vsx_build_all_command, ['bot'], 'vsx_build')
 
 # This command does not lend itself to running all tests in a VSX solution, so
 # we loop through package names and add a test for each test container.
-package_names = ['NaClVsx.Package']
+package_names = ['NaClVsx.Package', 'MsAd7.BaseImpl']
 for package_name in package_names:
   unit_test_name = '%s_UnitTestProject' % package_name
   test_container_dll = os.path.join(vsx_root_path, 'src', package_name,

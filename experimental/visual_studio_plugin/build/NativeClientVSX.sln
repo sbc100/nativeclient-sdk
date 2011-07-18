@@ -66,7 +66,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libelf", "..\third_party\li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rsp_proxy", "..\src\rsp_proxy\rsp_proxy.vcproj", "{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1F72C373-56F7-49B3-8DFD-37A7115B8EBB}"
+	ProjectSection(SolutionItems) = preProject
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		NativeClientVSX.vsmdi = NativeClientVSX.vsmdi
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsAd7.BaseImpl_UnitTestProject", "..\src\MsAd7.BaseImpl\MsAd7.BaseImpl_UnitTestProject\MsAd7.BaseImpl_UnitTestProject.csproj", "{D89669F5-7B81-4198-95A2-D3400AB2E718}"
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = NativeClientVSX.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -325,11 +336,26 @@ Global
 		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|Win32.Build.0 = Release|Win32
 		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|x64.ActiveCfg = Release|Win32
 		{20D21A4F-3C4B-4EA0-A6A7-CEFBB3881EFF}.Release|x86.ActiveCfg = Release|Win32
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|Win32.ActiveCfg = Release|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|x64.ActiveCfg = Release|Any CPU
+		{D89669F5-7B81-4198-95A2-D3400AB2E718}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FACD8324-6EE0-4F27-8F02-98519A44A0C5} = {D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}
+		{D89669F5-7B81-4198-95A2-D3400AB2E718} = {D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}
 	EndGlobalSection
 EndGlobal
