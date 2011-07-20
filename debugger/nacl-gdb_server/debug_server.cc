@@ -497,7 +497,10 @@ void DebugServer::MakeContinueDecision(const debug::DebugEvent& debug_event,
 
   DEBUG_EVENT wde = debug_event.windows_debug_event();
   if (OUTPUT_DEBUG_STRING_EVENT == wde.dwDebugEventCode) {
-      *halt = false;
+    *halt = false;
+    // Recent chrome requires it to run under debugger
+    // (chromium Build 92793).
+    *pass_exception = false;
   }
   int nacl_de_id = debug_event.nacl_debug_event_code();
   if (debug::DebugEvent::kNotNaClDebugEvent != nacl_de_id) {
