@@ -14,6 +14,8 @@ class BlobUtilsTest : public ::testing::Test {
   debug::Blob blob_;
 };
 
+#define EXPECT_BLOBEQ(x, y) EXPECT_STREQ(x, y.ToString().c_str()); y.Clear()
+
 // Unit tests start here.
 TEST_F(BlobUtilsTest, PopInt8FromFront) {
   LoadBlob("10abcd");
@@ -119,7 +121,43 @@ TEST_F(BlobUtilsTest, Format) {
   EXPECT_STREQ("[12345]", blob_.ToString().c_str());
 
   rsp::Format(&blob_, "[%d-%x]", 12345, 0x1234);
-  EXPECT_STREQ("[12345-1234]", blob_.ToString().c_str());
+  EXPECT_BLOBEQ("[12345-1234]", blob_);
+}
+
+TEST_F(BlobUtilsTest, PushIntToBack) {
+  uint32_t x = 0;
+  debug::Blob blob;
+  EXPECT_BLOBEQ("0", rsp::PushIntToBack(x, &blob));
+
+  x = 0x21;
+  EXPECT_BLOBEQ("21", rsp::PushIntToBack(x, &blob));
+
+  x = 0x1234;
+  EXPECT_BLOBEQ("1234", rsp::PushIntToBack(x, &blob));
+
+  x = 0x0234;
+  EXPECT_BLOBEQ("234", rsp::PushIntToBack(x, &blob));
+
+  uint64_t y = 0;
+  EXPECT_BLOBEQ("0", rsp::PushIntToBack(y, &blob));
+
+  y = 0x21;
+  EXPECT_BLOBEQ("21", rsp::PushIntToBack(y, &blob));
+
+  y = 0x1234;
+  EXPECT_BLOBEQ("1234", rsp::PushIntToBack(y, &blob));
+
+  y = 0x0234;
+  EXPECT_BLOBEQ("234", rsp::PushIntToBack(y, &blob));
+
+  y = 0x1234567890abcdef;
+  EXPECT_BLOBEQ("1234567890abcdef", rsp::PushIntToBack(y, &blob));
+
+  y = 0x234567890abcdef;
+  EXPECT_BLOBEQ("234567890abcdef", rsp::PushIntToBack(y, &blob));
+
+  y = 0x34567890abcdef;
+  EXPECT_BLOBEQ("34567890abcdef", rsp::PushIntToBack(y, &blob));
 }
 
 }  // namespace

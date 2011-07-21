@@ -104,6 +104,8 @@ void Packet::InitPacketFactory() {
   packet_factory_["qfThreadInfo"] = new rsp::GetThreadInfoCommand;
   packet_factory_["qsThreadInfo"] = new rsp::GetThreadInfoCommand;
   packet_factory_["GetThreadInfo$Reply"] = new rsp::GetThreadInfoReply;
+  packet_factory_["qOffsets"] = new rsp::GetOffsetsCommand;
+  packet_factory_["qOffsets$Reply"] = new rsp::GetOffsetsReply;
 }
 
 void Packet::FreePacketFactory() {

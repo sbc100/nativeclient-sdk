@@ -100,6 +100,37 @@ class QXferReply : public Packet {
   bool eom_;
   std::string body_;
 };
+
+/// Get section offsets that the target used when relocating the image.
+/// Example: qOffsets -> Text=c00000000;Data=c00000000
+class GetOffsetsCommand : public OneWordPacket {
+ public:
+  GetOffsetsCommand() : OneWordPacket("qOffsets") {}
+  virtual Packet* Clone() const { return new GetOffsetsCommand; }
+  virtual void AcceptVisitor(PacketVisitor* vis) { vis->Visit(this); }
+};
+
+/// Reply to GetOffsetsCommand.
+/// Example: Text=c00000000;Data=c00000000
+class GetOffsetsReply : public Packet {
+ public:
+  GetOffsetsReply() : text_offset_(0), data_offset_(0) {}
+  virtual Packet* Clone() const { return new GetOffsetsReply; }
+  virtual void AcceptVisitor(PacketVisitor* vis) { vis->Visit(this); }
+  virtual bool FromBlob(const std::string& type, debug::Blob* message);
+  virtual void ToBlob(debug::Blob* message) const;
+
+  uint64_t text_offset() const { return text_offset_; }
+  uint64_t data_offset() const { return data_offset_; }
+
+  void text_offset(uint64_t offs) { text_offset_ = offs; }
+  void data_offset(uint64_t offs) { data_offset_ = offs; }
+
+ private:
+  uint64_t text_offset_;
+  uint64_t data_offset_;
+};
+
 }  // namespace rsp
 
 #endif  // DEBUGGER_RSP_RSP_INFO_PACKETS_H_

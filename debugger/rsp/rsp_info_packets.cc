@@ -127,5 +127,30 @@ bool QXferReply::FromBlob(const std::string& type, debug::Blob* message) {
 void QXferReply::ToBlob(debug::Blob* message) const {
   Format(message, (eom_ ? "l%s" : "m%s"), body_.c_str());
 }
+
+bool GetOffsetsReply::FromBlob(const std::string& type, debug::Blob* message) {
+  // Example: Text=c00000000;Data=c00000000
+  std::deque<debug::Blob> statements;
+  message->Split(debug::Blob().FromString(";"), &statements);
+  for (size_t i = 0; i < statements.size(); i++) {
+    std::deque<debug::Blob> tokens;
+    statements[i].Split(debug::Blob().FromString("="), &tokens);
+    if (tokens.size() >= 2) {
+      if ("Text" == tokens[0].ToString())
+        rsp::PopIntFromFront(&tokens[1], &text_offset_);
+      else if ("Data" == tokens[0].ToString())
+        rsp::PopIntFromFront(&tokens[1], &data_offset_);
+    }
+  }
+  return true;
+}
+
+void GetOffsetsReply::ToBlob(debug::Blob* message) const {
+  message->Append(debug::Blob().FromString("Text="));
+  rsp::PushIntToBack(text_offset_, message);
+  message->Append(debug::Blob().FromString(";Data="));
+  rsp::PushIntToBack(data_offset_, message);
+}
+
 }  // namespace rsp
 

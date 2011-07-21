@@ -89,6 +89,8 @@ TEST_F(RspPacketTest, TypingPacketVisitor) {
   packs.push_back(new rsp::QXferReply);
   packs.push_back(new rsp::GetThreadInfoCommand);
   packs.push_back(new rsp::GetThreadInfoReply);
+  packs.push_back(new rsp::GetOffsetsCommand);
+  packs.push_back(new rsp::GetOffsetsReply);
 
   std::map<int, int> type_ids;
   for (size_t i = 0; i < packs.size(); i++) {
@@ -336,6 +338,9 @@ TEST_F(RspPacketTest, SingleWordCommands) {
                                    "qfThreadInfo"));
   EXPECT_TRUE(TestParseAndPrintout(new rsp::GetThreadInfoCommand,
                                    "qsThreadInfo"));
+
+  EXPECT_TRUE(TestParseAndPrintout(new rsp::GetOffsetsCommand,
+                                   "qOffsets"));
 }
 
 TEST_F(RspPacketTest, WriteRegistersCommand) {
@@ -451,6 +456,21 @@ TEST_F(RspPacketTest, GetThreadInfoReply2) {
   EXPECT_TRUE(obj->eom());
   EXPECT_EQ(1, obj->threads_ids().size());
   EXPECT_EQ(0x138c, obj->threads_ids()[0]);
+
+  debug::Blob blob;
+  obj->ToBlob(&blob);
+  EXPECT_STREQ(kMsg, blob.ToString().c_str());
+  delete obj;
+}
+
+TEST_F(RspPacketTest, GetOffsetsReply) {
+  const char* kMsg = "Text=c00000000;Data=c00000001";
+  rsp::GetOffsetsReply* obj =
+      rsp::packet_cast<rsp::GetOffsetsReply>(
+          ParseMsg(kMsg, "qOffsets$Reply"));
+  ASSERT_NE(kNullPacketPtr, obj);
+  EXPECT_EQ(0xc00000000, obj->text_offset());
+  EXPECT_EQ(0xc00000001, obj->data_offset());
 
   debug::Blob blob;
   obj->ToBlob(&blob);

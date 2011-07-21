@@ -4,6 +4,7 @@
 #ifndef DEBUGGER_RSP_RSP_BLOB_UTILS_H_
 #define DEBUGGER_RSP_RSP_BLOB_UTILS_H_
 
+#include <assert.h>
 #include <deque>
 #include "debugger/base/debug_blob.h"
 
@@ -40,6 +41,31 @@ namespace rsp {
         *result = (*result << 4) + dig;
     }
     return (i > 0);
+  }
+
+  /// Appends hex representation of |value| to the |blob|,
+  /// with no leading zeroes. Example:
+  /// 0x123 -> {'1', '2', '3'}
+  /// @param[in] value integer to be appended
+  /// @param[out] blob pointer to the destination blob.
+  /// @return reference to |blob|.
+  template <class T>
+  debug::Blob& PushIntToBack(T value, debug::Blob* blob) {
+    assert(NULL != blob);
+    debug::Blob tmp;
+    for (size_t i = 0; i < sizeof(value); i++) {
+      uint8_t x = (value & 0xFF);
+      tmp.PushFront(debug::Blob::GetHexDigit(x, 0));
+      tmp.PushFront(debug::Blob::GetHexDigit(x, 1));
+      if (sizeof(value) > 1)
+        value = value >> 8;
+    }
+    tmp.PopMatchingBytesFromFront(debug::Blob().FromString("0"));
+    if (0 == tmp.size())
+      blob->PushBack('0');
+    else
+      blob->Append(tmp);
+    return *blob;
   }
 
   /// removes space characters from front and from back of the blob.

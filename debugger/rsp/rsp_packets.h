@@ -39,6 +39,8 @@ class StepCommand;
 class IsThreadAliveCommand;
 class QXferFeaturesReadCommand;
 class QXferReply;
+class GetOffsetsCommand;
+class GetOffsetsReply;
 class GetThreadInfoCommand;
 class GetThreadInfoReply;
 
@@ -132,6 +134,8 @@ class PacketVisitor {
   virtual void Visit(QXferReply* packet) {}
   virtual void Visit(GetThreadInfoCommand* packet) {}
   virtual void Visit(GetThreadInfoReply* packet) {}
+  virtual void Visit(GetOffsetsCommand* packet) {}
+  virtual void Visit(GetOffsetsReply* packet) {}
 };
 
 /// This class is used in |packet_cast| casting template.
@@ -161,6 +165,8 @@ class TypingPacketVisitor : public PacketVisitor {
   virtual void Visit(QXferReply* packet) { type_ = 20;}
   virtual void Visit(GetThreadInfoCommand* packet) { type_ = 21;}
   virtual void Visit(GetThreadInfoReply* packet) { type_ = 22;}
+  virtual void Visit(GetOffsetsCommand* packet) { type_ = 23;}
+  virtual void Visit(GetOffsetsReply* packet) { type_ = 24;}
 
   int type_;
 };
