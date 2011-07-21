@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugInfoEntryTest.cs" />
+    <Compile Include="DebugPort2Mock.cs" />
     <Compile Include="NaClPackageTestUtils.cs" />
     <Compile Include="DwarfReaderImplTest.cs" />
     <Compile Include="ErrorBreakpointEnumeratorTest.cs" />
@@ -85,9 +86,10 @@
     <Compile Include="NaClProjectConfigTest.cs" />
     <Compile Include="NaClSymbolProviderTest.cs" />
     <Compile Include="PackageTest.cs" />
-    <Compile Include="SimpleDebuggerMock.cs" />
+    <Compile Include="NaClDebuggerMock.cs" />
     <Compile Include="SymbolDatabaseTest.cs" />
     <Compile Include="SymbolProviderMock.cs" />
+    <Compile Include="ThreadTest.cs" />
     <!---->
     <!---->
     <!---->

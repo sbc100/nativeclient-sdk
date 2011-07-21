@@ -1,6 +1,11 @@
 ﻿// Copyright 2009 The Native Client Authors. All rights reserved.
+// 
 // Use of this source code is governed by a BSD-style license that can
+// 
 // be found in the LICENSE file.
+
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,12 +18,14 @@ using Google.MsAd7.BaseImpl.Interfaces.SimpleSymbolTypes;
 using Google.NaClVsx.DebugSupport.DWARF;
 using NaClVsx;
 
+#endregion
+
 namespace Google.NaClVsx.DebugSupport {
   /// <summary>
-  /// The NaClSymbolProvider provides generic address and code lookups.
+  ///   The NaClSymbolProvider provides generic address and code lookups.
   /// </summary>
   public class NaClSymbolProvider : ISimpleSymbolProvider {
-    public NaClSymbolProvider(NaClDebugger dbg) {
+    public NaClSymbolProvider(ISimpleDebugger dbg) {
       BaseAddress = 0;
       dbg_ = dbg;
     }
@@ -36,12 +43,12 @@ namespace Google.NaClVsx.DebugSupport {
     }
 
     public IEnumerable<ulong> AddressesFromPosition(DocumentPosition pos) {
-      string fname = Path.GetFileName(pos.Path);
+      var fname = Path.GetFileName(pos.Path);
       if (!db_.SourceFilesByFilename.ContainsKey(fname)) {
         return null;
       }
 
-      List<SymbolDatabase.SourceFile> files = db_.SourceFilesByFilename[fname];
+      var files = db_.SourceFilesByFilename[fname];
 
       if (files.Count() > 1) {
         // TODO(ilewis): disambiguate
@@ -57,7 +64,7 @@ namespace Google.NaClVsx.DebugSupport {
       // Internally, MSVC uses zero-based lines. This is in contrast
       // to both DWARF and MSVC's own user interface, but whatever.
       //
-      uint line = pos.BeginPos.dwLine + 1;
+      var line = pos.BeginPos.dwLine + 1;
 
       return from loc in db_.LocationsByFile[files.First().Key]
              where loc.Line == line
@@ -66,11 +73,11 @@ namespace Google.NaClVsx.DebugSupport {
 
 
     public DocumentPosition PositionFromAddress(ulong address) {
-      SymbolDatabase.SourceLocation loc =
+      var loc =
           db_.GetLocationForAddress(address - BaseAddress);
       if (loc != null) {
         // The DWARF line is 1-based; switch to zero-based for MSVC's benefit.
-        uint line = loc.Line - 1;
+        var line = loc.Line - 1;
         return
             new DocumentPosition(
                 db_.Files[loc.SourceFileKey].CurrentAbsolutePath, line);
@@ -84,7 +91,7 @@ namespace Google.NaClVsx.DebugSupport {
 
       // Get the scope, current function, and frame pointer
       //
-      DebugInfoEntry scopeEntry =
+      var scopeEntry =
           db_.GetScopeForAddress(programCounter);
       if (scopeEntry == null) {
         return result;
@@ -93,7 +100,7 @@ namespace Google.NaClVsx.DebugSupport {
 
       // Find the parent most DIE which represents this function
       //
-      DebugInfoEntry fnEntry = scopeEntry;
+      var fnEntry = scopeEntry;
       while (fnEntry.Tag != DwarfTag.DW_TAG_subprogram
              && fnEntry.OuterScope != null) {
         fnEntry = fnEntry.OuterScope;
@@ -119,13 +126,13 @@ namespace Google.NaClVsx.DebugSupport {
     }
 
     /// <summary>
-    /// This function retrieves the DebugInformationEntries for symbols that 
-    /// are in scope at a given instruction address.
+    ///   This function retrieves the DebugInformationEntries for symbols that 
+    ///   are in scope at a given instruction address.
     /// </summary>
-    /// <param name="instructionAddress">The address for whose scope symbols
-    /// are being requested.</param>
+    /// <param name = "instructionAddress">The address for whose scope symbols
+    ///   are being requested.</param>
     /// <returns>A list of symbol descriptors for all the symbols that are in 
-    /// scope at this location in the program.</returns>
+    ///   scope at this location in the program.</returns>
     public IEnumerable<Symbol> GetSymbolsInScope(ulong instructionAddress) {
       var result = new List<Symbol>();
       // Adjust for the base of the untrusted code space.
@@ -158,17 +165,17 @@ namespace Google.NaClVsx.DebugSupport {
 
       while (scopeEntry != null) {
         foreach (
-            DebugInfoEntry entry in
+            var entry in
                 db_.GetChildrenForEntry(scopeEntry.Key)) {
           // The assumption here is that all useful symbols have a location and
           // a name.
           if (entry.Attributes.ContainsKey(DwarfAttribute.DW_AT_location)
               && entry.Attributes.ContainsKey(DwarfAttribute.DW_AT_name)) {
             var name = (string) entry.Attributes[DwarfAttribute.DW_AT_name];
-            var loc = entry.Attributes[DwarfAttribute.DW_AT_location] as byte [];
+            var loc = entry.Attributes[DwarfAttribute.DW_AT_location] as byte[];
             // Program counter will not be used by ResolveLocation in this case
             // because the loc we're handing in is always a byte array.
-            ulong symbolAddr = ResolveLocation(loc, vmInputs);
+            var symbolAddr = ResolveLocation(loc, vmInputs);
             // store the symbolAddr and variable name. Note that symbolAddr is
             // relative to the base address of the NaCl app.  The base address
             // is something like 0xC00000000, but the base gets added to this
@@ -194,9 +201,9 @@ namespace Google.NaClVsx.DebugSupport {
           Name = "<unknown function>",
       };
 
-      DebugInfoEntry scopeEntry =
+      var scopeEntry =
           db_.GetScopeForAddress(address - BaseAddress);
-      DebugInfoEntry fnEntry = scopeEntry;
+      var fnEntry = scopeEntry;
       while (fnEntry != null &&
              fnEntry.Tag != DwarfTag.DW_TAG_subprogram) {
         fnEntry = fnEntry.OuterScope;
@@ -233,7 +240,7 @@ namespace Google.NaClVsx.DebugSupport {
     }
 
     public ulong GetNextLocation(ulong addr) {
-      SymbolDatabase.SourceLocation loc =
+      var loc =
           db_.GetLocationForAddress(addr - BaseAddress);
       return loc.StartAddress + loc.Length + BaseAddress;
     }
@@ -241,20 +248,25 @@ namespace Google.NaClVsx.DebugSupport {
     #endregion
 
     /// <summary>
-    /// Uses a CallFrame record from the Symbol Database to apply a set of
-    /// rules to the current registerset, in order to derive the register
-    /// state for the next outer stack frame.
+    ///   Uses a CallFrame record from the Symbol Database to apply a set of
+    ///   rules to the current registerset, in order to derive the register
+    ///   state for the next outer stack frame.
+    ///   This function currently uses a short cut and does not result in a
+    ///   completely accurate reproduction of the outer frame.  Support for
+    ///   that will require a more detailed implementation of the CFI analysis
+    ///   specified by DWARF and will be added as a feature later.
     /// </summary>
-    /// <param name="currentRegisters"></param>
-    /// <returns></returns>
+    /// <param name = "currentRegisters">The state of the registers in the
+    ///   current call frame.</param>
+    /// <returns>The outer callframe's register state.</returns>
     public RegisterSet GetPreviousFrameState(RegisterSet currentRegisters) {
-      ulong rip = currentRegisters["RIP"];
+      var rip = currentRegisters["RIP"];
       var pc = rip - BaseAddress;
       if (pc > BaseAddress) {
         return null;
       }
-      SymbolDatabase.CallFrame frame =
-        db_.GetCallFrameForAddress(rip - BaseAddress);
+      var frame =
+          db_.GetCallFrameForAddress(rip - BaseAddress);
       if (frame == null) {
         return null;
       }
@@ -266,7 +278,7 @@ namespace Google.NaClVsx.DebugSupport {
       // Rules are stored in ascending order of address. If two
       // rules exist for the same register, then the one with the
       // highest address wins.
-      foreach (SymbolDatabase.CallFrame.Rule rule in frame.Rules) {
+      foreach (var rule in frame.Rules) {
         if (rule.Address > rip) {
           break;
         }
@@ -278,7 +290,7 @@ namespace Google.NaClVsx.DebugSupport {
       // updated using memory locations that are relative to the previous CFA.
       // TODO(mlinck): This seems to end up with stackframes that represent the
       // functions' return locations, not the call site.
-      foreach (SymbolDatabase.CallFrame.Rule rule in rules.Values) {
+      foreach (var rule in rules.Values) {
         switch (rule.RuleType) {
           case IDwarfReader.CfiRuleType.Expression:
             throw new NotImplementedException();
@@ -364,7 +376,7 @@ namespace Google.NaClVsx.DebugSupport {
         // Set the size of the symbol to the "right most" sized component such that
         // char *p is size 4 since '*' is size 4.
         if (symbolEntry.Attributes.ContainsKey(DwarfAttribute.DW_AT_byte_size)) {
-          object attrib = symbolEntry.Attributes[DwarfAttribute.DW_AT_byte_size];
+          var attrib = symbolEntry.Attributes[DwarfAttribute.DW_AT_byte_size];
           if (0 == result.SizeOf) {
             result.SizeOf = (uint) (ulong) attrib;
           }
@@ -443,7 +455,7 @@ namespace Google.NaClVsx.DebugSupport {
           case DwarfTag.DW_TAG_subroutine_type: {
             result.Name = " (" + result.Name.TrimStart(null) + ")(";
             foreach (
-                DebugInfoEntry parms in
+                var parms in
                     db_.GetChildrenForEntry(val.offset)) {
               if (parms.Tag == DwarfTag.DW_TAG_formal_parameter) {
                 result.Name += GetSymbolType(parms.Key).Name + ", ";
@@ -467,8 +479,8 @@ namespace Google.NaClVsx.DebugSupport {
     #region ISimpleSymbolProvider Members
 
     public String SymbolValueToString(ulong key, ArraySegment<Byte> arrBytes) {
-      SymbolType result = GetSymbolType(key);
-      byte[] bytes = arrBytes.Array;
+      var result = GetSymbolType(key);
+      var bytes = arrBytes.Array;
 
       // If we don't have enough data
       if (bytes.Count() < result.SizeOf) {
@@ -510,8 +522,9 @@ namespace Google.NaClVsx.DebugSupport {
         // just don't get a value back...  Printing helps us realize this
         // is happening (when we had a bad conversion for case 1 previously)
         // and also lets us set a breakpoint inside the catch.
-        Debug.WriteLine("An exception was caught when calling BitConverter!" +
-          e.ToString());
+        Debug.WriteLine(
+            "An exception was caught when calling BitConverter!" +
+            e);
       }
 
 
@@ -551,29 +564,53 @@ namespace Google.NaClVsx.DebugSupport {
     #region Private Implementation
 
     readonly SymbolDatabase db_ = new SymbolDatabase();
-    private readonly NaClDebugger dbg_;
+    private readonly ISimpleDebugger dbg_;
 
     #endregion
 
     #region Private Implementation
 
     /// <summary>
-    /// Primes the inputs that will be handed to the DWARF VM, by giving it
-    /// relevant context.
+    ///   Calculates the address on the stack, of a given location in the
+    ///   instruction queue.
     /// </summary>
-    /// <param name="codeAddress">The code address for which context will be
-    /// needed.</param>
-    /// <param name="functionFrameBase">The frame base of the function that
-    /// contains the code address.</param>
-    /// <param name="vmInputs">This parameter is modified.  It is primed with
-    /// A framebase that is calculated for the current context so that future
-    /// DWARF address calculations can be peformed.</param>
+    /// <param name = "loc">The location in the instruction space.</param>
+    /// <param name = "vm">The virtual machine that is to be used to calculate
+    ///   the stack address.  It must be primed with context.</param>
+    /// <returns>The stack address corresponding to loc.</returns>
+    private static ulong ResolveLocation(byte[] loc,
+                                         VirtualMachineInputs vm) {
+      if (vm == null) {
+        throw new ArgumentNullException("vm");
+      }
+      // A byte[] location is a Dwarf VM program, not an actual location.
+      // We need to run the VM and (possibly) supply inputs.
+      var stackAddress = DwarfParser.DwarfParseVM(vm, loc);
+
+      if (stackAddress < (ulong) DwarfOpcode.DW_OP_regX) {
+        Debug.WriteLine("WARNING: Register vars not currently supported");
+      }
+      return stackAddress;
+    }
+
+    /// <summary>
+    ///   Primes the inputs that will be handed to the DWARF VM, by giving it
+    ///   relevant context.
+    /// </summary>
+    /// <param name = "codeAddress">The code address for which context will be
+    ///   needed.</param>
+    /// <param name = "functionFrameBase">The frame base of the function that
+    ///   contains the code address.</param>
+    /// <param name = "vmInputs">This parameter is modified.  It is primed with
+    ///   A framebase that is calculated for the current context so that future
+    ///   DWARF address calculations can be peformed.</param>
     private void PrimeVMInputs(ulong codeAddress,
                                ulong functionFrameBase,
                                VirtualMachineInputs vmInputs) {
-      ulong frameBase = ulong.MaxValue;
-      List<SymbolDatabase.LocListEntry> loclist = db_.LocLists[functionFrameBase];
-      foreach (SymbolDatabase.LocListEntry locListEntry in loclist) {
+      var frameBase = ulong.MaxValue;
+      var loclist =
+          db_.LocLists[functionFrameBase];
+      foreach (var locListEntry in loclist) {
         if (locListEntry.StartAddress == ulong.MaxValue) {
           frameBase = locListEntry.EndAddress;
           break;
@@ -591,30 +628,6 @@ namespace Google.NaClVsx.DebugSupport {
         Debug.WriteLine("WARNING: Register vars not currently supported");
       }
       vmInputs.FrameBase = frameBase;
-    }
-
-
-    /// <summary>
-    /// Calculates the address on the stack, of a given location in the
-    /// instruction queue.
-    /// </summary>
-    /// <param name="loc">The location in the instruction space.</param>
-    /// <param name="vm">The virtual machine that is to be used to calculate
-    /// the stack address.  It must be primed with context.</param>
-    /// <returns>The stack address corresponding to loc.</returns>
-    private static ulong ResolveLocation(byte [] loc,
-                                         VirtualMachineInputs vm) {
-      if (vm == null) {
-        throw new ArgumentNullException("vm");
-      }
-      // A byte[] location is a Dwarf VM program, not an actual location.
-      // We need to run the VM and (possibly) supply inputs.
-      var stackAddress = DwarfParser.DwarfParseVM(vm, loc);
-
-      if (stackAddress < (ulong) DwarfOpcode.DW_OP_regX) {
-        Debug.WriteLine("WARNING: Register vars not currently supported");
-      }
-      return stackAddress;
     }
 
     #endregion

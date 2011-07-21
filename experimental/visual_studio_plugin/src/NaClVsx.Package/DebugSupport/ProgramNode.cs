@@ -1,11 +1,14 @@
-﻿// Copyright 2009 The Native Client Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can
-// be found in the LICENSE file.
+﻿// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Google.MsAd7.BaseImpl;
@@ -15,10 +18,13 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
 using NaClVsx.DebugHelpers;
 
+#endregion
+
 namespace Google.NaClVsx.DebugSupport {
-  public class ProgramNode : IDebugProgramNode2,
-                             IDebugProgram2,
-                             IDebugProgramNodeAttach2 {
+  public class ProgramNode
+      : IDebugProgramNode2,
+        IDebugProgram2,
+        IDebugProgramNodeAttach2 {
     public ProgramNode(NaClDebugProcess process) {
       //
       // Program nodes get created and destroyed a lot, so best to avoid
@@ -32,7 +38,7 @@ namespace Google.NaClVsx.DebugSupport {
       modules_.Add(mainModule_);
     }
 
-    public NaClDebugger Dbg {
+    public INaClDebugger Dbg {
       get { return dbg_; }
     }
 
@@ -77,55 +83,20 @@ namespace Google.NaClVsx.DebugSupport {
       dbg_.Open(process_.NaClPort.ConnectionString);
 
       var tids = dbg_.GetThreads();
-      foreach (uint tid in tids) {
-            threads_.Add(
-              new Thread(
-                  this,
-                  String.Format("Thread {0}", tid),
-                  tid));
+      foreach (var tid in tids) {
+        threads_.Add(
+            new Thread(
+                this,
+                String.Format("Thread {0}", tid),
+                tid));
       }
 
-      SendEvent(null,
-                new Ad7Events.DebugProgramCreateEvent(
-                    enum_EVENTATTRIBUTES.EVENT_ASYNCHRONOUS));
+      SendEvent(
+          null,
+          new Ad7Events.DebugProgramCreateEvent(
+              enum_EVENTATTRIBUTES.EVENT_ASYNCHRONOUS));
     }
 
-    private void OnModuleLoaded(ISimpleDebugger sender, string modulepath, string status) {
-      Debug.WriteLine(string.Format("{0}: {1}", modulepath, status));
-      mainModule_.Url = modulepath;
-      mainModule_.Name = System.IO.Path.GetFileName(modulepath);
-      mainModule_.UrlSymbolLocation = modulepath;
-
-      SendEvent(null,
-                new Ad7Events.DebugModuleLoadEvent(mainModule_,
-                  "Loading module", true));
-
-      SendEvent(null,
-                new Ad7Events.DebugSymbolSearchEvent(mainModule_,
-                                                     "DWARF symbols loaded",
-                                                     enum_MODULE_INFO_FLAGS.
-                                                         MIF_SYMBOLS_LOADED));
-    }
-
-    void OnStepFinished(ISimpleDebugger sender, SimpleDebuggerTypes.EventType t, SimpleDebuggerTypes.ResultCode status)
-    {
-      SendEvent(mainThread_, new Ad7Events.DebugStepCompleteEvent());
-    }
-
-    void OnContinueEvent(ISimpleDebugger sender, SimpleDebuggerTypes.EventType t, SimpleDebuggerTypes.ResultCode status)
-    {
-      Debug.WriteLine("Debug event: Continue");
-    }
-
-    void OnStopEvent(Google.MsAd7.BaseImpl.Interfaces.ISimpleDebugger sender, SimpleDebuggerTypes.EventType eventType, SimpleDebuggerTypes.ResultCode status)
-    {
-      Debug.WriteLine("Debug event: Break");
-      engine_.EnableAllBreakpoints(false);
-      SendEvent(mainThread_, new Ad7Events.DebugBreakEvent());
-    }
-
-
-      
     #region IDebugProgram2 Members
 
     public int EnumThreads(out IEnumDebugThreads2 ppEnum) {
@@ -156,7 +127,7 @@ namespace Google.NaClVsx.DebugSupport {
       // Since we have only one program per process, we
       // don't do anything here. The DebugProcess instance
       // will kill the process.
-      SendEvent(this.MainThread, new Ad7Events.DebugProgramDestroyEvent(0));
+      SendEvent(MainThread, new Ad7Events.DebugProgramDestroyEvent(0));
       return VSConstants.S_OK;
     }
 
@@ -206,14 +177,16 @@ namespace Google.NaClVsx.DebugSupport {
                     enum_STEPKIND sk,
                     enum_STEPUNIT Step) {
       uint id;
-      if (pThread.GetThreadId(out id) != VSConstants.S_OK) id = 0;
-      Thread thread = (Thread) pThread;
-      List<Google.MsAd7.BaseImpl.StackFrame> stack = thread.GetStack();
-      ulong addr = stack[1].ReturnAddress;
-      ulong rip = stack[0].ReturnAddress;
+      if (pThread.GetThreadId(out id) != VSConstants.S_OK) {
+        id = 0;
+      }
+      var thread = (Thread) pThread;
+      var stack = thread.GetStack();
+      var addr = stack[1].ReturnAddress;
+      var rip = stack[0].ReturnAddress;
 
-      switch(sk) {
-        /*
+      switch (sk) {
+          /*
          *  In the STEP OUT case, we want to break when the IP hits
          *  the return address on the stack.
          */
@@ -222,7 +195,7 @@ namespace Google.NaClVsx.DebugSupport {
           dbg_.Continue();
           break;
 
-        /*
+          /*
          *  In the STEP INTO case, we want to single step until the line
          *  number changes.
          *  TODO(noelallen): This is over simplified, and should be fixed
@@ -231,7 +204,7 @@ namespace Google.NaClVsx.DebugSupport {
           dbg_.Step(id);
           break;
 
-        /*
+          /*
          *  In the STEP OVER case, we want to break on any line number
          *  change in the same function, or if we return, so we add
          *  breakpoints for all lines.
@@ -241,10 +214,12 @@ namespace Google.NaClVsx.DebugSupport {
           // Add the 'return' case
           dbg_.AddTempBreakpoint(addr);
           DocumentPosition oldPos = null;
-          IEnumerable<ulong> addrs = dbg_.Symbols.GetAddressesInScope(rip);
-          foreach(ulong curraddr in addrs) {
-            DocumentPosition newPos = dbg_.Symbols.PositionFromAddress(curraddr);
-            if (newPos != oldPos) dbg_.AddTempBreakpoint(curraddr);
+          var addrs = dbg_.Symbols.GetAddressesInScope(rip);
+          foreach (var curraddr in addrs) {
+            var newPos = dbg_.Symbols.PositionFromAddress(curraddr);
+            if (newPos != oldPos) {
+              dbg_.AddTempBreakpoint(curraddr);
+            }
             newPos = oldPos;
           }
 
@@ -369,96 +344,20 @@ namespace Google.NaClVsx.DebugSupport {
 
     #region Private Implementation
 
-    private void OnBreak(GdbProxy.ResultCode status, string msg, byte[] data)
-    {
-      SendEvent(mainThread_, new Ad7Events.DebugBreakEvent());
-    }
-
-    private void ParseArchString(string msg)
-    {
-      Debug.WriteLine(msg);
-      try
-      {
-        XElement targetString = XElement.Parse(msg);
-        var archElements = targetString.Descendants("architecture");
-        var el = archElements.FirstOrDefault();
-        arch_ = el.Value;
-      }
-      catch (XmlException e)
-      {
-        Debug.WriteLine(e.Message);
-      }
-    }
-
-    private void ParseThreadsString(string msg)
-    {
-      Debug.WriteLine(msg);
-      try
-      {
-        XElement threadsString = XElement.Parse(msg);
-        foreach (XElement el in threadsString.Descendants("thread"))
-        {
-          string tidStr = el.Attribute("id").Value;
-          uint tid = Convert.ToUInt32(tidStr, 16);
-
-          threads_.Add(
-              new Thread(
-                  this,
-                  String.Format("Thread {0}", tid),
-                  tid));
-        }
-      }
-      catch (Exception e)
-      {
-        Debug.WriteLine(e.Message);
-      }
-    }
-
-    // Renamed from SetPath because we renamed SetPath->LoadModuleWithPath
-    // in NaClDebugger.cs
-    // FIXME(mmortensen) -- this function does not appear to be used!
-    private void LoadModuleWithPath(string msg)
-    {
-      Debug.WriteLine(msg);
-      mainModule_.Url = msg;
-      mainModule_.Name = System.IO.Path.GetFileName(msg);
-      mainModule_.UrlSymbolLocation = msg;
-
-      SendEvent(null,
-                new Ad7Events.DebugModuleLoadEvent(mainModule_,
-                  "Loading module", true));
-
-      string symbolStatus;
-      dbg_.Symbols.LoadModule(msg, 0x0000000c00000000, out symbolStatus);
-      mainModule_.DebugMessage = symbolStatus;
-      SendEvent(null,
-                new Ad7Events.DebugSymbolSearchEvent(mainModule_,
-                                                     "DWARF symbols loaded",
-                                                     enum_MODULE_INFO_FLAGS.
-                                                         MIF_SYMBOLS_LOADED));
-
-    }
-
-    internal void SendEvent(IDebugThread2 thread, Ad7Events.DebugEvent evt)
-    {
-      engine_.SendEvent(this, thread, evt);
-    }
-    #endregion
-
-    #region Private Implementation
+    private readonly INaClDebugger dbg_ = new NaClDebugger(0x0000000c00000000);
 
     private readonly Module mainModule_ = new Module();
     private readonly Thread mainThread_;
     private readonly List<Module> modules_ = new List<Module>();
+    private readonly NaClDebugProcess process_;
 
     private readonly Dictionary<int, string> sourceIdToPath_ =
         new Dictionary<int, string>();
 
     private readonly List<Thread> threads_ = new List<Thread>();
-    
+
     // TODO(ilewis): get the base address from the debuggee instead
     // of hardcoding it
-    private readonly NaClDebugger dbg_ = new NaClDebugger(0x0000000c00000000);
 
     private string arch_;
     private Engine engine_;
@@ -467,9 +366,122 @@ namespace Google.NaClVsx.DebugSupport {
         new Dictionary<string, int>();
 
     private Guid programGuid_ = Guid.NewGuid();
-    private NaClDebugProcess process_;
 
     #endregion
 
-                             }
+    #region Private Implementation
+
+    private void LoadModuleWithPath(string msg) {
+      Debug.WriteLine(msg);
+      mainModule_.Url = msg;
+      mainModule_.Name = Path.GetFileName(msg);
+      mainModule_.UrlSymbolLocation = msg;
+
+      SendEvent(
+          null,
+          new Ad7Events.DebugModuleLoadEvent(
+              mainModule_,
+              "Loading module",
+              true));
+
+      string symbolStatus;
+      dbg_.Symbols.LoadModule(msg, 0x0000000c00000000, out symbolStatus);
+      mainModule_.DebugMessage = symbolStatus;
+      SendEvent(
+          null,
+          new Ad7Events.DebugSymbolSearchEvent(
+              mainModule_,
+              "DWARF symbols loaded",
+              enum_MODULE_INFO_FLAGS.
+                  MIF_SYMBOLS_LOADED));
+    }
+
+    private void OnBreak(GdbProxy.ResultCode status, string msg, byte[] data) {
+      SendEvent(mainThread_, new Ad7Events.DebugBreakEvent());
+    }
+
+    void OnContinueEvent(ISimpleDebugger sender,
+                         SimpleDebuggerTypes.EventType t,
+                         SimpleDebuggerTypes.ResultCode status) {
+      Debug.WriteLine("Debug event: Continue");
+    }
+
+    private void OnModuleLoaded(ISimpleDebugger sender,
+                                string modulepath,
+                                string status) {
+      Debug.WriteLine(string.Format("{0}: {1}", modulepath, status));
+      mainModule_.Url = modulepath;
+      mainModule_.Name = Path.GetFileName(modulepath);
+      mainModule_.UrlSymbolLocation = modulepath;
+
+      SendEvent(
+          null,
+          new Ad7Events.DebugModuleLoadEvent(
+              mainModule_,
+              "Loading module",
+              true));
+
+      SendEvent(
+          null,
+          new Ad7Events.DebugSymbolSearchEvent(
+              mainModule_,
+              "DWARF symbols loaded",
+              enum_MODULE_INFO_FLAGS.
+                  MIF_SYMBOLS_LOADED));
+    }
+
+    void OnStepFinished(ISimpleDebugger sender,
+                        SimpleDebuggerTypes.EventType t,
+                        SimpleDebuggerTypes.ResultCode status) {
+      SendEvent(mainThread_, new Ad7Events.DebugStepCompleteEvent());
+    }
+
+    void OnStopEvent(ISimpleDebugger sender,
+                     SimpleDebuggerTypes.EventType eventType,
+                     SimpleDebuggerTypes.ResultCode status) {
+      Debug.WriteLine("Debug event: Break");
+      engine_.EnableAllBreakpoints(false);
+      SendEvent(mainThread_, new Ad7Events.DebugBreakEvent());
+    }
+
+    private void ParseArchString(string msg) {
+      Debug.WriteLine(msg);
+      try {
+        var targetString = XElement.Parse(msg);
+        var archElements =
+            targetString.Descendants("architecture");
+        var el = archElements.FirstOrDefault();
+        arch_ = el.Value;
+      }
+      catch (XmlException e) {
+        Debug.WriteLine(e.Message);
+      }
+    }
+
+    private void ParseThreadsString(string msg) {
+      Debug.WriteLine(msg);
+      try {
+        var threadsString = XElement.Parse(msg);
+        foreach (var el in threadsString.Descendants("thread")) {
+          var tidStr = el.Attribute("id").Value;
+          var tid = Convert.ToUInt32(tidStr, 16);
+
+          threads_.Add(
+              new Thread(
+                  this,
+                  String.Format("Thread {0}", tid),
+                  tid));
+        }
+      }
+      catch (Exception e) {
+        Debug.WriteLine(e.Message);
+      }
+    }
+
+    #endregion
+
+    internal void SendEvent(IDebugThread2 thread, Ad7Events.DebugEvent evt) {
+      engine_.SendEvent(this, thread, evt);
+    }
+        }
 }
