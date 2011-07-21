@@ -39,7 +39,7 @@ namespace Google.NaClVsx.ProjectSupport
 
     [Category("ChromeUrl")]
     [DisplayName("Html for web application")]
-    [ProjectProperty("Html", true)]
+    [ProjectProperty("HtmlPage", true)]
     public string HtmlPage
     {
       get { return htmlPage_; }

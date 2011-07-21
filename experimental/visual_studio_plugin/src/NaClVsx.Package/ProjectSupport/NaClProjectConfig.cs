@@ -89,12 +89,12 @@ namespace Google.NaClVsx.ProjectSupport
       // and an html file.  It is expected that users will need to
       // modify this, but the format of this should help them 
       // easily know what to modify (i.e. port, html page, etc.).
-      if (GetConfigurationProperty("Html", false) == null) {
-        SetConfigurationProperty("Html", "YourProject.html");
+      if (GetConfigurationProperty("HtmlPage", false) == null) {
+        SetConfigurationProperty("HtmlPage", "YourProject.html");
       }
-      if (GetConfigurationProperty("LaunchHost", false) == null)
+      if (GetConfigurationProperty("LaunchHostname", false) == null)
       {
-        SetConfigurationProperty("LaunchHost", "localhost");
+        SetConfigurationProperty("LaunchHostname", "localhost");
       }
       if (GetConfigurationProperty("LaunchPort", false) == null)
       {

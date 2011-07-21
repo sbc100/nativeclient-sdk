@@ -144,21 +144,39 @@
     <ZipItem Include="Templates\ProjectItems\HtmlFile\file.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </ZipItem>
-    <Content Include="Templates\Projects\NaClProject\NaClMain.c" />
-    <Content Include="Templates\Projects\NaClProject\NaClNexe.vstemplate" />
-    <Content Include="Templates\Projects\NaClProject\NaClProject.ico" />
-    <Content Include="Templates\Projects\NexePlugin\NexeMain.cc">
+    <ZipItem Include="Templates\ProjectItems\NmfFile\file.nmf" />
+    <ZipItem Include="Templates\ProjectItems\NmfFile\NmfIcon.ico" />
+    <ZipItem Include="Templates\ProjectItems\NmfFile\NaCl.vstemplate" />
+    <ZipItem Include="Templates\ProjectItems\JavascriptFile\NaCl.vstemplate" />
+    <ZipItem Include="Templates\ProjectItems\JavascriptFile\file.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </ZipItem>
+    <ZipItem Include="Templates\ProjectItems\JavascriptFile\JsIcon.ico" />
+    <Content Include="Templates\Projects\ConsoleApp\NaClMain.c">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Templates\Projects\NexePlugin\NexePlugin.vstemplate" />
-    <Content Include="Templates\Projects\NexePlugin\NaClProject.ico" />
-    <Content Include="Templates\Projects\NexePlugin\stub.html">
+    <None Include="Templates\Projects\ConsoleApp\NaClNexe.vstemplate" />
+    <Content Include="Templates\Projects\ConsoleApp\NaClProject.ico">
+    </Content>
+    <Content Include="Templates\Projects\WebApp\stub.nmf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Projects\WebApp\WebApp.cc">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Projects\WebApp\WebApp.vstemplate">
+    </Content>
+    <Content Include="Templates\Projects\WebApp\NaClProject.ico">
+    </Content>
+    <Content Include="Templates\Projects\WebApp\stub.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Templates\Projects\NaClProject\NaClNexe.naclproj" />
-    <None Include="Templates\Projects\NexePlugin\NexePlugin.naclproj" />
+    <None Include="Templates\Projects\ConsoleApp\NaClNexe.naclproj">
+    </None>
+    <None Include="Templates\Projects\WebApp\WebApp.naclproj">
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\third_party\Microsoft.VisualStudio.Project\Microsoft.VisualStudio.Project.csproj">

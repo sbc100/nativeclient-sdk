@@ -1,0 +1,14 @@
+<VSTemplate Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>file.js</DefaultName>
+    <Name>JavascriptFile</Name>
+    <Description>A JavaScript file</Description>
+    <Icon>JsIcon.ico</Icon>
+    <ProjectType>NaCl</ProjectType>
+    <SortOrder>10</SortOrder>
+  </TemplateData>
+  <TemplateContent>
+    <References />
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.js" ItemType="Content" ReplaceParameters="true">file.js</ProjectItem>
+  </TemplateContent>
+</VSTemplate>
