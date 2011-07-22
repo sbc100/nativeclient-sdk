@@ -147,11 +147,11 @@ class DebuggeeThread {
   /// @param[in] debug_event debug event received from debuggee process
   void OnOutputDebugString(DebugEvent* debug_event);
 
-  /// Handler for EXCEPTION_DEBUG_EVENT.EXCEPTION_kBreakPOINT
+  /// Handler for EXCEPTION_DEBUG_EVENT.EXCEPTION_BREAKPOINT
   /// @param[in] debug_event debug event received from debuggee process
   void OnBreakpoint(DebugEvent* debug_event);
 
-  /// Handler for EXCEPTION_DEBUG_EVENT.EXCEPTION_SINGLE_kStep
+  /// Handler for EXCEPTION_DEBUG_EVENT.EXCEPTION_SINGLE_STEP
   /// @param[in] debug_event debug event received from debuggee process
   void OnSingleStep(DebugEvent* debug_event);
 

@@ -25,7 +25,8 @@ const char* kBitsString = "32-bits";
 const char* kHelpString =
     "Usage: nacl-gdb_server [options] --program \"program to debug\"\n"
     "Options:\n"
-    "    --port port number (port to listen for a TCP connection)\n\n"
+    "    --port <number> : port to listen for a TCP connection\n"
+    "    --cm  : compatibility mode\n\n"
     "Example:\n"
     "nacl-gdb_server --port 4014 --program \"c:\\chrome.exe --no-sandbox\"\n"
     "Note: there's no need to specify --no-sandbox flag.\n"
@@ -54,30 +55,28 @@ int main(int argc, char **argv) {
     printf("%s\n", kHelpString);
     return 0;
   }
-  std::string cmd = command_line.GetStringSwitch("program", "");
+  std::string cmd = command_line.GetStringSwitch("-program", "");
   if (0 == cmd.size()) {
     printf("Error: program to debug shall be specified with "
            "\"--program\" switch.");
     return kErrNoProgramSpecified;
   }
-  int port = command_line.GetIntSwitch("port", kDefaultPort);
+  int port = command_line.GetIntSwitch("-port", kDefaultPort);
+  bool compatibility_mode = command_line.HasSwitch("-cm");
 
   debug::TextFileLogger log;
   log.Open("debug_log.txt");
   debug::Logger::SetGlobalLogger(&log);
 
   debug::DebugAPI debug_api;
-  debug::DebugServer debug_server(&debug_api);
+  debug::DebugServer debug_server(&debug_api, port);
+
+  if (compatibility_mode)
+    debug_server.EnableCompatibilityMode();
+
   if (!debug_server.Init()) {
     DBG_LOG("ERR101.01", "msg='debug_server.Init failed'");
     return kErrDebugServerInitFailed;
-  }
-
-  if (!debug_server.ListenOnPort(port)) {
-    DBG_LOG("ERR101.02",
-            "msg='debug_server.ListenOnPort failed' port=%d",
-            port);
-    return kErrListenOnPortFailed;
   }
 
   if (!debug_server.StartProcess(cmd.c_str(), NULL)) {

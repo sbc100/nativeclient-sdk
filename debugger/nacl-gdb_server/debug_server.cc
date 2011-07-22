@@ -36,7 +36,7 @@ const int kErrorThreadIsDead = 10;
 }  // namespace
 
 namespace debug {
-DebugServer::DebugServer(DebugAPI* debug_api)
+DebugServer::DebugServer(DebugAPI* debug_api, int listen_port)
     : debug_api_(*debug_api),
       logger_(NULL),
       state_(kIdle),
@@ -44,6 +44,8 @@ DebugServer::DebugServer(DebugAPI* debug_api)
       execution_engine_(NULL),
       focused_process_id_(0),
       focused_thread_id_(0),
+      compatibility_mode_(false),
+      listen_port_(listen_port),
       continue_from_halt_(false) {
 }
 
@@ -55,6 +57,10 @@ DebugServer::~DebugServer() {
     delete logger_;
 }
 
+void DebugServer::EnableCompatibilityMode() {
+  compatibility_mode_ = true;
+}
+
 bool DebugServer::Init() {
   rsp_packetizer_.SetPacketConsumer(this);
   execution_engine_ = new ExecutionEngine(&debug_api_);
@@ -63,13 +69,28 @@ bool DebugServer::Init() {
   log->Open("nacl-gdb_server_log.txt");
   log->EnableStdout(true);
   logger_ = log;
-  return (NULL != execution_engine_);
+
+  if (NULL == execution_engine_)
+    return false;
+
+  if (!compatibility_mode_)
+    return ListenForRspConnection();
+
+  return true;
 }
 
-bool DebugServer::ListenOnPort(int port) {
-  bool res = listening_socket_.Listen(port);
+bool DebugServer::ListenForRspConnection() {
+  assert(NULL != logger_);
+  bool res = listening_socket_.Listen(listen_port_);
   if (res)
-    logger_->Log("TR100.1", "Started listening on port %d ...\n", port);
+    logger_->Log("TR100.1",
+                 "Started listening on port %d ...\n",
+                 listen_port_);
+  else
+    logger_->Log("ERR100.7",
+                 "DebugServer::ListenForRspConnection failed port=%d",
+                 listen_port_);
+
   return res;
 }
 
@@ -143,12 +164,22 @@ void DebugServer::HandleExecutionEngine(int wait_ms) {
     }
     if (debug::DebugEvent::kThreadIsAboutToStart ==
         de.nacl_debug_event_code()) {
-      if ((NULL != halted_thread) && halted_thread->IsNaClAppThread())
+      if ((NULL != halted_thread) && halted_thread->IsNaClAppThread()) {
         logger_->Log("TR100.5",
                     "NaClThreadStart mem_base=%p entry_point=%p thread_id=%d\n",
                     halted_process->nexe_mem_base(),
                     halted_process->nexe_entry_point(),
                     halted_thread->id());
+        if (compatibility_mode_ && (kStarting == state_)) {
+          char* base =
+              reinterpret_cast<char*>(halted_process->nexe_mem_base());
+          uint64_t entry =
+              reinterpret_cast<uint64_t>(halted_process->nexe_entry_point());
+          halted_process->SetBreakpoint(base + entry);
+          halted_process->Continue();
+          return;
+        }
+      }
     }
     bool halt_debuggee = false;
     bool pass_exception = true;
@@ -198,8 +229,17 @@ void DebugServer::OnHaltedProcess(IDebuggeeProcess* halted_process,
   if (state_ == kRunning)
     SendRspMessageToClient(rsp::CreateStopReplyPacket(debug_event));
 
-  if (kStarting == state_)
+  if (kStarting == state_) {
     state_ = kRunning;
+    if (compatibility_mode_) {
+      char* base =
+          reinterpret_cast<char*>(halted_process->nexe_mem_base());
+      uint64_t entry =
+          reinterpret_cast<uint64_t>(halted_process->nexe_entry_point());
+      halted_process->RemoveBreakpoint(base + entry);
+      ListenForRspConnection();
+    }
+  }
 }
 
 void DebugServer::SendRspMessageToClient(const rsp::Packet& msg) {

@@ -20,6 +20,16 @@ const char* kNexeThreadCreateMsg =
     "{7AA7C9CF-89EC-4ed3-8DAD-6DC84302AB11} -version 1 "
     "-event ThreadCreate -natp 00000000001CD3F0 ";
 
+const char* kNexeAppStartMsg =
+    "{7AA7C9CF-89EC-4ed3-8DAD-6DC84302AB11} -version 1 "
+    "-event AppCreate -nap 00000000001CD3F0 "
+    "-mem_start 0000000C0000000 "
+    "-user_entry_pt 0000000000020080 "
+    "-initial_entry_pt 0000000008000080";
+void* kEntryAddr = reinterpret_cast<void*>(0xC0000000 + 0x20080);
+debug::IDebuggeeProcess* kNullProcPtr =
+    reinterpret_cast<debug::IDebuggeeProcess*>(0);
+
 uint32_t kReg1 = 0x1234;
 uint32_t kReg2 = 0x0c83;
 uint32_t kReg3 = 0x3325;
@@ -97,6 +107,10 @@ class TestableDebugServer : public debug::DebugServer {
                             bool* halt,
                             bool* pass_exception);
 
+  debug::IDebuggeeProcess* GetFocusedProcess() {
+    return debug::DebugServer::GetFocusedProcess();
+  }
+
   int received_packets_num_;
 };
 
@@ -106,13 +120,15 @@ class DebugServerTest : public ::testing::Test {
   DebugServerTest() : srv_(NULL) {}
   ~DebugServerTest();
 
-  bool Init(int port);
+  bool Init(int port, bool compatibility_mode);
   bool Connect();
+  void SetNaclMemBase(void* addr);
   void PostMsg(const char* msg);
   std::string ReceiveReply();
   std::string RPC(const std::string& request);
   std::string RPC(const debug::Blob& request);
   bool StartNaClProc();
+  bool InitAndStartNaClProc();
   bool WaitForOneMoreCommand();
   void FillRegistersWithCrap(CONTEXT* ct);
   bool VerifyRegisters(const CONTEXT& ct);
@@ -136,7 +152,7 @@ TEST_F(DebugServerTest, LogFileCreated) {
   ASSERT_EQ(INVALID_FILE_ATTRIBUTES, attr);
 
   debug::DebugAPIMock api;
-  debug::DebugServer srv(&api);
+  debug::DebugServer srv(&api, kListPort);
   EXPECT_FALSE(srv.ProcessExited());
 
   // Check that log file is created.
@@ -151,16 +167,16 @@ TEST_F(DebugServerTest, ListenFails) {
   ASSERT_TRUE(listening_socket.Listen(kListPort));
 
   debug::DebugAPIMock api;
-  debug::DebugServer srv(&api);
-  EXPECT_FALSE(srv.ListenOnPort(kListPort));
+  debug::DebugServer srv(&api, kListPort);
+  EXPECT_FALSE(srv.Init());
 }
 
 TEST_F(DebugServerTest, ListenOk) {
-  ASSERT_TRUE(Init(kListPort));
+  ASSERT_TRUE(Init(kListPort, false));
 }
 
 TEST_F(DebugServerTest, ConnectOk) {
-  ASSERT_TRUE(Init(kListPort));
+  ASSERT_TRUE(Init(kListPort, false));
   debug::Socket conn;
   ASSERT_TRUE(conn.ConnectTo("localhost", kListPort));
   conn.Close();
@@ -172,7 +188,7 @@ TEST_F(DebugServerTest, ConnectOk) {
 #define STR2BUFF_LEN(str) str, strlen(str)
 
 TEST_F(DebugServerTest, StopReqFails) {
-  ASSERT_TRUE(Init(kListPort));
+  ASSERT_TRUE(Init(kListPort, false));
   debug::Socket conn;
   ASSERT_TRUE(conn.ConnectTo("localhost", kListPort));
   conn.WriteAll(STR2BUFF_LEN("$?#3f"));
@@ -220,24 +236,12 @@ TEST_F(DebugServerTest, StartProc) {
 }
 
 TEST_F(DebugServerTest, StartNexeProc) {
-  ASSERT_TRUE(Connect());
-  EXPECT_TRUE(srv_->StartProcess("", NULL));
-
-  DEBUG_EVENT de = CreateWinDebugEvent(CREATE_PROCESS_DEBUG_EVENT);
-  mock_debug_api_.events_.push_back(de);
-  DEBUG_EVENT de2;
-  InitDebugEventWithString(kNexeThreadCreateMsg, &de2);
-  mock_debug_api_.events_.push_back(de2);
-
-  srv_->DoWork(0);
-  srv_->DoWork(0);
-  debug::IDebuggeeProcess* proc = srv_->GetFocusedProc();
-  EXPECT_NE(reinterpret_cast<void*>(NULL), proc);
+  ASSERT_TRUE(InitAndStartNaClProc());
   EXPECT_CSTREQ("S13", RPC("?"));
 }
 
 TEST_F(DebugServerTest, StartNexeProcAndContinue) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
   EXPECT_CSTREQ("S13", RPC("?"));
   PostMsg("c");
 
@@ -248,7 +252,7 @@ TEST_F(DebugServerTest, StartNexeProcAndContinue) {
 }
 
 TEST_F(DebugServerTest, StartNexeProcAndContinueAndHitBr) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
   EXPECT_CSTREQ("S13", RPC("?"));
   PostMsg("c");
 
@@ -266,7 +270,7 @@ TEST_F(DebugServerTest, StartNexeProcAndContinueAndHitBr) {
 }
 
 TEST_F(DebugServerTest, ReadRegs) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
   FillRegistersWithCrap(&mock_debug_api_.thread_context_);
 
   std::string reply = RPC("g");
@@ -281,7 +285,7 @@ TEST_F(DebugServerTest, ReadRegs) {
 }
 
 TEST_F(DebugServerTest, WriteRegs) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
   CONTEXT ct;
   memset(&ct, 0, sizeof(ct));
   FillRegistersWithCrap(&ct);
@@ -294,7 +298,9 @@ TEST_F(DebugServerTest, WriteRegs) {
 }
 
 TEST_F(DebugServerTest, ReadMemory) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
+  SetNaclMemBase(0);
+
   char mem[] = "123";
   debug::Blob cmd;
   rsp::Format(&cmd, "m%p,3", mem);
@@ -304,7 +310,9 @@ TEST_F(DebugServerTest, ReadMemory) {
 }
 
 TEST_F(DebugServerTest, ReadMoreMemory) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
+  SetNaclMemBase(0);
+
   char some_memory[512];
   FillMemoryWithNicePattern(some_memory, sizeof(some_memory));
   debug::Blob blob(some_memory, sizeof(some_memory));
@@ -316,7 +324,9 @@ TEST_F(DebugServerTest, ReadMoreMemory) {
 }
 
 TEST_F(DebugServerTest, WriteMemory) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
+  SetNaclMemBase(0);
+
   char some_memory[3];
   memset(some_memory, 0, sizeof(some_memory));
 
@@ -331,7 +341,9 @@ TEST_F(DebugServerTest, WriteMemory) {
 }
 
 TEST_F(DebugServerTest, WriteMoreMemory) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
+  SetNaclMemBase(0);
+
   char some_memory[256];
   memset(some_memory, 0, sizeof(some_memory));
 
@@ -365,7 +377,7 @@ TEST_F(DebugServerTest, GetThreadList) {
 }
 
 TEST_F(DebugServerTest, GetCurrentThread) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
   debug::Blob expected_reply;
   rsp::Format(&expected_reply, "QC%x", ::GetCurrentThreadId());
   EXPECT_CSTREQ(expected_reply.ToString(), RPC("qC"));
@@ -458,11 +470,26 @@ TEST_F(DebugServerTest, MakeContinueDecision1) {
   }
 }
 
+TEST_F(DebugServerTest, CompatibilityMode) {
+  ASSERT_TRUE(Init(kListPort, true));
+  EXPECT_FALSE(conn_.ConnectTo("localhost", kListPort));
+  EXPECT_TRUE(StartNaClProc());
+
+  DEBUG_EVENT de = CreateWinDebugEvent(EXCEPTION_DEBUG_EVENT,
+                                       EXCEPTION_BREAKPOINT);
+  de.u.Exception.ExceptionRecord.ExceptionAddress = kEntryAddr;
+  mock_debug_api_.events_.push_back(de);
+  srv_->DoWork(0);
+
+  EXPECT_TRUE(conn_.ConnectTo("localhost", kListPort));
+  EXPECT_CSTREQ("S05", RPC("?"));
+}
+
 /////////////////////////////////////////////////////////
 // Implementation of helper functions.
 /////////////////////////////////////////////////////////
 void DebugServerTest::AddSecondNaClAppThread(int* id) {
-  ASSERT_TRUE(StartNaClProc());
+  ASSERT_TRUE(InitAndStartNaClProc());
   PostMsg("c");
   ASSERT_TRUE(WaitForOneMoreCommand());
 
@@ -612,7 +639,9 @@ BOOL DebugAPIMock2::ReadProcessMemory(HANDLE hProcess,
                                          lpBuffer,
                                          nSize,
                                          lpNumberOfBytesRead);
-  if ((NULL != lpBuffer) && (NULL != lpBaseAddress))
+  if ((NULL != lpBuffer) &&
+     (NULL != lpBaseAddress) &&
+     (kEntryAddr != lpBaseAddress))
     memcpy(lpBuffer, lpBaseAddress, nSize);
   return TRUE;
 }
@@ -627,6 +656,9 @@ BOOL DebugAPIMock2::WriteProcessMemory(HANDLE hProcess,
                                           lpBuffer,
                                           nSize,
                                           lpNumberOfBytesWritten);
+  if ((NULL != lpBuffer) &&
+     (NULL != lpBaseAddress) &&
+     (kEntryAddr != lpBaseAddress))
   memcpy(lpBaseAddress, lpBuffer, nSize);
   return TRUE;
 }
@@ -644,7 +676,7 @@ BOOL DebugAPIMock2::SetThreadContext(HANDLE hThread, CONTEXT* lpContext) {
 }
 
 TestableDebugServer::TestableDebugServer(debug::DebugAPIMock* api)
-    : debug::DebugServer(api),
+    : debug::DebugServer(api, kListPort),
       received_packets_num_(0) {
 }
 
@@ -675,19 +707,27 @@ DebugServerTest::~DebugServerTest() {
     delete srv_;
 }
 
-bool DebugServerTest::Init(int port) {
+bool DebugServerTest::Init(int port, bool compatibility_mode) {
   srv_ = new TestableDebugServer(&mock_debug_api_);
   if (NULL == srv_)
     return false;
-  if (!srv_->Init())
-    return false;
-  return srv_->ListenOnPort(port);
+
+  if (compatibility_mode)
+    srv_->EnableCompatibilityMode();
+
+  return srv_->Init();
 }
 
 bool DebugServerTest::Connect() {
-  if (!Init(kListPort))
+  if (!Init(kListPort, false))
     return false;
   return conn_.ConnectTo("localhost", kListPort);
+}
+
+void DebugServerTest::SetNaclMemBase(void* addr) {
+  debug::IDebuggeeProcess* proc = srv_->GetFocusedProcess();
+  if (NULL != proc)
+    proc->set_nexe_mem_base(addr);
 }
 
 void DebugServerTest::PostMsg(const char* msg) {
@@ -724,18 +764,27 @@ std::string DebugServerTest::RPC(const debug::Blob& request) {
   return RPC(request.ToString());
 }
 
-bool DebugServerTest::StartNaClProc() {
+bool DebugServerTest::InitAndStartNaClProc() {
   if (!Connect())
     return false;
+  return StartNaClProc();
+}
+
+bool DebugServerTest::StartNaClProc() {
   if (!srv_->StartProcess("", NULL))
     return false;
-  DEBUG_EVENT wde = CreateWinDebugEvent(CREATE_PROCESS_DEBUG_EVENT);
-  mock_debug_api_.events_.push_back(wde);
+  DEBUG_EVENT wde1 = CreateWinDebugEvent(CREATE_PROCESS_DEBUG_EVENT);
+  mock_debug_api_.events_.push_back(wde1);
+  srv_->DoWork(0);
 
   DEBUG_EVENT wde2;
-  InitDebugEventWithString(kNexeThreadCreateMsg, &wde2);
+  InitDebugEventWithString(kNexeAppStartMsg, &wde2);
   mock_debug_api_.events_.push_back(wde2);
   srv_->DoWork(0);
+
+  DEBUG_EVENT wde3;
+  InitDebugEventWithString(kNexeThreadCreateMsg, &wde3);
+  mock_debug_api_.events_.push_back(wde3);
   srv_->DoWork(0);
   return true;
 }

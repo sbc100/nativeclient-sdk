@@ -29,15 +29,28 @@ class DebuggeeThread;
 class DebugServer : public rsp::PacketConsumerInterface,
     public rsp::PacketVisitor {
  public:
-  explicit DebugServer(DebugAPI* debug_api);
+  /// @param[in] debug_api pointer to DebugAPI object.
+  /// DebugServer  doesn't take ownership of |debug_api|.
+  /// @param[in] listen_port port to listen on (for RSP client).
+  explicit DebugServer(DebugAPI* debug_api, int listen_port);
   ~DebugServer();
 
-  bool Init();
+  /// If enabled, nacl-gdb_server runs in the mode
+  /// compatible with in-process debug stub:
+  /// 1) don't accept RSP connection until breakpoint at |_start| is hit.
+  /// 2) once received kThreadIsAboutToStart event:
+  ///   - set breakpoint at |user_entry|
+  ///   - continue
+  /// 3) once hit breakpoint at |user_entry|:
+  ///   - remove breakpoint: ip--, write mem with original code
+  ///   - halt
+  ///   - start accepting RSP connections
+  /// Note: it shall be called before calling |Init|.
+  void EnableCompatibilityMode();
 
-  /// Starts listening for incoming connection.
-  /// @param[in] port port to listen on.
+  /// Initializes internal objects.
   /// @return true if operation succeeds.
-  bool ListenOnPort(int port);
+  bool Init();
 
   /// Starts debugee process, it will be attached to debugger.
   /// Note: for DebugServer to work correctly, |cmd| shall specify valid
@@ -68,6 +81,10 @@ class DebugServer : public rsp::PacketConsumerInterface,
   bool ProcessExited() const;
 
  protected:
+  /// Starts listening for incoming RSP connection.
+  /// @return true if operation succeeds.
+  bool ListenForRspConnection();
+
   void HandleNetwork();
   void HandleExecutionEngine(int wait_ms);
   void SendRspMessageToClient(const rsp::Packet& msg);
@@ -134,6 +151,8 @@ class DebugServer : public rsp::PacketConsumerInterface,
   ExecutionEngine* execution_engine_;
   int focused_process_id_;
   int focused_thread_id_;
+  bool compatibility_mode_;
+  int listen_port_;
 
   // So that we don't send unsolicited rsp::StopReply.
   bool continue_from_halt_;
