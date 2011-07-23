@@ -151,32 +151,6 @@ static void Instance_DidChangeFocus(PP_Instance instance,
 }
 
 /**
- * General handler for input events. Returns true if the event was handled or
- * false if it was not.
- *
- * If the event was handled, it will not be forwarded to the web page or
- * browser. If it was not handled, it will bubble according to the normal
- * rules. So it is important that the NaCl module respond accurately with
- * whether event propagation should continue.
- *
- * Event propagation also controls focus. If you handle an event like a mouse
- * event, typically your NaCl module will be given focus. Returning false means
- * that the click will be given to a lower part of the page and your NaCl
- * module will not receive focus. This allows a plugin to be partially
- * transparent, where clicks on the transparent areas will behave like clicks
- * to the underlying page.
- * @param[in] instance The identifier of the instance representing this NaCl
- *     module.
- * @param[in] event The event.
- * @return PP_TRUE if @a event was handled, PP_FALSE otherwise.
- */
-static PP_Bool Instance_HandleInputEvent(PP_Instance instance,
-                                         const struct PP_InputEvent* event) {
-  /* We don't handle any events. */
-  return PP_FALSE;
-}
-
-/**
  * Handler that gets called after a full-frame module is instantiated based on
  * registered MIME types.  This function is not called on NaCl modules.  This
  * function is essentially a place-holder for the required function pointer in
@@ -241,7 +215,6 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
       &Instance_DidDestroy,
       &Instance_DidChangeView,
       &Instance_DidChangeFocus,
-      &Instance_HandleInputEvent,
       &Instance_HandleDocumentLoad
     };
     return &instance_interface;
