@@ -1,7 +1,7 @@
 ﻿<VSTemplate Version="2.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
   <TemplateData>
-    <Name>Browser NaCl .nexe plugin (C++)</Name>
-    <Description>A project for creating a web app in C++</Description>
+    <Name>Browser NaCl .nexe plugin (C)</Name>
+    <Description>A project for creating a web app in C</Description>
     <Icon>NaClProject.ico</Icon>
     <ProjectType>NaCl</ProjectType>
     <SortOrder>50</SortOrder>
@@ -11,8 +11,8 @@
     <ProvideDefaultName>true</ProvideDefaultName>
   </TemplateData>
   <TemplateContent>
-    <Project File="WebApp.naclproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$.cpp" OpenInEditor="true">WebApp.cc</ProjectItem>
+    <Project File="WebApp_C.naclproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$.c" OpenInEditor="true">WebApp.c</ProjectItem>
       <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$.html">stub.html</ProjectItem>
       <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$.nmf">stub.nmf</ProjectItem>
     </Project>

@@ -7,13 +7,17 @@
     <RootNamespace>$safeprojectname$</RootNamespace>
     <AssemblyName>$safeprojectname$</AssemblyName>
     <MainFile>WebApp.cc</MainFile>
+    <NaClSDKRoot>$(NACL_SDK_ROOT)</NaClSDKRoot>
     <INCLUDES>-Ic:\src</INCLUDES>
     <OPT_FLAGS></OPT_FLAGS>
     <CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
     <Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
-    <LinkLibs>ppapi</LinkLibs>
+    <LinkLibs>ppapi;ppapi_cpp</LinkLibs>
+    <LaunchHostname>localhost</LaunchHostname>
+    <LaunchPort>5103</LaunchPort>
     <DebugHost>C:\Program Files (x86)\Google\Chrome\Application\chrome.exe</DebugHost>
-    <HtmlPage>stub.html</HtmlPage>
+    <HtmlPage>$safeprojectname$.html</HtmlPage>
+    <WebServer>$(NaClSDKRoot)\examples\httpd.cmd</WebServer>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,9 +31,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="WebApp.cc" />
-    <Content Include="stub.html" />
-    <Content Include="stub.nmf" />
+    <Compile Include="$safeprojectname$.cpp" />
+    <Content Include="$safeprojectname$.html" />
+    <Content Include="$safeprojectname$.nmf" />
   </ItemGroup>
 
 

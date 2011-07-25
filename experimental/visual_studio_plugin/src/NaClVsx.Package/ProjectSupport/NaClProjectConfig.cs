@@ -67,39 +67,6 @@ namespace Google.NaClVsx.ProjectSupport
       // Currently this is hardcoded, since we only support 64-bit debugging.
       Debug.WriteLine("In NaClProjectConfig");
       SetConfigurationProperty("TargetArch", "x86_64");
-
-      // If no value has been set for NaClSDKRoot, then we
-      // should set a default.  Otherwise, though, we should not
-      // change it, since a user could set it to a different
-      // SDK directory on their disk.
-      if (GetConfigurationProperty("NaClSDKRoot", false) == null) {
-        SetConfigurationProperty("NaClSDKRoot", "$(NACL_SDK_ROOT)");
-      }
-
-      // Set a default value for httpd.cmd.  The user could edit
-      // this to be some other program as a web server, or it could
-      // be empty.  This doesn't launch it, just provides a way
-      // to set and modify the value.
-      if (GetConfigurationProperty("WebServer", false) == null) {
-        SetConfigurationProperty("WebServer",
-          "$(NACL_SDK_ROOT)\\src\\examples\\httpd.cmd");
-      }
-
-      // Set a default value for URL that includes the host:port
-      // and an html file.  It is expected that users will need to
-      // modify this, but the format of this should help them 
-      // easily know what to modify (i.e. port, html page, etc.).
-      if (GetConfigurationProperty("HtmlPage", false) == null) {
-        SetConfigurationProperty("HtmlPage", "YourProject.html");
-      }
-      if (GetConfigurationProperty("LaunchHostname", false) == null)
-      {
-        SetConfigurationProperty("LaunchHostname", "localhost");
-      }
-      if (GetConfigurationProperty("LaunchPort", false) == null)
-      {
-        SetConfigurationProperty("LaunchPort", "5103");
-      }
     }
 
     /// <summary>
@@ -140,7 +107,17 @@ namespace Google.NaClVsx.ProjectSupport
       serverProcess_.StartInfo.WorkingDirectory =
         Path.GetDirectoryName(serverName);
       serverProcess_.StartInfo.Arguments = serverArgs;
-      serverProcess_.Start();
+
+      // try/catch will handle the exceptions that can be thrown in C# if the
+      // process fails to start for anyh reason (bad path, etc.).
+      try {
+        serverProcess_.Start();
+      } catch (Exception e) {
+        Debug.WriteLine("Caught an exception " + e);
+        MessageBox.Show(
+            "Tried to launch server process {" + serverName + "} with arguments {" +
+            serverArgs + "} but encountered exception:\n " + e);
+      }
       Debug.WriteLine("Name is " + serverProcess_.ProcessName);
     }
 

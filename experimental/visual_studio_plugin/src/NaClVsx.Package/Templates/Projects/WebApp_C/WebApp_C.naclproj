@@ -6,13 +6,18 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>$safeprojectname$</RootNamespace>
     <AssemblyName>$safeprojectname$</AssemblyName>
-    <NaClSDKRoot>$(NACL_SDK_ROOT)</NaClSDKRoot>    
-    <MainFile>NaClMain.c</MainFile>
-	<INCLUDES>-Ic:\src</INCLUDES>
-	<OPT_FLAGS></OPT_FLAGS>
-	<CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
-	<Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
-    <DebugHost>$(NaClSDKRoot)\toolchain\win_x86\bin\nacl64-sel_ldr.exe</DebugHost>	
+    <MainFile>WebApp.cc</MainFile>
+    <INCLUDES>-Ic:\src</INCLUDES>
+    <OPT_FLAGS></OPT_FLAGS>
+    <NaClSDKRoot>$(NACL_SDK_ROOT)</NaClSDKRoot>
+    <CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
+    <Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
+    <LinkLibs>ppapi</LinkLibs>
+    <DebugHost>C:\Program Files (x86)\Google\Chrome\Application\chrome.exe</DebugHost>
+    <HtmlPage>$safeprojectname$.html</HtmlPage>
+    <WebServer>$(NaClSDKRoot)\examples\httpd.cmd</WebServer>
+    <LaunchHostname>localhost</LaunchHostname>
+    <LaunchPort>5103</LaunchPort>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -26,7 +31,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="NaClMain.c" />
+    <Compile Include="$safeprojectname$.c" />
+    <Content Include="$safeprojectname$.html" />
+    <Content Include="$safeprojectname$.nmf" />
   </ItemGroup>
 
 
