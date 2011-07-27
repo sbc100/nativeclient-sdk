@@ -1,0 +1,103 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import make_nacl_env
+import nacl_utils
+import os
+
+nacl_env = make_nacl_env.NaClEnvironment(use_c_plus_plus_libs=True)
+nacl_env.Append(
+    # Add a CPPPATH that enables the full-path #include directives, such as
+    # #include "examples/sine_synth/sine_synth.h"
+    CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+   )
+
+sources = ['life.cc',
+           'life_application.cc',
+           'life_module.cc',
+           'stamp.cc',
+           os.path.join('audio', 'audio_player.cc'),
+           os.path.join('audio', 'web_wav_sound_resource.cc'),
+           os.path.join('scripting', 'scripting_bridge.cc'),
+          ]
+
+opt_life, dbg_life = nacl_env.AllNaClModules(sources, 'life')
+
+install_dir = os.getenv('INSTALL_ROOT',
+                        os.path.join(os.getenv('HOME'),
+                                     'Sites',
+                                     'conways_life'))
+
+install_app = nacl_env.Install(dir=install_dir,
+                               source=opt_life + ['life.html',
+                                                  'life.nmf',
+                                                  'closure.js',
+                                                  'life.js',
+                                                 ])
+
+install_controllers = nacl_env.Install(
+    dir=os.path.join(install_dir, 'controllers'),
+    source=[os.path.join('controllers', 'stamp_editor.js'),
+            os.path.join('controllers', 'stamp_panel.js'),
+            os.path.join('controllers', 'viewcontroller.js'),
+           ])
+
+install_events = nacl_env.Install(
+    dir=os.path.join(install_dir, 'events'),
+    source=[os.path.join('events', 'dragger.js'),
+            os.path.join('events', 'event.js'),
+           ])
+
+install_css = nacl_env.Install(
+    dir=os.path.join(install_dir, 'css'),
+    source=[os.path.join('css', 'life.css'),
+            os.path.join('css', 'stamp_editor.css'),
+            os.path.join('css', 'toolbar.css'),
+           ])
+
+install_imgs = nacl_env.Install(
+    dir=os.path.join(install_dir, 'img'),
+    source=[os.path.join('img', 'dead_cell.png'),
+            os.path.join('img', 'live_cell.png'),
+            os.path.join('img', 'minus_button.png'),
+            os.path.join('img', 'pause_button.png'),
+            os.path.join('img', 'play_button.png'),
+            os.path.join('img', 'plus_button.png'),
+            os.path.join('img', 'toolbar-bg.png'),
+           ])
+
+# Doorbell sound by Mike Koenig: http://soundbible.com/165-Door-Bell.html
+# All other sounds from WavSource: http://www.wavsource.com/sfx/sfx.htm
+install_sounds = nacl_env.Install(
+    dir=os.path.join(install_dir, 'sounds'),
+    source=[os.path.join('sounds', 'ahem_x.wav'),
+            os.path.join('sounds', 'bicycle_bell.wav'),
+            os.path.join('sounds', 'boing_x.wav'),
+            os.path.join('sounds', 'doorbell.wav'),
+           ])
+
+install_life = nacl_env.Alias('install', [install_app,
+                                          install_controllers,
+                                          install_events,
+                                          install_css,
+                                          install_imgs,
+                                          install_sounds])
+
+# Install the app and all the tests.  Do not use this for publishing the web
+# site.
+test_install_runner = nacl_env.Install(dir=install_dir,
+                                       source=['test_runner.html', 'testing'])
+test_install_controllers = nacl_env.Install(
+    dir=os.path.join(install_dir, 'controllers'),
+    source=[os.path.join('controllers', 'viewcontroller_test.js'),
+           ])
+nacl_env.Alias('install_tests', [install_life,
+                                 test_install_runner,
+                                 test_install_controllers])
+
+# This target is used by the SDK build system to provide a prebuilt version
+# of the example in the SDK installer.
+nacl_env.InstallPrebuilt('conways_life')

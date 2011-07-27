@@ -60,7 +60,7 @@ int GetContentLength(const pp::URLResponseInfo response) {
 bool VerifyWavData(const char* data, size_t data_size) {
   // Do we have enough data.
   if (data_size < sizeof(WavRecord)) {
-  printf("Wav data size = %lu is too short.\n",
+  printf("Wav data size = %u is too short.\n",
          static_cast<uint32_t>(data_size));
     return false;
   }
@@ -76,7 +76,7 @@ bool VerifyWavData(const char* data, size_t data_size) {
   }
   // Check that we support the audio format.
   if (wav->sample_rate != 44100 && wav->sample_rate != 48000) {
-    printf("Wav sample rate = %li. MNacl only supports 44100 or 48000.\n",
+    printf("Wav sample rate = %i. MNacl only supports 44100 or 48000.\n",
            wav->sample_rate);
     return false;
   }
@@ -88,7 +88,7 @@ bool VerifyWavData(const char* data, size_t data_size) {
   bool check_audio_size = (wav->audio_chunk_size ==
           static_cast<int32_t>(data_size - sizeof(WavRecord) + 1));
   if (!check_audio_size) {
-    printf("Wav audio size: actual = %li, expected = %i\n",
+    printf("Wav audio size: actual = %i, expected = %i\n",
         wav->audio_chunk_size,
         static_cast<int>(data_size - sizeof(WavRecord) + 1));
   }
