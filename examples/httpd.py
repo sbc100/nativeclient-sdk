@@ -13,6 +13,7 @@ directory.
 
 import BaseHTTPServer
 import logging
+import optparse
 import os
 import SimpleHTTPServer
 import SocketServer
@@ -106,9 +107,20 @@ def Run(server_address,
 
 
 if __name__ == '__main__':
-  SanityCheckDirectory()
-  if len(sys.argv) > 1:
-    Run((SERVER_HOST, int(sys.argv[1])))
+  usage_str = "usage: %prog [options] [optional_portnum]"
+  parser = optparse.OptionParser(usage=usage_str)
+  parser.add_option(
+    '--no_dir_check', dest='do_safe_check',
+    action='store_false', default=True,
+    help='Do not ensure that httpd.py is being run from a safe directory.')
+  (options, args) = parser.parse_args(sys.argv)
+  if options.do_safe_check:
+    SanityCheckDirectory()
+  if len(args) > 2:
+    print 'Too many arguments specified.'
+    parser.print_help()
+  elif len(args) == 2:
+    Run((SERVER_HOST, int(args[1])))
   else:
     Run((SERVER_HOST, SERVER_PORT))
   sys.exit(0)

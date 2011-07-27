@@ -91,7 +91,10 @@ def TestingClosure(_outdir, _jobs):
 
       DEFAULT_SERVER_PORT = 5103
 
-      def runAndQuitHttpServer(port=DEFAULT_SERVER_PORT):
+      def runAndQuitHttpServer(port=DEFAULT_SERVER_PORT,
+                               alternate_cwd=None,
+                               extra_args=[],
+                               should_fail=False):
         '''A small helper function to launch the simple HTTP server.
 
         This function launches the simple HTTP server, then waits for its
@@ -112,13 +115,17 @@ def TestingClosure(_outdir, _jobs):
         # Add the port only if it's not the default.
         if port != DEFAULT_SERVER_PORT:
           command += [str(port)]
+        command += extra_args
         # Can't use annotator.Run() because the HTTP server doesn't stop, which
         # causes Run() to hang.
         annotator.Print('Starting server: %s' % command)
+        annotator.Print('extra_args=%s' % str(extra_args))
+        current_working_dir = path if alternate_cwd is None else alternate_cwd
+        annotator.Print('cwd=%s' % current_working_dir)
         process = subprocess.Popen(command,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT,
-                                   cwd=path)
+                                   cwd=current_working_dir)
         self.assertNotEqual(None, process)
         # Wait until the process starts by trying to send it a GET request until
         # the server responds, or until the timeout expires.  If the timeout
@@ -144,6 +151,17 @@ def TestingClosure(_outdir, _jobs):
             conn = None
             time.sleep(1)  # Wait a second to try again.
           time_now = time.time()
+
+        # If we expect the test to fail (e.g. bad directory without
+        # --no_dir_check) then there should be no connection.
+        if should_fail:
+          self.assertEqual(None, conn)
+          return_code = process.poll()
+          # If the process has not terminated, return_code will be None
+          # but since the server should have failed to launch, it should
+          # have terminated by now.
+          self.assertNotEqual(return_code, None)
+          return
 
         self.assertNotEqual(None, conn)
         # Validate the first line of the startup banner.  An example of the
@@ -171,6 +189,16 @@ def TestingClosure(_outdir, _jobs):
 
       runAndQuitHttpServer()
       runAndQuitHttpServer(5280)
+      # Make sure server works outside examles with --no_dir_check.
+      runAndQuitHttpServer(5281, alternate_cwd=_outdir,
+        extra_args=['--no_dir_check'])
+      # Make sure it works in examples with --no_dir_check.
+      runAndQuitHttpServer(5281, extra_args=['--no_dir_check'])
+      # Make sure the test fails if --no_dir_check is left out and the CWD
+      # is not examples.
+      runAndQuitHttpServer(5281, alternate_cwd=_outdir, should_fail=True)
+      # Retest port 5281 with the default parameters.
+      runAndQuitHttpServer(5281)
       return True
 
     def testValgrind(self):

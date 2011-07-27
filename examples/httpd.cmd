@@ -1,9 +1,8 @@
 @echo off
 setlocal
 
-REM Relative path of CygWin
-set CYGWIN=%~dp0%..\third_party\cygwin\bin
-
 PATH=%CYGWIN%;%PATH%
-
-python httpd.py
+REM Use the path to this file (httpd.cmd) to get the
+REM path to httpd.py, so that we can run httpd.cmd from
+REM any directory.  Pass up to 9 arguments to httpd.py.
+python %~dp0\httpd.py %1 %2 %3 %4 %5 %6 %7 %8 %9
