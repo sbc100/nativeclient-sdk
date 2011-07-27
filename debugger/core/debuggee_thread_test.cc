@@ -149,16 +149,6 @@ TEST_F(DebuggeeThreadTest, SimpleAccessorsForThisThread) {
   EXPECT_EQ(GetCurrentThreadId(), this_thread_->id());
 }
 
-TEST_F(DebuggeeThreadTest, ReadRegsForThisThread) {
-  CONTEXT zeroed_context;
-  memset(&zeroed_context, 0, sizeof(zeroed_context));
-  CONTEXT context;
-  EXPECT_TRUE(this_thread_->GetContext(&context));
-  EXPECT_NE(0, memcmp(&context, &zeroed_context, sizeof(context)));
-  const void* zero_ip = 0;
-  EXPECT_NE(zero_ip, this_thread_->GetIP());
-}
-
 TEST_F(DebuggeeThreadTest, RecvDebugUnicodeStringAndHalt) {
   DEBUG_EVENT wde;
   memset(&wde, 0, sizeof(wde));
@@ -352,15 +342,15 @@ TEST_F(DebuggeeThreadTest, FailIfNotHalted) {
 
   EXPECT_FALSE(fake_thread_->IsHalted());
   CONTEXT context;
-  EXPECT_FALSE(fake_thread_->GetContext(&context));
-  EXPECT_FALSE(fake_thread_->SetContext(context));
+  EXPECT_TRUE(fake_thread_->GetContext(&context));
+  EXPECT_TRUE(fake_thread_->SetContext(context));
 
   WOW64_CONTEXT wow_ctx;
-  EXPECT_FALSE(fake_thread_->GetWowContext(&wow_ctx));
-  EXPECT_FALSE(fake_thread_->SetWowContext(wow_ctx));
+  EXPECT_TRUE(fake_thread_->GetWowContext(&wow_ctx));
+  EXPECT_TRUE(fake_thread_->SetWowContext(wow_ctx));
 
   EXPECT_EQ(NULL, fake_thread_->GetIP());
-  EXPECT_FALSE(fake_thread_->SetIP(NULL));
+  EXPECT_TRUE(fake_thread_->SetIP(NULL));
 }
 
 TEST_F(DebuggeeThreadTest, NotFailIfHalted) {

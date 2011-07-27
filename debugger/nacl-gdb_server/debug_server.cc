@@ -175,6 +175,10 @@ void DebugServer::HandleExecutionEngine(int wait_ms) {
               reinterpret_cast<char*>(halted_process->nexe_mem_base());
           uint64_t entry =
               reinterpret_cast<uint64_t>(halted_process->nexe_entry_point());
+          char* br_addr = base + entry;
+          logger_->Log("TR100.6",
+                       "CompatibilityMode: setting breakpoint at %p",
+                       br_addr);
           halted_process->SetBreakpoint(base + entry);
           halted_process->Continue();
           return;
@@ -211,7 +215,7 @@ void DebugServer::OnHaltedProcess(IDebuggeeProcess* halted_process,
                                   const DebugEvent& debug_event) {
   char tmp[1000];
   debug_event.ToString(tmp, sizeof(tmp));
-  logger_->Log("TR100.6",
+  logger_->Log("TR100.7",
               "Halted: pid=%d tid=%d\ndebugevent=%s\n",
               halted_process->id(),
               halted_process->GetHaltedThread()->id(),
@@ -238,6 +242,7 @@ void DebugServer::OnHaltedProcess(IDebuggeeProcess* halted_process,
           reinterpret_cast<uint64_t>(halted_process->nexe_entry_point());
       halted_process->RemoveBreakpoint(base + entry);
       ListenForRspConnection();
+      logger_->Log("TR100.8", "CompatibilityMode: hit breakpoint");
     }
   }
 }

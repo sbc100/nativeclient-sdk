@@ -16,7 +16,7 @@ const int kDefaultPort = 4014;
 const int kErrorBuffSize = 2000;
 const int kWaitForDebugEventMilliseconds = 20;
 
-const char* kVersionString = "nacl-gdb_server v0.001";
+const char* kVersionString = "nacl-gdb_server v0.002";
 #ifdef _WIN64
 const char* kBitsString = "64-bits";
 #else

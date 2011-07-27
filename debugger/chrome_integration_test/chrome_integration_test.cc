@@ -54,8 +54,7 @@ const int kWaitForNexeSleepMs = 500;
 const char* kNexePath =
     "\\src\\examples\\hello_world_c\\hello_world_x86_%d_dbg.nexe";
 const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\nacl%d-objdump";
-const char* kNaclDebuggerPath =
-    "..\\nacl-gdb_server\\%sDebug\\nacl-gdb_server.exe";
+const char* kNaclDebuggerPath = "%sDebug\\nacl-gdb_server.exe";
 const char* kWebServerPath = "\\src\\examples\\httpd.cmd";
 
 std::string GetStringEnvVar(const std::string& name,
@@ -128,7 +127,7 @@ class NaclGdbServerTest : public ::testing::Test {
 
   /// Starts debugger with chrome sa debuggee.
   /// @return error code, 0 for success
-  int StartDebugger();
+  int StartDebugger(bool compatibility_mode);
 
   /// Connects to debugger RSP port.
   /// @return error code, 0 for success
@@ -163,7 +162,7 @@ int NaclGdbServerTest::InitAndWaitForNexeStart() {
   if (0 != (res = StartWebServer()))
     return res;
 
-  if (0 != (res = StartDebugger()))
+  if (0 != (res = StartDebugger(false)))
     return res;
 
   if (0 != (res = ConnectToDebugger()))
@@ -196,8 +195,9 @@ int NaclGdbServerTest::StartWebServer() {
   return 0;
 }
 
-int NaclGdbServerTest::StartDebugger() {
+int NaclGdbServerTest::StartDebugger(bool compatibility_mode) {
   std::string cmd = glb_nacl_debugger_path +
+      (compatibility_mode ? " --cm" : "") +
       " --program \"" + glb_browser_cmd + "\"";
   h_debugger_proc_ = process_utils::StartProcess(cmd);
   if (NULL == h_debugger_proc_)
@@ -321,18 +321,19 @@ bool NaclGdbServerTest::GetSymbolAddr(const std::string& name,
   return false;
 }
 
+// Tests start here.
 TEST_F(NaclGdbServerTest, StartWebServer) {
   EXPECT_EQ(0, StartWebServer());
 }
 
 TEST_F(NaclGdbServerTest, StartDebugger) {
   EXPECT_EQ(0, StartWebServer());
-  EXPECT_EQ(0, StartDebugger());
+  EXPECT_EQ(0, StartDebugger(false));
 }
 
 TEST_F(NaclGdbServerTest, ConnectToDebugger) {
   EXPECT_EQ(0, StartWebServer());
-  EXPECT_EQ(0, StartDebugger());
+  EXPECT_EQ(0, StartDebugger(false));
   EXPECT_EQ(0, ConnectToDebugger());
 }
 
@@ -370,6 +371,35 @@ TEST_F(NaclGdbServerTest, SetBreakpointAtEntryContinueAndHit) {
   uint64_t ip = 0;
   EXPECT_TRUE(regs_set.ReadRegisterFromGdbBlob(gdb_regs, "ip", &ip));
   EXPECT_EQ(start_addr + 1, ip);
+}
+
+TEST_F(NaclGdbServerTest, CompatibilityMode) {
+  EXPECT_EQ(0, StartWebServer());
+  EXPECT_EQ(0, StartDebugger(true));
+  EXPECT_EQ(0, ConnectToDebugger());
+  EXPECT_STREQ("S05", RPC("?").c_str());
+
+  uint64_t start_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("_start", &start_addr));
+
+  // Assumes sandbox with base memory address 0xc00000000;
+  // TODO(garianov): retrieve base address from nacl-gdb_server (add custom
+  // request).
+  uint64_t mem_base = 0xc00000000;
+  start_addr += mem_base;
+
+  debug::Blob gdb_regs;
+  EXPECT_TRUE(ReadRegisters(&gdb_regs));
+
+  debug::RegistersSet regs_set;
+  if (64 == glb_arch_size)
+    regs_set.InitializeForWin64();
+  else
+    regs_set.InitializeForWin32();
+
+  uint64_t ip = 0;
+  EXPECT_TRUE(regs_set.ReadRegisterFromGdbBlob(gdb_regs, "ip", &ip));
+  EXPECT_EQ(start_addr, ip);
 }
 
 namespace {
