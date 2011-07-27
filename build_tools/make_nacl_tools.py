@@ -75,12 +75,12 @@ def Install(options, tools):
                              '%s%s' % (nacl_tool, options.exe_suffix)),
                 os.path.join(options.toolchain,
                              'bin',
-                             'nacl-%s%s' % (nacl_tool, options.exe_suffix)))
+                             '%s_x86_32%s' % (nacl_tool, options.exe_suffix)))
     shutil.copy(os.path.join(tool_build_path_64,
                              '%s%s' % (nacl_tool, options.exe_suffix)),
                 os.path.join(options.toolchain,
                              'bin',
-                             'nacl64-%s%s' % (nacl_tool, options.exe_suffix)))
+                             '%s_x86_64%s' % (nacl_tool, options.exe_suffix)))
 
 
 #Cleans up the checkout directories if -c was provided as a command line arg.

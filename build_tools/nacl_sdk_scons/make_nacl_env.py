@@ -58,8 +58,8 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
               # NOTE: use g++ for linking so we can handle C AND C++.
               LINK=os.path.join(tool_bin_path, 'nacl-g++'),
               LD=os.path.join(tool_bin_path, 'nacl-ld'),
-              NACL_SEL_LDR32=os.path.join(tool_bin_path, 'nacl-sel_ldr'),
-              NACL_SEL_LDR64=os.path.join(tool_bin_path, 'nacl64-sel_ldr'),
+              NACL_SEL_LDR32=os.path.join(tool_bin_path, 'sel_ldr_x86_32'),
+              NACL_SEL_LDR64=os.path.join(tool_bin_path, 'sel_ldr_x86_64'),
               RANLIB=os.path.join(tool_bin_path, 'nacl-ranlib'),
               ASFLAGS=['${EXTRA_ASFLAGS}',
                       ],

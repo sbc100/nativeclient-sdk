@@ -45,7 +45,7 @@ def TestingClosure(_outdir, _jobs):
   toolchain_base = build_utils.NormalizeToolchain(base_dir=_outdir)
   toolchain_bin = os.path.join(toolchain_base, 'bin')
   gcc64 = os.path.join(toolchain_bin, 'x86_64-nacl-gcc')
-  sel_ldr64 = os.path.join(toolchain_bin, 'nacl64-sel_ldr')
+  sel_ldr64 = os.path.join(toolchain_bin, 'sel_ldr_x86_64')
 
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
