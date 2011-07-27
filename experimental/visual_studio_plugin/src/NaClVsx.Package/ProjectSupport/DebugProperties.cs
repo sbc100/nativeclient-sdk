@@ -71,6 +71,14 @@ namespace Google.NaClVsx.ProjectSupport
       set { webServerProgram_ = value; IsDirty = true; }
     }
 
+    [Category("WebServer")]
+    [DisplayName("Httpd Server Arguments")]
+    [ProjectProperty("WebServerArgs", true)]
+    public string WebServerArgs
+    {
+      get { return webServerArgs_; }
+      set { webServerArgs_ = value; IsDirty = true; }
+    }
 
     private string hostProgram_;
     private string args_;
@@ -78,5 +86,6 @@ namespace Google.NaClVsx.ProjectSupport
     private string launchHost_;
     private string launchPort_;
     private string webServerProgram_;
+    private string webServerArgs_;
   }
 }

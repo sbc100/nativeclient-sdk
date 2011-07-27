@@ -96,16 +96,18 @@ namespace Google.NaClVsx.ProjectSupport
     /// </summary>
     /// <param name="serverName"> Name of the executable (full path).</param>
     /// <param name="serverArgs"> Name of the args to the server, can be empty
+    /// <param name="workingDir"> Directory where the .nexe, .html, .js, and
+    ///   .nmf files are.</param>
     /// string.</param>
     /// TODO: We do not have method to kill or halt the server. I
     /// looked into this, but it's non-trivial to kill the entire process
     /// tree and also depends on the server itself.  For example, httpd.cmd
     /// has had issues with closing when you tell it to.
-    public static void StartServer(string serverName, string serverArgs) {
+    public static void StartServer(string serverName, string serverArgs,
+                                   string workingDir) {      
       serverProcess_ = new Process();
-      serverProcess_.StartInfo.FileName = serverName;
-      serverProcess_.StartInfo.WorkingDirectory =
-        Path.GetDirectoryName(serverName);
+      serverProcess_.StartInfo.FileName = serverName;      
+      serverProcess_.StartInfo.WorkingDirectory = workingDir;
       serverProcess_.StartInfo.Arguments = serverArgs;
 
       // try/catch will handle the exceptions that can be thrown in C# if the
@@ -173,17 +175,19 @@ namespace Google.NaClVsx.ProjectSupport
         int portNum =
             Convert.ToInt32(GetConfigurationProperty("LaunchPort", false));
         string html_page = hostName + ":" + portNum + "/" + 
-          GetConfigurationProperty("Html", false); 
+          GetConfigurationProperty("HtmlPage", false); 
         bool isServerRunning = IsServerRunning(hostName, portNum);
 
         string serverProgram = GetConfigurationProperty("WebServer", false);
+        string serverArgs = GetConfigurationProperty("WebServerArgs", false);
         if (!isServerRunning && serverProgram.Length > 0) {
           // We know that the server at the host is specified and 
           // is not currently running.  We will start it now.
           // Currently, we are not having the user specify args
           // for the server, but if we need to later that would be the
-          // second argument to StartServer.
-          StartServer(serverProgram, "");
+          // second argument to StartServer.         
+          string workingDir = Path.GetDirectoryName(nexe);
+          StartServer(serverProgram, serverArgs, workingDir);
         }
         // TODO(mmortensen) Determine if all these flags are needed.  In the
         // short term, the more important thing is to get the VSX/chrome 

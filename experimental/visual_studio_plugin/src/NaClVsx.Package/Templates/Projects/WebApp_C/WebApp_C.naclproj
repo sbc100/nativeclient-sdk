@@ -16,6 +16,7 @@
     <DebugHost>C:\Program Files (x86)\Google\Chrome\Application\chrome.exe</DebugHost>
     <HtmlPage>$safeprojectname$.html</HtmlPage>
     <WebServer>$(NaClSDKRoot)\examples\httpd.cmd</WebServer>
+    <WebServerArgs>--no_dir_check</WebServerArgs>
     <LaunchHostname>localhost</LaunchHostname>
     <LaunchPort>5103</LaunchPort>
   </PropertyGroup>

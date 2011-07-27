@@ -58,6 +58,12 @@
     <Lib Include="$(Lib)"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <WebSrcs Include="*.html" />
+    <WebSrcs Include="*.js" />
+    <WebSrcs Include="*.nmf" />
+  </ItemGroup>
+
   <Target Name="Compile"
           Inputs="@(Compile)"
           Outputs="@(Obj)">
@@ -65,6 +71,12 @@
     <NaClExec Command="$(gcc)"
           Arguments="$(cflags) $(INCLUDES) $(OPT_FLAGS) $(archflag) -c '%(FullPath)' -o @(Compile -> '$(IntermediatePath)%(filename).o')"
           ToolPath="$(NaClSDKRoot)\toolchain\win_x86\bin\"/>
+  </Target>
+
+  <Target Name="CopyWebFiles">
+    <Message Text="Deploying SrcFiles=@(WebSrcs) TO Dest=$(OutputPath)" Importance="high" />
+    <Copy SourceFiles="@(WebSrcs)"
+          DestinationFolder="$(OutputPath)" />
   </Target>
 
   <Target Name="Link"
@@ -78,7 +90,7 @@
   </Target>
 
   <Target Name="Build"
-          DependsOnTargets="Compile;Link">
+          DependsOnTargets="Compile;Link;CopyWebFiles">
   </Target>
 
   <Target Name="Clean">
