@@ -43,6 +43,10 @@ uint8_t Blob::operator[] (size_t position) const {
   return value_[position];
 }
 
+uint8_t& Blob::operator[] (size_t position) {
+  return value_[position];
+}
+
 uint8_t Blob::GetAt(size_t position) const {
   return value_[position];
 }

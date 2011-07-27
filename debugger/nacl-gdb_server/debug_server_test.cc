@@ -388,7 +388,7 @@ TEST_F(DebugServerTest, SetCurrentThread) {
   AddSecondNaClAppThread(&thread2_id);
 
   EXPECT_CSTREQ("OK", RPC(rsp::Format(&debug::Blob(), "Hc%x", thread2_id)));
-  EXPECT_CSTREQ("E03",
+  EXPECT_CSTREQ("E0b",
                 RPC(rsp::Format(&debug::Blob(), "Hc%x", thread2_id + 100)));
 
   debug::Blob expected_reply;
@@ -401,7 +401,7 @@ TEST_F(DebugServerTest, IsThreadAlive) {
   AddSecondNaClAppThread(&thread2_id);
   debug::Blob cmd;
   EXPECT_CSTREQ("OK", RPC(rsp::Format(&cmd, "T%x", thread2_id)));
-  EXPECT_CSTREQ("E0a", RPC(rsp::Format(&cmd, "T%x", thread2_id + 100)));
+  EXPECT_CSTREQ("E0b", RPC(rsp::Format(&cmd, "T%x", thread2_id + 100)));
 }
 
 // dbg_code, excpt_code, is_nacl_app_thread -> halt, pass_exception

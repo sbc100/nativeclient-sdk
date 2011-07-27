@@ -275,5 +275,31 @@ bool RegistersSet::ReadRegisterFromGdbBlob(const debug::Blob& blob,
   return ReadRegisterFromGdbBlob(blob, *register_info, destination);
 }
 
+bool RegistersSet::WriteRegisterToGdbBlob(const std::string& register_name,
+                                          uint64_t value,
+                                          debug::Blob* destination_blob) const {
+  const RegisterDescription* register_info =
+      FindRegisterDescription(register_name);
+  if (NULL == register_info)
+    return false;
+  WriteRegisterToGdbBlob(*register_info, value, destination_blob);
+  return true;
+}
+
+void RegistersSet::WriteRegisterToGdbBlob(
+    const RegisterDescription& register_info,
+    uint64_t value,
+    debug::Blob* destination_blob) const {
+  size_t offs = register_info.gdb_offset_;
+  size_t size = register_info.gdb_size_;
+  while ((offs + size) > destination_blob->size())
+    destination_blob->PushBack(0);
+
+  uint8_t* src = reinterpret_cast<uint8_t*>(&value);
+  for (size_t i = 0; i < size; i++) {
+    (*destination_blob)[offs + i] = *src++;
+  }
+}
+
 }  // namespace debug
 

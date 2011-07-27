@@ -46,6 +46,7 @@ class Blob {
   /// @param position offset of the byte to be returned
   /// @return a byte at |position|.
   uint8_t operator[] (size_t position) const;
+  uint8_t& operator[] (size_t position);
 
   /// @param position offset of the byte to be returned
   /// @return a byte at |position|.

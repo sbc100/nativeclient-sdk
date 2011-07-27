@@ -103,17 +103,8 @@ int main(int argc, char* argv[]) {
 
 class NaclGdbServerTest : public ::testing::Test {
  public:
-  NaclGdbServerTest()
-      : h_web_server_proc_(NULL),
-        h_debugger_proc_(NULL),
-        code_at_breakpoint_(0) {
-  }
-  ~NaclGdbServerTest() {
-    if (NULL != h_web_server_proc_)
-      process_utils::KillProcessTree(h_web_server_proc_);
-    if (NULL != h_debugger_proc_)
-      process_utils::KillProcessTree(h_debugger_proc_);
-  }
+  NaclGdbServerTest();
+  ~NaclGdbServerTest();
 
   void PostMsg(const std::string& msg);
   std::string ReceiveReply();
@@ -145,7 +136,14 @@ class NaclGdbServerTest : public ::testing::Test {
   int InitAndWaitForNexeStart();
 
   bool SetBreakpoint(uint64_t addr);
+  bool DeleteBreakpoint();
+
+  bool ReadMemory(uint64_t addr, int len, debug::Blob* data);
+
   bool ReadRegisters(debug::Blob* gdb_regs);
+  bool WriteRegisters(const debug::Blob& gdb_regs);
+  bool ReadIP(uint64_t* ip);
+  bool WriteIP(uint64_t ip);
 
   bool RunObjdump(const std::string& nexe_path);
   bool GetSymbolAddr(const std::string& name, uint64_t* addr);
@@ -154,8 +152,28 @@ class NaclGdbServerTest : public ::testing::Test {
   HANDLE h_web_server_proc_;
   HANDLE h_debugger_proc_;
   debug::Socket nacl_gdb_server_conn_;
-  char code_at_breakpoint_;
+  uint8_t code_at_breakpoint_;
+  uint64_t breakpoint_addr_;
+  debug::RegistersSet regs_set_;
 };
+
+NaclGdbServerTest::NaclGdbServerTest()
+    : h_web_server_proc_(NULL),
+    h_debugger_proc_(NULL),
+    code_at_breakpoint_(0),
+    breakpoint_addr_(0) {
+  if (64 == glb_arch_size)
+    regs_set_.InitializeForWin64();
+  else
+    regs_set_.InitializeForWin32();
+}
+
+NaclGdbServerTest::~NaclGdbServerTest() {
+  if (NULL != h_web_server_proc_)
+    process_utils::KillProcessTree(h_web_server_proc_);
+  if (NULL != h_debugger_proc_)
+    process_utils::KillProcessTree(h_debugger_proc_);
+}
 
 int NaclGdbServerTest::InitAndWaitForNexeStart() {
   int res = 0;
@@ -261,6 +279,7 @@ std::string NaclGdbServerTest::ReceiveReply() {
 }
 
 bool NaclGdbServerTest::SetBreakpoint(uint64_t addr) {
+  breakpoint_addr_ = addr;
   debug::Blob read_req;
   rsp::Format(&read_req, "m%I64x,1", addr);
   std::string reply = RPC(read_req);
@@ -278,9 +297,56 @@ bool NaclGdbServerTest::SetBreakpoint(uint64_t addr) {
   return true;
 }
 
+bool NaclGdbServerTest::DeleteBreakpoint() {
+  debug::Blob write_req;
+  rsp::Format(&write_req, "M%I64x,1:%x", breakpoint_addr_, code_at_breakpoint_);
+  std::string req = write_req.ToString();
+  std::string reply = RPC(write_req);
+  EXPECT_STREQ("OK", reply.c_str());
+  return true;
+}
+
 bool NaclGdbServerTest::ReadRegisters(debug::Blob* gdb_regs) {
+  if (NULL == gdb_regs)
+    return false;
   std::string reply = RPC("g");
   return gdb_regs->FromHexString(reply);
+}
+
+bool NaclGdbServerTest::WriteRegisters(const debug::Blob& gdb_regs) {
+  debug::Blob write_req;
+  rsp::Format(&write_req, "G%s", gdb_regs.ToHexString().c_str());
+  std::string reply = RPC(write_req);
+  return (reply == "OK");
+}
+
+bool NaclGdbServerTest::ReadMemory(uint64_t addr, int len, debug::Blob* data) {
+  if (NULL == data)
+    return false;
+  debug::Blob read_req;
+  rsp::Format(&read_req, "m%I64x,%x", addr, len);
+  std::string req = read_req.ToString();
+  std::string reply = RPC(read_req);
+  data->FromHexString(reply);
+  return (data->size() == len);
+}
+
+bool NaclGdbServerTest::ReadIP(uint64_t* ip) {
+  debug::Blob regs;
+  if (!ReadRegisters(&regs))
+    return false;
+  return regs_set_.ReadRegisterFromGdbBlob(regs, "ip", ip);
+}
+
+bool NaclGdbServerTest::WriteIP(uint64_t ip) {
+  debug::Blob regs;
+  if (!ReadRegisters(&regs))
+    return false;
+
+  if (!regs_set_.WriteRegisterToGdbBlob("ip", ip, &regs))
+    return false;
+
+  return WriteRegisters(regs);
 }
 
 bool NaclGdbServerTest::RunObjdump(const std::string& nexe_path) {
@@ -347,14 +413,6 @@ TEST_F(NaclGdbServerTest, SetBreakpointAtEntryContinueAndHit) {
   EXPECT_TRUE(GetSymbolAddr("_start", &start_addr));
 
   EXPECT_EQ(0, InitAndWaitForNexeStart());
-  debug::Blob gdb_regs;
-  EXPECT_TRUE(ReadRegisters(&gdb_regs));
-
-  debug::RegistersSet regs_set;
-  if (64 == glb_arch_size)
-    regs_set.InitializeForWin64();
-  else
-    regs_set.InitializeForWin32();
 
   // Assumes sandbox with base memory address 0xc00000000;
   // TODO(garianov): retrieve base address from nacl-gdb_server (add custom
@@ -366,11 +424,73 @@ TEST_F(NaclGdbServerTest, SetBreakpointAtEntryContinueAndHit) {
   std::string reply = RPC("c");
   EXPECT_STREQ("S05", reply.c_str());
 
-  EXPECT_TRUE(ReadRegisters(&gdb_regs));
-
   uint64_t ip = 0;
-  EXPECT_TRUE(regs_set.ReadRegisterFromGdbBlob(gdb_regs, "ip", &ip));
+  EXPECT_TRUE(ReadIP(&ip));
   EXPECT_EQ(start_addr + 1, ip);
+
+  // read memory at IP, check it's a trap instruction
+  debug::Blob data;
+  EXPECT_TRUE(ReadMemory(start_addr, 1, &data));
+  ASSERT_NE(0, data.size());
+  EXPECT_EQ(0xcc, data[0]);
+
+  // ip--
+  EXPECT_TRUE(WriteIP(ip - 1));
+  uint64_t new_ip = 0;
+  EXPECT_TRUE(ReadIP(&new_ip));
+  EXPECT_EQ(ip - 1, new_ip);
+
+  // Delete breakpoint.
+  EXPECT_TRUE(DeleteBreakpoint());
+  data.Clear();
+  EXPECT_TRUE(ReadMemory(start_addr, 1, &data));
+  EXPECT_EQ(code_at_breakpoint_, data[0]);
+
+  // Set breakpoint at |Instance_DidCreate|
+  uint64_t instance_created_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("Instance_DidCreate", &instance_created_addr));
+  instance_created_addr += mem_base;
+  EXPECT_TRUE(SetBreakpoint(instance_created_addr));
+
+  // Nexe should be loaded and |Instance_DidCreate| called,
+  // triggering breakpoint.
+  EXPECT_STREQ("S05", RPC("c").c_str());
+
+  ip = 0;
+  EXPECT_TRUE(ReadIP(&ip));
+  EXPECT_EQ(instance_created_addr + 1, ip);
+}
+
+TEST_F(NaclGdbServerTest, ThreadOps) {
+  EXPECT_EQ(0, InitAndWaitForNexeStart());
+  EXPECT_STREQ("OK", RPC("Hc-1").c_str());
+
+  // Get current thread.
+  std::string reply = RPC("qC");
+  EXPECT_STREQ("QC", reply.substr(0, 2).c_str());
+  uint32_t tid = 0;
+  EXPECT_EQ(1, sscanf(reply.c_str() + 2, "%x", &tid));  // NOLINT
+  EXPECT_NE(0, tid);
+
+  // Is thread alive.
+  debug::Blob cmd;
+  rsp::Format(&cmd, "T%x", tid);
+  EXPECT_STREQ("OK", RPC(cmd).c_str());
+
+  rsp::Format(&cmd, "T%x", tid + 1);
+  EXPECT_STREQ("E0b", RPC(cmd).c_str());
+
+  // Set current thread.
+  rsp::Format(&cmd, "Hc%x", tid);
+  EXPECT_STREQ("OK", RPC(cmd).c_str());
+
+  rsp::Format(&cmd, "Hc%x", tid + 1);
+  EXPECT_STREQ("E0b", RPC(cmd).c_str());
+
+  // Get thread list.
+  std::string expected_reply = std::string("m") + reply.substr(2, 1000);
+  EXPECT_STREQ(expected_reply.c_str(), RPC("qfThreadInfo").c_str());
+  EXPECT_STREQ("l", RPC("qsThreadInfo").c_str());
 }
 
 TEST_F(NaclGdbServerTest, CompatibilityMode) {
@@ -388,17 +508,8 @@ TEST_F(NaclGdbServerTest, CompatibilityMode) {
   uint64_t mem_base = 0xc00000000;
   start_addr += mem_base;
 
-  debug::Blob gdb_regs;
-  EXPECT_TRUE(ReadRegisters(&gdb_regs));
-
-  debug::RegistersSet regs_set;
-  if (64 == glb_arch_size)
-    regs_set.InitializeForWin64();
-  else
-    regs_set.InitializeForWin32();
-
   uint64_t ip = 0;
-  EXPECT_TRUE(regs_set.ReadRegisterFromGdbBlob(gdb_regs, "ip", &ip));
+  EXPECT_TRUE(ReadIP(&ip));
   EXPECT_EQ(start_addr, ip);
 }
 

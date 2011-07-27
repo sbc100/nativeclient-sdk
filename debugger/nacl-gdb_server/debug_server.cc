@@ -33,6 +33,7 @@ const int kErrorGetThreadContextFailed = 7;
 const int kErrorSetThreadContextFailed = 8;
 const int kErrorSingleStepFailed = 9;
 const int kErrorThreadIsDead = 10;
+const int kErrorThreadNotFound = 11;
 }  // namespace
 
 namespace debug {
@@ -364,7 +365,7 @@ void DebugServer::Visit(rsp::SetCurrentThreadCommand* packet) {
   int tid = static_cast<int>(packet->thread_id());
   bool res = false;
   if (-1 == tid) {  // all threads
-    res = false;
+    res = true;
   } else if (0 == tid) {  // any thread
     res = true;
   } else {
@@ -380,7 +381,7 @@ void DebugServer::Visit(rsp::SetCurrentThreadCommand* packet) {
   if (res)
     SendRspMessageToClient(rsp::OkReply());
   else
-    SendErrorReply(kErrorSetFocusToAllThreadsIsNotSupported);
+    SendErrorReply(kErrorThreadNotFound);
 }
 
 void DebugServer::Visit(rsp::ReadMemoryCommand* packet) {
@@ -495,7 +496,7 @@ void DebugServer::Visit(rsp::IsThreadAliveCommand* packet) {
   if (std::find(tids.begin(), tids.end(), packet->value()) != tids.end()) {
     SendRspMessageToClient(rsp::OkReply());
   } else {
-    SendErrorReply(kErrorThreadIsDead);
+    SendErrorReply(kErrorThreadNotFound);
   }
 }
 

@@ -13,10 +13,10 @@ struct RegisterDescription {
  public:
   int gdb_number_;  // Starts from zero.
   std::string gdb_name_;
-  int gdb_offset_;
-  int gdb_size_;
-  int context_offset_;
-  int context_size_;
+  size_t gdb_offset_;
+  size_t gdb_size_;
+  size_t context_offset_;
+  size_t context_size_;
 };
 
 class RegistersSet {
@@ -55,6 +55,10 @@ class RegistersSet {
   bool ReadRegisterFromGdbBlob(const debug::Blob& blob,
                                const RegisterDescription& register_info,
                                uint64_t* destination) const;
+
+  void WriteRegisterToGdbBlob(const RegisterDescription& register_info,
+                              uint64_t value,
+                              debug::Blob* destination_blob) const;
 
   std::deque<RegisterDescription> regs_;
 };
