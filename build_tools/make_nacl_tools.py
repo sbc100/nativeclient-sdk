@@ -43,7 +43,8 @@ def Build(options):
   BuildTools(bits64, '64', 'sdl=none sel_ldr ncval')
 
   def BuildAndInstallLibsAndHeaders(bits):
-    cmd = '%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s' % (
+    cmd = ('%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s '
+           'force_sel_ldr=none ') % (
         scons,
         os.path.join(options.toolchain,
                      'x86_64-nacl',
@@ -84,25 +85,26 @@ def Install(options, tools):
 
 
 #Cleans up the checkout directories if -c was provided as a command line arg.
-def CleanUpCheckoutDirs(options):
-  if(options.cleanup):
-    bot.Print('Removing scons-out')
-    scons_out = os.path.join(options.nacl_dir, 'native_client', 'scons-out')
-    if sys.platform != 'win32':
-      shutil.rmtree(scons_out, ignore_errors=True)
-    else:
-      # Intentionally ignore return value since a directory might be in use.
-      subprocess.call(['rmdir', '/Q', '/S', scons_out],
-                      env=os.environ.copy(),
-                      shell=True)
+def CleanCheckoutDirs(options):
+  bot.Print('Removing scons-out')
+  scons_out = os.path.join(options.nacl_dir, 'native_client', 'scons-out')
+  if sys.platform != 'win32':
+    shutil.rmtree(scons_out, ignore_errors=True)
+  else:
+    # Intentionally ignore return value since a directory might be in use.
+    subprocess.call(['rmdir', '/Q', '/S', scons_out],
+                    env=os.environ.copy(),
+                    shell=True)
 
 
 def BuildNaClTools(options):
-  bot.BuildStep('build NaCl tools')
-  CleanUpCheckoutDirs(options)
-  MakeInstallDirs(options)
-  Build(options)
-  Install(options, ['sel_ldr', 'ncval'])
+  if(options.clean):
+    CleanCheckoutDirs(options)
+  else:
+    bot.BuildStep('build NaCl tools')
+    MakeInstallDirs(options)
+    Build(options)
+    Install(options, ['sel_ldr', 'ncval'])
   return 0
 
 
@@ -120,7 +122,7 @@ def main(argv):
       default='toolchain',
       help='where to put the NaCl tool binaries')
   parser.add_option(
-      '-c', '--cleanup', action='store_true', dest='cleanup',
+      '-c', '--clean', action='store_true', dest='clean',
       default=False,
       help='whether to clean up the checkout files')
   parser.add_option(

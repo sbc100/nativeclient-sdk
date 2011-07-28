@@ -41,10 +41,6 @@ Supported targets:
   * toolchain         Update the toolchain's headers and libraries
   * vsx_build         Build the Visual Studio Plugin
 
-Supported flags:
-  * DEVELOPMENT=1     Runs with development options for the installer build
-                      (currently this suppresses unneeded downloads)
-
 More targets are listed below in the automatically generated help section.
 
 ===============================================================================
@@ -118,11 +114,8 @@ base_env = Environment(
 # It is possible to override these values on the command line by typing
 # something like this:
 #   PYTHON=/path/to/my/python
-#   DEVELOPMENT=1
 base_env.SetDefault(
     PYTHON = ARGUMENTS.get('PYTHON', 'python'),
-    DEVELOPMENT = ARGUMENTS.get('DEVELOPMENT', ''),
-    MAKE = ARGUMENTS.get('MAKE', 'make'),
 )
 
 # The list of .scons files is order-dependent.  Scons will build their targets
@@ -201,7 +194,8 @@ def ShouldBeCleaned(env, targets, suite_names, node_name):
 
   Args:
     env - The calling environment.
-    targets - Any build artifacts to which a cleaning step might apply
+    targets - Any build artifacts to which a cleaning step might apply.
+              Any false object indicates that this check is skipped.
     suite_names - Any suites that might produce |targets|
     node_name - A node that might produce |targets|
   '''
@@ -217,6 +211,8 @@ def ShouldBeCleaned(env, targets, suite_names, node_name):
     if not clean_this:
       return False
 
+  if not targets:
+    return True
   for target in targets:
     if os.path.exists(target):
       return True
@@ -487,7 +483,7 @@ def BuildExamples(env, target, source):
                         shell=True)
 
 
-def CleanExamples(env):
+def CleanExamples(env, target, source):
   '''Clean the examples.
 
   This runs the clean command in the 'examples' directory.
@@ -502,13 +498,13 @@ def CleanExamples(env):
 
 examples_builder = build_env.Alias('examples', [toolchain_node], BuildExamples)
 build_env.AlwaysBuild(examples_builder)
-# Handle the clean command.
-if GetOption('clean'):
-  CleanExamples(build_env)
+build_env.AddCleanAction(['examples'], CleanExamples, ['bot'],
+                         examples_builder)
 
 
 # -----------------------------------------------------------------------------
 BuildComponents(environment_list)
 
-# Require specifying an explicit target
-Default(None)
+# Require specifying an explicit target only when not cleaning
+if not GetOption('clean'):
+  Default(None)

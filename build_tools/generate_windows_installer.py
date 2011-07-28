@@ -29,24 +29,6 @@ def main(argv):
   bot = build_utils.BotAnnotator()
   bot.Print('generate_windows_installer is starting.')
 
-  parser = optparse.OptionParser()
-  parser.add_option(
-      '--development', action='store_true', dest='development',
-      default=False,
-      help=('When set, the script will forego cleanup actions that can slow ' +
-            'down subsequent runs.  Useful for testing.  Defaults to False.'))
-  parser.add_option(
-      '-j', '--jobs', dest='jobs', default='1',
-      help='Number of parallel jobs to use while building')
-  (options, args) = parser.parse_args(argv)
-  if args:
-    parser.print_help()
-    bot.Print('ERROR: invalid argument')
-    sys.exit(1)
-
-  if(options.development):
-    bot.Print('Running in development mode.')
-
   # Make sure that we are running python version 2.6 or higher
   (major, minor) = sys.version_info[:2]
   assert major == 2 and minor >= 6
@@ -81,11 +63,7 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  # Make sure the examples are clened out before creating the prebuilt
-  # artifacts.
   scons_path = os.path.join(example_path, 'scons.bat')
-  subprocess.check_call([scons_path, '-c',
-                        'install_prebuilt'], cwd=example_path)
   subprocess.check_call([scons_path, 'install_prebuilt'], cwd=example_path)
 
   # On windows we use copytree to copy the SDK into the build location

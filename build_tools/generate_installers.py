@@ -42,21 +42,6 @@ def main(argv):
   bot = build_utils.BotAnnotator()
   bot.Print('generate_installers is starting.')
 
-  parser = optparse.OptionParser()
-  parser.add_option(
-      '--development', action='store_true', dest='development',
-      default=False,
-      help=('When set, the script will forego cleanup actions that can slow ' +
-            'down subsequent runs.  Useful for testing.  Defaults to False.'))
-  parser.add_option(
-      '-j', '--jobs', dest='jobs', default='1',
-      help='Number of parallel jobs to use while building')
-  (options, args) = parser.parse_args(argv)
-  if args:
-    parser.print_help()
-    bot.Print('ERROR: invalid argument')
-    sys.exit(1)
-
   # Cache the current location so we can return here before removing the
   # temporary dirs.
   script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -86,12 +71,6 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_installers is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  if not options.development:
-    subprocess.check_call([os.path.join(example_path, 'scons'), '-c',
-                           'install_prebuilt'],
-                          cwd=example_path,
-                          env=env,
-                          shell=True)
   subprocess.check_call([os.path.join(example_path, 'scons'),
                          'install_prebuilt'],
                         cwd=example_path,
@@ -124,9 +103,6 @@ def main(argv):
                             stdin=tar_cf.stdout)
   assert tar_xf.wait() == 0
   assert tar_cf.poll() == 0
-
-  # Clean out the cruft.
-  bot.Print('generate_installers is cleaning up the installer directory.')
 
   # This loop prunes the result of os.walk() at each excluded dir, so that it
   # doesn't descend into the excluded dir.
