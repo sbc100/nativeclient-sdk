@@ -12,6 +12,33 @@ from SCons import Script
 
 import nacl_utils
 import os
+import SCons
+
+def FilterOut(env, **kw):
+  """Removes values from existing construction variables in an Environment.
+
+  The values to remove should be a list.  For example:
+
+  env.FilterOut(CPPDEFINES=['REMOVE_ME', 'ME_TOO'])
+
+  Args:
+    env: Environment to alter.
+    kw: (Any other named arguments are values to remove).
+  """
+
+  kw = SCons.Environment.copy_non_reserved_keywords(kw)
+
+  for key, val in kw.items():
+    if key in env:
+      # Filter out the specified values without modifying the original list.
+      # This helps isolate us if a list is accidently shared
+      # NOTE if env[key] is a UserList, this changes the type into a plain
+      # list.  This is OK because SCons also does this in semi_deepcopy
+      env[key] = [item for item in env[key] if item not in val]
+
+    # TODO: SCons.Environment.Append() has much more logic to deal with various
+    # types of values.  We should handle all those cases in here too.  (If
+    # variable is a dict, etc.)
 
 def AppendOptCCFlags(env, is_debug=False):
   '''Append a set of CCFLAGS that will build a debug or optimized variant
@@ -249,6 +276,7 @@ def generate(env):
   env.AddMethod(AllNaClModules)
   env.AddMethod(AppendOptCCFlags)
   env.AddMethod(AppendArchFlags)
+  env.AddMethod(FilterOut)
   env.AddMethod(InstallPrebuilt)
   env.AddMethod(NaClProgram)
   env.AddMethod(NaClTestProgram)
