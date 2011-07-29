@@ -53,7 +53,7 @@ const int kWaitForNexeSleepMs = 500;
 
 const char* kNexePath =
     "\\src\\examples\\hello_world_c\\hello_world_x86_%d_dbg.nexe";
-const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\nacl%d-objdump";
+const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\nacl%s-objdump";
 const char* kNaclDebuggerPath = "%sDebug\\nacl-gdb_server.exe";
 const char* kWebServerPath = "\\src\\examples\\httpd.cmd";
 
@@ -75,7 +75,9 @@ int main(int argc, char* argv[]) {
   glb_nexe_path = rsp::Format(
       &debug::Blob(), kNexePath, glb_arch_size).ToString();
   glb_objdump_path = rsp::Format(
-      &debug::Blob(), kObjdumpPath, glb_arch_size).ToString();
+      &debug::Blob(),
+      kObjdumpPath,
+      (glb_arch_size == 64 ? "64" : "")).ToString();
   glb_nacl_debugger_path =
       rsp::Format(&debug::Blob(),
                   kNaclDebuggerPath,
@@ -156,7 +158,10 @@ class NaclGdbServerTest : public ::testing::Test {
   bool GetSymbolAddr(const std::string& name, uint64_t* addr);
   bool AddrToLineNumber(uint64_t addr, std::string* file_name, int* line_no);
 
-  uint64_t GetMemBase();
+  uint64_t GetMemoryBase();
+  uint64_t TranslateIP(uint64_t ip);
+  uint64_t TranslateDataAddr(uint64_t ip);
+  uint64_t FlatAddrToIP(uint64_t ip);
 
  protected:
   bool RunObjdump(const std::string& nexe_path);
@@ -450,15 +455,15 @@ bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
                                          int* line_no) {
   if (NULL == line_no)
     return false;
-  addr = addr - GetMemBase();
+  uint64_t ip = FlatAddrToIP(addr);
 
   *line_no = 0;
   const char* kLineFileName = "line.txt";
   char addr_str[200];
-  _snprintf(addr_str, sizeof(addr_str), "0x%I64x", addr);
+  _snprintf(addr_str, sizeof(addr_str), "0x%I64x", ip);
   std::string nexe_path = glb_sdk_root + glb_nexe_path;
   std::string cmd = glb_sdk_root + "\\src\\toolchain\\win_x86\\bin\\nacl" +
-      (glb_arch_size == 64 ? "64" : "32") + "-addr2line  --exe=" + nexe_path +
+      (glb_arch_size == 64 ? "64" : "") + "-addr2line  --exe=" + nexe_path +
       " " + addr_str + " > " + kLineFileName;
 
   system(cmd.c_str());
@@ -479,7 +484,25 @@ bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
   return (2 == scanned_items);
 }
 
-uint64_t NaclGdbServerTest::GetMemBase() {
+uint64_t NaclGdbServerTest::TranslateIP(uint64_t ip) {
+  if (64 == glb_arch_size)
+    return ip + GetMemoryBase();
+  return ip;
+}
+
+uint64_t NaclGdbServerTest::FlatAddrToIP(uint64_t ip) {
+  if (64 == glb_arch_size)
+    return ip - GetMemoryBase();
+  return ip;
+}
+
+uint64_t NaclGdbServerTest::TranslateDataAddr(uint64_t addr) {
+  if (64 == glb_arch_size)
+    return addr;
+  return addr + GetMemoryBase();
+}
+
+uint64_t NaclGdbServerTest::GetMemoryBase() {
   if (!mem_base_requested_) {
     std::string reply = RPC("qOffsets");
     // Expected reply: Text=c00000000;Data=c00000000
@@ -501,7 +524,7 @@ bool NaclGdbServerTest::InitAndRunToInstanceDidCreate() {
   if (!GetSymbolAddr("Instance_DidCreate", &start_addr))
     return false;
 
-  start_addr += GetMemBase();
+  start_addr = TranslateIP(start_addr);
 
   if (!SetBreakpoint(start_addr))
     return false;
@@ -543,13 +566,11 @@ TEST_F(NaclGdbServerTest, WaitForNexeStart) {
 }
 
 TEST_F(NaclGdbServerTest, SetBreakpointAtEntryContinueAndHit) {
+  ASSERT_EQ(0, InitAndWaitForNexeStart());
+
   uint64_t start_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("_start", &start_addr));
-
-  EXPECT_EQ(0, InitAndWaitForNexeStart());
-
-  uint64_t mem_base = GetMemBase();
-  start_addr += mem_base;
+  start_addr = TranslateIP(start_addr);
 
   EXPECT_TRUE(SetBreakpoint(start_addr));
   std::string reply = RPC("c");
@@ -580,7 +601,7 @@ TEST_F(NaclGdbServerTest, SetBreakpointAtEntryContinueAndHit) {
   // Set breakpoint at |Instance_DidCreate|
   uint64_t instance_created_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("Instance_DidCreate", &instance_created_addr));
-  instance_created_addr += mem_base;
+  instance_created_addr = TranslateIP(instance_created_addr);
   EXPECT_TRUE(SetBreakpoint(instance_created_addr));
 
   // Nexe should be loaded and |Instance_DidCreate| called,
@@ -668,9 +689,7 @@ TEST_F(NaclGdbServerTest, CompatibilityMode) {
 
   uint64_t start_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("_start", &start_addr));
-
-  uint64_t mem_base = GetMemBase();
-  start_addr += mem_base;
+  start_addr = TranslateIP(start_addr);
 
   uint64_t ip = 0;
   EXPECT_TRUE(ReadIP(&ip));
@@ -682,20 +701,16 @@ TEST_F(NaclGdbServerTest, ReadStaticString) {
   EXPECT_EQ(0, InitAndWaitForNexeStart());
   uint64_t str_ptr_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("kReverseTextMethodId", &str_ptr_addr));
+  str_ptr_addr = TranslateDataAddr(str_ptr_addr);
 
-  debug::Blob ptr_data;
   // Pointer in nexe is 4 bytes long.
-  EXPECT_TRUE(ReadMemory(str_ptr_addr, 4, &ptr_data));
-
-  // Convert back to hex string, in order to |rsp::PopIntFromFront| work.
-  ptr_data.FromString(ptr_data.ToHexString());
   uint32_t str_addr = 0;
-  EXPECT_TRUE(rsp::PopIntFromFront(&ptr_data, &str_addr));
-  str_addr = htonl(str_addr);  // Pointers are little-endian on x86.
+  ASSERT_TRUE(ReadInt32(str_ptr_addr, &str_addr));
+  uint64_t tr_str_addr = TranslateDataAddr(str_addr);
 
   size_t len = strlen(kReverseTextMethodId) + 1;
   debug::Blob str_data;
-  EXPECT_TRUE(ReadMemory(str_addr, len, &str_data));
+  EXPECT_TRUE(ReadMemory(tr_str_addr, len, &str_data));
   EXPECT_STREQ(kReverseTextMethodId, str_data.ToString().c_str());
 }
 
@@ -703,6 +718,7 @@ TEST_F(NaclGdbServerTest, WriteStaticInt) {
   EXPECT_EQ(0, InitAndWaitForNexeStart());
   uint64_t int_var_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("module_id", &int_var_addr));
+  int_var_addr = TranslateDataAddr(int_var_addr);
 
   uint32_t var = 0;
   EXPECT_TRUE(ReadInt32(int_var_addr, &var));
@@ -760,7 +776,6 @@ TEST_F(NaclGdbServerTest, ReadStackFrames) {
   EXPECT_TRUE(regs_set_.ReadRegisterFromGdbBlob(regs, "sp", &sp));
   EXPECT_TRUE(regs_set_.ReadRegisterFromGdbBlob(regs, "bp", &bp));
   EXPECT_GT(bp, sp);
-  EXPECT_GT(sp, GetMemBase());
 
   uint64_t prev_bp = 0;
   EXPECT_TRUE(ReadInt64(bp, &prev_bp));
