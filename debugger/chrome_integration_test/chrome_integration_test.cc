@@ -135,33 +135,51 @@ class NaclGdbServerTest : public ::testing::Test {
   /// @return error code, 0 for success
   int InitAndWaitForNexeStart();
 
+  /// Starts web server, debugger and waits for debugged
+  /// NaCl application to stop, sets breakpoint at |Instance_DidCreate|,
+  /// resumes application and waits for breakpoint to trigger.
+  /// @return true for success
+  bool InitAndRunToInstanceDidCreate();
+
   bool SetBreakpoint(uint64_t addr);
   bool DeleteBreakpoint();
 
   bool ReadMemory(uint64_t addr, int len, debug::Blob* data);
-
+  bool WriteMemory(uint64_t addr, const debug::Blob& data);
   bool ReadRegisters(debug::Blob* gdb_regs);
   bool WriteRegisters(const debug::Blob& gdb_regs);
   bool ReadIP(uint64_t* ip);
   bool WriteIP(uint64_t ip);
+  bool ReadInt32(uint64_t addr, uint32_t* dest);
+  bool ReadInt64(uint64_t addr, uint64_t* dest);
 
-  bool RunObjdump(const std::string& nexe_path);
   bool GetSymbolAddr(const std::string& name, uint64_t* addr);
+  bool AddrToLineNumber(uint64_t addr, std::string* file_name, int* line_no);
+
+  uint64_t GetMemBase();
 
  protected:
+  bool RunObjdump(const std::string& nexe_path);
+
   HANDLE h_web_server_proc_;
   HANDLE h_debugger_proc_;
   debug::Socket nacl_gdb_server_conn_;
   uint8_t code_at_breakpoint_;
   uint64_t breakpoint_addr_;
   debug::RegistersSet regs_set_;
+  uint64_t mem_base_;
+  bool mem_base_requested_;
+  bool objdump_runned_;
 };
 
 NaclGdbServerTest::NaclGdbServerTest()
     : h_web_server_proc_(NULL),
-    h_debugger_proc_(NULL),
-    code_at_breakpoint_(0),
-    breakpoint_addr_(0) {
+      h_debugger_proc_(NULL),
+      code_at_breakpoint_(0),
+      breakpoint_addr_(0),
+      mem_base_(0),
+      mem_base_requested_(false),
+      objdump_runned_(false) {
   if (64 == glb_arch_size)
     regs_set_.InitializeForWin64();
   else
@@ -262,9 +280,10 @@ void NaclGdbServerTest::PostMsg(const std::string& msg) {
 }
 
 std::string NaclGdbServerTest::ReceiveReply() {
+  const int kRpcTimeoutSecs = 10;
   debug::Blob rcv;
   debug::Blob wire_rcv;
-  time_t end_ts = time(0) + 20;
+  time_t end_ts = time(0) + kRpcTimeoutSecs;
   while (time(0) < end_ts) {
     char buff[100];
     size_t rd = nacl_gdb_server_conn_.Read(buff, sizeof(buff) - 1, 0);
@@ -331,6 +350,17 @@ bool NaclGdbServerTest::ReadMemory(uint64_t addr, int len, debug::Blob* data) {
   return (data->size() == len);
 }
 
+bool NaclGdbServerTest::WriteMemory(uint64_t addr, const debug::Blob& data) {
+  debug::Blob cmd;
+  rsp::Format(&cmd,
+              "M%I64x,%x:%s",
+              addr,
+              data.size(),
+              data.ToHexString().c_str());
+  std::string reply = RPC(cmd);
+  return "OK" == reply;
+}
+
 bool NaclGdbServerTest::ReadIP(uint64_t* ip) {
   debug::Blob regs;
   if (!ReadRegisters(&regs))
@@ -349,6 +379,28 @@ bool NaclGdbServerTest::WriteIP(uint64_t ip) {
   return WriteRegisters(regs);
 }
 
+bool NaclGdbServerTest::ReadInt32(uint64_t addr, uint32_t* dest) {
+  debug::Blob data;
+  if (!ReadMemory(addr, sizeof(dest), &data))
+    return false;
+
+  data.Reverse();  // Integers are little-endian on x86.
+  // Convert back to hex string, in order to |rsp::PopIntFromFront| work.
+  data.FromString(data.ToHexString());
+  return rsp::PopIntFromFront(&data, dest);
+}
+
+bool NaclGdbServerTest::ReadInt64(uint64_t addr, uint64_t* dest) {
+  debug::Blob data;
+  if (!ReadMemory(addr, sizeof(dest), &data))
+    return false;
+
+  data.Reverse();  // Integers are little-endian on x86.
+  // Convert back to hex string, in order to |rsp::PopIntFromFront| work.
+  data.FromString(data.ToHexString());
+  return rsp::PopIntFromFront(&data, dest);
+}
+
 bool NaclGdbServerTest::RunObjdump(const std::string& nexe_path) {
   // Command line for this operation is something like this:
   // nacl64-objdump -t nacl_app.nexe > symbols.txt
@@ -362,6 +414,12 @@ bool NaclGdbServerTest::RunObjdump(const std::string& nexe_path) {
 
 bool NaclGdbServerTest::GetSymbolAddr(const std::string& name,
                                       uint64_t* addr) {
+  if (!objdump_runned_) {
+    if (!RunObjdump(glb_sdk_root + glb_nexe_path))
+      return false;
+    objdump_runned_ = true;
+  }
+
   FILE* file = fopen(kSymbolsFileName, "rt");
   if (NULL != file) {
     char line[MAX_PATH];
@@ -387,6 +445,83 @@ bool NaclGdbServerTest::GetSymbolAddr(const std::string& name,
   return false;
 }
 
+bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
+                                         std::string* file_name,
+                                         int* line_no) {
+  if (NULL == line_no)
+    return false;
+  addr = addr - GetMemBase();
+
+  *line_no = 0;
+  const char* kLineFileName = "line.txt";
+  char addr_str[200];
+  _snprintf(addr_str, sizeof(addr_str), "0x%I64x", addr);
+  std::string nexe_path = glb_sdk_root + glb_nexe_path;
+  std::string cmd = glb_sdk_root + "\\src\\toolchain\\win_x86\\bin\\nacl" +
+      (glb_arch_size == 64 ? "64" : "32") + "-addr2line  --exe=" + nexe_path +
+      " " + addr_str + " > " + kLineFileName;
+
+  system(cmd.c_str());
+  int scanned_items = 0;
+
+  // line.txt shall have something like this:
+  // /cygdrive/d/src/nacl_sdk2/src/examples/hello_world_c/hello_world.c:217
+  FILE* file = fopen(kLineFileName, "rt");
+  if (NULL != file) {
+    char line[MAX_PATH] = {0};
+    fgets(line, sizeof(line) - 1, file);
+    line[sizeof(line) - 1] = 0;
+    char src_file[MAX_PATH] = {0};
+    scanned_items = sscanf(line, "%[^:]:%d", src_file, line_no);  // NOLINT
+    *file_name = src_file;
+    fclose(file);
+  }
+  return (2 == scanned_items);
+}
+
+uint64_t NaclGdbServerTest::GetMemBase() {
+  if (!mem_base_requested_) {
+    std::string reply = RPC("qOffsets");
+    // Expected reply: Text=c00000000;Data=c00000000
+
+    debug::Blob blob;
+    blob.FromString(reply);
+    blob.PopBlobFromFrontUntilBytes(debug::Blob().FromString(";"));
+    blob.PopBlobFromFrontUntilBytes(debug::Blob().FromString("="));
+    mem_base_requested_ = rsp::PopIntFromFront(&blob, &mem_base_);
+  }
+  return mem_base_;
+}
+
+bool NaclGdbServerTest::InitAndRunToInstanceDidCreate() {
+  if (0 != InitAndWaitForNexeStart())
+    return false;
+
+  uint64_t start_addr = 0;
+  if (!GetSymbolAddr("Instance_DidCreate", &start_addr))
+    return false;
+
+  start_addr += GetMemBase();
+
+  if (!SetBreakpoint(start_addr))
+    return false;
+  if ("S05" != RPC("c"))
+    return false;
+
+  // Remove breakpoint, decrement ip.
+  if (!DeleteBreakpoint())
+    return false;
+
+  uint64_t ip = 0;
+  if (!ReadIP(&ip))
+    return false;
+
+  if ((start_addr + 1) != ip)
+    return false;
+
+  return WriteIP(ip - 1);
+}
+
 // Tests start here.
 TEST_F(NaclGdbServerTest, StartWebServer) {
   EXPECT_EQ(0, StartWebServer());
@@ -408,16 +543,12 @@ TEST_F(NaclGdbServerTest, WaitForNexeStart) {
 }
 
 TEST_F(NaclGdbServerTest, SetBreakpointAtEntryContinueAndHit) {
-  EXPECT_TRUE(RunObjdump(glb_sdk_root + glb_nexe_path));
   uint64_t start_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("_start", &start_addr));
 
   EXPECT_EQ(0, InitAndWaitForNexeStart());
 
-  // Assumes sandbox with base memory address 0xc00000000;
-  // TODO(garianov): retrieve base address from nacl-gdb_server (add custom
-  // request).
-  uint64_t mem_base = 0xc00000000;
+  uint64_t mem_base = GetMemBase();
   start_addr += mem_base;
 
   EXPECT_TRUE(SetBreakpoint(start_addr));
@@ -493,6 +624,42 @@ TEST_F(NaclGdbServerTest, ThreadOps) {
   EXPECT_STREQ("l", RPC("qsThreadInfo").c_str());
 }
 
+// Inserts invalid opcode (instruction) at |Instance_DidCreate| address.
+// Expects SIGILL signal reported.
+TEST_F(NaclGdbServerTest, IllegalOpcode) {
+  EXPECT_TRUE(InitAndRunToInstanceDidCreate());
+  uint64_t instance_created_addr = 0;
+  EXPECT_TRUE(ReadIP(&instance_created_addr));
+
+  debug::Blob data;
+  data.FromHexString("0f0b");
+  EXPECT_TRUE(WriteMemory(instance_created_addr, data));
+
+  EXPECT_STREQ("S04", RPC("c").c_str());  // SIGILL
+
+  uint64_t ip = 0;
+  EXPECT_TRUE(ReadIP(&ip));
+  EXPECT_EQ(instance_created_addr, ip);
+}
+
+// Inserts opcodes for "*reinterpret_cast<char*>(0) = 1;" expression,
+// which generates access violation exception (SIGSEGV).
+TEST_F(NaclGdbServerTest, AccessViolation) {
+  EXPECT_TRUE(InitAndRunToInstanceDidCreate());
+  uint64_t instance_created_addr = 0;
+  EXPECT_TRUE(ReadIP(&instance_created_addr));
+
+  debug::Blob data;
+  data.FromHexString("C6050000000001");  // *reinterpret_cast<char*>(0) = 1;
+  EXPECT_TRUE(WriteMemory(instance_created_addr, data));
+
+  EXPECT_STREQ("S0b", RPC("c").c_str());  // SIGSEGV
+
+  uint64_t ip = 0;
+  EXPECT_TRUE(ReadIP(&ip));
+  EXPECT_EQ(instance_created_addr, ip);
+}
+
 TEST_F(NaclGdbServerTest, CompatibilityMode) {
   EXPECT_EQ(0, StartWebServer());
   EXPECT_EQ(0, StartDebugger(true));
@@ -502,15 +669,102 @@ TEST_F(NaclGdbServerTest, CompatibilityMode) {
   uint64_t start_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("_start", &start_addr));
 
-  // Assumes sandbox with base memory address 0xc00000000;
-  // TODO(garianov): retrieve base address from nacl-gdb_server (add custom
-  // request).
-  uint64_t mem_base = 0xc00000000;
+  uint64_t mem_base = GetMemBase();
   start_addr += mem_base;
 
   uint64_t ip = 0;
   EXPECT_TRUE(ReadIP(&ip));
   EXPECT_EQ(start_addr, ip);
+}
+
+TEST_F(NaclGdbServerTest, ReadStaticString) {
+  static const char* kReverseTextMethodId = "reverseText";
+  EXPECT_EQ(0, InitAndWaitForNexeStart());
+  uint64_t str_ptr_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("kReverseTextMethodId", &str_ptr_addr));
+
+  debug::Blob ptr_data;
+  // Pointer in nexe is 4 bytes long.
+  EXPECT_TRUE(ReadMemory(str_ptr_addr, 4, &ptr_data));
+
+  // Convert back to hex string, in order to |rsp::PopIntFromFront| work.
+  ptr_data.FromString(ptr_data.ToHexString());
+  uint32_t str_addr = 0;
+  EXPECT_TRUE(rsp::PopIntFromFront(&ptr_data, &str_addr));
+  str_addr = htonl(str_addr);  // Pointers are little-endian on x86.
+
+  size_t len = strlen(kReverseTextMethodId) + 1;
+  debug::Blob str_data;
+  EXPECT_TRUE(ReadMemory(str_addr, len, &str_data));
+  EXPECT_STREQ(kReverseTextMethodId, str_data.ToString().c_str());
+}
+
+TEST_F(NaclGdbServerTest, WriteStaticInt) {
+  EXPECT_EQ(0, InitAndWaitForNexeStart());
+  uint64_t int_var_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("module_id", &int_var_addr));
+
+  uint32_t var = 0;
+  EXPECT_TRUE(ReadInt32(int_var_addr, &var));
+  EXPECT_EQ(0, var);
+
+  // Now, write something there.
+  debug::Blob wr_data;
+  wr_data.FromHexString("78563412");
+  EXPECT_TRUE(WriteMemory(int_var_addr, wr_data));
+
+  // And read it back.
+  EXPECT_TRUE(ReadInt32(int_var_addr, &var));
+  EXPECT_EQ(0x12345678, var);
+}
+
+TEST_F(NaclGdbServerTest, StepFromBreakpoint) {
+  EXPECT_TRUE(InitAndRunToInstanceDidCreate());
+
+  uint64_t ip = 0;
+  EXPECT_TRUE(ReadIP(&ip));
+  std::string file_name;
+  int line1_no = 0;
+  EXPECT_TRUE(AddrToLineNumber(ip, &file_name, &line1_no));
+
+  // Single instruction step
+  EXPECT_STREQ("S05", RPC("s").c_str());
+  int line2_no = 0;
+  EXPECT_TRUE(ReadIP(&ip));
+  EXPECT_TRUE(AddrToLineNumber(ip, &file_name, &line2_no));
+
+  // First step does not jump to different source line.
+  EXPECT_EQ(line1_no, line2_no);
+
+  // But performing several steps should jump to different source line.
+  for (int i = 0; i < 20; i++) {
+    EXPECT_STREQ("S05", RPC("s").c_str());
+    EXPECT_TRUE(ReadIP(&ip));
+    EXPECT_TRUE(AddrToLineNumber(ip, &file_name, &line2_no));
+    EXPECT_NE(0, line2_no);
+    if (line1_no != line2_no)
+      break;
+  }
+  EXPECT_NE(line1_no, line2_no);
+}
+
+TEST_F(NaclGdbServerTest, ReadStackFrames) {
+  EXPECT_TRUE(InitAndRunToInstanceDidCreate());
+
+  debug::Blob regs;
+  EXPECT_TRUE(ReadRegisters(&regs));
+
+  // Reading stack pointer and base pointer
+  uint64_t sp = 0;
+  uint64_t bp = 0;
+  EXPECT_TRUE(regs_set_.ReadRegisterFromGdbBlob(regs, "sp", &sp));
+  EXPECT_TRUE(regs_set_.ReadRegisterFromGdbBlob(regs, "bp", &bp));
+  EXPECT_GT(bp, sp);
+  EXPECT_GT(sp, GetMemBase());
+
+  uint64_t prev_bp = 0;
+  EXPECT_TRUE(ReadInt64(bp, &prev_bp));
+  EXPECT_EQ(0, prev_bp);
 }
 
 namespace {
@@ -521,6 +775,7 @@ std::string GetStringEnvVar(const std::string& name,
     return value;
   return default_value;
 }
+
 int GetIntEnvVar(const std::string& name,
                  int default_value) {
   char* value = getenv(name.c_str());

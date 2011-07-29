@@ -123,8 +123,8 @@ class GetOffsetsReply : public Packet {
   uint64_t text_offset() const { return text_offset_; }
   uint64_t data_offset() const { return data_offset_; }
 
-  void text_offset(uint64_t offs) { text_offset_ = offs; }
-  void data_offset(uint64_t offs) { data_offset_ = offs; }
+  void set_text_offset(uint64_t offs) { text_offset_ = offs; }
+  void set_data_offset(uint64_t offs) { data_offset_ = offs; }
 
  private:
   uint64_t text_offset_;

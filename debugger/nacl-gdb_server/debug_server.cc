@@ -526,6 +526,19 @@ void DebugServer::Visit(rsp::GetThreadInfoCommand* packet) {
   SendRspMessageToClient(reply);
 }
 
+void DebugServer::Visit(rsp::GetOffsetsCommand* packet) {
+  IDebuggeeProcess* proc = GetFocusedProcess();
+  if (NULL == proc)
+    return;
+
+  uint64_t mb = reinterpret_cast<uint64_t>(proc->nexe_mem_base());
+  rsp::GetOffsetsReply reply;
+  reply.set_data_offset(mb);
+  reply.set_text_offset(mb);
+
+  SendRspMessageToClient(reply);
+}
+
 // 0. By default, don't stop and pass exception to debuggee
 // 1. Don't stop on OUTPUT_DEBUG_STRING_EVENT
 // 2. Stop on NaCl debug events, except DebugEvent::kAppStarted

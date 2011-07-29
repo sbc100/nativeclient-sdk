@@ -120,8 +120,8 @@ struct GdbRegisters64 {
   REG(64, rdx);
   REG(64, rsi);
   REG(64, rdi);
-  REG(64, rbp);
-  REG(64, rsp);
+  REG(64, bp);
+  REG(64, sp);
   REG(64, r8);
   REG(64, r9);
   REG(64, r10);
@@ -195,8 +195,8 @@ void RegistersSet::InitializeForWin64() {
   MAP_REG(rdx, Rdx);
   MAP_REG(rsi, Rsi);
   MAP_REG(rdi, Rdi);
-  MAP_REG(rbp, Rbp);
-  MAP_REG(rsp, Rsp);
+  MAP_REG(bp, Rbp);
+  MAP_REG(sp, Rsp);
   MAP_REG(r8, R8);
   MAP_REG(r9, R9);
   MAP_REG(r10, R10);

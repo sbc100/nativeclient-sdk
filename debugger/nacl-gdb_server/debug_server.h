@@ -132,6 +132,7 @@ class DebugServer : public rsp::PacketConsumerInterface,
   virtual void Visit(rsp::StepCommand* packet);
   virtual void Visit(rsp::IsThreadAliveCommand* packet);
   virtual void Visit(rsp::GetThreadInfoCommand* packet);
+  virtual void Visit(rsp::GetOffsetsCommand* packet);
 
  protected:
   enum State {
