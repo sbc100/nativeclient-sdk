@@ -1,3 +1,0 @@
-LIBRARY	"symbols"
-EXPORTS
-  NaClSymMapFactory @1
