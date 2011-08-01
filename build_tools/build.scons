@@ -88,7 +88,15 @@ env.AddNodeToTestSuite(nacl_utils_test,
                        'run_nacl_utils_test',
                        'small')
 
+if env['IS_WINDOWS']:
+  install_nsis_test = env.CreatePythonUnitTest('tests/install_nsis_test.py',
+                                               ['install_nsis.py'])
+  env.AddNodeToTestSuite(install_nsis_test,
+                         ['bot'],
+                         'run_install_nsis_test',
+                         'small')
 
+                         
 #------------------------------------------------------------------------------
 # Put together the toolchain
 
