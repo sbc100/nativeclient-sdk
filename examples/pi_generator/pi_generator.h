@@ -22,11 +22,6 @@ namespace pi_generator {
 // attributes:
 //     type="application/x-nacl"
 //     nacl="pi_generator.nmf"
-//
-// The Instance can return a ScriptableObject representing itself.  When the
-// browser encounters JavaScript that wants to access the Instance, it calls
-// the GetInstanceObject() method.  All the scripting work is done though
-// the returned ScriptableObject.
 class PiGenerator : public pp::Instance {
  public:
   explicit PiGenerator(PP_Instance instance);

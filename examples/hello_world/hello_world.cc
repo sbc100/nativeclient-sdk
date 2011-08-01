@@ -13,11 +13,6 @@
 /// HelloWorldModule::CreateInstance()
 /// method on the object returned by CreateModule().  It calls CreateInstance()
 /// each time it encounters an <embed> tag that references your NaCl module.
-///
-/// When the browser encounters JavaScript that references your NaCl module, it
-/// calls the GetInstanceObject() method on the object returned from
-/// CreateInstance().  In this example, the returned object is a subclass of
-/// ScriptableObject, which handles the scripting support.
 
 #include <cstdio>
 #include <cstring>
@@ -47,9 +42,8 @@ pp::Var MarshallFortyTwo() {
 /// @a reverseText.
 /// It makes sure that there is one argument and that it is a string, returning
 /// an error message if it is not.
-/// On good input, it calls ReverseText and returns the result.  The
-/// ScriptableObject that called this function returns this string back to the
-/// browser as a JavaScript value.
+/// On good input, it calls ReverseText and returns the result. The result is
+/// then sent back via a call to PostMessage.
 pp::Var MarshallReverseText(const std::string& text) {
   return pp::Var(ReverseText(text));
 }
@@ -62,10 +56,6 @@ pp::Var MarshallReverseText(const std::string& text) {
 ///     type="application/x-nacl"
 ///     nacl="hello_world.nmf"
 /// </pre>
-/// The Instance can return a ScriptableObject representing itself.  When the
-/// browser encounters JavaScript that wants to access the Instance, it calls
-/// the GetInstanceObject() method.  All the scripting work is done through
-/// the returned ScriptableObject.
 class HelloWorldInstance : public pp::Instance {
  public:
   explicit HelloWorldInstance(PP_Instance instance) : pp::Instance(instance) {}
