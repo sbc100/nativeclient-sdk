@@ -250,7 +250,7 @@ namespace SymbolDBViewer {
     /// <param name = "sender">Unused.</param>
     /// <param name = "e">Unused.</param>
     private void SearchNavForwardButtonClick(object sender, EventArgs e) {
-      if (searchIndex_ < matchingNodes_.Count) {
+      if (searchIndex_ + 1 < matchingNodes_.Count) {
         ++searchIndex_;
         UpdateSearchNavLabel();
       }
