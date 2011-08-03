@@ -8,8 +8,8 @@
 
 namespace pi_generator {
 // The Module class.  The browser calls the CreateInstance() method to create
-// an instance of you NaCl module on the web page.  The browser creates a new
-// instance for each <embed> tag with type="application/x-ppapi-nacl-srpc".
+// an instance of your NaCl module on the web page.  The browser creates a new
+// instance for each <embed> tag with type="application/x-nacl".
 class PiGeneratorModule : public pp::Module {
  public:
   PiGeneratorModule() : pp::Module() {}

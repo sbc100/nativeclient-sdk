@@ -97,9 +97,9 @@ void HelloWorldInstance::HandleMessage(const pp::Var& var_message) {
 }
 
 /// The Module class.  The browser calls the CreateInstance() method to create
-/// an instance of you NaCl module on the web page.  The browser creates a new
+/// an instance of your NaCl module on the web page.  The browser creates a new
 /// instance for each <embed> tag with
-/// <code>type="application/x-ppapi-nacl-srpc"</code>.
+/// <code>type="application/x-nacl"</code>.
 class HelloWorldModule : public pp::Module {
  public:
   HelloWorldModule() : pp::Module() {}
