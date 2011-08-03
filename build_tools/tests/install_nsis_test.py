@@ -20,6 +20,12 @@ class TestInstallNsis(unittest.TestCase):
   def setUp(self):
     self.nsis_installer_ = os.path.join(os.path.abspath('build_tools'),
                                         install_nsis.NSIS_INSTALLER)
+    self.target_dir_ = os.path.join(os.path.dirname(self.nsis_installer_),
+                                    'nsis_test',
+                                    'NSIS')
+  def tearDown(self):
+    if os.path.exists(self.target_dir_):
+      shutil.rmtree(os.path.dirname(self.target_dir_))
 
   def testNsisInstallerExists(self):
     """Ensure that the correct version of NSIS is present."""
@@ -31,13 +37,47 @@ class TestInstallNsis(unittest.TestCase):
 
   def testNsisInstaller(self):
     """Make sure the installer produces an NSIS directory."""
-    target_dir = os.path.join(os.path.dirname(self.nsis_installer_),
-                              'nsis_test',
-                              'NSIS')
-    install_nsis.InstallNsis(self.nsis_installer_, target_dir)
-    self.assertTrue(os.path.exists(os.path.join(target_dir, 'makensis.exe')))
-    shutil.rmtree(os.path.dirname(target_dir))
+    install_nsis.InstallNsis(self.nsis_installer_, self.target_dir_)
+    self.assertTrue(os.path.exists(os.path.join(self.target_dir_,
+                                                'makensis.exe')))
 
+  def testAccessControlExtensions(self):
+    """Make sure that the AccessControl extensions can be installed."""
+    script_dir = os.path.dirname(self.nsis_installer_)
+    install_nsis.InstallAccessControlExtensions(
+        script_dir,
+        os.path.join(script_dir, install_nsis.ACCESS_CONTROL_ZIP),
+        self.target_dir_)
+    self.assertTrue(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'AccessControl.dll')))
+    self.assertTrue(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
+
+  def testForceTargetInstall(self):
+    """Test that a force install to a target directory works."""
+    try:
+      # Mock the NSIS install directories so that Install() thinks NSIS is
+      # already installed.
+      os.makedirs(os.path.join(self.target_dir_, 'Plugins'), mode=0777)
+    except OSError:
+      pass
+    self.assertFalse(os.path.exists(os.path.join(self.target_dir_,
+                                                 'makensis.exe')))
+    self.assertFalse(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'AccessControl.dll')))
+    self.assertFalse(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
+
+    install_nsis.Install(os.path.dirname(self.nsis_installer_),
+                         target_dir=self.target_dir_,
+                         force=True)
+
+    self.assertTrue(os.path.exists(os.path.join(self.target_dir_,
+                                                'makensis.exe')))
+    self.assertTrue(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'AccessControl.dll')))
+    self.assertTrue(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
 
 def RunTests():
   suite = unittest.TestLoader().loadTestsFromTestCase(TestInstallNsis)

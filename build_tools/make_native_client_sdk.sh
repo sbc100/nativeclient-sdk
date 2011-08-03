@@ -64,28 +64,6 @@ if ((BASH_VERSINFO[0]<4)) ; then
   exit 1
 fi
 
-if ((NSIS)) && ((CygWin)) && ! [ -d NSIS ] ; then
-  7z -oNSIS x "`dirname \"$0\"`"/nsis-2.46-Unicode-setup.exe
-  ln -sfn NSIS AccessControl
-  7z x "`dirname \"$0\"`"/AccessControl.zip
-  rm AccessControl
-  mkdir -p NSIS/Contrib/Graphics/{Checks,Header,Icons,Wizard}
-  for dirname in Checks Header Icons Wizard ; do
-    mv NSIS/\$_OUTDIR/$dirname/* NSIS/Contrib/Graphics/$dirname
-  done
-  rmdir NSIS/\$_OUTDIR/{Checks,Header,Icons,Wizard,}
-  mkdir "NSIS/Docs/Modern UI/images"
-  ln "NSIS/Docs/Modern UI 2/images"/* "NSIS/Docs/Modern UI/images"
-  mv NSIS/\$PLUGINSDIR/modern-header.bmp NSIS/Contrib/Graphics/Header/nsis.bmp
-  mv NSIS/\$PLUGINSDIR/modern-wizard.bmp NSIS/Contrib/Graphics/Wizard/nsis.bmp
-  mv NSIS/\$PLUGINSDIR/*.dll NSIS/Plugins
-  rmdir NSIS/\$PLUGINSDIR
-  chmod a+x NSIS/{,Bin,Contrib/UIs}/*.exe
-  mkdir -p "MkLink/nsis"
-  cp -aiv "NSIS/Examples/Plugin/nsis"/* "Mklink/nsis"
-  cp -aiv "MkLink/Release Unicode/MkLink.dll" "NSIS/Plugins"
-fi
-
 # Filetype info
 declare -A filetype
 
@@ -346,7 +324,6 @@ SDK_VERSIONED_NAME=native_client_sdk_${SDK_VERSION//./_}
 
 # Construct the install name based on the version string.
 SDK_INSTALL_NAME="C:\\$SDK_VERSIONED_NAME"
-rm -f $SDK_INSTALL_NAME_SCRIPT
 echo "InstallDir \"$SDK_INSTALL_NAME\"" > sdk_install_name.nsh
 
 # Unpack the SDK packages and produce the NSIS Section command files from the

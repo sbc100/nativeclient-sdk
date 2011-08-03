@@ -7,6 +7,7 @@
 
 import build_utils
 import installer_contents
+import make_nsis_installer
 import optparse
 import os
 import shutil
@@ -144,6 +145,7 @@ def main(argv):
   bot.BuildStep('create Windows installer')
   bot.Print('generate_windows_installer is creating the windows installer.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
+  make_nsis_installer.MakeNsisInstaller(cwd=build_tools_dir)
   # Do not check the return value of this call, because it always fails on the
   # try bots.  The try bots always patch using the native line ending, which
   # appends CRLF to the line endings of the make_native_client_sdk.sh script,
