@@ -1,0 +1,8 @@
+# In order to be able to use git to move subprojects ouf of third_party, I
+# need to make them visible first.
+!third_party
+
+third_party/native_client/
+
+*.user
+*Resharper*
