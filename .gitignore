@@ -2,12 +2,14 @@
 # from a 'git status' command, or similar
 
 # Ignore these filename patterns
-*.pyc
-*.nexe
-*.o
-*.nmf
-*.gz
 *.cmd
+*.gz
+*.nexe
+*.nmf
+*.o
+*.pyc
+*.pyo
+
 
 # Ignore all hidden files
 .*
@@ -20,4 +22,3 @@ toolchain/
 # Ignore these particular directories (relative to src directory)
 /build_tools/packages/
 /site_scons/
-
