@@ -76,7 +76,6 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
                         ],
               # Both C and C++
               CCFLAGS=['${EXTRA_CCFLAGS}',
-                       '-Werror',
                        '-Wall',
                        '-Wswitch-enum',
                        '-pthread',
