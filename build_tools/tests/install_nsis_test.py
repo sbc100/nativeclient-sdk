@@ -24,8 +24,7 @@ class TestInstallNsis(unittest.TestCase):
                                     'nsis_test',
                                     'NSIS')
   def tearDown(self):
-    if os.path.exists(self.target_dir_):
-      shutil.rmtree(os.path.dirname(self.target_dir_))
+    shutil.rmtree(os.path.dirname(self.target_dir_), ignore_errors=True)
 
   def testNsisInstallerExists(self):
     """Ensure that the correct version of NSIS is present."""
@@ -78,6 +77,7 @@ class TestInstallNsis(unittest.TestCase):
         os.path.join(self.target_dir_, 'Plugins', 'AccessControl.dll')))
     self.assertTrue(os.path.exists(
         os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
+
 
 def RunTests():
   suite = unittest.TestLoader().loadTestsFromTestCase(TestInstallNsis)

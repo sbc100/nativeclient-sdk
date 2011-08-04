@@ -25,8 +25,8 @@ def InstallNsis(installer_exe, target_dir):
     installer_exe: The full path to the NSIS self-extracting installer.
 
     target_dir: The target directory for NSIS.  The installer is run in this
-    directory and produces a directory named NSIS that contains the NSIS
-    compiler, etc. Must be defined.
+        directory and produces a directory named NSIS that contains the NSIS
+        compiler, etc. Must be defined.
   '''
   if not os.path.exists(installer_exe):
     raise IOError('%s not found' % installer_exe)
@@ -55,10 +55,10 @@ def InstallAccessControlExtensions(cwd, access_control_zip, target_dir):
     cwd: The current working directory.
 
     access_control_zip: The full path of the AccessControl.zip file.  The
-    contents of this file are extracted using python's zipfile package.
+        contents of this file are extracted using python's zipfile package.
 
     target_dir: The full path of the target directory for the AccessControl
-    extensions.
+        extensions.
   '''
   if not os.path.exists(access_control_zip):
     raise IOError('%s not found' % access_control_zip)
@@ -69,7 +69,10 @@ def InstallAccessControlExtensions(cwd, access_control_zip, target_dir):
     pass
 
   zip_file = zipfile.ZipFile(access_control_zip, 'r')
-  zip_file.extractall(target_dir)
+  try:
+    zip_file.extractall(target_dir)
+  finally:
+    zip_file.close()
   # Move the AccessControl plugin DLLs into the main NSIS Plugins directory.
   access_control_plugin_dir = os.path.join(target_dir,
                                            'AccessControl',
@@ -95,7 +98,7 @@ def Install(cwd, target_dir=None, force=False):
     cwd: The current working directory.
 
     target_dir: NSIS is installed here.  If |target_dir| is None, then NSIS is
-    installed in its default location, which is NSIS_DIR under |cwd|.
+        installed in its default location, which is NSIS_DIR under |cwd|.
 
     force: True means install NSIS whether it already exists or not.
   '''

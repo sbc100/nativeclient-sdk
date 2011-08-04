@@ -96,6 +96,13 @@ if env['IS_WINDOWS']:
                          'run_install_nsis_test',
                          'small')
 
+  nsis_script_test = env.CreatePythonUnitTest('tests/nsis_script_test.py',
+                                              ['nsis_script.py'])
+  env.AddNodeToTestSuite(nsis_script_test,
+                         ['bot'],
+                         'run_nsis_script_test',
+                         'small')
+
                          
 #------------------------------------------------------------------------------
 # Put together the toolchain

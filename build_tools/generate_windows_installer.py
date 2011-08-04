@@ -38,12 +38,6 @@ def main(argv):
   script_dir = os.path.abspath(os.path.dirname(__file__))
   home_dir = os.path.realpath(os.path.dirname(os.path.dirname(script_dir)))
 
-  cygwin_dir = os.path.join(home_dir,
-                            'src',
-                            'third_party',
-                            'cygwin',
-                            'bin')
-
   version_dir = build_utils.VersionString()
   parent_dir = os.path.dirname(script_dir)
   deps_file = os.path.join(parent_dir, 'DEPS')
@@ -117,45 +111,10 @@ def main(argv):
     for f in files:
       os.chmod(os.path.join(root, f), stat.S_IWRITE | stat.S_IREAD)
 
-  bot.BuildStep('create archive')
-  bot.Print('generate_windows_installer is creating the installer archive')
-  # Now that the SDK directory is copied and cleaned out, tar it all up using
-  # the native platform tar.
-
-  # Set the default shell command and output name.
-  ar_cmd = ('tar cvzf %(ar_name)s %(input)s && cp %(ar_name)s %(output)s'
-            ' && chmod 644 %(output)s')
-  ar_name = 'nacl-sdk.tgz'
-
-  cygwin_env = os.environ.copy()
-  # TODO (mlinck, mball) make this unnecessary
-  cygwin_env['PATH'] = cygwin_dir + ';' + cygwin_env['PATH']
-  # archive will be created in src\build_tools\pacakges,
-  # make_native_client_sdk.sh will create the real nacl-sdk.exe
-  archive = os.path.join(home_dir, 'src', 'build_tools', 'packages', ar_name)
-  subprocess.check_call(
-      ar_cmd % (
-           {'ar_name':ar_name,
-            'input':version_dir,
-            'output':archive.replace('\\', '/')}),
-      cwd=temp_dir,
-      env=cygwin_env,
-      shell=True)
-
   bot.BuildStep('create Windows installer')
   bot.Print('generate_windows_installer is creating the windows installer.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
-  make_nsis_installer.MakeNsisInstaller(cwd=build_tools_dir)
-  # Do not check the return value of this call, because it always fails on the
-  # try bots.  The try bots always patch using the native line ending, which
-  # appends CRLF to the line endings of the make_native_client_sdk.sh script,
-  # and bash cannot deal with CRLF line endings.  The shell script runs fine
-  # on the build bots.
-  subprocess.call([
-      os.path.join(cygwin_dir, 'bash.exe'),
-      'make_native_client_sdk.sh', '-V',
-      build_utils.RawVersion(), '-v', '-n'],
-      cwd=build_tools_dir)
+  make_nsis_installer.MakeNsisInstaller(installer_dir, cwd=build_tools_dir)
   bot.Print("Installer created!")
 
   # Clean up.
