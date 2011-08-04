@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <!--
+  Copyright (c) 2011 The Native Client Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+  -->
+<head>
+  <title>Hello, World!</title>
+
+  <script type="text/javascript">
+    loadProgressModule = null;  // Global application object.
+    statusText = 'NO-STATUS';
+
+    // Handler that gets called when the NaCl module starts loading.  This
+    // event is always triggered when an <EMBED> tag has a MIME type of
+    // application/x-nacl.
+    function moduleDidStartLoad() {
+      appendToEventLog('loadstart');
+    }
+
+    // Progress event handler.  |event| contains a couple of interesting
+    // properties that are used in this example:
+    //     total The size of the NaCl module in bytes.  Note that this value
+    //         is 0 until |lengthComputable| is true.  In particular, this
+    //         value is 0 for the first 'progress' event.
+    //     loaded The number of bytes loaded so far.
+    //     lengthComputable A boolean indicating that the |total| field
+    //         represents a valid length.
+    //
+    // event The ProgressEvent that triggered this handler.
+    function moduleLoadProgress(event) {
+      var loadPercent = 0.0;
+      var loadPercentString;
+      if (event.lengthComputable && event.total > 0) {
+        loadPercent = event.loaded / event.total * 100.0;
+        loadPercentString = loadPercent + '%';
+      } else {
+        // The total length is not yet known.
+        loadPercent = -1.0;
+        loadPercentString = 'Computing...';
+      }
+      appendToEventLog('progress: ' + loadPercentString +
+                       ' (' + event.loaded + ' of ' + event.total + ' bytes)');
+    }
+
+    // Handler that gets called if an error occurred while loading the NaCl
+    // module.  Note that the event does not carry any meaningful data about
+    // the error, you have to check lastError on the <EMBED> element to find
+    // out what happened.
+    function moduleLoadError() {
+      loadProgressModule = document.getElementById('load_progress');
+      appendToEventLog('error: ' + loadProgressModule.lastError);
+    }
+
+    // Handler that gets called if the NaCl module load is aborted.
+    function moduleLoadAbort() {
+      appendToEventLog('abort');
+    }
+
+    // When the NaCl module has loaded, hook up an event listener to handle
+    // messages coming from it, and then indicate success.
+    function moduleDidLoad() {
+      loadProgressModule = document.getElementById('load_progress');
+      // Add a message handler that accepts messages coming from the NaCl
+      // module.
+      loadProgressModule.addEventListener('message', handleMessage, false);
+      appendToEventLog('load');
+      updateStatus('SUCCESS');
+    }
+
+    // Handler that gets called when the NaCl module loading has completed.
+    // You will always get one of these events, regardless of whether the NaCl
+    // module loaded successfully or not.  For example, if there is an error
+    // during load, you will get an 'error' event and a 'loadend' event.  Note
+    // that if the NaCl module loads successfully, you will get both a 'load'
+    // event and a 'loadend' event.
+    function moduleDidEndLoad() {
+      appendToEventLog('loadend');
+      var lastError = event.target.lastError;
+      if (lastError == undefined || lastError.length == 0) {
+        lastError = '&lt;none&gt;';
+      }
+      appendToEventLog('lastError: ' + lastError);
+    }
+
+
+    // Handle a message coming from the NaCl module.
+    function handleMessage(message_event) {
+      alert(message_event.data);
+    }
+
+    // If the page loads before the Native Client module loads, then set the
+    // status message indicating that the module is still loading.  Otherwise,
+    // do not change the status message.
+    function pageDidLoad() {
+      if (loadProgressModule == null) {
+        updateStatus('LOADING...');
+      } else {
+        // It's possible that the Native Client module onload event fired
+        // before the page's onload event.  In this case, the status message
+        // will reflect 'SUCCESS', but won't be displayed.  This call will
+        // display the current message.
+        updateStatus();
+      }
+    }
+
+    // Set the global status message.  Updates the 'status_field' element with
+    // the new text.
+    // opt_message The message text.  If this is null or undefined, then
+    //     attempt to set the element with id 'status_field' to the value of
+    //     |statusText|.
+    function updateStatus(opt_message) {
+      if (opt_message)
+        statusText = opt_message;
+      var statusField = document.getElementById('status_field');
+      if (statusField) {
+        statusField.innerHTML = statusText;
+      }
+    }
+
+    // Append an event name to the 'event_log_field' element.  Event names
+    // are separated by a <br> tag so they get listed one per line.
+    // logMessage The message to append to the log.
+    function appendToEventLog(logMessage) {
+      var eventLogField = document.getElementById('event_log_field');
+      if (eventLogField.innerHTML.length == 0) {
+        eventLogField.innerHTML = logMessage;
+      } else {
+        eventLogField.innerHTML = eventLogField.innerHTML +
+                                  '<br />' +
+                                  logMessage;
+      }
+    }
+  </script>
+</head>
+<body onload="pageDidLoad()">
+
+<h1>Native Client Load Event Example</h1>
+<p>
+  <!-- Load the published .nexe.  This includes the 'src' attribute which
+  shows how to load multi-architecture modules.  Each entry in the "nexes"
+  object in the  .nmf manifest file is a key-value pair: the key is the runtime
+  ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
+  To load the debug versions of your .nexes, set the 'src' attribute to the
+  _dbg.nmf version of the manifest file.
+
+  Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+  event listener attached.  This method is used instead of attaching the 'load'
+  event listener directly to the <EMBED> element to ensure that the listener
+  is active before the NaCl module 'load' event fires.
+  -->
+  <div id="listener">
+    <script type="text/javascript">
+      var listener = document.getElementById('listener');
+      listener.addEventListener('loadstart', moduleDidStartLoad, true);
+      listener.addEventListener('progress', moduleLoadProgress, true);
+      listener.addEventListener('error', moduleLoadError, true);
+      listener.addEventListener('abort', moduleLoadAbort, true);
+      listener.addEventListener('load', moduleDidLoad, true);
+      listener.addEventListener('loadend', moduleDidEndLoad, true);
+    </script>
+
+    <embed name="nacl_module"
+           id="load_progress"
+           width=0 height=0
+           src="load_progress.nmf"
+           type="application/x-nacl" />
+  </div>
+
+</p>
+
+<h2>Status</h2>
+<div id="status_field">NO-STATUS</div>
+
+<h2>Event Log</h2>
+<div id="event_log_field"></div>
+</body>
+</html>

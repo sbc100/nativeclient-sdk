@@ -32,6 +32,7 @@ Supported targets:
   * geturl             Build the geturl example.
   * hello_world        Build the hello_world example.
   * hello_world_c      Build the hello_world_c example.
+  * load_progress      Build the load_progress example.
   * pi_generator       Build the pi_generator example.
   * sine_synth         Build the sine_synth example.
 """
@@ -39,6 +40,7 @@ Supported targets:
 example_sconscripts = ['geturl/build.scons',
                        'hello_world/build.scons',
                        'hello_world_c/build.scons',
+                       'load_progress/build.scons',
                        'pi_generator/build.scons',
                        'sine_synth/build.scons',
                       ]
