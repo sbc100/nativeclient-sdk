@@ -5,15 +5,17 @@
 // This is an example of a simple unit test to verify that the logic helper
 // functions works as expected.  Note that this looks like a 'normal' C++
 // program, with a main function.  It is compiled and linked using the NaCl
-// toolchain, so in order to run it, you must use 'nacl-sel_ldr' or
-// 'nacl64-sel_ldr' from the toolchain's bin directory.
+// toolchain, so in order to run it, you must use 'sel_ldr_x86_32' or
+// 'sel_ldr_x86_64' from the toolchain's bin directory.
 //
 // For example (assuming the toolchain bin directory is in your path):
-// > nacl-sel_ldr test_helper_functions_x86_32_dbg.nexe
+//   sel_ldr_x86_32 test_helper_functions_x86_32_dbg.nexe
 //
-// You can also use the 'test', 'test32', or 'test64' make target to run this
-// test.  For example, this will run the test in both 32-bit and 64-bit mode:
-// > make test
+// You can also use the 'test32', or 'test64' SCons target to run these tests.
+// For example, this will run the test in 32-bit mode on Mac or Linux:
+//   ../scons test32
+// On Windows 64:
+//   ..\scons test64
 
 #include "examples/hello_world/helper_functions.h"
 
