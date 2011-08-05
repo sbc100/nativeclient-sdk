@@ -95,6 +95,8 @@ class TestNsisScript(unittest.TestCase):
     # TODO(dspringer): re-enable this test when the bots work with it.
     with open(os.path.join(test_dir, 'sdk_section.nsh')) as nsh:
       print 'actual output:\n%s' % str(nsh.readlines())
+    with open(os.path.join(test_dir, 'test_sdk_section.nsh')) as tnsh:
+      print 'test output:\n%s' % str(tnsh.readlines())
     # self.assertEqual(1,
     #     filecmp.cmp(os.path.join(test_dir, 'sdk_section.nsh'),
     #                 os.path.join(test_dir, 'test_sdk_section.nsh')))
