@@ -97,7 +97,9 @@ class TestNsisScript(unittest.TestCase):
       print 'actual output:\n%s' % str(nsh.readlines())
     with open(os.path.join(test_dir, 'test_sdk_section.nsh')) as tnsh:
       print 'test output:\n%s' % str(tnsh.readlines())
-    # self.assertEqual(1,
+    print 'filecmp %d' % filecmp.cmp(os.path.join(test_dir, 'sdk_section.nsh'),
+                    os.path.join(test_dir, 'test_sdk_section.nsh'))
+    # self.assertTrue(
     #     filecmp.cmp(os.path.join(test_dir, 'sdk_section.nsh'),
     #                 os.path.join(test_dir, 'test_sdk_section.nsh')))
     os.remove(os.path.join(test_dir, 'sdk_section.nsh'))
