@@ -118,7 +118,7 @@ class NsisScript:
     Args:
       cwd: The directory where sdk_install_name.sdk is placed.
     '''
-    with open(os.path.join(cwd, 'sdk_install_name.nsh'), 'w') as script:
+    with open(os.path.join(cwd, 'sdk_install_name.nsh'), 'wb') as script:
       script.write('InstallDir %s\n' % self._install_dir)
 
   def NormalizeInstallPath(self, path):
@@ -154,7 +154,7 @@ class NsisScript:
     Args:
       cwd: The directory where sdk_section.sdk is placed.
     '''
-    with open(os.path.join(cwd, 'sdk_section.nsh'), 'w') as script:
+    with open(os.path.join(cwd, 'sdk_section.nsh'), 'wb') as script:
       script.write('Section "!Native Client SDK" NativeClientSDK\n')
       script.write('  SectionIn RO\n')
       script.write('  SetOutPath $INSTDIR\n')

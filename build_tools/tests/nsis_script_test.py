@@ -92,16 +92,8 @@ class TestNsisScript(unittest.TestCase):
                                dir_filter=self.FilterSvn,
                                file_filter=self.FilterSvn)
     script.CreateSectionNameScript(cwd=test_dir)
-    # TODO(dspringer): re-enable this test when the bots work with it.
-    with open(os.path.join(test_dir, 'sdk_section.nsh')) as nsh:
-      print 'actual output:\n%s' % str(nsh.readlines())
-    with open(os.path.join(test_dir, 'test_sdk_section.nsh')) as tnsh:
-      print 'test output:\n%s' % str(tnsh.readlines())
-    print 'filecmp %d' % filecmp.cmp(os.path.join(test_dir, 'sdk_section.nsh'),
-                    os.path.join(test_dir, 'test_sdk_section.nsh'))
-    # self.assertTrue(
-    #     filecmp.cmp(os.path.join(test_dir, 'sdk_section.nsh'),
-    #                 os.path.join(test_dir, 'test_sdk_section.nsh')))
+    self.assertTrue(filecmp.cmp(os.path.join(test_dir, 'sdk_section.nsh'),
+                                os.path.join(test_dir, 'test_sdk_section.nsh')))
     os.remove(os.path.join(test_dir, 'sdk_section.nsh'))
 
 
