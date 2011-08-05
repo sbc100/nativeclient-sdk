@@ -201,6 +201,34 @@ def TestingClosure(_outdir, _jobs):
       runAndQuitHttpServer(5281)
       return True
 
+    def testProjectTemplates(self):
+      '''Create and build projects from project_templates.'''
+
+      def initAndCompileProject(project_name, flags=[]):
+        '''A small helper function that runs init_project.py and then runs
+        a scons build in the resulting directory.
+
+        Args:
+          project_name: The project's name, set the --name= parameter for
+              init_project to this value.
+          flags: Any extra flags to pass to init_project.  Must be an array,
+              can be empty.
+        '''
+        path = os.path.join(_outdir, 'project_templates')
+        scons = 'scons.bat' if sys.platform == 'win32' else 'scons'
+        scons_command = [os.path.join(path, project_name, scons), '-j', _jobs]
+        init_project_command = [sys.executable,
+                                'init_project.py',
+                                '--name=%s' % project_name] + flags
+        annotator.Run(' '.join(init_project_command), cwd=path, shell=True)
+        annotator.Run(' '.join(scons_command),
+                      cwd=os.path.join(path, project_name),
+                      shell=True)
+
+      initAndCompileProject('test_c_project', flags=['-c'])
+      initAndCompileProject('test_cc_project')
+      return True
+
     def testValgrind(self):
       '''Verify that Valgrind works properly (Linux 64-bit only)'''
 
