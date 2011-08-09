@@ -59,6 +59,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dwarf_reader", "..\src\dwar
 		{EAB8217E-1E42-4D32-9DC4-AF5B6865F8E0} = {EAB8217E-1E42-4D32-9DC4-AF5B6865F8E0}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest-md", "..\..\..\debugger\gtest-md.vcproj", "{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dwarf_reader_UnitTestProject", "..\src\dwarf_reader\dwarf_reader_UnitTestProject\dwarf_reader_UnitTestProject.vcproj", "{94078229-2774-4160-8B10-21036DD40AE6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D81DF29-79F3-4043-BF4C-976AB0AE3246} = {9D81DF29-79F3-4043-BF4C-976AB0AE3246}
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8} = {C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = NativeClientVSX.vsmdi
@@ -293,6 +301,36 @@ Global
 		{9D81DF29-79F3-4043-BF4C-976AB0AE3246}.Release|Win32.Build.0 = Release|Win32
 		{9D81DF29-79F3-4043-BF4C-976AB0AE3246}.Release|x64.ActiveCfg = Release|Win32
 		{9D81DF29-79F3-4043-BF4C-976AB0AE3246}.Release|x86.ActiveCfg = Release|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|Win32.Build.0 = Debug|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|x64.ActiveCfg = Debug|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|x64.Build.0 = Debug|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Debug|x86.ActiveCfg = Debug|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|Any CPU.ActiveCfg = Release|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|Mixed Platforms.Build.0 = Release|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|Win32.ActiveCfg = Release|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|Win32.Build.0 = Release|Win32
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|x64.ActiveCfg = Release|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|x64.Build.0 = Release|x64
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}.Release|x86.ActiveCfg = Release|x64
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|Win32.Build.0 = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|x64.ActiveCfg = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Debug|x86.ActiveCfg = Debug|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|Any CPU.ActiveCfg = Release|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|Win32.ActiveCfg = Release|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|Win32.Build.0 = Release|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|x64.ActiveCfg = Release|Win32
+		{94078229-2774-4160-8B10-21036DD40AE6}.Release|x86.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -300,5 +338,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{FACD8324-6EE0-4F27-8F02-98519A44A0C5} = {D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}
 		{D89669F5-7B81-4198-95A2-D3400AB2E718} = {D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}
+		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8} = {D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}
+		{94078229-2774-4160-8B10-21036DD40AE6} = {D63FA2CC-4B5F-4351-88CB-10FDDF19CF45}
 	EndGlobalSection
 EndGlobal
