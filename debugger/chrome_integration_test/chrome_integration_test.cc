@@ -36,6 +36,10 @@ int glb_arch_size = 0;
 int glb_wait_secs = 0;
 
 // Fills from BROWSER environment variable
+// Example:
+//   BROWSER=D:\chrome-win32\chrome.exe --incognito http://localhost:5103/
+// Note that these integration tests are running on examples/hello_world_c and
+// examples/pi_generator nexes.
 std::string glb_browser_cmd;
 
 // Automatically formed based on NACL_SDK_ROOT and ARCH_SIZE
@@ -53,6 +57,10 @@ const int kWaitForNexeSleepMs = 500;
 
 const char* kNexePath =
     "\\src\\examples\\hello_world_c\\hello_world_x86_%d_dbg.nexe";
+
+const char* kNexe2Path =
+    "\\src\\examples\\pi_generator\\pi_generator_x86_%d_dbg.nexe";
+
 const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\nacl%s-objdump";
 const char* kNaclDebuggerPath = "%sDebug\\nacl-gdb_server.exe";
 const char* kWebServerPath = "\\src\\examples\\httpd.cmd";
@@ -69,7 +77,8 @@ int main(int argc, char* argv[]) {
   glb_target_port = GetIntEnvVar("TARGET_PORT", kDefaultTargetPort);
   glb_arch_size = GetIntEnvVar("ARCH_SIZE", kDefaultArchSize);
   glb_wait_secs = GetIntEnvVar("ONE_OP_TIMEOUT", kDefaultOpTimeoutInSecs);
-  glb_browser_cmd = GetStringEnvVar("BROWSER", "");
+  glb_browser_cmd = GetStringEnvVar("BROWSER", "") +
+      "hello_world_c/hello_world.html";
   glb_web_server_port = GetIntEnvVar("WEB_PORT", kDefaultWebServerPort);
 
   glb_nexe_path = rsp::Format(
@@ -154,6 +163,8 @@ class NaclGdbServerTest : public ::testing::Test {
   bool WriteIP(uint64_t ip);
   bool ReadInt32(uint64_t addr, uint32_t* dest);
   bool ReadInt64(uint64_t addr, uint64_t* dest);
+  bool GetCurrThread(int* tid);
+  bool GetThreadsList(std::deque<int>* tids);
 
   bool GetSymbolAddr(const std::string& name, uint64_t* addr);
   bool AddrToLineNumber(uint64_t addr, std::string* file_name, int* line_no);
@@ -406,6 +417,33 @@ bool NaclGdbServerTest::ReadInt64(uint64_t addr, uint64_t* dest) {
   return rsp::PopIntFromFront(&data, dest);
 }
 
+bool NaclGdbServerTest::GetCurrThread(int* tid) {
+  std::string reply = RPC("qC");
+  if (strcmp("QC", reply.substr(0, 2).c_str()) != 0)
+    return false;
+  return (1 == sscanf(reply.c_str() + 2, "%x", tid));
+}
+
+bool NaclGdbServerTest::GetThreadsList(std::deque<int>* tids) {
+  tids->clear();
+  /// Example: qfThreadInfo -> m1234,a34
+  std::string reply = RPC("qfThreadInfo");
+  if ((reply.size() == 0) || ('m' != reply[0]))
+    return false;
+
+  debug::Blob blob;
+  blob.FromString(reply);
+  blob.PopFront();
+  std::deque<debug::Blob> tokens;
+  blob.Split(debug::Blob().FromString(","), &tokens);
+  for (size_t i = 0; i < tokens.size(); i++) {
+    int tid = 0;
+    if (rsp::PopIntFromFront(&tokens[i], &tid))
+      tids->push_back(tid);
+  }
+  return true;
+}
+
 bool NaclGdbServerTest::RunObjdump(const std::string& nexe_path) {
   // Command line for this operation is something like this:
   // nacl64-objdump -t nacl_app.nexe > symbols.txt
@@ -618,10 +656,8 @@ TEST_F(NaclGdbServerTest, ThreadOps) {
   EXPECT_STREQ("OK", RPC("Hc-1").c_str());
 
   // Get current thread.
-  std::string reply = RPC("qC");
-  EXPECT_STREQ("QC", reply.substr(0, 2).c_str());
-  uint32_t tid = 0;
-  EXPECT_EQ(1, sscanf(reply.c_str() + 2, "%x", &tid));  // NOLINT
+  int tid = 0;
+  EXPECT_TRUE(GetCurrThread(&tid));
   EXPECT_NE(0, tid);
 
   // Is thread alive.
@@ -640,9 +676,10 @@ TEST_F(NaclGdbServerTest, ThreadOps) {
   EXPECT_STREQ("E0b", RPC(cmd).c_str());
 
   // Get thread list.
-  std::string expected_reply = std::string("m") + reply.substr(2, 1000);
-  EXPECT_STREQ(expected_reply.c_str(), RPC("qfThreadInfo").c_str());
-  EXPECT_STREQ("l", RPC("qsThreadInfo").c_str());
+  std::deque<int> tids;
+  EXPECT_TRUE(GetThreadsList(&tids));
+  ASSERT_EQ(1, tids.size());
+  EXPECT_EQ(tid, tids[0]);
 }
 
 // Inserts invalid opcode (instruction) at |Instance_DidCreate| address.
@@ -766,7 +803,6 @@ TEST_F(NaclGdbServerTest, StepFromBreakpoint) {
 
 TEST_F(NaclGdbServerTest, ReadStackFrames) {
   EXPECT_TRUE(InitAndRunToInstanceDidCreate());
-
   debug::Blob regs;
   EXPECT_TRUE(ReadRegisters(&regs));
 
@@ -780,6 +816,58 @@ TEST_F(NaclGdbServerTest, ReadStackFrames) {
   uint64_t prev_bp = 0;
   EXPECT_TRUE(ReadInt64(bp, &prev_bp));
   EXPECT_EQ(0, prev_bp);
+}
+
+TEST_F(NaclGdbServerTest, Multithreading) {
+  glb_browser_cmd = GetStringEnvVar("BROWSER", "") +
+      "pi_generator/pi_generator.html";
+  glb_nexe_path = rsp::Format(
+      &debug::Blob(), kNexe2Path, glb_arch_size).ToString();
+
+  EXPECT_EQ(0, InitAndWaitForNexeStart());
+  int main_tid = 0;
+  EXPECT_TRUE(GetCurrThread(&main_tid));
+  std::deque<int> tids;
+  EXPECT_TRUE(GetThreadsList(&tids));
+  ASSERT_EQ(1, tids.size());
+  EXPECT_EQ(main_tid, tids[0]);
+
+  // Now, resume nexe, it should stop when new thread is created.
+  EXPECT_STREQ("S13", RPC("c").c_str());  // SIGSTOP
+
+  // Set breakpoint at PiGenerator::ComputePi, wait for nexe to stop,
+  // check thread list and current thread.
+  // PiGenerator::ComputePi -> "_ZN12pi_generator11PiGenerator9ComputePiEPv"
+  uint64_t compute_pi_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("_ZN12pi_generator11PiGenerator9ComputePiEPv",
+                            &compute_pi_addr));
+  compute_pi_addr = TranslateIP(compute_pi_addr);
+  EXPECT_TRUE(SetBreakpoint(compute_pi_addr));
+
+  EXPECT_STREQ("S05", RPC("c").c_str());
+  EXPECT_TRUE(DeleteBreakpoint());
+  int background_tid = 0;
+  EXPECT_TRUE(GetCurrThread(&background_tid));
+  EXPECT_NE(main_tid, background_tid);
+  EXPECT_TRUE(GetThreadsList(&tids));
+  ASSERT_EQ(2, tids.size());
+  EXPECT_EQ(main_tid, tids[0]);
+  EXPECT_EQ(background_tid, tids[1]);
+
+  // Set breakpoint at PiGenerator::Paint, wait for nexe to stop,
+  // check thread list and current thread (should be main thread).
+  // PiGenerator::Paint -> _ZN12pi_generator11PiGenerator5PaintEv
+  uint64_t paint_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("_ZN12pi_generator11PiGenerator5PaintEv",
+                            &paint_addr));
+  paint_addr = TranslateIP(paint_addr);
+  EXPECT_TRUE(SetBreakpoint(paint_addr));
+
+  EXPECT_STREQ("S05", RPC("c").c_str());
+  EXPECT_TRUE(DeleteBreakpoint());
+  int curr_tid = 0;
+  EXPECT_TRUE(GetCurrThread(&curr_tid));
+  EXPECT_EQ(main_tid, curr_tid);
 }
 
 namespace {
