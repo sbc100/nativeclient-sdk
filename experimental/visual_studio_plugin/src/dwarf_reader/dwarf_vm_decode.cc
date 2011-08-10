@@ -1,30 +1,6 @@
-// Copyright 2010 Google, Inc.  All Rights reserved
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
- // met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the path of Google Inc. nor the paths of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include <vector>
 
@@ -43,24 +19,27 @@
 using namespace dwarf2reader;
 
 #define Error(x) do { vm->ErrorString(x); return 0; } while(0)
-#define NEEDS(n) if (stack_.size() < (n)) Error("Stack underflow");
+#define NEEDS(n) if (stack.size() < (n)) Error("Stack underflow");
 
 namespace dwarf_reader {
 
 #define address_t uint32
 #define signed_address_t int32
-#define StackTop()    (&stack_.back())
-#define StackSecond() (&stack_[stack_.size()-2])
-#define StackThird()  (&stack_[stack_.size()-3])
+#define StackTop()    (&stack.back())
+#define StackSecond() (&stack[stack.size()-2])
+#define StackThird()  (&stack[stack.size()-3])
 #define SignedStackTop() ((signed_address_t*) StackTop())
 #define SignedStackSecond() ((signed_address_t*) StackSecond())
 #define SignedStackThird() ((signed_address_t*) StackThird())
 
-uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int length) {
-  std::vector<uint32> stack_;
+uint32_t DwarfRun32(IDwarfVM *vm,
+                    ByteReader *reader,
+                    const char *program,
+                    int length) {
+  std::vector<uint32> stack;
   const char *program_end = program + length;
 
-  stack_.push_back(0);
+  stack.push_back(0);
   while (program < program_end) {
     uint8 opcode = reader->ReadOneByte(program);
     program++;
@@ -99,12 +78,12 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_reg29:
       case DW_OP_reg30:
       case DW_OP_reg31:
-        stack_.push_back(opcode - DW_OP_reg0);
+        stack.push_back(opcode - DW_OP_reg0);
         break;
 
       case DW_OP_regX: {
         size_t len;
-        stack_.push_back(reader->ReadUnsignedLEB128(program, &len));
+        stack.push_back(reader->ReadUnsignedLEB128(program, &len));
         program += len;
         break;
       }
@@ -143,64 +122,64 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_lit29:
       case DW_OP_lit30:
       case DW_OP_lit31:
-        stack_.push_back(opcode - DW_OP_lit0);
+        stack.push_back(opcode - DW_OP_lit0);
         break;
 
       case DW_OP_addr:
-        stack_.push_back(reader->ReadAddress(program));
+        stack.push_back(reader->ReadAddress(program));
         program += reader->AddressSize();
         break;
 
       case DW_OP_const1u:
-        stack_.push_back(reader->ReadOneByte(program));
+        stack.push_back(reader->ReadOneByte(program));
         program++;
         break;
 
       case DW_OP_const1s:
-        stack_.push_back(static_cast<int8>(reader->ReadOneByte(program)));
+        stack.push_back(static_cast<int8>(reader->ReadOneByte(program)));
         program++;
         break;
 
       case DW_OP_const2u:
-        stack_.push_back(reader->ReadTwoBytes(program));
+        stack.push_back(reader->ReadTwoBytes(program));
         program += 2;
         break;
 
       case DW_OP_const2s:
-        stack_.push_back(static_cast<int16>(reader->ReadTwoBytes(program)));
+        stack.push_back(static_cast<int16>(reader->ReadTwoBytes(program)));
         program += 2;
         break;
 
       case DW_OP_const4u:
-        stack_.push_back(reader->ReadFourBytes(program));
+        stack.push_back(reader->ReadFourBytes(program));
         program += 4;
         break;
 
       case DW_OP_const4s:
-        stack_.push_back(static_cast<int32>(reader->ReadFourBytes(program)));
+        stack.push_back(static_cast<int32>(reader->ReadFourBytes(program)));
         program += 4;
         break;
 
       case DW_OP_const8u:
-        stack_.push_back(reader->ReadEightBytes(program));
+        stack.push_back(reader->ReadEightBytes(program));
         program += 8;
         break;
 
       case DW_OP_const8s:
-        stack_.push_back(static_cast<int64>(reader->ReadEightBytes(program)));
+        stack.push_back(static_cast<int64>(reader->ReadEightBytes(program)));
         program += 8;
         break;
 
       case DW_OP_constu: {
         size_t len;
-        stack_.push_back(reader->ReadUnsignedLEB128(program, &len));
+        stack.push_back(reader->ReadUnsignedLEB128(program, &len));
         program += len;
         break;
       }
 
       case DW_OP_consts: {
         size_t len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len));
+        stack.push_back(reader->ReadSignedLEB128(program, &len));
         program += len;
         break;
       }
@@ -209,7 +188,8 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
 
       case DW_OP_fbreg: {
         size_t len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len) + vm->ReadFrameBase());
+        stack.push_back(reader->ReadSignedLEB128(program, &len) +
+                         vm->ReadFrameBase());
         program += len;
         break;
       }
@@ -247,7 +227,7 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_breg30:
       case DW_OP_breg31: {
         size_t len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len) +
+        stack.push_back(reader->ReadSignedLEB128(program, &len) +
              vm->ReadRegister(opcode - DW_OP_breg0));
         program += len;
         break;
@@ -257,7 +237,8 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
         size_t len;
         uint64 reg = reader->ReadUnsignedLEB128(program, &len);
         program += len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len) + vm->ReadRegister(reg));
+        stack.push_back(reader->ReadSignedLEB128(program, &len) +
+                         vm->ReadRegister(reg));
         program += len;
         break;
       }
@@ -266,25 +247,25 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
 
       case DW_OP_dup:
         NEEDS(1)
-        stack_.push_back(*StackTop());
+        stack.push_back(*StackTop());
         break;
 
       case DW_OP_drop:
         NEEDS(1)
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_pick: {
-        int ofs = stack_.size() - 1 - reader->ReadOneByte(program);
+        int ofs = stack.size() - 1 - reader->ReadOneByte(program);
         program++;
         if (ofs < 0) Error("DW_OP_pick: bad offset");
-        stack_.push_back(stack_[ofs]);
+        stack.push_back(stack[ofs]);
         break;
       }
 
       case DW_OP_over:
         NEEDS(2)
-        stack_.push_back(*StackSecond());
+        stack.push_back(*StackSecond());
         break;
 
       case DW_OP_swap: {
@@ -326,31 +307,31 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_and:
         NEEDS(2)
         *StackSecond() &= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_div:
         NEEDS(2)
         *SignedStackSecond() /= *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_minus:
         NEEDS(2)
         *StackSecond() -= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_mod:
         NEEDS(2)
         *StackSecond() %= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_mul:
         NEEDS(2)
         *StackSecond() *= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_neg:
@@ -366,13 +347,13 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_or:
         NEEDS(2)
         *StackSecond() |= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_plus:
         NEEDS(2)
         *StackSecond() += *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_plus_uconst: {
@@ -386,25 +367,25 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_shl:
         NEEDS(2)
         *StackSecond() <<= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_shr:
         NEEDS(2)
         *StackSecond() >>= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_shra:
         NEEDS(2)
         *SignedStackSecond() >>= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_xor:
         NEEDS(2)
         *StackSecond() ^= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       // Control flow operators
@@ -412,37 +393,37 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_le:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() <= *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_ge:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() >= *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_eq:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() == *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_lt:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() < *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_gt:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() > *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_ne:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() != *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_skip:
@@ -455,7 +436,7 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
           program += static_cast<int16>(reader->ReadTwoBytes(program));
         }
         program += 2;
-        stack_.pop_back();
+        stack.pop_back();
         break;
       }
 
@@ -492,18 +473,21 @@ uint32_t DwarfRun32(IDwarfVM *vm, ByteReader *reader, const char *program, int l
 
 #define address_t uint64
 #define signed_address_t int64
-#define StackTop()    (&stack_.back())
-#define StackSecond() (&stack_[stack_.size()-2])
-#define StackThird()  (&stack_[stack_.size()-3])
+#define StackTop()    (&stack.back())
+#define StackSecond() (&stack[stack.size()-2])
+#define StackThird()  (&stack[stack.size()-3])
 #define SignedStackTop() ((signed_address_t*) StackTop())
 #define SignedStackSecond() ((signed_address_t*) StackSecond())
 #define SignedStackThird() ((signed_address_t*) StackThird())
 
-uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int length) {
-  std::vector<uint32> stack_;
+uint64_t DwarfRun64(IDwarfVM *vm,
+                    ByteReader *reader,
+                    const char *program,
+                    int length) {
+  std::vector<uint32> stack;
   const char *program_end = program + length;
 
-  stack_.push_back(0);
+  stack.push_back(0);
   while (program < program_end) {
     uint8 opcode = reader->ReadOneByte(program);
     program++;
@@ -542,12 +526,12 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_reg29:
       case DW_OP_reg30:
       case DW_OP_reg31:
-        stack_.push_back(opcode - DW_OP_reg0);
+        stack.push_back(opcode - DW_OP_reg0);
         break;
 
       case DW_OP_regX: {
         size_t len;
-        stack_.push_back(reader->ReadUnsignedLEB128(program, &len));
+        stack.push_back(reader->ReadUnsignedLEB128(program, &len));
         program += len;
         break;
       }
@@ -586,64 +570,64 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_lit29:
       case DW_OP_lit30:
       case DW_OP_lit31:
-        stack_.push_back(opcode - DW_OP_lit0);
+        stack.push_back(opcode - DW_OP_lit0);
         break;
 
       case DW_OP_addr:
-        stack_.push_back(reader->ReadAddress(program));
+        stack.push_back(reader->ReadAddress(program));
         program += reader->AddressSize();
         break;
 
       case DW_OP_const1u:
-        stack_.push_back(reader->ReadOneByte(program));
+        stack.push_back(reader->ReadOneByte(program));
         program++;
         break;
 
       case DW_OP_const1s:
-        stack_.push_back(static_cast<int8>(reader->ReadOneByte(program)));
+        stack.push_back(static_cast<int8>(reader->ReadOneByte(program)));
         program++;
         break;
 
       case DW_OP_const2u:
-        stack_.push_back(reader->ReadTwoBytes(program));
+        stack.push_back(reader->ReadTwoBytes(program));
         program += 2;
         break;
 
       case DW_OP_const2s:
-        stack_.push_back(static_cast<int16>(reader->ReadTwoBytes(program)));
+        stack.push_back(static_cast<int16>(reader->ReadTwoBytes(program)));
         program += 2;
         break;
 
       case DW_OP_const4u:
-        stack_.push_back(reader->ReadFourBytes(program));
+        stack.push_back(reader->ReadFourBytes(program));
         program += 4;
         break;
 
       case DW_OP_const4s:
-        stack_.push_back(static_cast<int32>(reader->ReadFourBytes(program)));
+        stack.push_back(static_cast<int32>(reader->ReadFourBytes(program)));
         program += 4;
         break;
 
       case DW_OP_const8u:
-        stack_.push_back(reader->ReadEightBytes(program));
+        stack.push_back(reader->ReadEightBytes(program));
         program += 8;
         break;
 
       case DW_OP_const8s:
-        stack_.push_back(static_cast<int64>(reader->ReadEightBytes(program)));
+        stack.push_back(static_cast<int64>(reader->ReadEightBytes(program)));
         program += 8;
         break;
 
       case DW_OP_constu: {
         size_t len;
-        stack_.push_back(reader->ReadUnsignedLEB128(program, &len));
+        stack.push_back(reader->ReadUnsignedLEB128(program, &len));
         program += len;
         break;
       }
 
       case DW_OP_consts: {
         size_t len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len));
+        stack.push_back(reader->ReadSignedLEB128(program, &len));
         program += len;
         break;
       }
@@ -652,7 +636,8 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
 
       case DW_OP_fbreg: {
         size_t len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len) + vm->ReadFrameBase());
+        stack.push_back(reader->ReadSignedLEB128(program, &len) +
+                         vm->ReadFrameBase());
         program += len;
         break;
       }
@@ -690,7 +675,7 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_breg30:
       case DW_OP_breg31: {
         size_t len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len) +
+        stack.push_back(reader->ReadSignedLEB128(program, &len) +
              vm->ReadRegister(opcode - DW_OP_breg0));
         program += len;
         break;
@@ -700,7 +685,8 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
         size_t len;
         uint64 reg = reader->ReadUnsignedLEB128(program, &len);
         program += len;
-        stack_.push_back(reader->ReadSignedLEB128(program, &len) + vm->ReadRegister(reg));
+        stack.push_back(reader->ReadSignedLEB128(program, &len) +
+                         vm->ReadRegister(reg));
         program += len;
         break;
       }
@@ -709,25 +695,25 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
 
       case DW_OP_dup:
         NEEDS(1)
-        stack_.push_back(*StackTop());
+        stack.push_back(*StackTop());
         break;
 
       case DW_OP_drop:
         NEEDS(1)
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_pick: {
-        int ofs = stack_.size() - 1 - reader->ReadOneByte(program);
+        int ofs = stack.size() - 1 - reader->ReadOneByte(program);
         program++;
         if (ofs < 0) Error("DW_OP_pick: bad offset");
-        stack_.push_back(stack_[ofs]);
+        stack.push_back(stack[ofs]);
         break;
       }
 
       case DW_OP_over:
         NEEDS(2)
-        stack_.push_back(*StackSecond());
+        stack.push_back(*StackSecond());
         break;
 
       case DW_OP_swap: {
@@ -769,31 +755,31 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_and:
         NEEDS(2)
         *StackSecond() &= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_div:
         NEEDS(2)
         *SignedStackSecond() /= *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_minus:
         NEEDS(2)
         *StackSecond() -= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_mod:
         NEEDS(2)
         *StackSecond() %= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_mul:
         NEEDS(2)
         *StackSecond() *= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_neg:
@@ -809,13 +795,13 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_or:
         NEEDS(2)
         *StackSecond() |= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_plus:
         NEEDS(2)
         *StackSecond() += *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_plus_uconst: {
@@ -829,25 +815,25 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_shl:
         NEEDS(2)
         *StackSecond() <<= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_shr:
         NEEDS(2)
         *StackSecond() >>= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_shra:
         NEEDS(2)
         *SignedStackSecond() >>= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_xor:
         NEEDS(2)
         *StackSecond() ^= *StackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       // Control flow operators
@@ -855,37 +841,37 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
       case DW_OP_le:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() <= *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_ge:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() >= *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_eq:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() == *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_lt:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() < *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_gt:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() > *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_ne:
         NEEDS(2)
         *StackSecond() = *SignedStackSecond() != *SignedStackTop();
-        stack_.pop_back();
+        stack.pop_back();
         break;
 
       case DW_OP_skip:
@@ -898,7 +884,7 @@ uint64_t DwarfRun64(IDwarfVM *vm, ByteReader *reader, const char *program, int l
           program += static_cast<int16>(reader->ReadTwoBytes(program));
         }
         program += 2;
-        stack_.pop_back();
+        stack.pop_back();
         break;
       }
 

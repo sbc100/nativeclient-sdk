@@ -1,30 +1,6 @@
-// Copyright 2010 Google, Inc.  All Rights reserved
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the path of Google Inc. nor the paths of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,8 +49,7 @@ void ElfObject::Unload() {
 bool ElfObject::Load(const char *path) {
   Unload();
 
-  if (NULL == path)
-    return false;
+  if (NULL == path) return false;
 
   FILE *fp = fopen(path, "rb");
   if (fp) {
@@ -88,23 +63,31 @@ bool ElfObject::Load(const char *path) {
     fseek(fp, 0, SEEK_SET);
 
     /// Verify this is large enough to process the headers
-    if (length_ < sizeof(ElfHdrDef))
-      goto failed;
+    if (length_ < sizeof(ElfHdrDef)) {
+      CleanUp(fp);
+      return false;
+    }
 
     // make sure we allocated enough
     void *data = malloc(static_cast<size_t>(length_));
-    if (NULL == data)
-      goto failed;
+    if (NULL == data) {
+      CleanUp(fp);
+      return false;
+    }
     data_.raw_ = reinterpret_cast<uint8_t *>(data);
 
     // Make sure we load the whole file
     size_t loaded = fread(data_.raw_, 1, length_, fp);
-    if (loaded != length_)
-      goto failed;
+    if (loaded != length_) {
+      CleanUp(fp);
+      return false;
+    }
 
     // Verify we have the expected ELF indentifier at the head of the file
-    if (memcmp(data_.def_->e_ident, s_ident, sizeof(s_ident)))
-      goto failed;
+    if (memcmp(data_.def_->e_ident, s_ident, sizeof(s_ident))) {
+      CleanUp(fp);
+      return false;
+    }
 
     // Set precomputed pointers and verify structure sizes
     switch (GetClassSize()) {
@@ -118,11 +101,11 @@ bool ElfObject::Load(const char *path) {
         obj_ = &data_.hdr32_->e_obj;
 
         // Verify headers are the expected sizes for this Class (machine width)
-        if (data_.hdr32_->e_obj.e_shentsize != sizeof(ElfShdr32))
-          goto failed;
-        if (data_.hdr32_->e_obj.e_phentsize != sizeof(ElfPhdr32))
-          goto failed;
-
+        if (data_.hdr32_->e_obj.e_shentsize != sizeof(ElfShdr32) ||
+            data_.hdr32_->e_obj.e_phentsize != sizeof(ElfPhdr32)) {
+          CleanUp(fp);
+          return false;
+        }
         // If everything checks out, we can precompute strings offset
         uint8_t *string_offs = &data_.raw_[ shdr_.shdr32_[strndx].sh_offset ];
         strings_ = reinterpret_cast<char *>(string_offs);
@@ -140,31 +123,29 @@ bool ElfObject::Load(const char *path) {
         obj_ = &data_.hdr64_->e_obj;
 
         // Verify headers are the expected sizes for this Class (machine width)
-        if (data_.hdr64_->e_obj.e_shentsize != sizeof(ElfShdr64))
-          goto failed;
-        if (data_.hdr64_->e_obj.e_phentsize != sizeof(ElfPhdr64))
-          goto failed;
-
+        if (data_.hdr64_->e_obj.e_shentsize != sizeof(ElfShdr64) ||
+            data_.hdr64_->e_obj.e_phentsize != sizeof(ElfPhdr64)) {
+            CleanUp(fp);
+            return false;
+        }
         // If everything checks out, we can precompute strings offset
         uint64_t offset = shdr_.shdr64_[strndx].sh_offset;
         strings_ = reinterpret_cast<char *>(&data_.raw_[ offset ]);
         break;
       }
 
-      // Unknown class
-      default:
-        goto failed;
     }
 
     fclose(fp);
     return true;
-
- failed:
-    Unload();
-    fclose(fp);
   }
 
   return false;
+}
+
+void ElfObject::CleanUp(FILE *fp) {
+  Unload();
+  fclose(fp);
 }
 
 ElfObject::ClassSize ElfObject::GetClassSize() const {
@@ -218,7 +199,7 @@ void ElfObject::Parse(IElfReader* reader) const {
     return;
 
   bool lsb = GetEncoding() == ELFDATA2LSB;
-  reader->Header(path_, data_.raw_, length_, GetClassSize(), lsb);
+  reader->Init(path_, data_.raw_, length_, GetClassSize(), lsb);
 
   if (reader->SectionHeadersStart(GetSectionHeaderCount())) {
     // NOTE: Section index 0, 0xFF00-0xFFFF are special, so we
@@ -259,51 +240,9 @@ void ElfObject::Parse(IElfReader* reader) const {
         default:
           continue;
       }
-      reader->SectionHeader(path, start, virt, type, flags, length);
+      reader->AddSectionHeader(path, start, virt, type, flags, length);
     }
     reader->SectionHeadersEnd();
-  }
-
-  if (reader->ProgramHeadersStart(GetProgramHeaderCount())) {
-    uint32_t a;
-    for (a = 0; a < GetProgramHeaderCount(); a++) {
-      uint32_t type;
-      uint32_t flags;
-      uint64_t offset;
-      uint64_t vaddr;
-      uint64_t fsize;
-      uint64_t msize;
-
-      switch (GetClassSize()) {
-        case ELFCLASS32: {
-          ElfPhdr32 *prg = &phdr_.phdr32_[a];
-          type = prg->p_type;
-          flags = prg->p_flags;
-          offset = prg->p_offset;
-          vaddr = prg->p_vaddr;
-          fsize = prg->p_filesz;
-          msize = prg->p_memsz;
-          break;
-        }
-
-        case ELFCLASS64: {
-          ElfPhdr64 *prg = &phdr_.phdr64_[a];
-          type = prg->p_type;
-          flags = prg->p_flags;
-          offset = prg->p_offset;
-          vaddr = prg->p_vaddr;
-          fsize = prg->p_filesz;
-          msize = prg->p_memsz;
-          break;
-        }
-
-        // This is actually unreachible since we verified the class on load.
-        default:
-          continue;
-      }
-      reader->ProgramHeader(type, flags, offset, vaddr, fsize, msize);
-    }
-    reader->ProgramHeadersEnd();
   }
 }
 

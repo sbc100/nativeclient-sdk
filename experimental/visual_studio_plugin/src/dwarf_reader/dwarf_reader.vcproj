@@ -152,6 +152,18 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\dwarf_frame_info_reader.cc"
+				>
+			</File>
+			<File
+				RelativePath=".\dwarf_info_parser.cc"
+				>
+			</File>
+			<File
+				RelativePath=".\dwarf_line_parser.cc"
+				>
+			</File>
+			<File
 				RelativePath=".\dwarf_parse.cc"
 				>
 			</File>
@@ -163,12 +175,28 @@
 				RelativePath=".\dwarf_vm_decode.cc"
 				>
 			</File>
+			<File
+				RelativePath=".\elf_section_reader.cc"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\dwarf_frame_info_reader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\dwarf_info_parser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\dwarf_line_parser.h"
+				>
+			</File>
 			<File
 				RelativePath=".\dwarf_parse.h"
 				>
@@ -183,6 +211,14 @@
 			</File>
 			<File
 				RelativePath=".\dwarf_vm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\elf_section_reader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parse_state.h"
 				>
 			</File>
 		</Filter>
