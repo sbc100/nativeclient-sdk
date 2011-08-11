@@ -41,6 +41,9 @@ Supported targets:
   * toolchain         Update the toolchain's headers and libraries
   * vsx_build         Build the Visual Studio Plugin
 
+Flags:
+  * USE_EXISTING_INSTALLER=1    Do not rebuild the installer if it exists
+
 More targets are listed below in the automatically generated help section.
 
 ===============================================================================
@@ -116,17 +119,17 @@ base_env = Environment(
 #   PYTHON=/path/to/my/python
 base_env.SetDefault(
     PYTHON = ARGUMENTS.get('PYTHON', 'python'),
+    USE_EXISTING_INSTALLER = ARGUMENTS.get('USE_EXISTING_INSTALLER', False),
 )
 
-# The list of .scons files is order-dependent.  Scons will build their targets
-# in the order they appear.
 base_env.Append(
     BUILD_SCONSCRIPTS = [
+        # Keep in alphabetical order
+        'build_tools/build.scons',
         'debugger/build.scons',
         'documentation/build.scons',
-        'build_tools/build.scons',
-        'project_templates/test.scons',
         'experimental/visual_studio_plugin/build.scons',
+        'project_templates/test.scons',
     ],
 )
 

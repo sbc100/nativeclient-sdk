@@ -255,8 +255,10 @@ class ProjectInitializer(object):
     """Creates the project's directory and any parents as necessary."""
     self.__project_dir = self.os.path.join(self.__project_location,
                                            self.__project_name)
-    if not self.os.path.exists(self.__project_dir):
-      self.os.makedirs(self.__project_dir)
+    if self.os.path.exists(self.__project_dir):
+      raise Exception("Error: directory '%s' already exists" %
+                      self.__project_dir)
+    self.os.makedirs(self.__project_dir)
 
   def PrepareDirectoryContent(self):
     """Prepares the directory for the new project.
@@ -406,7 +408,12 @@ def main(argv):
                                            script_dir)
   project_initializer.PrepareDirectoryContent()
   project_initializer.PrepareFileContent()
+  return 0
 
 
 if __name__ == '__main__':
-  main(sys.argv[1:])
+  try:
+    sys.exit(main(sys.argv[1:]))
+  except Exception as error:
+    print error
+    sys.exit(1)

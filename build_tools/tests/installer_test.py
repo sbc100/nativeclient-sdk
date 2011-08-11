@@ -58,7 +58,6 @@ def TestingClosure(_outdir, _jobs):
       command = [os.path.join(path, scons), '-j', _jobs]
 
       annotator.Run(' '.join(command), cwd=path, shell=True)
-      return True
 
     def testReadMe(self):
       '''Check that the current build version and date are in the README file'''
@@ -79,7 +78,6 @@ def TestingClosure(_outdir, _jobs):
           contents.count(str(datetime.date.today() -
                              datetime.timedelta(days=1))),
           "Cannot find today's or yesterday's date in README")
-      return True
 
     def testHttpd(self):
       '''Test the simple HTTP server.
@@ -199,7 +197,6 @@ def TestingClosure(_outdir, _jobs):
       runAndQuitHttpServer(5281, alternate_cwd=_outdir, should_fail=True)
       # Retest port 5281 with the default parameters.
       runAndQuitHttpServer(5281)
-      return True
 
     def testProjectTemplates(self):
       '''Create and build projects from project_templates.'''
@@ -227,7 +224,17 @@ def TestingClosure(_outdir, _jobs):
 
       initAndCompileProject('test_c_project', flags=['-c'])
       initAndCompileProject('test_cc_project')
-      return True
+      # Calling init_project again with the same names should cause an error
+      # because the project already exists, and we don't overwrite projects.
+      print "Rerunning init_project again to test overwriting previous project."
+      print "We expect these tests to throw exceptions:"
+      self.assertRaises(subprocess.CalledProcessError,
+                        initAndCompileProject,
+                        'test_c_project',
+                        flags=['-c'])
+      self.assertRaises(subprocess.CalledProcessError,
+                        initAndCompileProject,
+                        'test_cc_project')
 
     def testValgrind(self):
       '''Verify that Valgrind works properly (Linux 64-bit only)'''
@@ -235,7 +242,7 @@ def TestingClosure(_outdir, _jobs):
       if (sys.platform not in ['linux', 'linux2'] or
           platform.machine() != 'x86_64'):
         annotator.Print('Not running on 64-bit Linux -- skip')
-        return True
+        return
       true_basename = os.path.join(_outdir, 'true')
       true_c_filename = '%s.c' % true_basename
       true_nexe_filename = '%s.nexe' % true_basename

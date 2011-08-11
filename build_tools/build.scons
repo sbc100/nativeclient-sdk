@@ -6,8 +6,6 @@
 
 """Build file for running scripts in the build_tools directory
 
-Currently, this script only runs the generate_installers.py command
-
 Adapted from scons documentation: http://www.scons.org/wiki/UnitTests
 and from ../project_templates/test.scons
 """
@@ -54,7 +52,7 @@ installer = os.path.join(os.path.dirname(env['ROOT_DIR']), install_file)
 
 installer_test_node = env.CreatePythonUnitTest(
     'tests/installer_test.py',
-    [installer_node],
+    [installer_node if not env['USE_EXISTING_INSTALLER'] else installer],
     buffered=False,
     params=['--jobs=%s' % env['JOB_COUNT'],
             '--outdir=%s' % os.path.join('scons-out', 'sdk_installer'),
