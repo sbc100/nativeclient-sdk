@@ -26,12 +26,6 @@
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
 
-// Note to the user: This glue code reflects the current state of affairs.  It
-// may change.  In particular, interface elements marked as deprecated will
-// disappear sometime in the near future and replaced with more elegant
-// interfaces.  As of the time of this writing, the new interfaces are not
-// available so we have to provide this code as it is written below.
-
 /// The Instance class.  One of these exists for each instance of your NaCl
 /// module on the web page.  The browser will ask the Module object to create
 /// a new Instance for each occurence of the <embed> tag that has these

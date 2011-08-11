@@ -15,13 +15,6 @@
 #include "ppapi/c/ppp_instance.h"
 #include "ppapi/c/ppp_messaging.h"
 
-/* Note to the user: This glue code reflects the current state of affairs.  It
- * may change.  In particular, interface elements marked as deprecated will
- * disappear sometime in the near future and replaced with more elegant
- * interfaces.  As of the time of this writing, the new interfaces are not
- * available so we have to provide this code as it is written below.
- */
-
 static PP_Module module_id = 0;
 static struct PPB_Messaging* messaging_interface = NULL;
 static struct PPB_Var* var_interface = NULL;
