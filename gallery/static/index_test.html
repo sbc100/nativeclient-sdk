@@ -68,9 +68,7 @@
 // Check for Native Client support in the browser before the DOM loads.
 var isValidBrowser = false;
 var browserSupportStatus = 0;
-var checker = new browser_version.BrowserChecker(10, navigator["appVersion"], navigator["plugins"], 12);
-// the line below is the old way (no optional max version)
-// var checker = new browser_version.BrowserChecker(10, navigator["appVersion"], navigator["plugins"]);
+var checker = new browser_version.BrowserChecker(14, navigator["appVersion"], navigator["plugins"]);
 checker.checkBrowser();
 isValidBrowser = checker.getIsValidBrowser();
 browserSupportStatus = checker.getBrowserSupportStatus();
@@ -123,11 +121,6 @@ case browser_version.BrowserChecker.StatusValues.CHROME_VERSION_TOO_OLD:
 document.write('<div class="WARNING">WARNING: Native Client cannot run in Google Chrome version ' + checker.chromeVersion_ +
 '. You must use Google Chrome version ' + checker.minChromeVersion_ + ' or greater. For additional information ' +
 'see <a href="/chrome/nativeclient/docs/running.html#browser">running Native Client applications</a>.</div>');
-break;
-case browser_version.BrowserChecker.StatusValues.CHROME_VERSION_TOO_NEW:
-document.write('<div class="WARNING">WARNING: The most recent version of Google Chrome that works with these ' +
-'Native Client examples is version ' + checker.maxChromeVersion_ + '. Please use Chrome Version ' + checker.maxChromeVersion_ +
-' or check back soon.');
 break;
 case browser_version.BrowserChecker.StatusValues.NACL_NOT_ENABLED:
 document.write('<div class="WARNING">WARNING: Native Client is not enabled in Google Chrome. To enable Native Client, ' +
