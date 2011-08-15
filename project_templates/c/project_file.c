@@ -23,7 +23,7 @@ static struct PPB_Var* var_interface = NULL;
  * Returns a mutable C string contained in the @a var or NULL if @a var is not
  * string.  This makes a copy of the string in the @a var and adds a NULL
  * terminator.  Note that VarToUtf8() does not guarantee the NULL terminator on
- * the returned string.  See the comments for VatToUtf8() in ppapi/c/ppb_var.h
+ * the returned string.  See the comments for VarToUtf8() in ppapi/c/ppb_var.h
  * for more info.  The caller is responsible for freeing the returned memory.
  * @param[in] var PP_Var containing string.
  * @return a mutable C string representation of @a var.
