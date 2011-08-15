@@ -187,6 +187,28 @@ def VersionString():
   return 'native_client_sdk_%s' % '_'.join(GetVersionNumbers())
 
 
+def JoinPathToNaClRepo(*args, **kwargs):
+  '''Use os.path.join() to join the argument list to the NaCl repo location.
+
+  Assumes that the Native Client repo is DEPSed into this repo under
+  third_party/native_client.  This has to match the target dirs in the DEPS
+  file.
+
+  If the key 'root_dir' is set, then this path is prepended to the NaCl repo
+  path.
+
+  Args:
+    args: A list of path elements to append to the NaCl repo root.
+    kwargs: If the 'root_dir' key is present, this gets prepended to the
+        final path.
+
+  Return: An OS-native path to the DEPSed in root of the NaCl repo.
+  '''
+  nacl_path = os.path.join('third_party', 'native_client', *args)
+  root_path = kwargs.get('root_dir')
+  return os.path.join(root_path, nacl_path) if root_path else nacl_path
+
+
 class BotAnnotator:
   '''Interface to Bot Annotations
 
