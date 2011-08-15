@@ -1,4 +1,8 @@
 vars = {
+  "gmock_trunk": "http://googlemock.googlecode.com/svn/trunk/",
+  "gmock_version": "382",
+  "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
+  "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
   "native_client_version": "6346",
   # Note: The following version should exactly match the toolchain version in
@@ -20,8 +24,10 @@ deps = {
   "src/site_scons":
     Var("native_client_trunk") + "/src/native_client/site_scons@" +
     Var("native_client_version"),
+  "src/third_party/gmock":
+    Var("gmock_trunk") + "@" + Var("gmock_version"),
   "src/third_party/gtest":
-    From("nacl_deps", "testing/gtest"),
+    Var("gtest_trunk") + "@" + Var("gtest_version"),
   "src/third_party/native_client/base":
     From("nacl_deps", "base"),
   "src/third_party/native_client/build":

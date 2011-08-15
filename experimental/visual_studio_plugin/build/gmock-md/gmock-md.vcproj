@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="dwarf_reader_UnitTestProject"
-	ProjectGUID="{94078229-2774-4160-8B10-21036DD40AE6}"
-	RootNamespace="dwarf_reader_UnitTestProject"
+	Name="gmock-md"
+	ProjectGUID="{EE13BA4D-2C1E-406D-A424-56A0CD417DDA}"
+	RootNamespace="gmockmd"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -18,9 +18,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\bin\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(NACL_SDK_ROOT)\third_party\gmock\include&quot;;&quot;$(NACL_SDK_ROOT)\third_party\gtest\include&quot;;&quot;$(NACL_SDK_ROOT)\experimental\visual_studio_plugin\src&quot;;..\..\..\third_party\breakpad"
+				AdditionalIncludeDirectories="&quot;$(NACL_SDK_ROOT)\third_party\gtest\&quot;;&quot;$(NACL_SDK_ROOT)\third_party\gtest\include&quot;;&quot;$(NACL_SDK_ROOT)\third_party\gmock\&quot;;&quot;$(NACL_SDK_ROOT)\third_party\gmock\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -60,19 +60,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="dwarf_reader.lib gtestd.lib wsock32.lib"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(ProjectDir)\..\..\..\build\Debug&quot;;&quot;$(NACL_SDK_ROOT)\debugger\NativeClientVSX\Debug&quot;"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -82,9 +73,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -120,7 +108,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -174,11 +162,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dwarf_strings_test.cc"
+				RelativePath="..\..\..\..\third_party\gmock\src\gmock-all.cc"
 				>
 			</File>
 			<File
-				RelativePath=".\test_main.cc"
+				RelativePath="..\..\..\..\third_party\gtest\src\gtest-all.cc"
 				>
 			</File>
 		</Filter>
@@ -187,6 +175,46 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-actions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-cardinalities.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-generated-actions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-generated-function-mockers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-generated-matchers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-generated-nice-strict.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-matchers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-more-actions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock-spec-builders.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\third_party\gmock\include\gmock\gmock.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
