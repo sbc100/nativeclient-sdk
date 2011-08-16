@@ -564,24 +564,26 @@ build_env = base_env.Clone(
 environment_list.append(build_env)
 
 #-----------------------------------------------------------------------------
-# Add a builder for examples.  This adds an Alias() node named 'examples' that
-# is always built.  There is some special handling for the clean mode, since
-# SCons relies on actual build products for its clean processing and will not
-# run Alias() actions during clean unless they actually produce something.
+# Get the appropriate build command depending on the environment.
 
-def ExamplesBuildCommand(env):
-  '''Return the build command used to build the examples.
+def SconsBuildCommand(env):
+  '''Return the build command used to run separate scons instances.
   Args:
-    env: The construction Environment that is building the examples.
+    env: The construction Environment that is building using scons.
   Returns:
-    A string representing the platform-specific build command that will build
-        the examples.
+    A string representing the platform-specific build command that will run the
+    scons instances.
   '''
   if env.get('IS_WINDOWS'):
     return 'scons.bat --jobs=%s' % GetOption('num_jobs')
   else:
     return './scons --jobs=%s' % GetOption('num_jobs')
 
+#-----------------------------------------------------------------------------
+# Add a builder for examples.  This adds an Alias() node named 'examples' that
+# is always built.  There is some special handling for the clean mode, since
+# SCons relies on actual build products for its clean processing and will not
+# run Alias() actions during clean unless they actually produce something.
 
 def BuildExamples(env, target, source):
   '''Build the examples.
@@ -593,7 +595,7 @@ def BuildExamples(env, target, source):
     target: The target that triggered this build.  Not used.
     source: The sources used for  this build.  Not used.
   '''
-  subprocess.check_call(ExamplesBuildCommand(env),
+  subprocess.check_call(SconsBuildCommand(env),
                         cwd='examples',
                         shell=True)
 
@@ -606,7 +608,7 @@ def CleanExamples(env, target, source):
   Args:
     env: The construction Environment that is building the examples.
   '''
-  subprocess.check_call(ExamplesBuildCommand(env) + ' --clean',
+  subprocess.check_call(SconsBuildCommand(env) + ' --clean',
                         cwd='examples',
                         shell=True)
 
@@ -616,6 +618,49 @@ build_env.AlwaysBuild(examples_builder)
 build_env.AddCleanAction(['examples'], CleanExamples, ['bot'],
                          examples_builder)
 
+
+#-----------------------------------------------------------------------------
+# Add a builder for experimental projects.  This adds an Alias() node named
+# 'experimental' that is always built.  There is some special handling for the
+# clean mode, since SCons relies on actual build products for its clean
+# processing and will not run Alias() actions during clean unless they actually
+# produce something.
+
+def BuildExperimental(env, target, source):
+  '''Build the experimental projects.
+
+  This runs the build command in the 'experimental' directory.
+
+  Args:
+    env: The construction Environment that is building the experimental
+    projects.
+    target: The target that triggered this build.  Not used.
+    source: The sources used for  this build.  Not used.
+  '''
+  subprocess.check_call(SconsBuildCommand(env),
+                        cwd='experimental',
+                        shell=True)
+
+
+def CleanExperimental(env, target, source):
+  '''Clean the experimental projects.
+
+  This runs the clean command in the 'experimental' directory.
+
+  Args:
+    env: The construction Environment that is building the experimental
+    projects.
+  '''
+  subprocess.check_call(SconsBuildCommand(env) + ' --clean',
+                        cwd='experimental',
+                        shell=True)
+
+
+experimental_builder = build_env.Alias('experimental', [toolchain_node],
+                                       BuildExperimental)
+build_env.AlwaysBuild(experimental_builder)
+build_env.AddCleanAction(['experimental'], CleanExperimental, ['bot'],
+                         experimental_builder)
 
 # -----------------------------------------------------------------------------
 BuildComponents(environment_list)
