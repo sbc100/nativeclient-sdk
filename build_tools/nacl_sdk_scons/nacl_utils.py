@@ -225,6 +225,14 @@ def MakeNaClModuleEnvironment(nacl_env,
     # Strip the resulting executable if non-debug.
     env.Append(LINKFLAGS=['--strip-all'])
 
+  # Wrap linker command with TEMPFILE so that if lines are longer than
+  # MAXLINELENGTH, the tools will be run with @tmpfile. This isn't needed
+  # for any of the sdk examples, but if people cargo cult them for other
+  # purposes, they can end up hitting command line limits on Windows where
+  # MAXLINELENGTH can be as low as 2048.
+  env['LINKCOM'] = '${TEMPFILE("' + env['LINKCOM'] + '")}'
+  env['SHLINKCOM'] = '${TEMPFILE ' + env['SHLINKCOM'] + '")}'
+
   return env.NaClProgram('%s_%s%s' % (module_name,
                                       arch_name,
                                       '_dbg' if is_debug else ''),
