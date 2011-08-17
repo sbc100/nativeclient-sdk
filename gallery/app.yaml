@@ -5,6 +5,7 @@ api_version: 1
 
 # Skip files associated with Chrome Web Store uploading
 # Note: We have to include the default skips or else it gets overridden
+skip_files:
 - ^(.*/)?app\.yaml
 - ^(.*/)?app\.yml
 - ^(.*/)?index\.yaml
