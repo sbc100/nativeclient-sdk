@@ -1,0 +1,14 @@
+These are directions for how to upload the necessary .zip file for placing
+the Native Client gallery into the Chrome Web Store as a *hosted* app.
+
+1. Increment the version number in manifest.json as appropriate. In order
+   to upload to the CWS, the version number must increase with each new
+   uploaded .zip file.
+
+2. Run ./cws_package.sh. This will create nacl-gallery-app.zip.
+
+3. Go to the developer dashboard at 
+   https://chrome.google.com/webstore/developer/dashboard, and click edit on
+   the app.
+
+4. Upload nacl-gallery-app.zip.

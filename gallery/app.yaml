@@ -3,6 +3,19 @@ version: 5
 runtime: python
 api_version: 1
 
+# Skip files associated with Chrome Web Store uploading
+# Note: We have to include the default skips or else it gets overridden
+- ^(.*/)?app\.yaml
+- ^(.*/)?app\.yml
+- ^(.*/)?index\.yaml
+- ^(.*/)?index\.yml
+- ^(.*/)?#.*#
+- ^(.*/)?.*~
+- ^(.*/)?.*\.py[co]
+- ^(.*/)?.*/RCS/.*
+- ^(.*/)?\..*
+- ^(.*/)?.*/cws/.*
+
 handlers:
 - url: /
   static_files: static/index.html
