@@ -2,7 +2,7 @@
           "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <!--
-  Copyright (c) 2010 The Native Client Authors. All rights reserved.
+  Copyright (c) 2011 The Native Client Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
   found in the LICENSE file.
   -->
@@ -12,10 +12,19 @@
       var piGenerator = null;
       var paintInterval = null;
 
+      // When the NaCl module has loaded, hook up an event listener to handle
+      // messages coming from it, and start up the paint timer.
       function moduleDidLoad() {
         piGenerator = document.getElementById('piGenerator');
-        paintInterval = setInterval(
-            "document.form.pi.value = piGenerator.paint()", 5);
+        piGenerator.addEventListener('message', handleMessage, false);
+        paintInterval = setInterval('piGenerator.postMessage("paint")', 5);
+      }
+
+      // Handle a message coming from the NaCl module.  The message payload is
+      // assumed to contain the current estimated value of Pi.  Update the Pi
+      // text display with this value.
+      function handleMessage(message_event) {
+        document.form.pi.value = message_event.data;
       }
 
       function pageDidUnload() {
@@ -23,7 +32,7 @@
       }
     </script>
   </head>
-    <body id="bodyId" onunload="pageDidUnload()">
+  <body id="bodyId" onunload="pageDidUnload()">
     <h1>Monte Carlo Estimate for Pi</h1>
     <p>
       The Native Client module executed in this page creates a thread
@@ -40,27 +49,33 @@
       The textbox under the square
       shows the current estimate of &pi;.
     </p>
-    <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+    <!-- Load the published .nexe.  This includes the 'src' attribute which
     shows how to load multi-architecture modules.  Each entry in the "nexes"
-    object in the  .nmf manifest file is a key-value pair: the key is the
+    object in the .nmf manifest file is a key-value pair: the key is the
     runtime ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl
-    module.  To load the debug versions of your .nexes, set the 'nacl'
+    module.  To load the debug versions of your .nexes, set the 'src'
     attribute to the _dbg.nmf version of the manifest file.
 
-    Note: The 'dimensions' attribute indicates that the pi_generator .nexe will
-    use the 2D drawing device in the browser.
+    Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+    event listener attached.  This method is used instead of attaching the
+    'load' event listener directly to the <EMBED> element to ensure that the
+    listener is active before the NaCl module 'load' event fires.
     -->
-    <embed name="nacl_module"
-           id="piGenerator"
-           width=200 height=200
-           nacl="pi_generator.nmf"
-           type="application/x-nacl"
-           dimensions="2"
-           onload="moduleDidLoad();" />
-    </script>
+    <div id="listener">
+      <script type="text/javascript">
+         document.getElementById('listener')
+             .addEventListener('load', moduleDidLoad, true);
+      </script>
+
+      <embed name="nacl_module"
+             id="piGenerator"
+             width=200 height=200
+             src="pi_generator.nmf"
+             type="application/x-nacl" />
+    </div>
     <br />
     <form name="form">
       <input type="text" size="15" name="pi" />
     </form>
   </body>
-</HTML>
+</html>

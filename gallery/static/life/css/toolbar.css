@@ -1,0 +1,64 @@
+/* Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/**
+ * The basic toolbar presentation.  Use this in conjunction with the top-toolbar
+ * and bottom-toolbar classes.
+ */
+.life-toolbar {
+  /* Client apps may override the URL at which they serve the image. */
+  background: #fafafa url(../img/toolbar-bg.png) repeat-x bottom left;
+  border-bottom: 1px solid #d5d5d5;
+  cursor: default;
+  font: normal 11pt Verdana, Arial, sans-serif;
+  margin: 0;
+  outline: none;
+  padding: 0px;
+  position: relative;
+  width: 100%;
+  zoom: 1; /* The toolbar element must have layout on IE. */
+}
+
+/**
+ * Draw a vertical bar in between toolbar elements.
+ */
+.toolbar-separator {
+  margin: 0 2px;
+  border-left: 1px solid #d6d6d6;
+  border-right: 1px solid #f7f7f7;
+  display: inline;
+  padding: 0 4px;
+  width: 0;
+  text-decoration: none;
+  list-style: none;
+  outline: none;
+  vertical-align: middle;
+  line-height: normal;
+  font-size: 120%;
+  overflow: hidden;
+}
+
+/**
+ * Use this class in conjunction with life-toolbar to describe the top
+ * toolbar.
+ */
+.top-toolbar {
+  display: table;
+  height: 32px;
+  padding-left: 16px;
+}
+
+/**
+ * Use this class in conjunction with life-toolbar to describe the bottom
+ * toolbar.
+ */
+.bottom-toolbar {
+  display: table;
+  bottom: 0;
+  left: 0;
+  height: 32px;
+  position: absolute;
+  width: 100%;
+}

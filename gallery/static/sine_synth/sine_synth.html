@@ -2,7 +2,7 @@
           "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <!--
-Copyright (c) 2010 The Native Client Authors. All rights reserved.
+Copyright (c) 2011 The Native Client Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -11,40 +11,37 @@ found in the LICENSE file.
   <script type="text/javascript">
     sineSynth = null;  // Global application object.
 
+    // When the NaCl module has loaded, hook up an event listener to handle
+    // messages coming from it.
     function moduleDidLoad() {
       sineSynth = document.getElementById('sineSynth');
       document.getElementById('frequency_field').value = 440;
     }
 
+    // Handle a message coming from the NaCl module.  The message payload
+    // contains the frequency value.  Update the frequency field with this
+    // value.
+    function handleMessage(message_event) {
+      document.getElementById('frequency_field').value = message_event.data;
+    }
+
     function toggleSound(flag) {
-      try {
-        sineSynth.frequency =
-            document.getElementById('frequency_field').value;
-        document.getElementById('frequency_field').value =
-            sineSynth.frequency;
-        if (flag) {
-          sineSynth.playSound();
-        } else {
-          sineSynth.stopSound();
-        }
-      } catch(e) {
-        alert(e.message);
+      sineSynth.postMessage('setFrequency:' +
+          document.getElementById('frequency_field').value);
+      if (flag) {
+        sineSynth.postMessage('playSound');
+      } else {
+        sineSynth.postMessage('stopSound');
       }
     }
 
     function changeFrequency(freq) {
-      try {
-        sineSynth.frequency = freq;
-        document.getElementById('frequency_field').value =
-            sineSynth.frequency;
-      } catch(e) {
-        alert(e.message);
-      }
+      sineSynth.postMessage('setFrequency:' + freq);
     }
   </script>
 </head>
 
-<body id="bodyId" onunload="pageDidUnload()">
+<body id="bodyId">
   <h1>Sine Wave Synthesizer</h1>
   <p>Click the button to start and stop the sine wave playing.</p>
   <button onclick="toggleSound(true)">Play</button>
@@ -52,18 +49,29 @@ found in the LICENSE file.
   <p>Enter the frequency of the sine wave:</p>
   <input type="text" size="15" id="frequency_field"
          value="#undef" onchange="changeFrequency(this.value)" />
-  <!-- Load the published .nexe.  This includes the 'nacl' attribute which
+  <!-- Load the published .nexe.  This includes the 'src' attribute which
   shows how to load multi-architecture modules.  Each entry in the "nexes"
-  object in the  .nmf manifest file is a key-value pair: the key is the runtime
+  object in the .nmf manifest file is a key-value pair: the key is the runtime
   ('x86-32', 'x86-64', etc.); the value is a URL for the desired NaCl module.
-  To load the debug versions of your .nexes, set the 'nacl' attribute to the
+  To load the debug versions of your .nexes, set the 'src' attribute to the
   _dbg.nmf version of the manifest file.
+
+  Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
+  event listener attached.  This method is used instead of attaching the
+  'load' event listener directly to the <EMBED> element to ensure that the
+  listener is active before the NaCl module 'load' event fires.
   -->
-  <embed name="nacl_module"
-         id="sineSynth"
-         width=0 height=0
-         nacl="sine_synth.nmf"
-         type="application/x-nacl"
-         onload="moduleDidLoad();" />
+  <div id="listener">
+    <script type="text/javascript">
+       document.getElementById('listener')
+           .addEventListener('load', moduleDidLoad, true);
+    </script>
+
+    <embed name="nacl_module"
+           id="sineSynth"
+           width=0 height=0
+           src="sine_synth.nmf"
+           type="application/x-nacl" />
+  </div>
 </body>
 </html>
