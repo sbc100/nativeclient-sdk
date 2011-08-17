@@ -48,19 +48,24 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
   env.Tool('as')
 
   env.Tool('nacl_tools')
+  # TODO(dspringer): Figure out how to make this dynamic and then compute it
+  # based on the desired target arch.
   env.Replace(tools=['nacl_tools'],
-              # Replace the normal unix tools with the NaCl ones.
-              CC=os.path.join(tool_bin_path, 'nacl-gcc'),
-              CXX=os.path.join(tool_bin_path, 'nacl-g++'),
-              AR=os.path.join(tool_bin_path, 'nacl-ar'),
-              AS=os.path.join(tool_bin_path, 'nacl-as'),
-              GDB=os.path.join(tool_bin_path, 'nacl-gdb'),
+              # Replace the normal unix tools with the NaCl ones.  Note the
+              # use of the NACL_ARCHITECTURE prefix for the tools.  This
+              # Environment variable is set in nacl_tools.py; it has no
+              # default value.
+              CC=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}gcc'),
+              CXX=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}g++'),
+              AR=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}ar'),
+              AS=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}as'),
+              GDB=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}gdb'),
               # NOTE: use g++ for linking so we can handle C AND C++.
-              LINK=os.path.join(tool_bin_path, 'nacl-g++'),
-              LD=os.path.join(tool_bin_path, 'nacl-ld'),
+              LINK=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}g++'),
+              LD=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}ld'),
               NACL_SEL_LDR32=os.path.join(tool_bin_path, 'sel_ldr_x86_32'),
               NACL_SEL_LDR64=os.path.join(tool_bin_path, 'sel_ldr_x86_64'),
-              RANLIB=os.path.join(tool_bin_path, 'nacl-ranlib'),
+              RANLIB=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}ranlib'),
               ASFLAGS=['${EXTRA_ASFLAGS}',
                       ],
               # c specific

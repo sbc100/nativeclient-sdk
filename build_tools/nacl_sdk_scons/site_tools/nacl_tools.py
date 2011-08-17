@@ -81,8 +81,10 @@ def AppendArchFlags(env, arch_spec):
   as_arch_flags = ['--%s' % subarch]
   if subarch == '64':
     ld_arch_flags = ['-melf64_nacl', '-m64']
+    env['NACL_ARCHITECTURE'] = 'x86_64-nacl-'
   else:
     ld_arch_flags = ['-melf_nacl', '-m32']
+    env['NACL_ARCHITECTURE'] = 'i686-nacl-'
   env.Append(ASFLAGS=as_arch_flags,
              CCFLAGS=cc_arch_flags,
              LINKFLAGS=ld_arch_flags)
