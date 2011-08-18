@@ -12,3 +12,14 @@ the Native Client gallery into the Chrome Web Store as a *hosted* app.
    the app.
 
 4. Upload nacl-gallery-app.zip.
+
+
+
+All of the app images are in the images directory.  They are used as follows:
+
+NaCl16.png: "16" image used by the manifest for the small icon in the CWS
+NaCl128.png: "128" image used by the manifest for the app icon in Chrome
+NaCl_128_128.png: icon used in the CWS (upload on the edit page)
+NaCl_400_275.png: screenshot for the app (upload on the edit page)
+
+NaCl16.png and NaCl128.png must be included in the zip file uploaded to the CWS

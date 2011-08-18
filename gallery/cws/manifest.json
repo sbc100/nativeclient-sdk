@@ -1,18 +1,17 @@
 {
   "name": "Native Client Gallery",
   "description": "Check out great Native Client applications!",
-  "version": "0.0.3",
+  "version": "0.0.42",
   "app": {
     "urls": [
-      "*://nacl-gallery.appspot.com/",
-      "*://www.nacl-gallery.appspot.com/"
+      "http://nacl-gallery.appspot.com/"
     ],
     "launch": {
       "web_url": "http://nacl-gallery.appspot.com"
     }
   },
   "icons": {
-    "128": "NaCl128.png",
-    "16": "NaCl16.png"
+    "128": "images/NaCl128.png",
+    "16": "images/NaCl16.png"
   }
 }

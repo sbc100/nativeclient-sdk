@@ -7,7 +7,7 @@
 #
 # usage: ./cws_package.sh [outputname]
 
-IMAGES="NaCl*.png"
+IMAGES="images/NaCl16.png images/NaCl128.png"
 MANIFEST="manifest.json"
 ZIP_NAME="nacl-gallery-app.zip"
 
