@@ -11,7 +11,8 @@ set NACL_SDK_ROOT=%~dp0
 :: Preserve a copy of the PATH (in case we need it later, mainly for cygwin).
 set PRESCONS_PATH=%PATH%
 
-:: Set the PYTHONPATH so we can import SCons modules
+:: Set the PYTHONPATH and SCONS_LIB_DIR so we can import SCons modules
+set SCONS_LIB_DIR=%~dp0third_party\scons-2.0.1\engine
 set PYTHONPATH=%~dp0third_party\scons-2.0.1\engine
 
 :: We have to do this because scons overrides PYTHONPATH and does not preserve

@@ -12,6 +12,7 @@ export NACL_SDK_ROOT=<NACL_SDK_ROOT>
 
 readonly BASE_SCRIPT="${NACL_SDK_ROOT}/third_party/scons-2.0.1/script/scons"
 
+export SCONS_LIB_DIR="${NACL_SDK_ROOT}/third_party/scons-2.0.1/engine"
 export PYTHONPATH="${NACL_SDK_ROOT}/third_party/scons-2.0.1/engine"
 # We have to do this because scons overrides PYTHONPATH and does not preserve
 # what is provided by the OS.  The custom variable name won't be overwritten.
