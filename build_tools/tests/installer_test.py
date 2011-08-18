@@ -44,8 +44,10 @@ def TestingClosure(_outdir, _jobs):
   '''
   toolchain_base = build_utils.NormalizeToolchain(base_dir=_outdir)
   toolchain_bin = os.path.join(toolchain_base, 'bin')
+  toolchain_runtime = os.path.join(toolchain_base, 'runtime')
   gcc64 = os.path.join(toolchain_bin, 'x86_64-nacl-gcc')
   sel_ldr64 = os.path.join(toolchain_bin, 'sel_ldr_x86_64')
+  irt_core64 = os.path.join(toolchain_runtime, 'irt_core_x86_64.nexe')
 
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
@@ -252,7 +254,11 @@ def TestingClosure(_outdir, _jobs):
                      '-Wl,-u,have_nacl_valgrind_interceptors', '-g',
                      true_c_filename, '-lvalgrind'])
       memcheck = os.path.join(_outdir, 'third_party', 'valgrind', 'memcheck.sh')
-      annotator.Run([memcheck, sel_ldr64, '-Q', true_nexe_filename])
+      annotator.Run([memcheck, sel_ldr64,
+                     # The -B flag is needed by sel_ldr to find an Integrated
+                     # Runtime that it can use to run .nexes.
+                     '-B', irt_core64,
+                     '-Q', true_nexe_filename])
 
   return TestSDK
 

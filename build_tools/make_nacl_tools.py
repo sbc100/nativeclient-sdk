@@ -16,14 +16,22 @@ import tempfile
 bot = build_utils.BotAnnotator()
 
 
+# The suffix used for NaCl moduels that are installed, such as irt_core.
+NEXE_SUFFIX = '.nexe'
+
 def MakeInstallDirs(options):
+  '''Create the necessary install directories in the SDK staging area.
+  '''
   install_dir = os.path.join(options.toolchain, 'bin');
   if not os.path.exists(install_dir):
     os.makedirs(install_dir)
+  runtime_dir = os.path.join(options.toolchain, 'runtime');
+  if not os.path.exists(runtime_dir):
+    os.makedirs(runtime_dir)
 
 
 def Build(options):
-  '''Build 32-bit and 64-bit versions of both sel_ldr and ncval'''
+  '''Build 32-bit and 64-bit versions of needed NaCL tools and libs.'''
   nacl_dir = os.path.join(options.nacl_dir, 'native_client')
   if sys.platform == 'win32':
     scons = os.path.join(nacl_dir, 'scons.bat')
@@ -34,6 +42,7 @@ def Build(options):
     bits32 = ''
     bits64 = ''
 
+  # Build sel_ldr and ncval.
   def BuildTools(prefix, bits, target):
     cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s' % (
         prefix, scons, options.jobs, options.variant, bits, target)
@@ -42,6 +51,15 @@ def Build(options):
   BuildTools(bits32, '32', 'sdl=none sel_ldr ncval')
   BuildTools(bits64, '64', 'sdl=none sel_ldr ncval')
 
+  # Build irt_core, which is needed for running .nexes with sel_ldr.
+  def BuildIRT(bits):
+    cmd = '%s -j %s irt_core platform=x86-%s ' % (scons, options.jobs, bits)
+    bot.Run(cmd, shell=True, cwd=nacl_dir)
+
+  BuildIRT(32)
+  BuildIRT(64)
+
+  # Build and install untrusted libraries.
   def BuildAndInstallLibsAndHeaders(bits):
     cmd = ('%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s '
            'force_sel_ldr=none ') % (
@@ -57,9 +75,22 @@ def Build(options):
   BuildAndInstallLibsAndHeaders(64)
 
 
-def Install(options, tools):
-  # Figure out where tools are and install the build artifacts into the
-  # SDK tarball staging area.
+def Install(options, tools=[], runtimes=[]):
+  '''Install the NaCl tools and runtimes into the SDK staging area.
+
+  Assumes that all necessary artifacts are built into the NaCl scons-out/staging
+  directory, and copies them from there into the SDK staging area under
+  toolchain.
+
+  Args:
+    options: The build options object.  This is populated from command-line
+        args at start-up.
+    tools: A list of tool names, these should *not* have any executable
+        suffix - this utility adds that (e.g. '.exe' on Windows).
+    runtimes: A list of IRT runtimes.  These artifacts should *not* have any
+        suffix attached - this utility adds the '.nexe' suffix along with an
+        ISA-specific string (e.g. '_x86_32').
+  '''
   # TODO(bradnelson): add an 'install' alias to the main build for this.
   nacl_dir = os.path.join(options.nacl_dir, 'native_client')
   tool_build_path_32 = os.path.join(nacl_dir,
@@ -83,6 +114,26 @@ def Install(options, tools):
                              'bin',
                              '%s_x86_64%s' % (nacl_tool, options.exe_suffix)))
 
+  irt_build_path_32 = os.path.join(nacl_dir,
+                                   'scons-out',
+                                   'nacl_irt-x86-32',
+                                   'staging')
+  irt_build_path_64 = os.path.join(nacl_dir,
+                                    'scons-out',
+                                    'nacl_irt-x86-64',
+                                    'staging')
+  for nacl_irt in runtimes:
+    shutil.copy(os.path.join(irt_build_path_32,
+                             '%s%s' % (nacl_irt, NEXE_SUFFIX)),
+                os.path.join(options.toolchain,
+                             'runtime',
+                             '%s_x86_32%s' % (nacl_irt, NEXE_SUFFIX)))
+    shutil.copy(os.path.join(irt_build_path_64,
+                             '%s%s' % (nacl_irt, NEXE_SUFFIX)),
+                os.path.join(options.toolchain,
+                             'runtime',
+                             '%s_x86_64%s' % (nacl_irt, NEXE_SUFFIX)))
+
 
 #Cleans up the checkout directories if -c was provided as a command line arg.
 def CleanCheckoutDirs(options):
@@ -104,7 +155,7 @@ def BuildNaClTools(options):
     bot.BuildStep('build NaCl tools')
     MakeInstallDirs(options)
     Build(options)
-    Install(options, ['sel_ldr', 'ncval'])
+    Install(options, tools=['sel_ldr', 'ncval'], runtimes=['irt_core'])
   return 0
 
 
