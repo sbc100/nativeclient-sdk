@@ -169,7 +169,7 @@ void Life::AddRandomSeed() {
 }
 
 void Life::UpdateCells() {
-  ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_.get());
+  ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_);
   uint32_t* pixel_buffer = scoped_pixel_lock.pixels();
   if (pixel_buffer == NULL || cell_in_ == NULL || cell_out_ == NULL) {
     // Note that if the pixel buffer never gets initialized, this won't ever

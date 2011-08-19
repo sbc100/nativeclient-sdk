@@ -179,14 +179,26 @@ void LifeApplication::DidChangeView(const pp::Rect& position,
 void LifeApplication::Update() {
   if (flush_pending())
     return;  // Don't attempt to flush if one is pending.
+
   if (view_changed_size_) {
+    // Delete the old pixel buffer and create a new one.
+    // Pause the simulation before changing all the buffer sizes.
+    Life::SimulationMode sim_mode = life_simulation_.simulation_mode();
+    life_simulation_.set_simulation_mode(Life::kPaused);
     // Create a new device context with the new size.
+    // Note: DestroyContext() releases the simulation's copy of the shared
+    // pixel buffer.  *This has to happen before the reset() below!*  If the
+    // simulation's copy of hte shared pointer is released last, then the
+    // underlying ImageData is released off the main thread, which is not
+    // supported in Pepper.
     DestroyContext();
     CreateContext(view_size_);
-    // Delete the old pixel buffer and create a new one.
     threading::ScopedMutexLock scoped_mutex(
         life_simulation_.simulation_mutex());
     if (!scoped_mutex.is_valid())
+      // This potentially leaves the simulation in a paused state, but getting
+      // here means something is very wrong and the simulation probably can't
+      // run anyways.
       return;
     life_simulation_.DeleteCells();
     if (graphics_2d_context_ != NULL) {
@@ -196,6 +208,8 @@ void LifeApplication::Update() {
                                graphics_2d_context_->size(),
                                false));
       set_flush_pending(false);
+      // Ok to get a non-locked version because the simulation is guraranteed
+      // to be paused here.
       uint32_t* pixels = shared_pixel_buffer_->PixelBufferNoLock();
       if (pixels) {
         const size_t size = width() * height();
@@ -203,6 +217,7 @@ void LifeApplication::Update() {
       }
       life_simulation_.Resize(width(), height());
       life_simulation_.set_pixel_buffer(shared_pixel_buffer_);
+      life_simulation_.set_simulation_mode(sim_mode);
     }
     view_changed_size_ = false;
   }
@@ -226,7 +241,7 @@ void LifeApplication::Clear(
   if (sim_mode != Life::kPaused)
     life_simulation_.set_simulation_mode(Life::kPaused);
   life_simulation_.ClearCells();
-  ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_.get());
+  ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_);
   uint32_t* pixel_buffer = scoped_pixel_lock.pixels();
   if (pixel_buffer) {
     const size_t size = width() * height();
@@ -321,10 +336,11 @@ void LifeApplication::DestroyContext() {
   if (!scoped_mutex.is_valid()) {
     return;
   }
-  if (!IsContextValid())
-    return;
+  ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_);
   shared_pixel_buffer_.reset();
   life_simulation_.set_pixel_buffer(shared_pixel_buffer_);
+  if (!IsContextValid())
+    return;
   delete graphics_2d_context_;
   graphics_2d_context_ = NULL;
 }
@@ -333,8 +349,7 @@ void LifeApplication::FlushPixelBuffer() {
   if (!IsContextValid() || shared_pixel_buffer_ == NULL)
     return;
   set_flush_pending(true);
-  graphics_2d_context_->PaintImageData(*(shared_pixel_buffer_.get()),
-                                       pp::Point());
+  graphics_2d_context_->PaintImageData(*shared_pixel_buffer_, pp::Point());
   graphics_2d_context_->Flush(pp::CompletionCallback(&FlushCallback, this));
 }
 }  // namespace life
