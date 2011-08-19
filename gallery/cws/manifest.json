@@ -1,7 +1,7 @@
 {
   "name": "Native Client Gallery",
   "description": "Check out great Native Client applications!",
-  "version": "0.0.42",
+  "version": "0.0.43",
   "app": {
     "urls": [
       "http://nacl-gallery.appspot.com/"
