@@ -321,7 +321,7 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
     app_env = os.environ.copy()
     # We have to do this because scons overrides PYTHONPATH and does
     # not preserve what is provided by the OS.
-    python_path = [env['ROOT_DIR'], app_env['PYMOX']]
+    python_path = [env['ROOT_DIR'], app_env['PYMOX'], app_env['PYTHONPATH']]
     app_env['PYTHONPATH'] = os.pathsep.join(python_path)
     ret_val = 'Error: General Test Failure'  # Indicates failure, by default
     target_str = str(target[0])

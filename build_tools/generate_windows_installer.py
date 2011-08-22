@@ -59,7 +59,8 @@ def main(argv):
   bot.Print('generate_windows_installer is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
   scons_path = os.path.join(example_path, 'scons.bat')
-  subprocess.check_call([scons_path, 'install_prebuilt'], cwd=example_path)
+  scons_cmd = scons_path + ' --nacl-platform="." install_prebuilt'
+  subprocess.check_call(scons_cmd, cwd=example_path)
 
   # On windows we use copytree to copy the SDK into the build location
   # because there is no native tar and using cygwin's version has proven

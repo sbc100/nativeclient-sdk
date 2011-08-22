@@ -14,7 +14,7 @@ import os
 
 from SCons import Script
 
-def NaClEnvironment(use_c_plus_plus_libs=False):
+def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
   '''Make an Environment that uses the NaCl toolchain to build sources.
 
   This modifies a default construction Environment to point the compilers and
@@ -25,18 +25,41 @@ def NaClEnvironment(use_c_plus_plus_libs=False):
   Args:
     use_c_plus_plus_libs: Indicate whether to insert the C++ NaCl libs at the
         right place in the list of LIBS.
+    nacl_platform: The target NaCl/Chrome/Papper platform for which the
+        environment, e.g. 'pepper_14'.
   Returns:
     A SCons Environment with all the various Tool and keywords set to build
     NaCl modules.
   '''
+  nacl_utils.AddNaclPlatformOption()
+  env = Script.Environment()
 
-  toolchain = nacl_utils.FindToolchain()
+  # We must have a nacl_platform, either as argument to this function or from
+  # the command line. However, if we're cleaning we can relax this requirement.
+  # (And our build bots will be much happier that way.)
+  nacl_platform_from_option = Script.GetOption('nacl_platform')
+  if not nacl_platform_from_option and not nacl_platform:
+    if Script.GetOption('clean'):
+      nacl_platform_from_option='.'
+    else:
+      raise ValueError('NaCl platform not specified')
+
+  # Setup the base dir for tools, etc. Favor the nacl platform specified on
+  # the command line if there's a conflict.
+  base_dir = os.getenv('NACL_SDK_ROOT', '')
+  if nacl_platform_from_option:
+    if nacl_platform:
+      print ('Warning: conflicting nacl platforms specified. Using "%s"' %
+             nacl_platform_from_option)
+    base_dir = os.path.join(base_dir, nacl_platform_from_option)
+  else:
+    base_dir = os.path.join(base_dir, nacl_platform)
+
+  toolchain = nacl_utils.FindToolchain(base_dir)
   if (toolchain is None):
     raise ValueError('Cannot find a NaCl toolchain')
 
   tool_bin_path = os.path.join(toolchain, 'bin')
-
-  env = Script.Environment()
 
   # Invoke the various *nix tools that the NativeClient SDK resembles.  This
   # is done so that SCons doesn't try to invoke cl.exe on Windows in the

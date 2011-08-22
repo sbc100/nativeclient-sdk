@@ -71,8 +71,9 @@ def main(argv):
   bot.BuildStep('build examples')
   bot.Print('generate_installers is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
-  subprocess.check_call([os.path.join(example_path, 'scons'),
-                         'install_prebuilt'],
+  scons_path = os.path.join(example_path, 'scons')
+  scons_cmd = scons_path + ' --nacl-platform="." install_prebuilt'
+  subprocess.check_call(scons_cmd,
                         cwd=example_path,
                         env=env,
                         shell=True)

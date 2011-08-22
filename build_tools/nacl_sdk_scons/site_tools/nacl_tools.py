@@ -275,6 +275,8 @@ def generate(env):
 
   NOTE: SCons requires the use of this name, which fails lint.
   '''
+  nacl_utils.AddNaclPlatformOption()
+
   env.AddMethod(AllNaClModules)
   env.AddMethod(AppendOptCCFlags)
   env.AddMethod(AppendArchFlags)

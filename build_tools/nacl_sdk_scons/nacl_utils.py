@@ -12,6 +12,9 @@ from __future__ import with_statement
 
 import os
 import sys
+import optparse
+
+from SCons import Script
 
 #------------------------------------------------------------------------------
 # Parameters
@@ -48,6 +51,32 @@ DEFAULT_SUBARCH = '32'
 
 #------------------------------------------------------------------------------
 # Functions
+
+def AddNaclPlatformOption():
+  '''Register the cmd-line option --nacl-platform. This function can be called
+  multiple times. Only the first call registers the option.
+
+  Args:
+    None
+
+  Returns:
+    None
+  '''
+
+  try:
+    Script.AddOption(
+        '--nacl-platform',
+        dest='nacl_platform',
+        nargs=1,
+        type='string',
+        action='store',
+        help='target pepper version')
+    Script.Help('  --nacl-platform                    '
+                'Specify the pepper version to build for '
+                '(e.g. --nacl-platform="pepper_14").\n')
+
+  except optparse.OptionConflictError:
+    pass
 
 
 def FindToolchain(base_dir=None):
