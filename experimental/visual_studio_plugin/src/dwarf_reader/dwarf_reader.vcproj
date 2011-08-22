@@ -168,6 +168,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dwarf_parser.cc"
+				>
+			</File>
+			<File
 				RelativePath=".\dwarf_strings.cc"
 				>
 			</File>
@@ -199,6 +203,10 @@
 			</File>
 			<File
 				RelativePath=".\dwarf_parse.h"
+				>
+			</File>
+			<File
+				RelativePath=".\dwarf_parser.h"
 				>
 			</File>
 			<File

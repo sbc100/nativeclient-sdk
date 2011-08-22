@@ -81,7 +81,7 @@ class ElfObject {
   void Unload();
   void CleanUp(FILE * fp);
 
-  // Retreive information about the loaded file.
+  // Retrieve information about the loaded file.
   const char *GetPath() const;
   const uint8_t *GetData() const;
   uint64_t GetLength() const;

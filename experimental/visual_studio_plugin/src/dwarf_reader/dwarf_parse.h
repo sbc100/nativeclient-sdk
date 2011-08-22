@@ -11,15 +11,32 @@
 #define DWARF_READER_DWARF_PARSE_H_
 
 #include "common/types.h"
-#include "elf_reader/elf_object.h"
+
+namespace elf_reader {
+class ElfObject;
+}  // namespace elf_reader
 
 namespace dwarf_reader {
 
 class IDwarfReader;
 class IDwarfVM;
 
+/// Populates an IDwarfReader with debug information.
+/// @param elf An ElfObject, which should be preloaded with a binary file
+/// location.
+/// @param reader An IDwarfReader which needs to be populated.
 void DwarfParseElf(elf_reader::ElfObject *elf, IDwarfReader *reader);
-uint64_t DwarfParseVM(IDwarfVM *vm, uint8_t *data, uint32_t length);
+
+/// Runs the IDwarfVM on the provided data.  |data| is expected to be a dwarf
+/// expression in binary format of length |length|
+/// @param dwarf_state_machine The state machine which must implement
+/// IDwarfVM.
+/// @param data The dwarf expression.
+/// @param length The length of the dwarf expression.
+/// @return The result of the expression.
+uint64_t DwarfParseVM(IDwarfVM *dwarf_state_machine,
+                      uint8_t *data,
+                      uint32_t length);
 
 }  // namespace dwarf_reader
 

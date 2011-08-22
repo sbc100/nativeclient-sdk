@@ -828,6 +828,11 @@ public interface class IDwarfReader {
   /// Called to notify the DwarfReader that the end of a CFI has been reached.
   /// </summary>
   virtual bool EndCfiEntry();
+
+  virtual void AddRangeListEntry(uint64 offset,
+                                 uint64 base_address,
+                                 uint64 low_pc,
+                                 uint64 high_pc);
 };
 
 public interface class IDwarfVM {

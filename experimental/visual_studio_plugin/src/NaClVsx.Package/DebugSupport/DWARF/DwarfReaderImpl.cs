@@ -226,6 +226,13 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
       return true;
     }
 
+    public void AddRangeListEntry(ulong offset,
+                                  ulong baseAddress,
+                                  ulong lowPC,
+                                  ulong highPC) {
+      // TODO(mlinck) implement this function
+    }
+
     private ulong MakeFileKey(uint fileNum) {
       return ((ulong) compilationUnitIndex_ << 32) | fileNum;
     }

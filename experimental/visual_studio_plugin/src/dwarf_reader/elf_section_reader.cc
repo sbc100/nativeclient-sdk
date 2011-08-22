@@ -13,12 +13,16 @@ ElfSectionReader::~ElfSectionReader() {
     delete byte_reader_;
 }
 
+const dwarf2reader::SectionMap& ElfSectionReader::sections() const {
+  return sections_;
+}
+
 void ElfSectionReader::Init(const char *name,
                             void *data,
                             uint64_t length,
                             uint32_t classSize,
-                            bool is_linux_standard_base) {
-  if (is_linux_standard_base)
+                            bool is_little_endian) {
+  if (is_little_endian)
     byte_reader_ = new dwarf2reader::ByteReader(
         dwarf2reader::ENDIANNESS_LITTLE);
   else
@@ -41,20 +45,30 @@ void ElfSectionReader::AddSectionHeader(const char *name,
   loadAddresses_[name] = virt;
 }
 
-dwarf2reader::ByteReader *ElfSectionReader::GetByteReader() {
+dwarf2reader::ByteReader *ElfSectionReader::GetByteReader() const {
   return byte_reader_;
 }
 
-SectionInfo ElfSectionReader::GetSectionInfo(const char *name) {
-  return sections_[name];
+SectionInfo ElfSectionReader::GetSectionInfo(const char *name) const {
+  dwarf2reader::SectionMap::const_iterator map_iter =
+      sections_.find(name);
+  if (map_iter != sections_.end())
+    return map_iter->second;
+  else
+    return SectionInfo(NULL, 0);
 }
 
-uint64 ElfSectionReader::GetSectionLoadAddress(const char *name) {
-  return loadAddresses_[name];
+uint64 ElfSectionReader::GetSectionLoadAddress(const char *name) const {
+  LoadAddressMap::const_iterator address_iter =
+      loadAddresses_.find(name);
+  if (address_iter != loadAddresses_.end())
+    return address_iter->second;
+  else
+    return 0;
 }
 
-dwarf2reader::SectionMap& ElfSectionReader::GetSectionMap() {
-  return sections_;
+bool ElfSectionReader::IsEmpty() const {
+  return (sections_.empty() || loadAddresses_.empty());
 }
 
 }  // namespace dwarf_reader

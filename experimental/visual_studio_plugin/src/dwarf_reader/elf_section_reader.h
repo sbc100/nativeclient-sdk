@@ -20,7 +20,8 @@ namespace dwarf_reader {
 /// section in memory.
 typedef std::map<std::string, uint64> LoadAddressMap;
 /// The name and address of a file section.  This refers to the address of the
-/// section in the file text.
+/// section in the file text.  This is also the keyValue pair of a
+/// |dwarf2reader::SectionMap|
 typedef std::pair<const char *, uint64> SectionInfo;
 
 /// The purpose of this class is to parse a raw ELF binary file and then to
@@ -33,11 +34,14 @@ class ElfSectionReader : public IElfReader {
 
   ~ElfSectionReader();
 
+  /// @return The SectionMap for the file.
+  const dwarf2reader::SectionMap& sections() const;
+
   virtual void Init(const char *name,
                     void *data,
                     uint64_t length,
                     uint32_t classSize,
-                    bool is_linux_standard_base);
+                    bool is_little_endian);
 
   virtual bool SectionHeadersStart(uint32_t count);
   virtual void SectionHeadersEnd() { }
@@ -50,19 +54,20 @@ class ElfSectionReader : public IElfReader {
 
   /// Not thread safe.
   /// @return A pointer to a ByteReader.
-  dwarf2reader::ByteReader *GetByteReader();
+  dwarf2reader::ByteReader *GetByteReader() const;
 
   /// Retrieves a descriptor for a section in the ELF binary file.
   /// @param name The name of the section for which information is required.
-  /// @return SectionInfo for the requested section.
-  SectionInfo GetSectionInfo(const char *name);
+  /// @return SectionInfo for the requested section. If the section is not
+  /// found, this returns a SectionInfo that has empty values (NULL, 0).
+  SectionInfo GetSectionInfo(const char *name) const;
 
   /// @param name The name of the section for which load info is required.
   /// @return The load address of the section.
-  uint64 GetSectionLoadAddress(const char *name);
+  uint64 GetSectionLoadAddress(const char *name) const;
 
-  /// @return The SectionMap for the file.
-  dwarf2reader::SectionMap& GetSectionMap();
+  /// @return true iff this object contains no section information.
+  bool IsEmpty() const;
 
  private:
   dwarf2reader::SectionMap sections_;

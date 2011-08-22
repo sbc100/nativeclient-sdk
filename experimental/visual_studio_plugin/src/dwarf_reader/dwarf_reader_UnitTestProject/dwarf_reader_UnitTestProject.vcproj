@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dwarf_reader.lib gtestd.lib wsock32.lib"
+				AdditionalDependencies="dwarf_reader.lib gtestd.lib wsock32.lib gmock-md.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)\..\..\..\build\Debug&quot;;&quot;$(NACL_SDK_ROOT)\debugger\NativeClientVSX\Debug&quot;"
 				GenerateDebugInformation="true"
@@ -174,7 +174,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\base_fixture_test.cc"
+				>
+			</File>
+			<File
+				RelativePath=".\dwarf_parser_test.cc"
+				>
+			</File>
+			<File
 				RelativePath=".\dwarf_strings_test.cc"
+				>
+			</File>
+			<File
+				RelativePath=".\elf_section_reader_test.cc"
 				>
 			</File>
 			<File
@@ -187,6 +199,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\base_fixture.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mock_dwarf_reader.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

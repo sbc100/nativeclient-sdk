@@ -12,7 +12,7 @@ namespace dwarf_reader {
 /// This class is used to store some basic information about the data currenty
 /// being parsed out of the binary.  It uses stacks because they are useful
 /// for doing the breadth-first traversal which the DWARF information is laid
-/// out to facilitate (by being a flattened represenation of a tree of
+/// out to facilitate (by being a flattened representation of a tree of
 /// information entries).
 class ParseState {
  public:

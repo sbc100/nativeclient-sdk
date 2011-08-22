@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENSE file.
 
-#include "src/NaClVsx.DebugHelpers/DwarfParser.h"
-#include <dwarf_reader/dwarf_vm.h>
-
-
 #include <gcroot.h>
+
+#include "dwarf_reader/dwarf_vm.h"
+#include "elf_reader/elf_object.h"
+
+#include "src/NaClVsx.DebugHelpers/DwarfParser.h"
+
 
 using System::IntPtr;
 using System::Runtime::InteropServices::GCHandle;
@@ -208,6 +210,12 @@ class DwarfParserImpl : public dwarf_reader::IDwarfReader {
       return target_->EndCfiEntry();
     }
 
+    virtual void AddRangeListEntry(uint64 offset,
+                                   uint64 base_address,
+                                   uint64 low_pc,
+                                   uint64 high_pc) {
+      target_->AddRangeListEntry(offset, base_address, low_pc, high_pc);
+    }
 
   private:
     gcroot<NaClVsx::IDwarfReader^> target_;
