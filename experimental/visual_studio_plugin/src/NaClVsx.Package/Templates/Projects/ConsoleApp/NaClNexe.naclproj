@@ -6,13 +6,14 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>$safeprojectname$</RootNamespace>
     <AssemblyName>$safeprojectname$</AssemblyName>
-    <NaClSDKRoot>$(NACL_SDK_ROOT)</NaClSDKRoot>    
+    <NaClSDKRoot>$(NACL_SDK_ROOT)</NaClSDKRoot>
     <MainFile>NaClMain.c</MainFile>
-	<INCLUDES>-Ic:\src</INCLUDES>
-	<OPT_FLAGS></OPT_FLAGS>
-	<CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
-	<Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
-    <DebugHost>$(NaClSDKRoot)\toolchain\win_x86\bin\nacl64-sel_ldr.exe</DebugHost>	
+    <INCLUDES>-Ic:\src</INCLUDES>
+    <OPT_FLAGS></OPT_FLAGS>
+    <CFLAGS>-std=gnu99</CFLAGS>
+    <CXXFLAGS>-std=gnu++98 -Wno-long-long</CXXFLAGS>
+    <Lib>$(NaClSDKRoot)\toolchain\win_x86\lib</Lib>
+    <DebugHost>$(NaClSDKRoot)\toolchain\win_x86\bin\sel_ldr_x86_64.exe</DebugHost>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,8 +29,5 @@
   <ItemGroup>
     <Compile Include="NaClMain.c" />
   </ItemGroup>
-
-
   <Import Project="$(MSBuildExtensionsPath)\Google\NaCl\1.0\NaCl.Common.targets" />
-  
 </Project>

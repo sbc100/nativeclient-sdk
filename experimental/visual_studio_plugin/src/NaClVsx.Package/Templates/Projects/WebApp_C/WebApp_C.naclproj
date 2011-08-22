@@ -10,8 +10,9 @@
     <INCLUDES>-Ic:\src</INCLUDES>
     <OPT_FLAGS></OPT_FLAGS>
     <NaClSDKRoot>$(NACL_SDK_ROOT)</NaClSDKRoot>
-    <CFLAGS>-Wall -Wno-long-long -pthread -DXP_UNIX -Werror -g </CFLAGS>
-    <Lib>$(NaClSDKRoot)\toolchain\win_x86\nacl64\lib</Lib>
+    <CFLAGS>-std=gnu99</CFLAGS>
+    <CXXFLAGS>-std=gnu++98 -Wno-long-long</CXXFLAGS>
+    <Lib>$(NaClSDKRoot)\toolchain\win_x86\lib</Lib>
     <LinkLibs>ppapi</LinkLibs>
     <DebugHost>C:\Program Files (x86)\Google\Chrome\Application\chrome.exe</DebugHost>
     <HtmlPage>$safeprojectname$.html</HtmlPage>
@@ -36,8 +37,5 @@
     <Content Include="$safeprojectname$.html" />
     <Content Include="$safeprojectname$.nmf" />
   </ItemGroup>
-
-
   <Import Project="$(MSBuildExtensionsPath)\Google\NaCl\1.0\NaCl.Common.targets" />
-  
 </Project>
