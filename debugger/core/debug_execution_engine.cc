@@ -28,7 +28,8 @@ void kill_proc(debug::IDebuggeeProcess* proc) {
 namespace debug {
 
 ExecutionEngine::ExecutionEngine(DebugAPI* debug_api)
-  : debug_api_(*debug_api) {
+  : debug_api_(*debug_api),
+    compatibility_mode_(false) {
 }
 
 ExecutionEngine::~ExecutionEngine() {
@@ -142,8 +143,11 @@ int ExecutionEngine::OnDebugEvent(const DEBUG_EVENT& debug_event) {
     process = CreateDebuggeeProcess(debug_event.dwProcessId,
                                     debug_event.u.CreateProcessInfo.hProcess,
                                     debug_event.u.CreateProcessInfo.hFile);
-    if (NULL != process)
+    if (NULL != process) {
       processes_.push_back(process);
+      if (compatibility_mode_)
+        process->EnableCompatibilityMode();
+    }
   }
 
   char tmp[1000];

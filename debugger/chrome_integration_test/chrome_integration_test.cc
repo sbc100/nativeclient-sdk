@@ -421,7 +421,7 @@ bool NaclGdbServerTest::GetCurrThread(int* tid) {
   std::string reply = RPC("qC");
   if (strcmp("QC", reply.substr(0, 2).c_str()) != 0)
     return false;
-  return (1 == sscanf(reply.c_str() + 2, "%x", tid));
+  return (1 == sscanf(reply.c_str() + 2, "%x", tid));  // NOLINT
 }
 
 bool NaclGdbServerTest::GetThreadsList(std::deque<int>* tids) {
@@ -720,7 +720,7 @@ TEST_F(NaclGdbServerTest, AccessViolation) {
 
 TEST_F(NaclGdbServerTest, CompatibilityMode) {
   EXPECT_EQ(0, StartWebServer());
-  EXPECT_EQ(0, StartDebugger(true));
+  EXPECT_EQ(0, StartDebugger(true));  // Start debugger in compatibility mode.
   EXPECT_EQ(0, ConnectToDebugger());
   EXPECT_STREQ("S05", RPC("?").c_str());
 
@@ -731,6 +731,21 @@ TEST_F(NaclGdbServerTest, CompatibilityMode) {
   uint64_t ip = 0;
   EXPECT_TRUE(ReadIP(&ip));
   EXPECT_EQ(start_addr, ip);
+
+  // Set breakpoint at |Instance_DidCreate|.
+  uint64_t instance_created_addr = 0;
+  EXPECT_TRUE(GetSymbolAddr("Instance_DidCreate", &instance_created_addr));
+  instance_created_addr = TranslateIP(instance_created_addr);
+  EXPECT_TRUE(SetBreakpoint(instance_created_addr));
+
+  // Nexe should be loaded and |Instance_DidCreate| called,
+  // triggering breakpoint.
+  EXPECT_STREQ("S05", RPC("c").c_str());
+
+  // In compatibility mode, debug server decrements IP when breakpoint is hit.
+  ip = 0;
+  EXPECT_TRUE(ReadIP(&ip));
+  EXPECT_EQ(instance_created_addr, ip);
 }
 
 TEST_F(NaclGdbServerTest, ReadStaticString) {

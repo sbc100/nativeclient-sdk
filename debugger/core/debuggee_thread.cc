@@ -118,6 +118,8 @@ void DebuggeeThread::OnBreakpoint(DebugEvent* debug_event) {
     triggered_breakpoint_addr_ = br->address();
     br->RecoverCodeAtBreakpoint();
     SetIP(reinterpret_cast<char*>(GetIP()) - 1);
+  } else if (IsNaClAppThread() && parent_process().compatibility_mode()) {
+    SetIP(reinterpret_cast<char*>(GetIP()) - 1);
   }
 }
 

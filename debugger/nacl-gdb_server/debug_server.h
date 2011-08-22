@@ -45,6 +45,7 @@ class DebugServer : public rsp::PacketConsumerInterface,
   ///   - remove breakpoint: ip--, write mem with original code
   ///   - halt
   ///   - start accepting RSP connections
+  /// 4) decrements IP after hitting breakpoints
   /// Note: it shall be called before calling |Init|.
   void EnableCompatibilityMode();
 

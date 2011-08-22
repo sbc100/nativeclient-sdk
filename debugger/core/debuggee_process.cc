@@ -25,7 +25,8 @@ DebuggeeProcess::DebuggeeProcess(int id,
     exit_code_(0),
     debug_api_(*debug_api),
     nexe_mem_base_(NULL),
-    nexe_entry_point_(NULL) {
+    nexe_entry_point_(NULL),
+    compatibility_mode_(false) {
 }
 
 DebuggeeProcess::~DebuggeeProcess() {

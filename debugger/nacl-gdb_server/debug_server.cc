@@ -65,6 +65,8 @@ void DebugServer::EnableCompatibilityMode() {
 bool DebugServer::Init() {
   rsp_packetizer_.SetPacketConsumer(this);
   execution_engine_ = new ExecutionEngine(&debug_api_);
+  if (compatibility_mode_)
+    execution_engine_->EnableCompatibilityMode();
 
   debug::TextFileLogger* log = new debug::TextFileLogger();
   log->Open("nacl-gdb_server_log.txt");

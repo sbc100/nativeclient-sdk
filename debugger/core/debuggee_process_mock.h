@@ -24,6 +24,9 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   /// Fills mock memory buffer is filled with kFillChar.
   explicit DebuggeeProcessMock(DebugAPI* debug_api);
 
+  virtual void EnableCompatibilityMode() {compatibility_mode_ = true;}
+  virtual bool compatibility_mode() const {return compatibility_mode_; }
+
   virtual DebugAPI& debug_api() { return *debug_api_; }
 
   /// Reads bytes from |buff_|.
@@ -74,6 +77,7 @@ class DebuggeeProcessMock : public IDebuggeeProcess {
   DebugEvent last_debug_event_;
   State state_;
   std::deque<DebuggeeThread*> threads_;
+  bool compatibility_mode_;
 };
 
 }  // namespace debug
