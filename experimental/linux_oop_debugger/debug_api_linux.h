@@ -40,7 +40,7 @@ class DebugApi {
   virtual bool PostASignal(pid_t pid, int signo, int sig_value);
   virtual bool PostASignal(pid_t pid, int signo, void* sig_value);
 
-  virtual bool WaitForDebugEvent(DebugEvent* de);
+  virtual bool WaitForDebugEvent(DebugEvent* de);  //TODO: add optional pid
   virtual bool ContinueDebugEvent(pid_t process_id, int signo);
 
   virtual bool ReadDebugString(DebugEvent* de, std::string* string);
@@ -63,6 +63,7 @@ class DebugApi {
 
   virtual bool GetIp(pid_t pid, char** ip);
   virtual bool SetIp(pid_t pid, char* ip);
+  virtual bool GetRax(pid_t pid, char** ip);
 };
 
 static const int EVENT_FORK = (SIGTRAP | (PTRACE_EVENT_FORK << 8));

@@ -1,7 +1,7 @@
 // Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#include "linux_oop_debugger/debug_api_linux.h"
+#include "debug_api_linux.h"
 
 #include <errno.h>
 #include <memory.h>
@@ -126,12 +126,15 @@ bool DebugApi::StartProcess(const char* cmd_line,
     // in child
     if (trace)
       ptrace(PTRACE_TRACEME, 0, NULL, NULL);
-    // TODO(garianov): try with sanbox on
-    int res = execl(path.c_str(), app_name.c_str(), "--no-sandbox", NULL);
+
+    printf("In child: pid=%d ppid=%d\n", getpid(), getppid());
+    fflush(stdout);
+
+    int res = execl(path.c_str(), app_name.c_str(), "", NULL);
 
     // TODO(garianov): how to communicate failure of execl to the debugger
     // process?
-    printf("in child: execl -> %d errno=%d\n", res, errno);
+    // My guess is parent proc/debugger will get SIGTERM signal or TERM debug event...
     exit(13);
   } else {
     // in parent
@@ -145,9 +148,9 @@ bool DebugApi::SetupProc(pid_t pid) {
   intptr_t mask =
       PTRACE_O_TRACEFORK  |
       PTRACE_O_TRACEVFORK |
-      PTRACE_O_TRACECLONE |
-      PTRACE_O_TRACEEXEC |
-      PTRACE_O_TRACEEXIT;
+      PTRACE_O_TRACECLONE ;
+//      PTRACE_O_TRACEEXEC |
+//      PTRACE_O_TRACEEXIT;
   void* data = reinterpret_cast<void*>(mask);
   ptrace_result_t res = ptrace(PTRACE_SETOPTIONS, pid, 0, data);
   printf("Setup PTRACE_O_TRACEFORK option (0x%p) on pid=%d -> %ld\n",
@@ -273,43 +276,50 @@ bool DebugApi::ReadProcessMemory(pid_t pid,
   const size_t bundle_sz = sizeof(res);
   char* ptr_dest = reinterpret_cast<char*>(dest);
   char* ptr_addr = reinterpret_cast<char*>(addr);
-//  printf("DebugApi::ReadProcessMemory(%d, %p)\n", pid, addr);
+//printf("DebugApi::ReadProcessMemory(%d, %p, %d)\n", pid, addr, (int)size);
+//printf("left_bytes = %d\n", (int)left_bytes);
 
   // Read first few bytes that rea not aligned on 4 (or 8 on 64-bit)
   // bytes, if any.
   size_t offset = reinterpret_cast<size_t>(addr);
   size_t offset_from_4bytes = offset % bundle_sz;
-//  printf("===>>>>> offset_from_4bytes=%ld\n", offset_from_4bytes);
+//printf("===>>>>> offset_from_4bytes=%ld\n", offset_from_4bytes);
   fflush(stdout);
   if (0 != offset_from_4bytes) {
     char* beg_addr = reinterpret_cast<char*>(offset - offset_from_4bytes);
     res = ptrace(PTRACE_PEEKDATA, pid, beg_addr, 0);
-//    printf("ptrace(PTRACE_PEEKDATA(%p) -> 0x%lX\n", beg_addr, res);
+//printf("ptrace(PTRACE_PEEKDATA(%p) -> 0x%lX\n", beg_addr, res);
     if (0 != errno) {
-//      printf("ptrace -> %d\n", errno);
-//      printf("Errno: %s\n", strerror(errno));
+//printf("ptrace -> %d\n", errno);
+//printf("Errno: %s\n", strerror(errno));
       return false;
     }
     char* src = reinterpret_cast<char*>(&res) + offset_from_4bytes;
     readed_bytes = bundle_sz - offset_from_4bytes;
+//printf("readed_bytes = %d\n", (int)readed_bytes);
     memcpy(ptr_dest, src, readed_bytes);
     ptr_dest += readed_bytes;
     ptr_addr += readed_bytes;
-    left_bytes -= readed_bytes;
+    if (readed_bytes > left_bytes)
+      left_bytes = 0;
+    else
+      left_bytes -= readed_bytes;
+//printf("left_bytes = %d\n", (int)left_bytes);
   }
 
   while (left_bytes) {
+//printf("left_bytes = %d\n", (int)left_bytes);
     res = ptrace(PTRACE_PEEKDATA, pid, ptr_addr, 0);
-//    printf("ptrace(PTRACE_PEEKDATA(%p) -> 0x%lX\n", ptr_addr, res);
+//printf("ptrace(PTRACE_PEEKDATA(%p) -> 0x%lX\n", ptr_addr, res);
     if (0 != errno) {
-//      printf("Errno: %s\n", strerror(errno));
+//printf("Errno: %s\n", strerror(errno));
       break;
     }
     size_t rd_bytes = bundle_sz;
     if (rd_bytes > left_bytes)
       rd_bytes = left_bytes;
 
-//    printf("rd_bytes = %d\n", (int)rd_bytes);
+//printf("rd_bytes = %d\n", (int)rd_bytes);
     memcpy(ptr_dest, &res, rd_bytes);
     readed_bytes += rd_bytes;
     ptr_dest += rd_bytes;
@@ -318,8 +328,18 @@ bool DebugApi::ReadProcessMemory(pid_t pid,
   }
   if (NULL != readed_bytes_out)
     *readed_bytes_out = readed_bytes;
-//  printf("size=%d readed_bytes=%d\n", (int)size, (int)readed_bytes);
-  return (size == readed_bytes);
+//printf("size=%d readed_bytes=%d\n", (int)size, (int)readed_bytes);
+  return (size <= readed_bytes);
+}
+
+bool DebugApi::GetRax(pid_t pid, char** rax) {
+  user_regs_struct context;
+  if (!ReadThreadContext(pid, &context))
+    return false;
+
+  if (NULL != rax)
+    *rax = reinterpret_cast<char*>(context.rax);
+  return true;
 }
 
 bool DebugApi::GetIp(pid_t pid, char** ip) {
@@ -327,8 +347,10 @@ bool DebugApi::GetIp(pid_t pid, char** ip) {
   if (!ReadThreadContext(pid, &context))
     return false;
 
-  if (NULL != ip)
+  if (NULL != ip) {
     *ip = reinterpret_cast<char*>(context.rip);
+    printf("ReadThreadContext-> ip = %p, ip = 0x%lx\n", *ip, context.rip);
+  }
   return true;
 }
 
@@ -393,7 +415,7 @@ void DebugApi::PrintThreadContext(const user_regs_struct& context) {
 
 bool DebugApi::WaitForDebugEvent(DebugEvent* de) {
   int status = 0;
-  int options = WNOHANG | WUNTRACED | WCONTINUED;
+  int options = WNOHANG; // | WUNTRACED | WCONTINUED;
   options |= __WALL;
   int res = waitpid(-1, &status, options);
   if (-1 == res)
