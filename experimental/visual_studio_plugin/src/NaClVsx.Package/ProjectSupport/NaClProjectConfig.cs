@@ -191,8 +191,8 @@ namespace Google.NaClVsx.ProjectSupport {
         // sel_ldr needs a -g to enable debugger
         info.bstrArg = string.Format(
             "-g {0} {1}",
-            safeNexeString,
-            GetConfigurationProperty("DebugArgs", false));
+            GetConfigurationProperty("DebugArgs", false),
+            safeNexeString);
       } else if (host.Contains("chrome.exe")) {
         // chrome needs --enable-nacl-debug --no-sandbox to enable debugger
         var html_page = hostName + ":" + portNum + "/" +
