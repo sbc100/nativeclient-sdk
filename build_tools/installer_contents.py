@@ -11,6 +11,8 @@ Windows.
 """
 
 import os
+import sys
+from nacl_sdk_scons import nacl_utils
 
 # For each path in this list, its entire contents are added to the SDK
 # installer.  Directories are denoted by a trailing '/' - this is important
@@ -43,6 +45,9 @@ INSTALLER_CONTENTS = [
     'third_party/scons-2.0.1/',
 ]
 
+INSTALLER_CONTENTS.append('toolchain/%s/' %
+                          nacl_utils.PLATFORM_MAPPING[sys.platform])
+
 LINUX_ONLY_CONTENTS = [
     'third_party/ppapi/',
     'third_party/valgrind/memcheck.sh',
@@ -52,13 +57,18 @@ LINUX_ONLY_CONTENTS = [
     'third_party/valgrind/README',
     'third_party/valgrind/bin/memcheck',
     'third_party/valgrind/bin/tsan',
-    'toolchain/',
 ]
 
 MAC_ONLY_CONTENTS = [
     'third_party/ppapi/',
-    'toolchain/',
 ]
+
+WINDOWS_ONLY_CONTENTS = [
+    'examples/httpd.cmd',
+    'examples/scons.bat',
+    'project_templates/scons.bat',
+]
+
 
 # These files are user-readable documentation files, and as such get some
 # further processing on Windows (\r\n line-endings and .txt file suffix).

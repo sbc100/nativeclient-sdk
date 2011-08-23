@@ -16,21 +16,14 @@ import shutil
 import subprocess
 import sys
 
+from nacl_sdk_scons import nacl_utils
+
 #------------------------------------------------------------------------------
 # Parameters
 
 # Revision numbers for the SDK
 MAJOR_REV = '0'
 MINOR_REV = '6'
-
-# Map the string stored in |sys.platform| into a toolchain platform specifier.
-PLATFORM_MAPPING = {
-    'win32': 'win_x86',
-    'cygwin': 'win_x86',
-    'linux': 'linux_x86',
-    'linux2': 'linux_x86',
-    'darwin': 'mac_x86',
-}
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
 
@@ -131,14 +124,14 @@ def CheckPatchVersion(shell_env=None):
 # This method assumes that the platform-specific toolchain is found under
 # <base_dir>/toolchain/<platform_spec>.
 def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT, base_dir=None):
-  def AutoDetectToolchain(toochain_base):
-    if sys.platform in PLATFORM_MAPPING:
-      return os.path.join(toochain_base,
+  def AutoDetectToolchain(toolchain_base):
+    if sys.platform in nacl_utils.PLATFORM_MAPPING:
+      return os.path.join(toolchain_base,
                           'toolchain',
-                          PLATFORM_MAPPING[sys.platform])
+                          nacl_utils.PLATFORM_MAPPING[sys.platform])
     else:
       print 'ERROR: Unsupported platform "%s"!' % sys.platform
-      return toochain_base
+      return toolchain_base
 
   if toolchain == TOOLCHAIN_AUTODETECT:
     if base_dir is None:
@@ -269,3 +262,18 @@ def UpdateReadMe(filename):
   for line in fileinput.input(filename, inplace=1):
     sys.stdout.write(line.replace('${VERSION}', RawVersion())
                      .replace('${DATE}', str(datetime.date.today())))
+
+def CleanDirectory(dir):
+  '''Cleans all the contents of a given directory.
+  This works even when there are Windows Junctions in the directory
+
+  Args:
+    dir: The directory to clean
+  '''
+  if sys.platform != 'win32':
+    shutil.rmtree(dir, ignore_errors=True)
+  else:
+    # Intentionally ignore return value since a directory might be in use.
+    subprocess.call(['rmdir', '/Q', '/S', dir],
+                    env=os.environ.copy(),
+                    shell=True)

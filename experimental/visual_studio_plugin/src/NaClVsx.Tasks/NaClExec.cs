@@ -25,7 +25,7 @@ namespace NaClVsx.Tasks {
   ///       FileExtension = "@(Compile -> '%(extension)')"
   ///       Arguments = "$(cflags) $(INCLUDES) $(OPT_FLAGS) $(archflag) -c
   ///         '%(FullPath)' -o @(Compile -> '$(IntermediatePath)%(filename).o')"
-  ///       ToolPath = "$(NaClSDKRoot)\toolchain\win_x86\bin\" />
+  ///       ToolPath = "$(NaClSDKRoot)\toolchain\win_x86_newlib\bin\" />
   /// </summary>
   /// Note that we pass in both Command and C_Command, since this task looks at
   /// FileExtension and then chooses the correct Command (nacl-gcc or nacl-g++).

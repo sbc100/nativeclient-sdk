@@ -21,14 +21,14 @@ from SCons import Script
 
 # Map the string stored in |sys.platform| into a toolchain platform specifier.
 PLATFORM_MAPPING = {
-    'win32': 'win_x86',
-    'cygwin': 'win_x86',
-    'linux': 'linux_x86',
-    'linux2': 'linux_x86',
-    'darwin': 'mac_x86',
+    'win32': 'win_x86_newlib',
+    'cygwin': 'win_x86_newlib',
+    'linux': 'linux_x86_newlib',
+    'linux2': 'linux_x86_newlib',
+    'darwin': 'mac_x86_newlib',
 }
 
-# Various architecture spec objecs suitable for use with
+# Various architecture spec objects suitable for use with
 # nacl_env_ext.SetArchFlags()
 ARCH_SPECS = {
     'x86-32': {

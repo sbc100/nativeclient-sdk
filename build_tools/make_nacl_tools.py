@@ -33,6 +33,7 @@ def MakeInstallDirs(options):
 def Build(options):
   '''Build 32-bit and 64-bit versions of needed NaCL tools and libs.'''
   nacl_dir = os.path.join(options.nacl_dir, 'native_client')
+  toolchain_option = 'naclsdk_mode=custom:%s' % options.toolchain
   if sys.platform == 'win32':
     scons = os.path.join(nacl_dir, 'scons.bat')
     bits32 = 'vcvarsall.bat x86 && '
@@ -44,8 +45,9 @@ def Build(options):
 
   # Build sel_ldr and ncval.
   def BuildTools(prefix, bits, target):
-    cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s' % (
-        prefix, scons, options.jobs, options.variant, bits, target)
+    cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s %s' % (
+        prefix, scons, options.jobs, options.variant, bits, target,
+        toolchain_option)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
   BuildTools(bits32, '32', 'sdl=none sel_ldr ncval')
@@ -53,7 +55,8 @@ def Build(options):
 
   # Build irt_core, which is needed for running .nexes with sel_ldr.
   def BuildIRT(bits):
-    cmd = '%s -j %s irt_core platform=x86-%s ' % (scons, options.jobs, bits)
+    cmd = '%s -j %s irt_core platform=x86-%s %s' % (
+        scons, options.jobs, bits, toolchain_option)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
   BuildIRT(32)
@@ -62,13 +65,14 @@ def Build(options):
   # Build and install untrusted libraries.
   def BuildAndInstallLibsAndHeaders(bits):
     cmd = ('%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s '
-           'force_sel_ldr=none ') % (
+           'force_sel_ldr=none %s') % (
         scons,
         os.path.join(options.toolchain,
                      'x86_64-nacl',
                      'lib32' if bits == 32 else 'lib'),
         os.path.join(options.toolchain, 'x86_64-nacl', 'include'),
-        bits)
+        bits,
+        toolchain_option)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
   BuildAndInstallLibsAndHeaders(32)
@@ -135,22 +139,11 @@ def Install(options, tools=[], runtimes=[]):
                              '%s_x86_64%s' % (nacl_irt, NEXE_SUFFIX)))
 
 
-#Cleans up the checkout directories if -c was provided as a command line arg.
-def CleanCheckoutDirs(options):
-  bot.Print('Removing scons-out')
-  scons_out = os.path.join(options.nacl_dir, 'native_client', 'scons-out')
-  if sys.platform != 'win32':
-    shutil.rmtree(scons_out, ignore_errors=True)
-  else:
-    # Intentionally ignore return value since a directory might be in use.
-    subprocess.call(['rmdir', '/Q', '/S', scons_out],
-                    env=os.environ.copy(),
-                    shell=True)
-
-
 def BuildNaClTools(options):
   if(options.clean):
-    CleanCheckoutDirs(options)
+    bot.Print('Removing scons-out')
+    scons_out = os.path.join(options.nacl_dir, 'native_client', 'scons-out')
+    build_utils.CleanDirectory(scons_out)
   else:
     bot.BuildStep('build NaCl tools')
     MakeInstallDirs(options)

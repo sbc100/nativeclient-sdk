@@ -22,6 +22,7 @@ import os
 import platform
 import subprocess
 import sys
+import toolchainbinaries
 from build_tools import build_utils
 
 #------------------------------------------------------------------------------
@@ -63,25 +64,6 @@ if os.getenv('NACL_SDK_ROOT') is None:
   sys.exit(1)
 
 
-def GetToolchainRoot(sdk_root=None):
-  '''Build a string representing the NaCl toolchain root.
-  This root points at the platform-specific directory.
-  '''
-  if sdk_root is None:
-    sdk_root = os.getenv('NACL_SDK_ROOT', '')
-  if sys.platform == 'cygwin' or sys.platform.startswith('win'):
-    variant = 'win_x86'
-  elif sys.platform == 'darwin':
-    variant = 'mac_x86'
-  elif sys.platform in ['linux', 'linux2']:
-    variant = 'linux_x86'
-  else:
-    sys.stderr.write('Unrecognized build platform: %s\n' % sys.platform)
-    return ''
-
-  return os.path.join(sdk_root, 'toolchain', variant)
-
-
 # By default, run with a parallel build (i.e. '-j num_jobs').
 # Use a default value proportional to the number of cpu cores on the system.
 # To run a serial build, explicitly type '-j 1' on the command line.
@@ -108,7 +90,8 @@ base_env = Environment(
     CPPDEFINES = [
       'BOOST_ALL_NO_LIB',
     ],
-    NACL_TOOLCHAIN_ROOT = GetToolchainRoot(os.getenv('NACL_SDK_ROOT')),
+    NACL_TOOLCHAIN_ROOT = build_utils.NormalizeToolchain(
+        base_dir=os.getenv('NACL_SDK_ROOT')),
     ROOT_DIR = os.path.abspath(os.getcwd()),
     IS_WINDOWS = sys.platform in ['cygwin', 'win32'],
     IS_LINUX = sys.platform in ['linux', 'linux2'],

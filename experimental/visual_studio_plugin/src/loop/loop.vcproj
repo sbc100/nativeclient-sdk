@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="$(NACL_SDK_ROOT)\third_party\native_client\native_client\toolchain\win_x86\bin\x86_64-nacl-g++ loop.cc -g -m64 -o loop.nexe"
+				BuildCommandLine="$(NACL_SDK_ROOT)\toolchain\win_x86_newlib\bin\x86_64-nacl-g++ loop.cc -g -m64 -o loop.nexe"
 				ReBuildCommandLine=""
 				CleanCommandLine=""
 				Output="loop.nexe"
@@ -44,7 +44,7 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="$(NACL_SDK_ROOT)\third_party\native_client\native_client\toolchain\win_x86\bin\i686-nacl-g++ loop.cc -g -o loop.exe"
+				BuildCommandLine="$(NACL_SDK_ROOT)\toolchain\win_x86_newlib\bin\i686-nacl-g++ loop.cc -g -o loop.exe"
 				ReBuildCommandLine=""
 				CleanCommandLine=""
 				Output="loop.exe"

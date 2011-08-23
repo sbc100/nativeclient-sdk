@@ -18,14 +18,6 @@ import sys
 
 IGNORE_PATTERN = ('.download*', '.svn*')
 
-# These are extra files that are exclusive to the Windows installer.
-EXTRA_WINDOWS_INSTALLER_CONTENTS = [
-    'examples/httpd.cmd',
-    'examples/scons.bat',
-    'project_templates/scons.bat',
-    'toolchain/',
-]
-
 def main(argv):
   bot = build_utils.BotAnnotator()
   bot.Print('generate_windows_installer is starting.')
@@ -73,7 +65,7 @@ def main(argv):
   shutil.rmtree(installer_dir)
   bot.Print('generate_windows_installer: copying files to install directory.')
   all_contents = installer_contents.INSTALLER_CONTENTS + \
-                 EXTRA_WINDOWS_INSTALLER_CONTENTS
+                 installer_contents.WINDOWS_ONLY_CONTENTS
   for copy_source_dir in installer_contents.GetDirectoriesFromPathList(
       all_contents):
     copy_target_dir = os.path.join(installer_dir, copy_source_dir)

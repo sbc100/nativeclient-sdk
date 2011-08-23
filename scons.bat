@@ -13,7 +13,7 @@ set PRESCONS_PATH=%PATH%
 
 :: Set the PYTHONPATH and SCONS_LIB_DIR so we can import SCons modules
 set SCONS_LIB_DIR=%~dp0third_party\scons-2.0.1\engine
-set PYTHONPATH=%~dp0third_party\scons-2.0.1\engine
+set PYTHONPATH=%~dp0third_party\scons-2.0.1\engine;%~dp0third_party\native_client\native_client\build
 
 :: We have to do this because scons overrides PYTHONPATH and does not preserve
 :: what is provided by the OS.  The custom variable name won't be overwritten.
