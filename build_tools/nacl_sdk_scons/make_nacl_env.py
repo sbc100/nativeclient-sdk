@@ -46,15 +46,10 @@ def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
 
   # Setup the base dir for tools, etc. Favor the nacl platform specified on
   # the command line if there's a conflict.
-  base_dir = os.getenv('NACL_SDK_ROOT', '')
-  if nacl_platform_from_option:
-    if nacl_platform:
-      print ('Warning: conflicting nacl platforms specified. Using "%s"' %
-             nacl_platform_from_option)
-    base_dir = os.path.join(base_dir, nacl_platform_from_option)
-  else:
-    base_dir = os.path.join(base_dir, nacl_platform)
+  nacl_platform_to_use = nacl_platform_from_option or nacl_platform
 
+  base_dir = os.getenv('NACL_SDK_ROOT', '')
+  base_dir = os.path.join(base_dir, nacl_platform_to_use)
   toolchain = nacl_utils.FindToolchain(base_dir)
   if (toolchain is None):
     raise ValueError('Cannot find a NaCl toolchain')
@@ -124,6 +119,8 @@ def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
               # not explicitly set, then SCons on Windows doesn't understand
               # how to construct a Program builder properly.
               PROGSUFFIX='.nexe',
+              # Target NaCl platform info.
+              TARGET_NACL_PLATFORM=nacl_platform_to_use
              )
   # This supresses the "MS_DOS style path" warnings on Windows.  It's benign on
   # all other platforms.

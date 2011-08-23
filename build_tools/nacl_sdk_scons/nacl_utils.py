@@ -10,9 +10,9 @@ scripts.
 # Needed for Python 2.5 -- Unnecessary (but harmless) for 2.6
 from __future__ import with_statement
 
+import optparse
 import os
 import sys
-import optparse
 
 from SCons import Script
 
@@ -77,6 +77,16 @@ def AddNaclPlatformOption():
 
   except optparse.OptionConflictError:
     pass
+
+
+def PrintNaclPlatformBanner(module_name, nacl_platform):
+  # Don't print the banner if we're just cleaning files.
+  if not Script.GetOption('clean'):
+    print '---------------------------------------------------------------'
+    print ('+  Project "%s" is using NaCl platform "%s"' %
+        (module_name, nacl_platform))
+    print '---------------------------------------------------------------'
+    print ''
 
 
 def FindToolchain(base_dir=None):

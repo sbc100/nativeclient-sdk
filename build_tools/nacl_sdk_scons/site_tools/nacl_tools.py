@@ -253,6 +253,7 @@ def AllNaClModules(env, sources, module_name):
     A 2-tuple of SCons Program nodes, the first element is the node that
         builds optimized .nexes; the second builds the debug .nexes.
   '''
+
   opt_nexes = env.NaClModules(sources, module_name, is_debug=False)
   env.GenerateNmf(target='%s.nmf' % module_name,
                   source=opt_nexes,
@@ -264,6 +265,9 @@ def AllNaClModules(env, sources, module_name):
                   source=dbg_nexes,
                   nexes={'x86-32': '%s_x86_32_dbg.nexe' % module_name,
                          'x86-64': '%s_x86_64_dbg.nexe' % module_name})
+  nacl_utils.PrintNaclPlatformBanner(module_name,
+      nacl_platform=env['TARGET_NACL_PLATFORM'])
+
   return opt_nexes, dbg_nexes
 
 
