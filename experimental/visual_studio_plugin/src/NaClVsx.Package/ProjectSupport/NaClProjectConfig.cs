@@ -160,8 +160,17 @@ namespace Google.NaClVsx.ProjectSupport {
               GetConfigurationProperty("OutputFullPath", false));
       // If a server is specified and is not running, launch it now.
       var hostName = GetConfigurationProperty("LaunchHostname", false);
-      var portNum =
-          Convert.ToInt32(GetConfigurationProperty("LaunchPort", false));
+      var portNumValue = GetConfigurationProperty("LaunchPort", false);
+      int portNum = 0;
+      if (null != portNumValue) {
+        try {
+          portNum = Convert.ToInt32(portNumValue);
+        } catch(System.FormatException e) {
+          Debug.WriteLine("Caught exception for portNumValue{" + portNumValue + "}" + e);
+        } catch(System.OverflowException e) {
+          Debug.WriteLine("Caught exception for portNumValue{" + portNumValue + "}" + e);          
+        }
+      }
       var isServerRunning = IsServerRunning(hostName, portNum);
       var serverProgram = GetConfigurationProperty("WebServer", false);
       var serverArgs = GetConfigurationProperty("WebServerArgs", false);
