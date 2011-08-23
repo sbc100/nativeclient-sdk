@@ -11,7 +11,10 @@ readonly SCRIPT_DIR_ABS="$(cd "${SCRIPT_DIR}" ; pwd -P)"
 export NACL_SDK_ROOT="$(cd "${SCRIPT_DIR_ABS}/.." ; pwd -P)"
 # TODO(gwink): Replace this with 'pepper_14' when the sdk folder structure is
 #   in place.
-export NACL_TARGET_PLATFORM="${NACL_SDK_ROOT}"
+# NACL_TARGET_PLATFORM is really the name of a folder with the base dir -
+# usually nacl-sdk-root - within which the toolchain for the target platform
+# are found.
+export NACL_TARGET_PLATFORM="."
 
 readonly BASE_SCRIPT="${NACL_SDK_ROOT}/third_party/scons-2.0.1/script/scons"
 

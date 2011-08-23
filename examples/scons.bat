@@ -7,9 +7,10 @@
 setlocal
 
 set NACL_SDK_ROOT=%~dp0..
-# TODO(gwink): Replace this with 'pepper_14' when the sdk folder structure is
-#   in place.
-set NACL_TARGET_PLATFORM=%NACL_SDK_ROOT%
+# NACL_TARGET_PLATFORM is really the name of a folder with the base dir -
+# usually nacl-sdk-root - within which the toolchain for the target platform
+# are found.
+set NACL_TARGET_PLATFORM=.
 
 :: Set the PYTHONPATH and SCONS_LIB_DIR so we can import SCons modules
 set SCONS_LIB_DIR=%~dp0third_party\scons-2.0.1\engine
