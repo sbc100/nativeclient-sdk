@@ -127,8 +127,9 @@ def NaClTestProgram(env,
 
   This node will build the desired NaCl module with the debug flags turned on.
   The Alias node has a build action that runs the test under sel_ldr.  |env| is
-  expected to have variables named 'NACL_SEL_LDR<x>', where <x> is the
-  various architectures supported (e.g. NACL_SEL_LDR32 and NACL_SEL_LLDR64).
+  expected to have variables named 'NACL_SEL_LDR<x>', and 'NACL_IRT_CORE<x>'
+  where <x> is the various architectures supported (e.g. NACL_SEL_LDR32 and
+  NACL_SEL_LLDR64)
 
   Args:
     env: Environment to modify.
@@ -150,7 +151,16 @@ def NaClTestProgram(env,
   arch, subarch = nacl_utils.GetArchFromSpec(arch_spec)
   arch_name = '%s_%s' % (arch, subarch)
   # Create multi-level dictionary for sel_ldr binary name.
-  NACL_SEL_LDR = { 'x86' : {'32': '$NACL_SEL_LDR32', '64': '$NACL_SEL_LDR64' } }
+  NACL_SEL_LDR = {'x86' :
+                   {'32': '$NACL_SEL_LDR32',
+                    '64': '$NACL_SEL_LDR64'
+                   }
+                 }
+  NACL_IRT_CORE = {'x86' :
+                    {'32': '$NACL_IRT_CORE32',
+                     '64': '$NACL_IRT_CORE64'
+                    }
+                  }
   arch_sel_ldr = NACL_SEL_LDR[arch][subarch]
   # if |arch| and |subarch| are not found, a KeyError exception will be
   # thrown, which will generate a stack trace for debugging.
@@ -163,7 +173,9 @@ def NaClTestProgram(env,
                      dir_prefix='test_')
   test_node = env.Alias(target_name,
                         source=test_program,
-                        action=arch_sel_ldr + ' $SOURCE')
+                        action=arch_sel_ldr +
+                               ' -B %s' % NACL_IRT_CORE[arch][subarch] +
+                               ' $SOURCE')
   # Tell SCons that |test_node| never goes out of date, so that you don't see
   # '<test_node> is up to date.'
   env.AlwaysBuild(test_node)

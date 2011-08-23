@@ -48,6 +48,7 @@ def TestingClosure(_outdir, _jobs):
   gcc64 = os.path.join(toolchain_bin, 'x86_64-nacl-gcc')
   sel_ldr64 = os.path.join(toolchain_bin, 'sel_ldr_x86_64')
   irt_core64 = os.path.join(toolchain_runtime, 'irt_core_x86_64.nexe')
+  scons = 'scons.bat' if sys.platform == 'win32' else 'scons'
 
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
@@ -55,11 +56,10 @@ def TestingClosure(_outdir, _jobs):
     def testBuildExamples(self):
       '''Verify that we can build the SDK examples.'''
 
-      scons = 'scons.bat' if sys.platform == 'win32' else 'scons'
       path = os.path.join(_outdir, 'examples')
       command = [os.path.join(path, scons), '-j', _jobs]
 
-      annotator.Run(' '.join(command), cwd=path, shell=True)
+      annotator.Run(command, cwd=path, shell=True)
 
     def testReadMe(self):
       '''Check that the current build version and date are in the README file'''
@@ -80,6 +80,20 @@ def TestingClosure(_outdir, _jobs):
           contents.count(str(datetime.date.today() -
                              datetime.timedelta(days=1))),
           "Cannot find today's or yesterday's date in README")
+
+    def testRunHelloWorldUnittest(self):
+      '''Verify that we can build and run the hello_world unit test.'''
+      bit_widths = build_utils.SupportedNexeBitWidths()
+      test_targets = ['test%d' % bits for bits in bit_widths]
+
+      if len(test_targets) == 0:
+        annotator.Print('No test targets found')
+        return
+      print 'running targets: %s' % str(test_targets)
+      path = os.path.join(_outdir, 'examples', 'hello_world')
+      command = [os.path.join(path, '..', scons), '-j', _jobs] + test_targets
+
+      annotator.Run(' '.join(command), cwd=path, shell=True)
 
     def testHttpd(self):
       '''Test the simple HTTP server.
@@ -214,7 +228,6 @@ def TestingClosure(_outdir, _jobs):
               can be empty.
         '''
         path = os.path.join(_outdir, 'project_templates')
-        scons = 'scons.bat' if sys.platform == 'win32' else 'scons'
         scons_command = [os.path.join(path, project_name, scons), '-j', _jobs]
         init_project_command = [sys.executable,
                                 'init_project.py',
@@ -241,8 +254,8 @@ def TestingClosure(_outdir, _jobs):
     def testValgrind(self):
       '''Verify that Valgrind works properly (Linux 64-bit only)'''
 
-      if (sys.platform not in ['linux', 'linux2'] or
-          platform.machine() != 'x86_64'):
+      bit_widths = build_utils.SupportedNexeBitWidths()
+      if (not sys.platform.startswith('linux')) or (64 not in bit_widths):
         annotator.Print('Not running on 64-bit Linux -- skip')
         return
       true_basename = os.path.join(_outdir, 'true')

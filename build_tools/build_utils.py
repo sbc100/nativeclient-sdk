@@ -11,6 +11,7 @@ import datetime
 import errno
 import fileinput
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -140,6 +141,47 @@ def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT, base_dir=None):
   else:
     normalized_toolchain = os.path.abspath(toolchain)
   return normalized_toolchain
+
+
+def SupportedNexeBitWidths():
+  '''Return a list of .nexe bit widths that are supported by the host.
+
+  Each supported bit width means the host can run a .nexe with the corresponding
+  instruction set architecture.  For example, if this function returns the
+  list [32, 64], then the host can run both 32- and 64-bit .nexes.
+
+  Note: on Windows, environment variables are used to determine the host's bit
+  width instead of the |platform| package.  This is because (up until python
+  2.7) the |platform| package returns the bit-width used to build python, not
+  the host's bit width.
+
+  Returns: A list of supported nexe word widths (in bits) supported by the host
+      (typically 32 or 64).  Returns an empty list if the word_width cannot be
+      determined.
+  '''
+  bit_widths = []
+  if sys.platform == 'win32':
+    # On Windows, the best way to detect the word size is to look at these
+    # env vars.  python 2.6 and earlier on Windows (in particular the
+    # python on the Windows bots) generally always say they are 32-bits,
+    # even though the host is 64-bits.  See this thread for more:
+    # http://stackoverflow.com/questions/7164843/
+    #     in-python-how-do-you-determine-whether-the-kernel-is-running-in-\
+    #     32-bit-or-64-bit
+    if ('64' in os.environ.get('PROCESSOR_ARCHITECTURE', '') or
+        '64' in os.environ.get('PROCESSOR_ARCHITEW6432', '')):
+      bit_widths = [64]
+    else:
+      bit_widths = [32]
+  elif sys.platform == 'darwin':
+    # Mac can handle 32- and 64-bit .nexes.
+    bit_widths = [32, 64]
+  else:
+    # Linux 64 can handle both 32- and 64-bit.
+    machine = platform.machine()
+    bit_widths = [32, 64] if '64' in machine else [32]
+
+  return bit_widths
 
 
 def RawVersion():

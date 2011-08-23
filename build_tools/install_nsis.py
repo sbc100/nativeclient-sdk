@@ -104,7 +104,7 @@ def Install(cwd, target_dir=None, force=False):
   '''
   # If the NSIS compiler and SDK hasn't been installed, do so now.
   nsis_dir = target_dir or os.path.join(cwd, NSIS_DIR)
-  if force or not os.path.exists(nsis_dir):
+  if force or not os.path.exists(os.path.join(nsis_dir, 'makensis.exe')):
     InstallNsis(os.path.join(cwd, NSIS_INSTALLER), nsis_dir)
     InstallAccessControlExtensions(
         cwd, os.path.join(cwd, ACCESS_CONTROL_ZIP), nsis_dir)
