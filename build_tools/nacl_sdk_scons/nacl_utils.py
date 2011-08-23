@@ -80,6 +80,16 @@ def AddNaclPlatformOption():
 
 
 def PrintNaclPlatformBanner(module_name, nacl_platform):
+  '''Print a banner that shows what nacl platform is used to build a module.
+
+  Args:
+    module_name: The name of the module. Printed as-is.
+    nacl_platform: The name - a.k.a. folder name - of the nacl platform.
+                   Printed as-is.
+  Returns:
+    None
+  '''
+
   # Don't print the banner if we're just cleaning files.
   if not Script.GetOption('clean'):
     print '---------------------------------------------------------------'
@@ -87,7 +97,7 @@ def PrintNaclPlatformBanner(module_name, nacl_platform):
         (module_name, nacl_platform))
     print '---------------------------------------------------------------'
     print ''
-
+    sys.stdout.flush()
 
 def FindToolchain(base_dir=None):
   '''Build a toolchain path based on the platform type.
