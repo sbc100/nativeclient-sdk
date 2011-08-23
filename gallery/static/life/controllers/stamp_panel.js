@@ -24,7 +24,7 @@ goog.require('stamp.Editor');
 
 /**
  * Manages the data and interface for the stamp editor.
- * @param {!Element} noteContainer The element under which DOM nodes for
+ * @param {!Element} editorContainer The element under which DOM nodes for
  *     the stamp editor should be added.
  * @constructor
  * @extends {goog.events.EventTarget}
