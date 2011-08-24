@@ -7,9 +7,9 @@
 setlocal
 
 set NACL_SDK_ROOT=<NACL_SDK_ROOT>
-# NACL_TARGET_PLATFORM is really the name of a folder with the base dir -
-# usually nacl-sdk-root - within which the toolchain for the target platform
-# are found.
+:: NACL_TARGET_PLATFORM is really the name of a folder with the base dir -
+:: usually nacl-sdk-root - within which the toolchain for the target platform
+:: are found.
 set NACL_TARGET_PLATFORM=.
 
 :: Set the PYTHONPATH and SCONS_LIB_DIR so we can import SCons modules
