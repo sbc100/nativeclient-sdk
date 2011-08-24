@@ -149,7 +149,6 @@ def NaClTestProgram(env,
   '''
 
   arch, subarch = nacl_utils.GetArchFromSpec(arch_spec)
-  arch_name = '%s_%s' % (arch, subarch)
   # Create multi-level dictionary for sel_ldr binary name.
   NACL_SEL_LDR = {'x86' :
                    {'32': '$NACL_SEL_LDR32',
@@ -167,7 +166,7 @@ def NaClTestProgram(env,
   test_program = nacl_utils.MakeNaClModuleEnvironment(
                      env,
                      test_sources,
-                     '%s_%s_%s' % (module_name, arch_name, target_name),
+                     module_name,
                      arch_spec,
                      is_debug=True,
                      dir_prefix='test_')
