@@ -11,6 +11,8 @@
 #include "ppapi/cpp/url_request_info.h"
 #include "ppapi/cpp/instance.h"
 
+#define READ_BUFFER_SIZE 4096
+
 // GetURLHandler is used to download data from |url|. When download is
 // finished or when an error occurs, it posts a message back to the browser
 // with the results encoded in the message as a string and self-destroys.
@@ -27,12 +29,9 @@ class GetURLHandler {
   static GetURLHandler* Create(pp::Instance* instance_,
                                const std::string& url);
   // Initiates page (URL) download.
-  // Returns false in case of internal error, and self-destroys.
-  bool Start();
+  void Start();
 
  private:
-  static const int kBufferSize = 4096;
-
   GetURLHandler(pp::Instance* instance_, const std::string& url);
   ~GetURLHandler();
 
@@ -52,6 +51,10 @@ class GetURLHandler {
   // OnRead() will be called when bytes are received or when an error occurs.
   void ReadBody();
 
+  // Append data bytes read from the URL onto the internal buffer.  Does
+  // nothing if |num_bytes| is 0.
+  void AppendDataBytes(const char* buffer, int32_t num_bytes);
+
   // Post a message back to the browser with the download results.
   void ReportResult(const std::string& fname,
                     const std::string& text,
@@ -66,8 +69,8 @@ class GetURLHandler {
   std::string url_;  // URL to be downloaded.
   pp::URLRequestInfo url_request_;
   pp::URLLoader url_loader_;  // URLLoader provides an API to download URLs.
-  char buffer_[kBufferSize];  // buffer for pp::URLLoader::ReadResponseBody().
-  std::string url_response_body_;  // Contains downloaded data.
+  char buffer_[READ_BUFFER_SIZE];  // Temporary buffer for reads.
+  std::string url_response_body_;  // Contains accumulated downloaded data.
   pp::CompletionCallbackFactory<GetURLHandler> cc_factory_;
 
   GetURLHandler(const GetURLHandler&);
