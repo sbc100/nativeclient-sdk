@@ -10,7 +10,7 @@
 #include <tr1/memory>
 #include <vector>
 
-#include "experimental/tumbler/callback.h"
+#include "examples/tumbler/callback.h"
 #include "ppapi/cpp/var.h"
 
 namespace tumbler {

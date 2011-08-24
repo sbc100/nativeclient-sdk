@@ -36,6 +36,7 @@ INSTALLER_CONTENTS = [
     'examples/pi_generator/',
     'examples/scons',
     'examples/sine_synth/',
+    'examples/tumbler/',
     'project_templates/README',
     'project_templates/c/',
     'project_templates/cc/',

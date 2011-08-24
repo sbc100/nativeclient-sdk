@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "experimental/tumbler/tumbler.h"
+#include "examples/tumbler/tumbler.h"
 
 #include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
 
-#include "experimental/tumbler/cube.h"
-#include "experimental/tumbler/opengl_context.h"
-#include "experimental/tumbler/scripting_bridge.h"
+#include "examples/tumbler/cube.h"
+#include "examples/tumbler/opengl_context.h"
+#include "examples/tumbler/scripting_bridge.h"
 #include "ppapi/cpp/rect.h"
 #include "ppapi/cpp/size.h"
 #include "ppapi/cpp/var.h"
@@ -99,6 +99,7 @@ void Tumbler::DidChangeView(const pp::Rect& position, const pp::Rect& clip) {
   if (opengl_context_ == NULL)
     opengl_context_.reset(new OpenGLContext(this));
   opengl_context_->InvalidateContext(this);
+  opengl_context_->ResizeContext(position.size());
   if (!opengl_context_->MakeContextCurrent(this))
     return;
   if (cube_ == NULL) {

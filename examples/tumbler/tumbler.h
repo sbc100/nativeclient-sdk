@@ -9,10 +9,10 @@
 #include <map>
 #include <vector>
 
-#include "experimental/tumbler/cube.h"
-#include "experimental/tumbler/opengl_context.h"
-#include "experimental/tumbler/opengl_context_ptrs.h"
-#include "experimental/tumbler/scripting_bridge.h"
+#include "examples/tumbler/cube.h"
+#include "examples/tumbler/opengl_context.h"
+#include "examples/tumbler/opengl_context_ptrs.h"
+#include "examples/tumbler/scripting_bridge.h"
 #include "ppapi/cpp/instance.h"
 
 namespace tumbler {

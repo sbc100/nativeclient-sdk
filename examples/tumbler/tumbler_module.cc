@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "experimental/tumbler/tumbler.h"
+#include "examples/tumbler/tumbler.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/gles2/gl2ext_ppapi.h"

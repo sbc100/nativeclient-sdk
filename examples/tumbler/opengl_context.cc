@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "experimental/tumbler/opengl_context.h"
+#include "examples/tumbler/opengl_context.h"
 
 #include <pthread.h>
+#include "ppapi/cpp/completion_callback.h"
 #include "ppapi/gles2/gl2ext_ppapi.h"
 
 namespace {
@@ -38,27 +39,38 @@ bool OpenGLContext::MakeContextCurrent(pp::Instance* instance) {
   }
   // Lazily create the Pepper context.
   if (context_.is_null()) {
-    context_ = pp::Context3D_Dev(*instance, 0, pp::Context3D_Dev(), NULL);
+    int32_t attribs[] = {
+        PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
+        PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 24,
+        PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 8,
+        PP_GRAPHICS3DATTRIB_SAMPLES, 0,
+        PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
+        PP_GRAPHICS3DATTRIB_WIDTH, size_.width(),
+        PP_GRAPHICS3DATTRIB_HEIGHT, size_.height(),
+        PP_GRAPHICS3DATTRIB_NONE
+    };
+    context_ = pp::Graphics3D_Dev(*instance, pp::Graphics3D_Dev(), attribs);
     if (context_.is_null()) {
       glSetCurrentContextPPAPI(0);
       return false;
     }
-    surface_ = pp::Surface3D_Dev(*instance, 0, NULL);
-    context_.BindSurfaces(surface_, surface_);
-    instance->BindGraphics(surface_);
+    instance->BindGraphics(context_);
   }
   glSetCurrentContextPPAPI(context_.pp_resource());
   return true;
 }
 
 void OpenGLContext::InvalidateContext(pp::Instance* instance) {
-  if (instance == NULL)
-    return;
-  // Unbind the existing surface and re-bind to null surfaces.
-  instance->BindGraphics(pp::Surface3D_Dev());
-  context_.BindSurfaces(pp::Surface3D_Dev(), pp::Surface3D_Dev());
   glSetCurrentContextPPAPI(0);
 }
+
+void OpenGLContext::ResizeContext(const pp::Size& size) {
+  size_ = size;
+  if (!context_.is_null()) {
+    context_.ResizeBuffers(size.width(), size.height());
+  }
+}
+
 
 void OpenGLContext::FlushContext() {
   if (flush_pending()) {
@@ -66,7 +78,7 @@ void OpenGLContext::FlushContext() {
     return;
   }
   set_flush_pending(true);
-  surface_.SwapBuffers(pp::CompletionCallback(&FlushCallback, this));
+  context_.SwapBuffers(pp::CompletionCallback(&FlushCallback, this));
 }
 }  // namespace tumbler
 
