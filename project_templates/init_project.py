@@ -43,6 +43,7 @@ WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
 PROJECT_NAME_TAG = '<PROJECT_NAME>'
 PROJECT_NAME_CAMEL_CASE_TAG = '<ProjectName>'
 SDK_ROOT_TAG = '<NACL_SDK_ROOT>'
+NACL_PLATFORM_TAG = '<NACL_PLATFORM>'
 
 # This string is the part of the file name that will be replaced.
 PROJECT_FILE_NAME = 'project_file'
@@ -192,6 +193,13 @@ def ParseArguments(argv, script_dir):
       default=False,
       help=('Optional: If set, this will generate a C project.  Default '
             'is C++.'))
+  # TODO(gwink): Once we have the appropriate sdk folder structure in place,
+  #     replace the '.' below with 'pepper_14'.
+  parser.add_option(
+      '-p', '--nacl-platform', dest='nacl_platform',
+      default='.',
+      help=('Optional: if set, the new project will target the given nacl\n'
+            'platform. Default is the most current platform. e.g. pepper_14'))
   result = parser.parse_args(argv)
   options = result[0]
   args = result[1]
@@ -210,7 +218,7 @@ class ProjectInitializer(object):
   """Maintains the state of the project that is being created."""
 
   def __init__(self, is_c_project, project_name, project_location,
-               project_templates_dir, os_resource=os):
+               nacl_platform, project_templates_dir, os_resource=os):
     """Initializes all the fields that are known after parsing the parameters.
 
     Args:
@@ -224,6 +232,7 @@ class ProjectInitializer(object):
     self.__project_files = []
     self.__project_name = project_name
     self.__project_location = project_location
+    self.__nacl_platform = nacl_platform
     self.__project_templates_dir = project_templates_dir
     # System resources are properties so mocks can be inserted.
     self.__fileinput = fileinput
@@ -299,6 +308,7 @@ class ProjectInitializer(object):
                          PROJECT_NAME_CAMEL_CASE_TAG,
                          camel_case_name)
       self.ReplaceInFile(project_file, SDK_ROOT_TAG, sdk_root_dir)
+      self.ReplaceInFile(project_file, NACL_PLATFORM_TAG, self.__nacl_platform)
       print 'init_project has prepared %s.' % project_file
 
   def ReplaceInFile(self, file_path, old_text, new_text):
@@ -405,6 +415,7 @@ def main(argv):
   project_initializer = ProjectInitializer(options.is_c_project,
                                            options.project_name,
                                            options.project_directory,
+                                           options.nacl_platform,
                                            script_dir)
   project_initializer.PrepareDirectoryContent()
   project_initializer.PrepareFileContent()

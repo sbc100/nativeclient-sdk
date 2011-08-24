@@ -12,7 +12,7 @@ export NACL_SDK_ROOT=<NACL_SDK_ROOT>
 # NACL_TARGET_PLATFORM is really the name of a folder with the base dir -
 # usually nacl-sdk-root - within which the toolchain for the target platform
 # are found.
-export NACL_TARGET_PLATFORM="."
+export NACL_TARGET_PLATFORM="<NACL_PLATFORM>"
 
 readonly BASE_SCRIPT="${NACL_SDK_ROOT}/third_party/scons-2.0.1/script/scons"
 

@@ -105,7 +105,8 @@ class TestProjectInitializer(unittest.TestCase):
     init_os_mock.makedirs('test/dir/test_project')
     self.mock_factory.ReplayAll()
     self.test_subject = init_project.ProjectInitializer(
-        True, 'test_project', 'test/dir', self.script_dir, init_os_mock)
+        True, 'test_project', 'test/dir', 'pepper_14', self.script_dir,
+        init_os_mock)
     self.mock_factory.VerifyAll()
     self.InitializeResourceMocks()
 
@@ -168,42 +169,63 @@ class TestProjectInitializer(unittest.TestCase):
         inplace=1, mode='U').AndReturn(
             ['A line with <PROJECT_NAME>.',
              'A line with <ProjectName>.',
-             'A line with <NACL_SDK_ROOT>.'])
+             'A line with <NACL_SDK_ROOT>.',
+             'A line with <NACL_PLATFORM>.'])
     stdout_mock.write('A line with test_project.')
     stdout_mock.write('A line with <ProjectName>.')
     stdout_mock.write('A line with <NACL_SDK_ROOT>.')
+    stdout_mock.write('A line with <NACL_PLATFORM>.')
     self.fileinput_mock.input(
         'test/dir/test_project/normal_name.txt',
         inplace=1, mode='U').AndReturn(
             ['A line with test_project.',
              'A line with <ProjectName>.',
-             'A line with <NACL_SDK_ROOT>.'])
+             'A line with <NACL_SDK_ROOT>.',
+             'A line with <NACL_PLATFORM>.'])
     stdout_mock.write('A line with test_project.')
     stdout_mock.write('A line with TestProject.')
     stdout_mock.write('A line with <NACL_SDK_ROOT>.')
+    stdout_mock.write('A line with <NACL_PLATFORM>.')
     self.fileinput_mock.input(
         'test/dir/test_project/normal_name.txt',
         inplace=1, mode='U').AndReturn(
             ['A line with test_project.',
              'A line with TestProject.',
-             'A line with <NACL_SDK_ROOT>.'])
+             'A line with <NACL_SDK_ROOT>.',
+             'A line with <NACL_PLATFORM>.'])
     stdout_mock.write('A line with test_project.')
     stdout_mock.write('A line with TestProject.')
     stdout_mock.write('A line with %s.' % self.nacl_src_dir)
+    stdout_mock.write('A line with <NACL_PLATFORM>.')
+    self.fileinput_mock.input(
+        'test/dir/test_project/normal_name.txt',
+        inplace=1, mode='U').AndReturn(
+            ['A line with test_project.',
+             'A line with TestProject.',
+             'A line with some/dir.',
+             'A line with <NACL_PLATFORM>.'])
+    stdout_mock.write('A line with test_project.')
+    stdout_mock.write('A line with TestProject.')
+    stdout_mock.write('A line with some/dir.')
+    stdout_mock.write('A line with pepper_14.')
     # One multi-line file with different replacements has already been mocked
     # so we make this next test simpler.
     self.fileinput_mock.input(
         'test/dir/test_project/test_project.txt',
-        inplace=1, mode='U').AndReturn(['A line with no replacable text.'])
-    stdout_mock.write('A line with no replacable text.')
+        inplace=1, mode='U').AndReturn(['A line with no replaceable text.'])
+    stdout_mock.write('A line with no replaceable text.')
     self.fileinput_mock.input(
         'test/dir/test_project/test_project.txt',
-        inplace=1, mode='U').AndReturn(['A line with no replacable text.'])
-    stdout_mock.write('A line with no replacable text.')
+        inplace=1, mode='U').AndReturn(['A line with no replaceable text.'])
+    stdout_mock.write('A line with no replaceable text.')
     self.fileinput_mock.input(
         'test/dir/test_project/test_project.txt',
-        inplace=1, mode='U').AndReturn(['A line with no replacable text.'])
-    stdout_mock.write('A line with no replacable text.')
+        inplace=1, mode='U').AndReturn(['A line with no replaceable text.'])
+    stdout_mock.write('A line with no replaceable text.')
+    self.fileinput_mock.input(
+        'test/dir/test_project/test_project.txt',
+        inplace=1, mode='U').AndReturn(['A line with no replaceable text.'])
+    stdout_mock.write('A line with no replaceable text.')
     self.sys_mock.stdout = stdout_mock
     self.mock_factory.ReplayAll()
     self.test_subject.PrepareFileContent()
