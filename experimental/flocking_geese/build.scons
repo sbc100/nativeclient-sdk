@@ -1,0 +1,70 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import make_nacl_env
+import nacl_utils
+import os
+
+nacl_env = make_nacl_env.NaClEnvironment(
+    use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
+nacl_env.Append(
+    CPPPATH=[os.getcwd()],
+    CCFLAGS=['-ffast-math', '-mfpmath=sse', '-msse2'],
+   )
+
+app_sources = [os.path.join('nacl_app', src_file) for src_file in [
+    'flock.cc',
+    'flocking_geese_app.cc',
+    'flocking_geese_module.cc',
+    'goose.cc'
+]]
+
+scripting_sources = [os.path.join('scripting', src_file) for src_file in [
+  'scripting_bridge.cc',
+]]
+
+sources = app_sources + scripting_sources
+
+opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'flocking_geese')
+
+install_dir = os.getenv('INSTALL_ROOT',
+                        os.path.join(os.path.expanduser('~'),
+                                     'Sites',
+                                     'flocking_geese'))
+
+app_files = ['flocking_geese.html',
+             'flocking_geese.nmf',
+            ]
+
+install_app = nacl_env.Install(dir=install_dir,
+                               source=opt_nexes + app_files)
+
+js_files = [os.path.join('js', js_file) for js_file in [
+    'closure.js',
+    'flock.js',
+    'flocking_geese.js',
+    'goose.js',
+    'speedometer.js',
+]]
+
+install_js = nacl_env.Install(
+    dir=os.path.join(install_dir, 'js'),
+    source=js_files)
+
+css_files = [os.path.join('css', css_file) for css_file in [
+    'flocking_geese.css',
+    'info_panel.css',
+    'speedometer.css',
+]]
+
+install_css = nacl_env.Install(
+    dir=os.path.join(install_dir, 'css'),
+    source=css_files)
+
+nacl_env.Alias('install', [install_app,
+                           install_css,
+                           install_js])
+
