@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flocking Geese Speed Comparison</title>
+  <meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
+  <meta HTTP-EQUIV="Expires" CONTENT="-1">
+  <link href="css/flocking_geese.css" rel="stylesheet" type="text/css">
+  <link href="css/info_panel.css" rel="stylesheet" type="text/css">
+  <link href="css/speedometer.css" rel="stylesheet" type="text/css">
+
+  <!-- <script src="closure-library/closure/goog/base.js"></script> -->
+  <script type="text/javascript" src="js/closure.js"></script>
+  <script type="text/javascript" src="js/flock.js"></script>
+  <script type="text/javascript" src="js/flocking_geese.js"></script>
+  <script type="text/javascript" src="js/goose.js"></script>
+  <script type="text/javascript" src="js/speedometer.js"></script>
+  <script type="text/javascript">
+    goog.require('Flock');
+    goog.require('FlockingGeese');
+    goog.require('Goose');
+    goog.require('Speedometer');
+    goog.require('Speedometer.Attributes');
+  </script>
+
+  <script type="text/javascript">
+    // Resize the simulation canvas to fill its parent element.
+    // @param {Event} e The resize event.
+    window.onresize = function(e) {
+      var geeseView = document.getElementById('flocking_geese');
+      var viewSize = goog.style.getSize(geeseView);
+      var gooseCanvas = document.getElementById('flocking_geese_canvas');
+      gooseCanvas.width = viewSize.width;
+      gooseCanvas.height = viewSize.height;
+    }
+  </script>
+
+</head>
+<body>
+  <div id="autosize_background">
+    <!-- The main simulation area.  This element contains either a <canvas> that
+    get rendered by the JavaScript implementation, or a NaCl module that runs
+    the C++ implementation. -->
+    <div id="flocking_geese" class="flocking-geese-view">
+      <!-- The JavaScript version. -->
+      <script type="text/javascript">
+        var geeseView = document.getElementById('flocking_geese');
+        var viewSize = goog.style.getSize(geeseView);
+        geeseView.innerHTML = '<canvas id="flocking_geese_canvas" ' +
+                              ' width=' + viewSize.width +
+                              ' height=' + viewSize.height +
+                              '></canvas>';
+      </script>
+      <!-- The C++ version -->
+      <div id="nacl_flocking_geese" class="hidden"></div>
+    </div>
+    <!-- The information panel. Contains these elements:
+      1. The speedometer, which is a <canvas> and an implementation in
+         speedometer.js
+      2. A form that has a toggle button to switch between the JavaScript and
+         C++ versions of the algorith, and a pulldown to set the number of
+         geese.
+      3. An info area for attributions and useful links.
+    -->
+    <div id="info_panel" class="horizontal-align-center">
+      <h2 style="width: 100%;">Info Panel</h2>
+      <canvas id="speedometer_canvas"></canvas><br />
+      <!-- Show the meter values. -->
+      <table style="font-size: 10pt;">
+        <tr>
+          <td align="right">NaCl:</td>
+          <td id="naclMeterLabel">0.0</td>
+        </tr>
+        <tr>
+          <td align="right">JS:</td>
+          <td id="jsMeterLabel">0.0</td>
+        </tr>
+      </table>
+      <form name="game_controls_form"
+            class="horizontal-align-center"
+            action=""
+            method="get">
+        <p>Displaying:
+        <button id="sim_mode_button"
+                type="button"
+                alttext="NaCl"
+                state="off">JavaScript</button>
+        </p>
+        <p>Flock Size:
+        <select id="flock_size_select">
+          <option selected="yes" value="20">20</option>
+          <option value="100">100</option>
+          <option value="1000">1000</option>
+          <option value="10000">10000</option>
+        </select>
+        </p>
+      </form>
+    </div>
+    <script type="text/javascript">
+      var application = new FlockingGeese();
+      application.run('nacl_flocking_geese');
+    </script>
+  </div>
+</body>
+</html>

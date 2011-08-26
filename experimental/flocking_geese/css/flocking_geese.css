@@ -1,0 +1,90 @@
+/* Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/**
+ * Set up the html and body tags so that they support a view that automatically
+ * resizes itself as you change the size of the browser window.
+ */
+html,body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #A9A9A9;
+}
+
+body {
+  font-family: Verdana, "Lucida Grande", Arial;
+  font-size: 10pt;
+  border: 0px;
+  overflow: hidden;
+}
+
+/**
+ * The DIV with this id establishes the autosizing container for the NaCl
+ * module.
+ */
+#autosize_background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+/**
+ * The simulation view.  The right margin dimensioon has to match the width
+ * of the info panel (see info_panel.css).
+ */
+.flocking-geese-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: auto
+  width: 100%;
+  margin: 0 250px 0 0;
+}
+
+/**
+ * Use this class on elements inside of the DIV with id autosize_background to
+ * load an autosizing NaCl module or <canvas>.  E.g.:
+ *  <div id="autosize_background">
+ *    <embed class="autosize-view" type="application/x-nacl" ... />
+ *  </div>
+ */
+.autosize-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+/**
+ * Makes an element hidden.
+ */
+.hidden {
+  visibility: hidden;
+}
+
+/**
+ * Center the element vertically within its parent container.  The parent
+ * container needs to have a display type of "table" for this to work.
+ */
+.vertical-align-center {
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+/**
+ * Center the element horizontally within its parent container.
+ */
+.horizontal-align-center {
+  text-align: center;
+}

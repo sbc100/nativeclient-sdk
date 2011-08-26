@@ -57,23 +57,6 @@ int32_t StringAsInt32(const std::string& str) {
   return static_cast<int32_t>(double_val);
 }
 
-// Exception strings.  These are passed back to the browser when errors
-// happen during property accesses or method calls.
-const char* const kExceptionMethodNotAString = "Method name is not a string";
-const char* const kExceptionNoMethodName = "No method named ";
-const char* const kInsufficientArgs =
-    "Insufficient number of arguments to method ";
-const char* const kInvalidArgs = "Invalid arguments to method ";
-
-// Helper function to set the scripting exception.  Both |exception| and
-// |except_string| can be NULL.  If |exception| is NULL, this function does
-// nothing.
-void SetExceptionString(pp::Var* exception, const std::string& except_string) {
-  if (exception) {
-    *exception = except_string;
-  }
-}
-
 // Called from the browser when the delay time has elapsed.  This routine
 // runs a simulation update, then reschedules itself to run the next
 // simulation tick.

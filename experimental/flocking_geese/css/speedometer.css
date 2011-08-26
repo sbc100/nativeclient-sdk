@@ -1,0 +1,16 @@
+/* Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/**
+ * The speedometer canvas.  Drawn with an inset of 25 pixels and
+ * a fixed height of 120 pixels.  Auto-adjusts width to match its
+ * parent container.
+ */
+#speedometer_canvas {
+  margin: 25px;
+  width: 200px;
+  height: 120px;
+}
+

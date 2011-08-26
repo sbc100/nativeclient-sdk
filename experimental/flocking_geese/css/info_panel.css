@@ -1,0 +1,25 @@
+/* Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/**
+ * The information panel display.  Positioned at the right edge of the app
+ * with a fixed width of 250 pixels.  Auto-adjusts its height to fill its
+ * parent container.
+ */
+#info_panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100%;
+  background-color: white;
+  border-top-style: none;
+  border-right-style: none;
+  border-bottom-style: none;
+  border-left-style: solid;
+  border-color: black;
+  border-width: 2px;
+}
+
