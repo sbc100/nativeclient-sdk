@@ -48,7 +48,7 @@ class Vector2 {
     double mag = Magnitude();
     if (fabs(mag) < std::numeric_limits<double>::epsilon())
       return;
-    Scale(mag);
+    Scale(1.0 / mag);
   }
 
   // Scale the vector in-place by |scale|.
@@ -61,7 +61,7 @@ class Vector2 {
   // @param max_mag The maximum magnitude of the vector.
   void Clamp(double max_mag) {
     double mag = Magnitude();
-    if (mag > max_mag && max_mag != 0) {
+    if (mag > max_mag) {
       Normalize();
       Scale(max_mag);
     }

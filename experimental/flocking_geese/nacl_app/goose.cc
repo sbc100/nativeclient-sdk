@@ -30,6 +30,11 @@ const double kMaxTurningDistance = 100.0;
 const double kSeparationWeight = 2.0;
 const double kAlignmentWeight = 1.0;
 const double kCohesionWeight = 1.0;
+
+inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a) {
+  return (((a) << 24) | ((r) << 16) | ((g) << 8) | (b));
+}
+
 }  // namespace
 
 namespace flocking_geese {
@@ -52,15 +57,15 @@ void Goose::SimulationTick(const std::vector<Goose>& geese,
   // Wrap the goose location to the flock box.
   if (!flockBox.IsEmpty()) {
     if (location_.x() < flockBox.x()) {
-      location_.set_x(flockBox.right());
+      location_.set_x(flockBox.right() - 1);
     }
-    if (location_.x() > flockBox.right()) {
+    if (location_.x() >= flockBox.right()) {
       location_.set_x(flockBox.x());
     }
     if (location_.y() < flockBox.y()) {
-      location_.set_y(flockBox.bottom());
+      location_.set_y(flockBox.bottom() - 1);
     }
-    if (location_.y() > flockBox.bottom()) {
+    if (location_.y() >= flockBox.bottom()) {
       location_.set_y(flockBox.y());
     }
   }
@@ -138,7 +143,12 @@ Vector2 Goose::TurnTowardsTarget(const Vector2& target) {
   return newDirection;
 }
 
-void Goose::Render(const uint32_t* canvas) const {
+void Goose::Render(uint32_t* canvas, const pp::Size& canvas_size) const {
+  // Assume 32-bit pixels.
+  uint32_t x = static_cast<uint32_t>(location_.x());
+  uint32_t y = static_cast<uint32_t>(location_.y());
+  uint32_t *pixel = canvas + x + y * canvas_size.width();
+  *pixel = MakeRGBA(0x00, 0x00, 0xFF, 0xFF);
 /*
   var context2d = canvas.getContext('2d');
   context2d.save();

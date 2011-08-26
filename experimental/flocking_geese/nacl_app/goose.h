@@ -54,7 +54,8 @@ class Goose {
 
   // Render the goose into the given graphics context.
   // @param canvas The target canvas.  The pixel bits are assumed to be locked.
-  void Render(const uint32_t* canvas) const;
+  // @param canvas_size The size in pixels of |canvas|.
+  void Render(uint32_t* canvas, const pp::Size& canvas_size) const;
 
   // Accessors for location and velocoity.
   Vector2 location() const {

@@ -14,9 +14,7 @@
 #include "threading/scoped_mutex_lock.h"
 
 namespace {
-inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a) {
-  return (((a) << 24) | ((r) << 16) | ((g) << 8) | (b));
-}
+const uint32_t kBackgroundColor = 0xFFFFFFFF;  // Opaque white.
 }  // namespace
 
 namespace flocking_geese {
@@ -76,14 +74,35 @@ void Flock::SimulationTick() {
   set_simulation_tick_duration(dt);
 }
 
+void Flock::Render() {
+  ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_);
+  uint32_t* pixel_buffer = scoped_pixel_lock.pixels();
+  if (pixel_buffer == NULL) {
+    // Note that if the pixel buffer never gets initialized, this won't ever
+    // paint anything.  Which is probably the right thing to do.  Also, this
+    // clause means that the image will not get the very first few sim cells,
+    // since it's possible that this thread starts before the pixel buffer is
+    // initialized.
+    return;
+  }
+  // Clear out the pixel buffer, then render all the geese.
+  const size_t size = shared_pixel_buffer_->size().width() *
+                      shared_pixel_buffer_->size().height();
+  std::fill(pixel_buffer, pixel_buffer + size, kBackgroundColor);
+  for (size_t goose = 0; goose < geese_.size(); goose++) {
+    geese_[goose].Render(pixel_buffer, shared_pixel_buffer_->size());
+  }
+}
+
 void* Flock::FlockSimulation(void* param) {
   Flock* flock = static_cast<Flock*>(param);
   // Run the Life simulation in an endless loop.  Shut this down when
   // is_simulation_running() returns |false|.
   flock->set_is_simulation_running(true);
   while (flock->is_simulation_running()) {
-    SimulationMode sim_mode = flock->WaitForRunMode();
+    flock->WaitForRunMode();
     flock->SimulationTick();
+    flock->Render();
   }
   return NULL;
 }

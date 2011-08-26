@@ -54,6 +54,9 @@ class Flock {
   // Run one tick of the simulation.  This records the tick duration.
   void SimulationTick();
 
+  // Render the flock into the shared pixel buffer.
+  void Render();
+
   // Sleep on the condition that the current simulation mode is not the
   // paused mode.  Returns the new run mode.
   SimulationMode WaitForRunMode();
