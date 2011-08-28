@@ -6,6 +6,7 @@
 #define FLOCK_H_
 
 #include <string>
+#include <time.h>
 #include <tr1/memory>
 #include <vector>
 
@@ -69,11 +70,8 @@ class Flock {
     simulation_mode_.UnlockWithCondition(new_mode);
   }
 
-  double simulation_tick_duration() const {
-    return sim_tick_duration_;
-  }
-  void set_simulation_tick_duration(double dt) {
-    sim_tick_duration_ = dt;
+  double FrameRate() const {
+    return frame_counter_.frames_per_second();
   }
 
   void set_pixel_buffer(
@@ -97,6 +95,63 @@ class Flock {
   }
 
  private:
+  // A small helper class that keeps track of tick deltas and a tick
+  // count.  It accumulates the duration of each frame.  For every second of
+  // accumulated time (not wall time), update a frame rate couter.
+  class FrameCounter {
+   public:
+    FrameCounter()
+        : frame_duration_accumulator_(0),
+          frame_count_(0),
+          frames_per_second_(0) {}
+    ~FrameCounter() {}
+
+    // Record the current time, which is used to compute the frame duration
+    // when EndFrame() is called.
+    void BeginFrame() {
+      struct timeval start_time;
+      gettimeofday(&start_time, NULL);
+      frame_start_ = start_time.tv_sec * kMicroSecondsPerSecond +
+                     start_time.tv_usec;
+    }
+
+    // Compute the delta since the last call to BeginFrame() and increment the
+    // frame count.  If a second or more of time has accumulated in the
+    // duration accumulator, then update the frames-per-second value.
+    void EndFrame() {
+      struct timeval end_time;
+      gettimeofday(&end_time, NULL);
+      double frame_end = end_time.tv_sec * kMicroSecondsPerSecond +
+                         end_time.tv_usec;
+      double dt = frame_end - frame_start_;
+      if (dt < 0)
+        return;
+      frame_duration_accumulator_ += dt;
+      frame_count_++;
+      if (frame_duration_accumulator_ >= kMicroSecondsPerSecond) {
+        double elapsed_time = frame_duration_accumulator_ /
+                              kMicroSecondsPerSecond;
+        frames_per_second_ = frame_count_ / elapsed_time;
+        frame_duration_accumulator_ = 0;
+        frame_count_ = 0;
+      }
+    }
+
+    // The current frame rate.  Note that this is 0 for the first second in
+    // the accumulator, and is updated about once per second.
+    double frames_per_second() const {
+      return frames_per_second_;
+    }
+
+   private:
+    static const double kMicroSecondsPerSecond = 1000000.0;
+
+    double frame_duration_accumulator_;  // Measured in microseconds.
+    int32_t frame_count_;
+    double frame_start_;
+    double frames_per_second_;
+  };
+
   // The state of the main simulaiton thread.  These are values that the
   // simulation condition lock can have.
   enum SimulationState {
@@ -118,7 +173,7 @@ class Flock {
   pp::Rect flockBounds_;
   threading::ConditionLock simulation_mode_;
   std::vector<Goose> geese_;
-  double sim_tick_duration_;  // Measured in milliseconds.
+  FrameCounter frame_counter_;
 };
 
 }  // namespace flocking_geese

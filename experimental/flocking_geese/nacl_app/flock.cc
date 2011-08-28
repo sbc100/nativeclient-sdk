@@ -21,8 +21,7 @@ namespace flocking_geese {
 
 Flock::Flock() : flock_simulation_thread_(NULL),
                  sim_state_condition_(kSimulationStopped),
-                 simulation_mode_(kPaused),
-                 sim_tick_duration_(0) {
+                 simulation_mode_(kPaused) {
   pthread_mutex_init(&flock_simulation_mutex_, NULL);
 }
 
@@ -61,17 +60,11 @@ void Flock::ResetFlock(size_t size, const Vector2& initialLocation) {
 }
 
 void Flock::SimulationTick() {
-  struct timeval clockStart, clockEnd;
-  gettimeofday(&clockStart, NULL);
+  frame_counter_.BeginFrame();
   for (size_t goose = 0; goose < geese_.size(); goose++) {
     geese_[goose].SimulationTick(geese_, flockBounds_);
   }
-  gettimeofday(&clockEnd, NULL);
-  // Convert dt to milliseconds.
-  double dt = ((clockEnd.tv_sec * 1000000.0) + clockEnd.tv_usec) -
-              ((clockStart.tv_sec * 1000000.0) + clockStart.tv_usec);
-  dt /= 1000.0;
-  set_simulation_tick_duration(dt);
+  frame_counter_.EndFrame();
 }
 
 void Flock::Render() {

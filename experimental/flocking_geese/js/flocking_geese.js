@@ -80,7 +80,7 @@ FlockingGeese.prototype.SIMULATION_TICK = 10;
  */
 FlockingGeese.prototype.MethodSignatures_ = {
   SET_SIMULATION_INFO: 'setSimulationInfo',
-  TICK_DURATION: 'tickDuration'
+  FRAME_RATE: 'frameRate'
 };
 
 /**
@@ -299,14 +299,12 @@ FlockingGeese.prototype.handleNaClMessage = function(messageEvent) {
       var parameter = methodInvocation[paramCount].split(':');
       // The first element is the parameter name, the second element is its
       // value.
-      if (parameter[0] == this.MethodSignatures_.TICK_DURATION) {
-        var sim_dt = parseFloat(parameter[1]);
-        if (sim_dt == 0.0) {
-          sim_dt = this.speedomter_.maximumSpeed();
-        } else {
-          sim_dt = 1000.0 / sim_dt;
+      if (parameter[0] == this.MethodSignatures_.FRAME_RATE) {
+        var frameRate = parseFloat(parameter[1]);
+        if (frameRate == 0.0) {
+          frameRate = this.speedomter_.maximumSpeed();
         }
-        this.speedometer_.updateMeterNamed('NaCl', sim_dt);
+        this.speedometer_.updateMeterNamed('NaCl', frameRate);
         this.speedometer_.render(this.speedometerCanvas_);
       }
     }
@@ -376,15 +374,13 @@ FlockingGeese.prototype.simulationTick = function() {
                      flockBox.left,
                      flockBox.width,
                      flockBox.height);
-  var dt = this.flock_.flock(flockBox);
+  var frameRate = this.flock_.flock(flockBox);
   this.flock_.render(flockingCanvas);
 
-  if (dt == 0) {
-    dt = this.speedometer_.maximumSpeed();
-  } else {
-    dt = 1000.0 / dt;
+  if (frameRate == 0) {
+    frameRate = this.speedometer_.maximumSpeed();
   }
-  this.speedometer_.updateMeterNamed('JavaScript', dt);
+  this.speedometer_.updateMeterNamed('JavaScript', frameRate);
   this.speedometer_.render(this.speedometerCanvas_);
 
   this.startJavaScriptSimulation_();

@@ -46,6 +46,7 @@ js_files = [os.path.join('js', js_file) for js_file in [
     'closure.js',
     'flock.js',
     'flocking_geese.js',
+    'frame_counter.js',
     'goose.js',
     'speedometer.js',
 ]]

@@ -10,6 +10,7 @@
 
 goog.provide('Flock');
 
+goog.require('FrameCounter');
 goog.require('Goose');
 goog.require('goog.Disposable');
 goog.require('goog.array');
@@ -28,6 +29,13 @@ Flock = function() {
    * @private
    */
   this.geese_ = [];
+
+  /**
+   * The framerate meter.
+   * type {FrameCounter}
+   * @private
+   */
+  this.frameCounter_ = new FrameCounter();
 }
 goog.inherits(Flock, goog.Disposable);
 
@@ -36,6 +44,8 @@ goog.inherits(Flock, goog.Disposable);
  * @override
  */
 Flock.prototype.disposeInternal = function() {
+  goog.array.clear(this.geese_);
+  delete this.frameCounter_;
   Flock.superClass_.disposeInternal.call(this);
 }
 
@@ -63,16 +73,12 @@ Flock.prototype.resetFlock = function(size, opt_initialLocation) {
  */
 Flock.prototype.flock = function(opt_flockBox) {
   var flockBox = opt_flockBox || new goog.math.Rect(0, 0, 200, 200);
-  var clockStart = new Date().getTime();
+  this.frameCounter_.beginFrame();
   for (var goose = 0; goose < this.geese_.length; goose++) {
     this.geese_[goose].simulationTick(this.geese_, flockBox);
   }
-  var clockEnd = new Date().getTime();
-  var dt = clockEnd - clockStart;
-  if (dt < 0) {
-    dt = 0;  // Just in case.
-  }
-  return dt;
+  this.frameCounter_.endFrame();
+  return this.frameCounter_.framesPerSecond();
 }
 
 /**

@@ -22,7 +22,7 @@ const char* const kPauseSimulationMethodId = "pauseSimulation";
 // Output method and parameter Ids.  These correspond to methods in the
 // browser.
 const char* const kSetSimulationInfoMethodId = "setSimulationInfo";
-const char* const kTickDurationParamId = "tickDuration";
+const char* const kFrameRateParamId = "frameRate";
 
 const int kSimulationTickInterval = 10;  // Measured in msec.
 const uint32_t kBackgroundColor = 0xFFFFFFFF;  // Opaque white.
@@ -167,10 +167,10 @@ void FlockingGeeseApp::PauseSimulation(
 }
 
 void FlockingGeeseApp::PostSimulationInfo() {
-  int sim_dt = flock_simulation_.simulation_tick_duration();
+  double frame_rate = flock_simulation_.FrameRate();
   std::ostringstream method_invocation(std::ostringstream::out);
   method_invocation << kSetSimulationInfoMethodId << " ";
-  method_invocation << kTickDurationParamId << ":" << sim_dt;
+  method_invocation << kFrameRateParamId << ":" << frame_rate;
   pp::Var var_message(method_invocation.str());
   PostMessage(var_message);
 }
