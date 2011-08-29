@@ -199,6 +199,20 @@ namespace Google.NaClVsx.ProjectSupport {
       }
     }
 
+    [Category("Toolchain")]
+    [DisplayName("Toolchain")]
+    [ProjectProperty("Toolchain", true)]
+    [Description(
+        "The toolchain to use in the build (e.g. win_x86_newlib)."
+        )]
+    public string Toolchain {
+      get { return toolchain_; }
+      set
+      {
+        toolchain_ = value;
+        IsDirty = true;
+      }
+    }
     #region Private Implementation
 
     private TargetArchitecture arch_;
@@ -211,6 +225,7 @@ namespace Google.NaClVsx.ProjectSupport {
     private string naclIncludes_;
     private string naclOptFlags_;
     private string naclSdkRoot_;
+    private string toolchain_;
     private string outputDir_;
     private string outputFileName_;
 

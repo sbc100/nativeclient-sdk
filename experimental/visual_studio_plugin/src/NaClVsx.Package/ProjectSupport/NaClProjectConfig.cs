@@ -189,8 +189,16 @@ namespace Google.NaClVsx.ProjectSupport {
 
       if (host.Contains("sel_ldr")) {
         // sel_ldr needs a -g to enable debugger
+        var irtNexe = GetConfigurationProperty("IrtNexe", false);
+        if (null == irtNexe || irtNexe.Length == 0) {
+          MessageBox.Show(
+              "Error: IrtNexe property is not set, but is required by sel_ldr",
+              "Error");
+          return VSConstants.S_FALSE;
+        }
         info.bstrArg = string.Format(
-            "-g {0} {1}",
+            "-g -B {0} {1} {2}",
+            irtNexe,
             GetConfigurationProperty("DebugArgs", false),
             safeNexeString);
       } else if (host.Contains("chrome.exe")) {

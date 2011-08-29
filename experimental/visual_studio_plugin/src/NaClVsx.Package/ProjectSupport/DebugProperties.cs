@@ -37,6 +37,16 @@ namespace Google.NaClVsx.ProjectSupport
       set { args_ = value; IsDirty = true; }
     }
 
+    [Category("Launch")]
+    [DisplayName("IRT (for sel_ldr)")]
+    [ProjectProperty("IrtNexe", true)]
+    public string IrtNexe
+    {
+      get { return irtNexe_; }
+      set { irtNexe_ = value; IsDirty = true; }
+    }
+
+
     [Category("ChromeUrl")]
     [DisplayName("Html for web application")]
     [ProjectProperty("HtmlPage", true)]
@@ -83,6 +93,7 @@ namespace Google.NaClVsx.ProjectSupport
     private string hostProgram_;
     private string args_;
     private string htmlPage_;
+    private string irtNexe_;
     private string launchHost_;
     private string launchPort_;
     private string webServerProgram_;

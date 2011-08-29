@@ -82,7 +82,7 @@
           CXXFlags="$(CXXFLAGS)"
           FileExtension="@(Compile -> '%(extension)')"
           Arguments="$(INCLUDES) $(OPT_FLAGS) $(archflag) -c '%(FullPath)' -o @(Compile -> '$(IntermediatePath)%(filename).o')"
-          ToolPath="$(NaClSDKRoot)\toolchain\win_x86_newlib\bin\"/>
+          ToolPath="$(NaClSDKRoot)\toolchain\$(Toolchain)\bin\"/>
   </Target>
 
   <Target Name="CopyWebFiles">
@@ -98,7 +98,7 @@
     <MakeDir Directories="$(OutputPath)"/>
     <NaClExec Command="$(gcpp)"
               Arguments="@(Lib -> '-L%(FullPath)', ' ') @(Obj, ' ') @(LinkLibs -> '-l%(Identity)', ' ') $(archlinkflag) $(archflag) -o $(OutputFullPath)"
-              ToolPath="$(NaClSDKRoot)\toolchain\win_x86_newlib\bin\"/>
+              ToolPath="$(NaClSDKRoot)\toolchain\$(Toolchain)\bin\"/>
   </Target>
 
   <Target Name="Build"

@@ -13,8 +13,10 @@
     <CFLAGS>-std=gnu99</CFLAGS>
     <CCFLAGS>-Wall -Wswitch-enum -pthread -DXP_UNIX --pedantic -Werror -g -D_GNU_SOURCE=1 -D__STDC_FORMAT_MACROS=1 -D_BSD_SOURCE=1 -D_POSIX_C_SOURCE=199506 -D_XOPEN_SOURCE=600</CCFLAGS>    
     <CXXFLAGS>-std=gnu++98 -Wno-long-long</CXXFLAGS>
-    <Lib>$(NaClSDKRoot)\toolchain\win_x86_newlib\lib</Lib>
-    <DebugHost>$(NaClSDKRoot)\toolchain\win_x86_newlib\bin\sel_ldr_x86_64.exe</DebugHost>
+    <Toolchain>win_x86_newlib</Toolchain>
+    <Lib>$(NaClSDKRoot)\toolchain\$(Toolchain)\lib</Lib>
+    <DebugHost>$(NaClSDKRoot)\toolchain\$(Toolchain)\bin\sel_ldr_x86_64.exe</DebugHost>
+    <IrtNexe>$(NaClSDKRoot)\toolchain\$(Toolchain)\runtime\irt_core_x86_64.nexe</IrtNexe>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
