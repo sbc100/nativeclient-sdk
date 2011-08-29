@@ -62,8 +62,7 @@ class Vector2 {
   void Clamp(double max_mag) {
     double mag = Magnitude();
     if (mag > max_mag) {
-      Normalize();
-      Scale(max_mag);
+      Scale(max_mag / mag);  // Does Normalize() followed by Scale(max_mag).
     }
   }
 
