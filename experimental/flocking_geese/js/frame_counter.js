@@ -87,7 +87,8 @@ FrameCounter.prototype.beginFrame = function() {
 /**
  * Compute the delta since the last call to beginFrame() and increment the
  * frame count.  Update the frame rate whenever the prescribed number of
- * frames have been counted.
+ * frames have been counted, or at least one second of simulator time has
+ * passed, whichever is less.
  */
 FrameCounter.prototype.endFrame = function() {
   var frameEnd = new Date().getTime();
@@ -97,7 +98,8 @@ FrameCounter.prototype.endFrame = function() {
   }
   this.frameDurationAccumulator_ += dt;
   this.frameCount_++;
-  if (this.frameCount_ >= this.FRAME_RATE_REFRESH_COUNT_) {
+  if (this.frameCount_ > this.FRAME_RATE_REFRESH_COUNT_ ||
+      this.frameDurationAccumulator_ >= this.CLOCK_TICKS_PER_SECOND_) {
     var elapsedTime = this.frameDurationAccumulator_ /
                       this.CLOCK_TICKS_PER_SECOND_;
     this.framesPerSecond_ = this.frameCount_ / elapsedTime;

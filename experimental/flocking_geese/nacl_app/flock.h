@@ -117,7 +117,8 @@ class Flock {
 
     // Compute the delta since the last call to BeginFrame() and increment the
     // frame count.  Update the frame rate whenever the prescribed number of
-    // frames have been counted.
+    // frames have been counted, or at least one second of simulator time has
+    // passed, whichever is less.
     void EndFrame() {
       struct timeval end_time;
       gettimeofday(&end_time, NULL);
@@ -128,7 +129,8 @@ class Flock {
         return;
       frame_duration_accumulator_ += dt;
       frame_count_++;
-      if (frame_count_ > kFrameRateRefreshCount) {
+      if (frame_count_ > kFrameRateRefreshCount ||
+          frame_duration_accumulator_ >= kMicroSecondsPerSecond) {
         double elapsed_time = frame_duration_accumulator_ /
                               kMicroSecondsPerSecond;
         frames_per_second_ = frame_count_ / elapsed_time;
@@ -138,7 +140,8 @@ class Flock {
     }
 
     // The current frame rate.  Note that this is 0 for the first second in
-    // the accumulator, and is updated about once per second.
+    // the accumulator, and is updated every 100 frames (and at least once
+    // every second of simulation time or so).
     double frames_per_second() const {
       return frames_per_second_;
     }

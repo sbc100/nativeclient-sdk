@@ -219,6 +219,7 @@ void FlockingGeeseApp::Update() {
     }
     view_changed_size_ = false;
   }
+  flock_simulation_.Render();
   FlushPixelBuffer();
 }
 

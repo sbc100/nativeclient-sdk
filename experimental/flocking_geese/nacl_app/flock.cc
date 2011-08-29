@@ -82,6 +82,9 @@ void Flock::Render() {
   const size_t size = shared_pixel_buffer_->size().width() *
                       shared_pixel_buffer_->size().height();
   std::fill(pixel_buffer, pixel_buffer + size, kBackgroundColor);
+  threading::ScopedMutexLock scoped_mutex(simulation_mutex());
+  if (!scoped_mutex.is_valid())
+    return;
   for (size_t goose = 0; goose < geese_.size(); goose++) {
     geese_[goose].Render(pixel_buffer, shared_pixel_buffer_->size());
   }
@@ -95,7 +98,7 @@ void* Flock::FlockSimulation(void* param) {
   while (flock->is_simulation_running()) {
     flock->WaitForRunMode();
     flock->SimulationTick();
-    flock->Render();
+    //flock->Render();
   }
   return NULL;
 }
