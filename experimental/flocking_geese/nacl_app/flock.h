@@ -96,8 +96,8 @@ class Flock {
 
  private:
   // A small helper class that keeps track of tick deltas and a tick
-  // count.  It accumulates the duration of each frame.  For every second of
-  // accumulated time (not wall time), update a frame rate couter.
+  // count.  It accumulates the duration of each frame.  Updates the frame rate
+  // every 100 frames.
   class FrameCounter {
    public:
     FrameCounter()
@@ -116,8 +116,8 @@ class Flock {
     }
 
     // Compute the delta since the last call to BeginFrame() and increment the
-    // frame count.  If a second or more of time has accumulated in the
-    // duration accumulator, then update the frames-per-second value.
+    // frame count.  Update the frame rate whenever the prescribed number of
+    // frames have been counted.
     void EndFrame() {
       struct timeval end_time;
       gettimeofday(&end_time, NULL);
@@ -128,7 +128,7 @@ class Flock {
         return;
       frame_duration_accumulator_ += dt;
       frame_count_++;
-      if (frame_duration_accumulator_ >= kMicroSecondsPerSecond) {
+      if (frame_count_ > kFrameRateRefreshCount) {
         double elapsed_time = frame_duration_accumulator_ /
                               kMicroSecondsPerSecond;
         frames_per_second_ = frame_count_ / elapsed_time;
@@ -145,6 +145,7 @@ class Flock {
 
    private:
     static const double kMicroSecondsPerSecond = 1000000.0;
+    static const int32_t kFrameRateRefreshCount = 100;
 
     double frame_duration_accumulator_;  // Measured in microseconds.
     int32_t frame_count_;
