@@ -33,12 +33,20 @@ class TestNaClUtils(unittest.TestCase):
     self.os_mock = self.mock_factory.CreateMock(os)
     self.sys_mock = self.mock_factory.CreateMock(sys)
 
-  def testFindToolchain(self):
-    output = nacl_utils.FindToolchain('nacl_sdk_root')
+  def testToolchainPath(self):
+    output = nacl_utils.ToolchainPath('nacl_sdk_root')
     head, tail = os.path.split(output)
     base, toolchain = os.path.split(head)
     self.assertEqual('nacl_sdk_root', base)
     self.assertEqual('toolchain', toolchain)
+    self.assertRaises(ValueError,
+                      nacl_utils.ToolchainPath,
+                      'nacl_sdk_root',
+                      arch='nosucharch')
+    self.assertRaises(ValueError,
+                      nacl_utils.ToolchainPath,
+                      'nacl_sdk_root',
+                      variant='nosuchvariant')
 
   def testGetJSONFromNexeSpec(self):
     valid_empty_json = '{\n  "program": {\n  }\n}\n'

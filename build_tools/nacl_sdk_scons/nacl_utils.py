@@ -19,13 +19,56 @@ from SCons import Script
 #------------------------------------------------------------------------------
 # Parameters
 
-# Map the string stored in |sys.platform| into a toolchain platform specifier.
-PLATFORM_MAPPING = {
-    'win32': 'win_x86_newlib',
-    'cygwin': 'win_x86_newlib',
-    'linux': 'linux_x86_newlib',
-    'linux2': 'linux_x86_newlib',
-    'darwin': 'mac_x86_newlib',
+# The default toolchain architecture.
+DEFAULT_TOOLCHAIN_ARCH = 'x86'
+
+# The default toolchain variant.
+DEFAULT_TOOLCHAIN_VARIANT = 'newlib'
+
+# Map the string stored in |sys.platform| into a toolchain host specifier.
+# @private
+__PLATFORM_TO_HOST_MAP = {
+    'win32': 'windows',
+    'cygwin': 'windows',
+    'linux2': 'linux',
+    'darwin': 'mac'
+}
+
+# Map a platform host to a map of possible architectures and toolchains.
+# The platform host can be derived from sys.platform using |PLATFORM_HOST_MAP_}|
+# (see above).
+# @private
+__HOST_TO_TOOLCHAIN_MAP = {
+    'windows': {
+        'x86': {
+            'glibc': 'win_x86',
+            'newlib': 'win_x86_newlib',
+        },
+    },
+    'linux': {
+        'x86': {
+            'glibc': 'linux_x86',
+            'newlib': 'linux_x86_newlib',
+        },
+        'pnacl': {
+            'newlib-32': 'pnacl_linux_i686_newlib',
+            'newlib-64': 'pnacl_linux_x86_64_newlib',
+            'glibc-64': 'pnacl_linux_x86_64_glibc',
+        },
+        'arm': {
+            'newlib': 'pnacl_linux_x86_64_newlib',
+            'glibc': 'pnacl_linux_x86_64_glibc',
+        },
+    },
+    'mac': {
+        'x86': {
+            'glibc': 'mac_x86',
+            'newlib': 'mac_x86_newlib',
+        },
+        'pnacl': {
+            'newlib': 'pnacl_darwin_i386_newlib',
+        },
+    },
 }
 
 # Various architecture spec objects suitable for use with
@@ -52,9 +95,11 @@ DEFAULT_SUBARCH = '32'
 #------------------------------------------------------------------------------
 # Functions
 
-def AddNaclPlatformOption():
-  '''Register the cmd-line option --nacl-platform. This function can be called
-  multiple times. Only the first call registers the option.
+def AddCommandLineOptions():
+  '''Register the cmd-line options.
+
+  Registers --nacl-platform, --architecture and --variant. This function can be
+  called multiple times. Only the first call registers the option.
 
   Args:
     None
@@ -71,21 +116,49 @@ def AddNaclPlatformOption():
         type='string',
         action='store',
         help='target pepper version')
-    Script.Help('  --nacl-platform                    '
+    Script.Help('  --nacl-platform      '
                 'Specify the pepper version to build for '
                 '(e.g. --nacl-platform="pepper_14").\n')
+
+    Script.AddOption(
+        '--architecture',
+        dest='architecture',
+        nargs=1,
+        type='string',
+        action='store',
+        help='NaCl target architecture')
+    Script.Help('  --architecture       '
+                'Specify the NaCl target architecture to build (e.g. '
+                '--architecture="glibc").  Possible values are "x86", "pnacl" '
+                '"arm".  Not all target architectures are available on all '
+                'host platforms.  Defaults to "x86"\n')
+
+    Script.AddOption(
+        '--variant',
+        dest='variant',
+        nargs=1,
+        type='string',
+        action='store',
+        help='NaCl toolchain variant')
+    Script.Help('  --variant            '
+                'Specify the NaCl toolchain variant to use when '
+                'building (e.g. --variant="glibc").  Possible values are '
+                '"glibc", "newlib"; when --architecture=pnacl is specified, '
+                'values must include bit-width, e.g. "glibc-64".  Defaults to '
+                '"newlib"\n')
 
   except optparse.OptionConflictError:
     pass
 
 
-def PrintNaclPlatformBanner(module_name, nacl_platform):
+def PrintNaclPlatformBanner(module_name, nacl_platform, variant):
   '''Print a banner that shows what nacl platform is used to build a module.
 
   Args:
     module_name: The name of the module. Printed as-is.
     nacl_platform: The name - a.k.a. folder name - of the nacl platform.
                    Printed as-is.
+    variant: The toolchain variant, one of 'newlib', 'glibc', 'pnacl', etc.
   Returns:
     None
   '''
@@ -93,13 +166,16 @@ def PrintNaclPlatformBanner(module_name, nacl_platform):
   # Don't print the banner if we're just cleaning files.
   if not Script.GetOption('clean'):
     print '---------------------------------------------------------------'
-    print ('+  Project "%s" is using NaCl platform "%s"' %
-        (module_name, nacl_platform))
+    print ('+  Project "%s" is using NaCl platform "%s", toolchain "%s"' %
+        (module_name, nacl_platform, variant))
     print '---------------------------------------------------------------'
     print ''
     sys.stdout.flush()
 
-def FindToolchain(base_dir=None):
+
+def ToolchainPath(base_dir=None,
+                  arch=DEFAULT_TOOLCHAIN_ARCH,
+                  variant=DEFAULT_TOOLCHAIN_VARIANT):
   '''Build a toolchain path based on the platform type.
 
   |base_dir| is the root directory which includes the platform-specific
@@ -112,20 +188,32 @@ def FindToolchain(base_dir=None):
     base_dir: The pathname of the root directory that contains the toolchain.
               The toolchain is expected to be in a dir called 'toolchain'
               within |base_dir|.
+    variant: The toolchain variant, can be one of 'newlib', 'glibc', etc.
+             Defaults to 'newlib'.
   Returns:
-    The full path to the platform-specific toolchain.  This will look like
-    /Users/sirhaxalot/native_client_sdk/toolchain/mac_x86
+    The concatenated platform-specific path to the toolchain.  This will look
+    like base_dir/toolchain/mac_x86
   '''
 
   if base_dir is None:
     base_dir = os.getenv('NACL_SDK_ROOT', '')
-  if sys.platform in PLATFORM_MAPPING:
-    return os.path.join(base_dir,
-                        'toolchain',
-                        PLATFORM_MAPPING[sys.platform])
+  if sys.platform in __PLATFORM_TO_HOST_MAP:
+    host_platform = __PLATFORM_TO_HOST_MAP[sys.platform]
+    toolchain_map = __HOST_TO_TOOLCHAIN_MAP[host_platform]
+    if arch in toolchain_map:
+      isa_toolchain = toolchain_map[arch]
+      if variant in isa_toolchain:
+        return os.path.normpath(os.path.join(
+            base_dir, 'toolchain', isa_toolchain[variant]))
+      else:
+        raise ValueError('ERROR: Variant "%s" not in toolchain "%s/%s".' %
+                         (variant, host_platform, arch))
+    else:
+      raise ValueError('ERROR: Architecture "%s" not supported on host "%s".' %
+                       (arch, host_platform))
+
   else:
-    print 'ERROR: Unsupported platform "%s"!' % sys.platform
-    return base_dir
+    raise ValueError('ERROR: Unsupported host platform "%s".' % sys.platform)
 
 
 def GetJSONFromNexeSpec(nexe_spec):

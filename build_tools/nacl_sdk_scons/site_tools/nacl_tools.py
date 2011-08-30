@@ -277,7 +277,8 @@ def AllNaClModules(env, sources, module_name):
                   nexes={'x86-32': '%s_x86_32_dbg.nexe' % module_name,
                          'x86-64': '%s_x86_64_dbg.nexe' % module_name})
   nacl_utils.PrintNaclPlatformBanner(module_name,
-      nacl_platform=env['TARGET_NACL_PLATFORM'])
+      nacl_platform=env['TARGET_NACL_PLATFORM'],
+      variant=env['NACL_TOOLCHAIN_VARIANT'])
 
   return opt_nexes, dbg_nexes
 
@@ -290,7 +291,7 @@ def generate(env):
 
   NOTE: SCons requires the use of this name, which fails lint.
   '''
-  nacl_utils.AddNaclPlatformOption()
+  nacl_utils.AddCommandLineOptions()
 
   env.AddMethod(AllNaClModules)
   env.AddMethod(AppendOptCCFlags)

@@ -61,6 +61,32 @@ def TestingClosure(_outdir, _jobs):
 
       annotator.Run(command, cwd=path, shell=True)
 
+    def testBuildExamplesVariant(self):
+      '''Verify non-default toolchain SDK example build.'''
+
+      def buildExamplesWithFlags(flags=[]):
+        '''A small helper function that runs scons with arch and variant flags.
+
+        Args:
+          flags: Any extra flags to pass to scons.  Must be an array,
+              can be empty.
+        '''
+        path = os.path.join(_outdir, 'examples')
+        command = [os.path.join(path, scons), '-j', _jobs] + flags
+        annotator.Run(' '.join(command), cwd=path, shell=True)
+
+      # TODO(dspringer): Add --variant='glibc' when the glibc toolchain can
+      # build things.
+      print "Test with bogus architectures, variants."
+      print "We expect these tests to throw exceptions:"
+      self.assertRaises(subprocess.CalledProcessError,
+                        buildExamplesWithFlags,
+                        flags=['--architecture=nosucharch'])
+      self.assertRaises(subprocess.CalledProcessError,
+                        buildExamplesWithFlags,
+                        flags=['--variant=nosuchvariant'])
+
+
     def testReadMe(self):
       '''Check that the current build version and date are in the README file'''
 

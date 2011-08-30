@@ -14,7 +14,10 @@ import os
 
 from SCons import Script
 
-def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
+def NaClEnvironment(use_c_plus_plus_libs=False,
+                    nacl_platform=None,
+                    toolchain_arch=None,
+                    toolchain_variant=None):
   '''Make an Environment that uses the NaCl toolchain to build sources.
 
   This modifies a default construction Environment to point the compilers and
@@ -31,7 +34,33 @@ def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
     A SCons Environment with all the various Tool and keywords set to build
     NaCl modules.
   '''
-  nacl_utils.AddNaclPlatformOption()
+
+  def GetCommandLineOption(option_name, option_value, option_default):
+    '''SMall helper function to get a command line option.
+
+    Returns a command-line option value, which can be overridden.  If the
+    option is set on the command line, then that value is favoured over the
+    internally set value.  If option is neither set on the command line nor
+    given a value, its default is used.
+
+    Args:
+      option_name: The name of the command line option, e.g. "variant".
+      option_value: The initial value of the option. This value is used if the
+          its not set via the command line.  Can be None.
+      option_default: If the option value hasn't been set via the command line
+          nor via an internal value, then this default value is used.  Can be
+          None.
+
+    Returns:
+      The value of the command-line option, accroding to the override rules
+          described above.
+    '''
+    cmd_line_value = Script.GetOption(option_name)
+    if not cmd_line_value and not option_value:
+      cmd_line_value = option_default
+    return cmd_line_value or option_value
+
+  nacl_utils.AddCommandLineOptions()
   env = Script.Environment()
 
   # We must have a nacl_platform, either as argument to this function or from
@@ -48,9 +77,16 @@ def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
   # the command line if there's a conflict.
   nacl_platform_to_use = nacl_platform_from_option or nacl_platform
 
+  toolchain_variant = GetCommandLineOption(
+      'variant', toolchain_variant, nacl_utils.DEFAULT_TOOLCHAIN_VARIANT)
+  toolchain_arch = GetCommandLineOption(
+      'architecture', toolchain_arch, nacl_utils.DEFAULT_TOOLCHAIN_ARCH)
+
   base_dir = os.getenv('NACL_SDK_ROOT', '')
   base_dir = os.path.join(base_dir, nacl_platform_to_use)
-  toolchain = nacl_utils.FindToolchain(base_dir)
+  toolchain = nacl_utils.ToolchainPath(base_dir=base_dir,
+                                       arch=toolchain_arch,
+                                       variant=toolchain_variant)
   if (toolchain is None):
     raise ValueError('Cannot find a NaCl toolchain')
 
@@ -125,7 +161,8 @@ def NaClEnvironment(use_c_plus_plus_libs=False, nacl_platform=None):
               # how to construct a Program builder properly.
               PROGSUFFIX='.nexe',
               # Target NaCl platform info.
-              TARGET_NACL_PLATFORM=nacl_platform_to_use
+              TARGET_NACL_PLATFORM=nacl_platform_to_use,
+              NACL_TOOLCHAIN_VARIANT=toolchain_variant
              )
   # This supresses the "MS_DOS style path" warnings on Windows.  It's benign on
   # all other platforms.

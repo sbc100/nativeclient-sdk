@@ -123,21 +123,17 @@ def CheckPatchVersion(shell_env=None):
 # something like "/usr/local/mydir/nacl_sdk/src".  If |base_dir| is None, then
 # the environment variable NACL_SDK_ROOT is used (if it's set).
 # This method assumes that the platform-specific toolchain is found under
-# <base_dir>/toolchain/<platform_spec>.
-def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT, base_dir=None):
-  def AutoDetectToolchain(toolchain_base):
-    if sys.platform in nacl_utils.PLATFORM_MAPPING:
-      return os.path.join(toolchain_base,
-                          'toolchain',
-                          nacl_utils.PLATFORM_MAPPING[sys.platform])
-    else:
-      print 'ERROR: Unsupported platform "%s"!' % sys.platform
-      return toolchain_base
-
+# <base_dir>/toolchain/<platform_variant>.
+def NormalizeToolchain(toolchain=TOOLCHAIN_AUTODETECT,
+                       base_dir=None,
+                       arch=nacl_utils.DEFAULT_TOOLCHAIN_ARCH,
+                       variant=nacl_utils.DEFAULT_TOOLCHAIN_VARIANT):
   if toolchain == TOOLCHAIN_AUTODETECT:
     if base_dir is None:
       base_dir = os.getenv('NACL_SDK_ROOT', '')
-    normalized_toolchain = AutoDetectToolchain(base_dir)
+    normalized_toolchain = nacl_utils.ToolchainPath(base_dir=base_dir,
+                                                    arch=arch,
+                                                    variant=variant)
   else:
     normalized_toolchain = os.path.abspath(toolchain)
   return normalized_toolchain
