@@ -17,7 +17,8 @@ from SCons import Script
 def NaClEnvironment(use_c_plus_plus_libs=False,
                     nacl_platform=None,
                     toolchain_arch=None,
-                    toolchain_variant=None):
+                    toolchain_variant=None,
+                    use_ppapi=True):
   '''Make an Environment that uses the NaCl toolchain to build sources.
 
   This modifies a default construction Environment to point the compilers and
@@ -30,13 +31,16 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
         right place in the list of LIBS.
     nacl_platform: The target NaCl/Chrome/Papper platform for which the
         environment, e.g. 'pepper_14'.
+    toolchain_arch: The target architecture of the toolchain (e.g., x86, pnacl)
+    toolchain_variant: The libc of the toolchain (e.g., newlib, glibc)
+    use_ppapi: flag indicating whether to compile again ppapi libraries
   Returns:
     A SCons Environment with all the various Tool and keywords set to build
     NaCl modules.
   '''
 
   def GetCommandLineOption(option_name, option_value, option_default):
-    '''SMall helper function to get a command line option.
+    '''Small helper function to get a command line option.
 
     Returns a command-line option value, which can be overridden.  If the
     option is set on the command line, then that value is favoured over the
@@ -169,10 +173,11 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
   env['ENV']['CYGWIN'] = 'nodosfilewarning'
 
   # Append the common NaCl libs.
-  common_nacl_libs = ['ppapi']
-  if use_c_plus_plus_libs:
-    common_nacl_libs.extend(['ppapi_cpp'])
-  env.Append(LIBS=common_nacl_libs)
+  if use_ppapi:
+    common_nacl_libs = ['ppapi']
+    if use_c_plus_plus_libs:
+      common_nacl_libs.extend(['ppapi_cpp'])
+    env.Append(LIBS=common_nacl_libs)
 
   gen_nmf_builder = env.Builder(suffix='.nmf',
                                 action=nacl_utils.GenerateNmf)

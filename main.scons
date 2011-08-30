@@ -90,11 +90,15 @@ base_env = Environment(
     CPPDEFINES = [
       'BOOST_ALL_NO_LIB',
     ],
-    NACL_TOOLCHAIN_ROOT = build_utils.NormalizeToolchain(
-        base_dir=os.getenv('NACL_SDK_ROOT')),
+    NACL_TOOLCHAIN_ROOTS = {
+        ('x86', 'newlib'):
+          build_utils.NormalizeToolchain(arch='x86', variant='newlib'),
+        ('x86', 'glibc'):
+          build_utils.NormalizeToolchain(arch='x86', variant='glibc'),
+    },
     ROOT_DIR = os.path.abspath(os.getcwd()),
     IS_WINDOWS = sys.platform in ['cygwin', 'win32'],
-    IS_LINUX = sys.platform in ['linux', 'linux2'],
+    IS_LINUX = sys.platform == 'linux2',
     IS_MAC = sys.platform == 'darwin',
     JOB_COUNT = GetOption('num_jobs')
 )
@@ -484,18 +488,24 @@ def GetHeadersNode(env):
 base_env.AddMethod(GetHeadersNode)
 
 
-def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dir = None):
+def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dirs = None):
   """Add a header file to the toolchain.  By default, Native Client-specific
   headers go under nacl/, but there are non-specific headers, such as
-  the OpenGLES2 headers, that go under their own subdir."""
-  if not base_dir:
-    base_dir = os.path.join(env['NACL_TOOLCHAIN_ROOT'],
-                            'x86_64-nacl',
-                            'include')
+  the OpenGLES2 headers, that go under their own subdir.
+  
+  Args:
+    nodes: A list of node objects to add to the toolchain
+    subdir: This is appended to each base_dir
+    base_dirs: A list of directories to install the node to"""
+  if not base_dirs:
+    # TODO(mball): This won't work for PNaCl:
+    base_dirs = [os.path.join(dir, 'x86_64-nacl', 'include')
+                 for dir in env['NACL_TOOLCHAIN_ROOTS'].values()]
 
-  node = env.Replicate(os.path.join(base_dir, subdir), nodes)
-  env.Depends(sdk_headers, node)
-  env.Depends(toolchain_node, node)
+  for base_dir in base_dirs:
+    node = env.Replicate(os.path.join(base_dir, subdir), nodes)
+    env.Depends(sdk_headers, node)
+    env.Depends(toolchain_node, node)
   return node
 
 base_env.AddMethod(AddHeaderToSdk)

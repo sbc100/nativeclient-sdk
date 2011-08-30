@@ -34,6 +34,7 @@ def Build(options):
   '''Build 32-bit and 64-bit versions of needed NaCL tools and libs.'''
   nacl_dir = os.path.join(options.nacl_dir, 'native_client')
   toolchain_option = 'naclsdk_mode=custom:%s' % options.toolchain
+  libc_option = '' if options.lib == 'newlib' else ' --nacl_glibc'
   if sys.platform == 'win32':
     scons = os.path.join(nacl_dir, 'scons.bat')
     bits32 = 'vcvarsall.bat x86 && '
@@ -45,9 +46,9 @@ def Build(options):
 
   # Build sel_ldr and ncval.
   def BuildTools(prefix, bits, target):
-    cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s %s' % (
+    cmd = '%s%s -j %s --mode=%s platform=x86-%s naclsdk_validate=0 %s %s%s' % (
         prefix, scons, options.jobs, options.variant, bits, target,
-        toolchain_option)
+        toolchain_option, libc_option)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
   BuildTools(bits32, '32', 'sdl=none sel_ldr ncval')
@@ -55,24 +56,27 @@ def Build(options):
 
   # Build irt_core, which is needed for running .nexes with sel_ldr.
   def BuildIRT(bits):
-    cmd = '%s -j %s irt_core platform=x86-%s %s' % (
+    cmd = '%s -j %s irt_core --mode=opt-host,nacl platform=x86-%s %s' % (
         scons, options.jobs, bits, toolchain_option)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
-  BuildIRT(32)
-  BuildIRT(64)
+  # only build the IRT using the newlib chain.  glibc does not support IRT.
+  if options.lib == 'newlib':
+    BuildIRT(32)
+    BuildIRT(64)
 
   # Build and install untrusted libraries.
   def BuildAndInstallLibsAndHeaders(bits):
-    cmd = ('%s install --mode=nacl libdir=%s includedir=%s platform=x86-%s '
-           'force_sel_ldr=none %s') % (
+    cmd = ('%s install --mode=opt-host,nacl libdir=%s includedir=%s '
+           'platform=x86-%s force_sel_ldr=none %s%s') % (
         scons,
         os.path.join(options.toolchain,
                      'x86_64-nacl',
                      'lib32' if bits == 32 else 'lib'),
         os.path.join(options.toolchain, 'x86_64-nacl', 'include'),
         bits,
-        toolchain_option)
+        toolchain_option,
+        libc_option)
     bot.Run(cmd, shell=True, cwd=nacl_dir)
 
   BuildAndInstallLibsAndHeaders(32)
@@ -145,7 +149,6 @@ def BuildNaClTools(options):
     scons_out = os.path.join(options.nacl_dir, 'native_client', 'scons-out')
     build_utils.CleanDirectory(scons_out)
   else:
-    bot.BuildStep('build NaCl tools')
     MakeInstallDirs(options)
     Build(options)
     Install(options, tools=['sel_ldr', 'ncval'], runtimes=['irt_core'])
@@ -166,6 +169,10 @@ def main(argv):
       default='toolchain',
       help='where to put the NaCl tool binaries')
   parser.add_option(
+      '-l', '--lib', dest='lib',
+      default='newlib',
+      help='whether to build against newlib (default) or glibc')
+  parser.add_option(
       '-c', '--clean', action='store_true', dest='clean',
       default=False,
       help='whether to clean up the checkout files')
@@ -180,7 +187,7 @@ def main(argv):
   if args:
     parser.print_help()
     bot.Print('ERROR: invalid argument(s): %s' % args)
-    sys.exit(1)
+    return 1
 
   options.toolchain = os.path.abspath(options.toolchain)
   options.exe_suffix = exe_suffix
@@ -194,6 +201,10 @@ def main(argv):
   else:
     assert False
   options.variant = variant
+
+  if options.lib not in ['newlib', 'glibc']:
+    bot.Print('ERROR: --lib must either be newlib or glibc')
+    return 1
 
   return BuildNaClTools(options)
 

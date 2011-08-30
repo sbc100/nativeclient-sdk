@@ -53,14 +53,6 @@ def TestingClosure(_outdir, _jobs):
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
 
-    def testBuildExamples(self):
-      '''Verify that we can build the SDK examples.'''
-
-      path = os.path.join(_outdir, 'examples')
-      command = [os.path.join(path, scons), '-j', _jobs]
-
-      annotator.Run(command, cwd=path, shell=True)
-
     def testBuildExamplesVariant(self):
       '''Verify non-default toolchain SDK example build.'''
 
@@ -75,8 +67,8 @@ def TestingClosure(_outdir, _jobs):
         command = [os.path.join(path, scons), '-j', _jobs] + flags
         annotator.Run(' '.join(command), cwd=path, shell=True)
 
-      # TODO(dspringer): Add --variant='glibc' when the glibc toolchain can
-      # build things.
+      buildExamplesWithFlags(['--architecture=x86', '--variant=newlib'])
+      buildExamplesWithFlags(['--architecture=x86', '--variant=glibc'])
       print "Test with bogus architectures, variants."
       print "We expect these tests to throw exceptions:"
       self.assertRaises(subprocess.CalledProcessError,

@@ -48,10 +48,8 @@ INSTALLER_CONTENTS = [
 
 INSTALLER_CONTENTS.append('%s/' % nacl_utils.ToolchainPath(base_dir='',
                                                            variant='newlib'))
-# TODO(dspringer): Add in other toolchains as they come available.  For
-# example:
-# INSTALLER_CONTENTS.append('%s/' % nacl_utils.ToolchainPath(base_dir='',
-#                                                            variant='glibc'))
+INSTALLER_CONTENTS.append('%s/' % nacl_utils.ToolchainPath(base_dir='',
+                                                           variant='glibc'))
 
 LINUX_ONLY_CONTENTS = [
     'third_party/ppapi/',

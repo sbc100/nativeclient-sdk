@@ -12,6 +12,7 @@ and from ../project_templates/test.scons
 
 __author__ = 'mball@google.com (Matt Ball)'
 
+from build_tools import build_utils
 from build_tools import make_nacl_tools
 import os
 import sys
@@ -183,7 +184,7 @@ cpp_trusted_sources = (
 cpp_trusted_source_install = env.AddHeaderToSdk(
   [os.path.join(ppapi_base, cpp) for cpp in cpp_trusted_sources],
   subdir=os.path.join('ppapi', 'cpp'),
-  base_dir=os.path.join(env['ROOT_DIR'], 'third_party'))
+  base_dirs=[os.path.join(env['ROOT_DIR'], 'third_party')])
 # -------- 8< Cut here --------
 
 #env.AddLibraryToSdk(['ppapi_cpp'])
@@ -232,18 +233,23 @@ env.Requires('ppapi_gles2', [
 def build_nacl_tools(env, target, source):
   ''' Tool for running make_nacl_tools
   This builds sel_ldr, ncval, and the nacl libraries'''
-  make_nacl_tools_args = [
-      '--toolchain',
-      env['NACL_TOOLCHAIN_ROOT'],
-      '--jobs',
-      env['JOB_COUNT'],
-      '--nacl_dir',
-      os.path.join(env['ROOT_DIR'], 'third_party', 'native_client'),
-  ]
-  if env.GetOption('clean'):
-    make_nacl_tools_args.extend(['--clean'])
-  print make_nacl_tools_args
-  make_nacl_tools.main(make_nacl_tools_args)
+  build_utils.BotAnnotator().BuildStep('build NaCl tools')
+  for key, toolchain in env['NACL_TOOLCHAIN_ROOTS'].items():
+    (_, variant) = key
+    make_nacl_tools_args = [
+        '--toolchain',
+        toolchain,
+        '--jobs',
+        env['JOB_COUNT'],
+        '--nacl_dir',
+        os.path.join(env['ROOT_DIR'], 'third_party', 'native_client'),
+    ]
+    if env.GetOption('clean'):
+      make_nacl_tools_args.extend(['--clean'])
+    args = make_nacl_tools_args + ['--lib=%s' % variant]
+    print 'Running make_nacl_tools with ', args
+    sys.stdout.flush()
+    make_nacl_tools.main(args)
 
 nacl_tools_cmd = env.Command('nacl_tools_dummy_target',
                              'make_nacl_tools.py',

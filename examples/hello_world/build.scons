@@ -10,26 +10,31 @@ import os
 
 nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
-nacl_env.Append(
-    # Add a CPPPATH that enables the full-path #include directives, such as
-    # #include "examples/sine_synth/sine_synth.h"
-    CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
-    # Strict ANSI compliance.
-    CCFLAGS=['-pedantic', '-Werror'],
-   )
+nacl_test_env = make_nacl_env.NaClEnvironment(
+    use_c_plus_plus_libs=True,
+    nacl_platform=os.getenv('NACL_TARGET_PLATFORM'),
+    use_ppapi=False)
+for env in [nacl_env, nacl_test_env]:
+  env.Append(
+      # Add a CPPPATH that enables the full-path #include directives, such as
+      # #include "examples/sine_synth/sine_synth.h"
+      CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+      # Strict ANSI compliance.
+      CCFLAGS=['-pedantic', '-Werror'],
+  )
 
 sources = ['hello_world.cc', 'helper_functions.cc']
 test_sources = ['helper_functions.cc', 'test_helper_functions.cc']
 
 nacl_env.AllNaClModules(sources, 'hello_world')
 
-nacl_test_32 = nacl_env.Clone()
+nacl_test_32 = nacl_test_env.Clone()
 nacl_test_32.NaClTestProgram(test_sources,
                              nacl_utils.ARCH_SPECS['x86-32'],
                              module_name='hello_world_test',
                              target_name='test32')
 
-nacl_test_64 = nacl_env.Clone()
+nacl_test_64 = nacl_test_env.Clone()
 nacl_test_64.NaClTestProgram(test_sources,
                              nacl_utils.ARCH_SPECS['x86-64'],
                              module_name='hello_world_test',
