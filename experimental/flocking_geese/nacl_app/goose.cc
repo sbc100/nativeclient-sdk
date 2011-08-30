@@ -81,8 +81,10 @@ Vector2 Goose::Flock(const std::vector<Goose>& geese) {
   int32_t cohesionCount = 0;
   Vector2 cohesion;
 
-  for (size_t i = 0; i < geese.size(); i++) {
-    const Goose& goose = geese[i];
+  for (std::vector<Goose>::const_iterator goose_it = geese.begin();
+       goose_it < geese.end();
+       ++goose_it) {
+    const Goose& goose = *goose_it;
     // Compute the distance from this goose to its neighbour.
     Vector2 gooseDirection = Vector2::Difference(
         location_, goose.location());

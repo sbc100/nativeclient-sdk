@@ -12,7 +12,9 @@ nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 nacl_env.Append(
     CPPPATH=[os.getcwd()],
-    CCFLAGS=['-ffast-math', '-mfpmath=sse', '-msse2'],
+    OPT_CCFLAGS=['-ffast-math',
+                 '-mfpmath=sse',
+                 '-msse2'],
    )
 
 app_sources = [os.path.join('nacl_app', src_file) for src_file in [
