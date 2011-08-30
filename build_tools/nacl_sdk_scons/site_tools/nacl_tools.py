@@ -44,6 +44,13 @@ def AppendOptCCFlags(env, is_debug=False):
   '''Append a set of CCFLAGS that will build a debug or optimized variant
   depending on the value of |is_debug|.
 
+  Uses optional build-specific flags for debug and optimized builds.  To set
+  these in your build.scons files you can do something like this:
+    nacl_env.Append(DEBUG_CCFLAGS=['-gfull'],
+                    OPT_CCFLAGS=['-ffast-math',
+                                 '-mfpmath=sse',
+                                 '-msse2'])
+
   Args:
     env: Environment to modify.
     is_debug: Whether to set the option flags for debugging or not.  Default
@@ -51,14 +58,15 @@ def AppendOptCCFlags(env, is_debug=False):
   '''
 
   if is_debug:
-    env.Append(CCFLAGS=['-O0',
+    env.Append(CCFLAGS=['${DEBUG_CCFLAGS}',
+                        '-O0',
                         '-g',
                        ])
   else:
-    env.Append(CCFLAGS=['-O2',
-                        '-fno-builtin',
+    env.Append(CCFLAGS=['${OPT_CCFLAGS}',
+                        '-O3',
                         '-fno-stack-protector',
-                        '-fdiagnostics-show-option',
+                        '-fomit-frame-pointer',
                        ])
 
 
