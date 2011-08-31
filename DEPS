@@ -4,12 +4,12 @@ vars = {
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "6511",
+  "native_client_version": "6595",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "arm_toolchain_version": "6494",
-  "x86_toolchain_version": "6494",
+  "arm_toolchain_version": "6584",
+  "x86_toolchain_version": "6584",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
 }
@@ -41,14 +41,16 @@ deps = {
   "src/third_party/native_client/native_client":
     Var("native_client_trunk") + "/src/native_client@" +
     Var("native_client_version"),
-  "src/third_party/native_client/native_client/src/third_party/ppapi":
-    From("nacl_deps", "native_client/src/third_party/ppapi"),
+  "src/third_party/native_client/ppapi":
+    From("nacl_deps", "ppapi"),
   "src/third_party/native_client/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
   "src/third_party/pymox":
     Var("pymox") + "@" + Var("pymox_version"),
   "src/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
+  "src/third_party/native_client/third_party/simplejson":
+    From("nacl_deps", "third_party/simplejson"),
 }
 
 deps_os = {
