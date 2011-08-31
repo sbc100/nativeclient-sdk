@@ -35,16 +35,17 @@ Help for NaCl SDK
 * build a target:      ./scons <target>
 
 Supported targets:
-  * bot               Runs everything that the build and try bots run
+  * bot               Runs everything that the build and try bots run.
   * debugger          Build the debugging library code and tests.
-  * docs              Build all of the Doxygen documentation
+  * docs              Build all of the Doxygen documentation.
   * examples          Build the examples.
-  * installer         Build the SDK installer
-  * toolchain         Update the toolchain's headers and libraries
-  * vsx_build         Build the Visual Studio Plugin
+  * experimental      Build the experimental projects.
+  * installer         Build the SDK installer.
+  * toolchain         Update the toolchain's headers and libraries.
+  * vsx_build         Build the Visual Studio Plugin.
 
 Flags:
-  * USE_EXISTING_INSTALLER=1    Do not rebuild the installer if it exists
+  * USE_EXISTING_INSTALLER=1        Do not rebuild the installer if it exists.
   * chrome_browser_path=<full_path> Download Chrome to <full_path>.
 
 More targets are listed below in the automatically generated help section.
@@ -215,7 +216,7 @@ def AddCleanAction(env, targets, action, suite_names, node_name):
 
   Cleaning will only occur if there is a match between the suite or nodes
   specified on the command line, and suite_names or node_name or if no
-  suite or notes are specified on the command line.  Also, at least one of the
+  suite or nodes are specified on the command line.  Also, at least one of the
   targets must exist on the file system.
 
   Args:
@@ -286,7 +287,7 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
 
     Args:
       env: SCons's current environment.
-      target: Where to write there result of the test.
+      target: Where to write the result of the test.
       source: The command to run as the test.
 
     Returns:
@@ -415,7 +416,7 @@ base_env.AddMethod(GetDefaultChromeBinary)
 def GetChromeBinary(env):
   '''Return a File object that represents the downloaded Chrome binary.
 
-  If chrome_borwser_path is specified on the command line, then return a File
+  If chrome_browser_path is specified on the command line, then return a File
   object that represents that path.  Otherwise, return a File object
   representing the default downloaded Chrome (see GetDefaultChromeBinary(),
   above).
@@ -458,7 +459,7 @@ base_env.AddMethod(DependsOnChrome)
 # ----------------------------------------------------------
 # Targets for updating sdk headers and libraries
 # NACL_SDK_XXX vars are defined by  site_scons/site_tools/naclsdk.py
-# NOTE: our task here is complicated by the fact that there might already be
+# NOTE: Our task here is complicated by the fact that there might already be
 #       some (outdated) headers/libraries at the new location
 #       One of the hacks we employ here is to make every library depend
 #       on the installation on ALL headers (sdk_headers)
@@ -492,8 +493,9 @@ def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dirs = None):
   """Add a header file to the toolchain.  By default, Native Client-specific
   headers go under nacl/, but there are non-specific headers, such as
   the OpenGLES2 headers, that go under their own subdir.
-  
+
   Args:
+    env: Environment in which we were called.
     nodes: A list of node objects to add to the toolchain
     subdir: This is appended to each base_dir
     base_dirs: A list of directories to install the node to"""
@@ -545,7 +547,7 @@ base_env.AddMethod(AddLibraryToSdk)
 
 
 #-----------------------------------------------------------------------------
-# This is a simple environment that primarily for targets that aren't built
+# This is a simple environment that is primarily for targets that aren't built
 # directly by scons, and therefore don't need any special environment setup
 build_env = base_env.Clone(
     BUILD_TYPE = 'build',
@@ -562,7 +564,7 @@ environment_list.append(build_env)
 def SconsBuildCommand(env):
   '''Return the build command used to run separate scons instances.
   Args:
-    env: The construction Environment that is building using scons.
+    env: The construction Environment() that is building using scons.
   Returns:
     A string representing the platform-specific build command that will run the
     scons instances.
