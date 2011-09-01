@@ -348,7 +348,7 @@ base_env.AddMethod(CreatePythonUnitTest)
 
 # ----------------------------------------------------------
 # Support for running Chrome.  These functions access the construction
-# Environment to produce a path to Chrome.
+# Environment() to produce a path to Chrome.
 
 # A Dir object representing the directory where the Chrome binaries are kept.
 # You can use chrome_binaries_dir= to set this on the command line.  Defaults
@@ -588,7 +588,7 @@ def BuildExamples(env, target, source):
   Args:
     env: The construction Environment that is building the examples.
     target: The target that triggered this build.  Not used.
-    source: The sources used for  this build.  Not used.
+    source: The sources used for this build.  Not used.
   '''
   subprocess.check_call(SconsBuildCommand(env),
                         cwd='examples',
@@ -630,7 +630,7 @@ def BuildExperimental(env, target, source):
     env: The construction Environment that is building the experimental
     projects.
     target: The target that triggered this build.  Not used.
-    source: The sources used for  this build.  Not used.
+    source: The sources used for this build.  Not used.
   '''
   subprocess.check_call(SconsBuildCommand(env),
                         cwd='experimental',
