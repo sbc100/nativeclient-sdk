@@ -40,7 +40,7 @@ class TestUpdateManifest(unittest.TestCase):
     self.assertEqual(self._manifest.GetManifestString(),
                      self._json_boilerplate)
     # Test using a manifest file with a version that is too high
-    self.assertRaises(Exception,
+    self.assertRaises(update_manifest.ManifestException,
                       self._manifest.LoadManifestString,
                       '{"manifest_version": 2}')
 
@@ -83,8 +83,65 @@ class TestUpdateManifest(unittest.TestCase):
     options.opt1 = None
     self.assertTrue(self._manifest._VerifyAllOptionsConsumed(options))
     options.opt2 = 'blah'
-    self.assertRaises(Exception,
+    self.assertRaises(update_manifest.ManifestException,
                       self._manifest._VerifyAllOptionsConsumed,
+                      options)
+
+  def testBundleUpdate(self):
+    ''' Test function Bundle.Update '''
+    bundle = update_manifest.Bundle('test')
+    options = FakeOptions()
+    options.bundle_revision = 1
+    bundle.Update(options)
+    self.assertEqual(bundle['revision'], 1)
+
+  def testUpdateManifestModifyTopLevel(self):
+    ''' Test function UpdateManifest: modifying top-level info '''
+    options = FakeOptions()
+    options.manifest_version = 0
+    options.bundle_name = None
+    self._manifest.UpdateManifest(options)
+    self.assertEqual(self._manifest._manifest_data['manifest_version'], 0)
+
+  def testUpdateManifestModifyBundle(self):
+    ''' Test function UpdateManifest: adding/modifying a bundle '''
+    # Add a bundle
+    options = FakeOptions()
+    options.manifest_version = 1
+    options.bundle_name = 'test'
+    options.bundle_revision = 2
+    options.desc = 'nice bundle'
+    options.stability = 'canary'
+    options.recommended = 'yes'
+    self._manifest.UpdateManifest(options)
+    bundle = self._manifest._GetBundle('test')
+    self.assertNotEqual(bundle, None)
+    # Modify the same bundle
+    options = FakeOptions()
+    options.manifest_version = None
+    options.bundle_name = 'test'
+    options.desc = 'changed'
+    self._manifest.UpdateManifest(options)
+    bundle = self._manifest._GetBundle('test')
+    self.assertEqual(bundle['description'], 'changed')
+
+  def testUpdateManifestBadBundle1(self):
+    ''' Test function UpdateManifest: bad bundle data '''
+    options = FakeOptions()
+    options.manifest_version = None
+    options.bundle_name = 'test'
+    options.stability = 'excellent'
+    self.assertRaises(update_manifest.ManifestException,
+                      self._manifest.UpdateManifest,
+                      options)
+
+  def testUpdateManifestBadBundle2(self):
+    ''' Test function UpdateManifest: incomplete bundle data '''
+    options = FakeOptions()
+    options.manifest_version = None
+    options.bundle_name = 'another_bundle'
+    self.assertRaises(update_manifest.ManifestException,
+                      self._manifest.UpdateManifest,
                       options)
 
 def main():

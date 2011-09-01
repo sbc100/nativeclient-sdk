@@ -13,6 +13,27 @@ import string
 import sys
 import tempfile
 
+# Valid values for bundle.stability field
+STABILITY_LITERALS = [
+    'obsolete', 'post_stable', 'stable', 'beta', 'dev', 'canary'
+]
+# Valid values for bundle-recommended field.
+YES_NO_LITERALS = ['yes', 'no']
+# Map option keys to manifest attribute key. Option keys are used to retrieve
+# option values fromcmd-line options. Manifest attribute keys label the
+# corresponding value in the manifest object.
+OPTION_KEY_MAP = {
+  #  option key         manifest attribute key
+    'bundle_desc_url': 'desc_url',
+    'bundle_revision': 'revision',
+    'bundle_version':  'version',
+    'desc':            'description',
+    'recommended':     'recommended',
+    'stability':       'stability',
+}
+
+
+
 class ManifestException(Exception):
   ''' Exceptions raised within update_manifest '''
   pass
@@ -24,6 +45,46 @@ class Bundle(dict):
   def __init__(self, name):
     ''' Create a new bundle with the given bundle name. '''
     self['name'] = name
+
+  def Validate(self):
+    ''' Validate the content of the bundle. Raise ManifestException if
+        an invalid or missing field is found. '''
+    # Check required fields.
+    if not self.get('name', None):
+      raise ManifestException('Bundle has no name')
+    if not self.get('revision', None):
+      raise ManifestException('Bundle "%s" is missing a revision number' %
+                              self['name'])
+    if not self.get('description', None):
+      raise ManifestException('Bundle "%s" is missing a description' %
+                              self['name'])
+    if not self.get('stability', None):
+      raise ManifestException('Bundle "%s" is missing stability info' %
+                              self['name'])
+    if self.get('recommended', None) == None:
+      raise ManifestException('Bundle "%s" is missing the recommended field' %
+                              self['name'])
+    # Check specific values
+    if self['stability'] not in STABILITY_LITERALS:
+      raise ManifestException('Bundle "%s" has invalid stability field: "%s"' %
+                              (self['name'], self['stability']))
+    if self['recommended'] not in YES_NO_LITERALS:
+      raise ManifestException(
+          'Bundle "%s" has invalid recommended field: "%s"' %
+          (self['name'], self['recommended']))
+
+  def Update(self, options):
+    ''' Update the bundle per content of the options.
+
+    Args:
+      options: options data. Attributes that are used are also deleted from
+               options.'''
+    # Check, set and consume individual options
+    for option_key, attribute_key in OPTION_KEY_MAP.iteritems():
+      option_val = getattr(options, option_key, None)
+      if option_val:
+        self[attribute_key] = option_val
+        delattr(options, option_key);
 
 
 class SDKManifest(object):
@@ -43,11 +104,13 @@ class SDKManifest(object):
 
   def _ValidateManifest(self):
     '''Validate the Manifest file and raises an exception for problems'''
+    # Validate the manifest top level
     if self._manifest_data["manifest_version"] > self.MANIFEST_VERSION:
       raise ManifestException("Manifest version too high: %s" %
                               self._manifest_data["manifest_version"])
-
-    # TODO(mball,gwink) check other aspects of manifest file here
+    # Validate each bundle
+    for bundle in self._manifest_data['bundles']:
+      bundle.Validate()
 
   def _ValidateBundleName(self, name):
     ''' Verify that name is a valid bundle.
@@ -68,9 +131,9 @@ class SDKManifest(object):
       name: the name of the bundle to return.
     Return:
       The bundle with the given name, or None if it is not found.'''
-    if not 'bundle' in self._manifest_data:
+    if not 'bundles' in self._manifest_data:
       return None
-    bundles = self._manifest_data['bundle']
+    bundles = self._manifest_data['bundles']
     for bundle in bundles:
       if 'name' in bundle and bundle['name'] == name:
         return bundle
@@ -112,7 +175,7 @@ class SDKManifest(object):
     if not bundle:
       bundle = Bundle(bundle_name)
       self._AddBundle(bundle)
-    # TODO(gwink) create/modify bundle per options.
+    bundle.Update(options)
 
   def _VerifyAllOptionsConsumed(self, options):
     ''' Verify that all the options have been used. Raise an exception if
@@ -158,9 +221,9 @@ class SDKManifest(object):
     # Go over all the options and update the manifest data accordingly.
     # Valid options are consumed as they are used. This gives us a way to
     # verify that all the options are used.
-    if options.manifest_version != None:
+    if options.manifest_version is not None:
       self._UpdateManifestVersion(options)
-    if options.bundle_name != None:
+    if options.bundle_name is not None:
       self._UpdateBundle(options)
     self._VerifyAllOptionsConsumed(options)
     self._ValidateManifest()
@@ -209,6 +272,12 @@ class SDKManifestFile(object):
       shutil.move(temp_file_name, self._json_filepath)
 
   def UpdateWithOptions(self, options):
+    ''' Update the manifest file with the given options. Create the manifest
+        if it doesn't already exists. Raises a ManifestException if the
+        manifest doesn't validate after updating.
+
+    Args:
+      options: option data'''
     if self._json_filepath:
       self._LoadFile()
     self._manifest.UpdateManifest(options)
@@ -228,10 +297,12 @@ def main(argv):
       help='URL for an all-platform tgz archive.')
   parser.add_option(
       '-B', '--bundle_revision', dest='bundle_revision',
+      type='int',
       default=None,
       help='Required: Revision number for the bundle.')
   parser.add_option(
       '-b', '--bundle_version', dest='bundle_version',
+      type='int',
       default=None,
       help='Optional: Version number for the bundle.')
   parser.add_option(
@@ -252,10 +323,12 @@ def main(argv):
       help='Required: Name of the bundle.')
   parser.add_option(
       '-r', '--recommended', dest='recommended',
+      choices=YES_NO_LITERALS,
       default=None,
       help='Required: True or False, whether this bundle is recommended.')
   parser.add_option(
       '-s', '--stability', dest='stability',
+      choices=STABILITY_LITERALS,
       default=None,
       help='Required: Stability for this bundle; one of. '
            '"obsolete", "post_stable", "stable", "beta", "dev", "canary".')
