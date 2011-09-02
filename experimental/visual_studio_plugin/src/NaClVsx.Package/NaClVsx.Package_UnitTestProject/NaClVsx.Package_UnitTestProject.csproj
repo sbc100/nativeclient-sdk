@@ -75,6 +75,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BreakpointInfoTest.cs" />
     <Compile Include="DebugInfoEntryTest.cs" />
     <Compile Include="DebugPort2Mock.cs" />
     <Compile Include="NaClPackageTestUtils.cs" />

@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+using System.Linq;
 using Google.NaClVsx.DebugSupport;
 using Google.NaClVsx.DebugSupport.DWARF;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,25 +12,29 @@ using System;
 
 namespace NaClVsx.Package_UnitTestProject
 {
-    /// <summary>
-    ///This is a test class for SymbolDatabaseTest and is intended
-    ///to contain all SymbolDatabaseTest Unit Tests
-    ///</summary>
+  /// <summary>
+  ///   This is a test class for SymbolDatabaseTest and is intended to contain all
+  ///   SymbolDatabaseTest Unit Tests.  Note that it is not possible to build these tests on a
+  ///   compiled nexe, like the NaClSymbolProvider test suite because these all deal in
+  ///   addresses and we can't predict how address information might change on a recompilation
+  ///   of loop.cc or a change in the toolchain.
+  ///   In order to make this test stable, all the addresses and constants in the test are made
+  ///   up to test particular characteristics of the SymbolDatabase without interfering with each
+  ///   other.  When modifying these tests, care must be taken to choose offsets and values that
+  ///   are not already in use.
+  ///</summary>
   [TestClass()]
   public class SymbolDatabaseTest
   {
     /// <summary>
-    ///Gets or sets the test context which provides
-    ///information about and functionality for the current test run.
+    ///   Gets or sets the test context which provides information about and functionality for the
+    ///   current test run.
     ///</summary>
-    public TestContext TestContext
-    {
-      get
-      {
+    public TestContext TestContext {
+      get {
         return testContextInstance_;
       }
-      set
-      {
+      set {
         testContextInstance_ = value;
       }
     }
@@ -93,11 +101,37 @@ namespace NaClVsx.Package_UnitTestProject
     }
 
     /// <summary>
+    /// A simple test for the RangeLists accessor.
+    /// </summary>
+    [TestMethod()]
+    public void RangeListsTest() {
+      SymbolDatabaseConstructorTest();
+      var rangeListEntry = new RangeListEntry {
+          BaseAddress = 123456, HighPC = 456, LowPC = 123, Offset = 12
+      };
+      var rangeList = new Dictionary<ulong, RangeListEntry> {{123, rangeListEntry}};
+      TestDictionaryAccessor(rangeListEntry.Offset, rangeList, "RangeLists");
+    }
+
+    /// <summary>
+    /// A simple test of the RangeListsByDIE accessor.
+    /// </summary>
+    [TestMethod()]
+    public void RangeListsByDIETest() {
+      SymbolDatabaseConstructorTest();
+      AddTestDIEs();
+      AddTestAttributes();
+      AddTestRangeLists();
+      AddTestScopeTransitions();
+      target_.BuildIndices();
+      Assert.AreEqual(2, target_.RangeListsByDIE.Count);
+    }
+
+    /// <summary>
     ///A test for LocationsByFile
     ///</summary>
     [TestMethod()]
-    public void LocationsByFileTest()
-    {
+    public void LocationsByFileTest() {
       SymbolDatabaseConstructorTest();
       AddTestLocations();
       // If you add locations to the DB, you also need to add scope transitions
@@ -106,7 +140,7 @@ namespace NaClVsx.Package_UnitTestProject
       target_.BuildIndices();
       Assert.AreEqual(2, target_.LocationsByFile.Count);
       var locationEntries = target_.LocationsByFile[kRecurringLocationKey];
-      Assert.AreEqual(2, locationEntries.Count);
+      Assert.AreEqual(3, locationEntries.Count);
     }
 
     /// <summary>
@@ -153,7 +187,7 @@ namespace NaClVsx.Package_UnitTestProject
       target_.BuildIndices();
       Assert.AreEqual(4, target_.EntriesByParent.Count);
       var childEntries = target_.EntriesByParent[parentDIE_.Key];
-      Assert.AreEqual(7, childEntries.Count);
+      Assert.AreEqual(9, childEntries.Count);
     }
 
     /// <summary>
@@ -186,35 +220,6 @@ namespace NaClVsx.Package_UnitTestProject
     }
 
     /// <summary>
-    ///A test for AttributesByTag
-    ///</summary>
-    [TestMethod()]
-    public void AttributesByTagTest()
-    {
-      SymbolDatabaseConstructorTest();
-      AddTestAttributes();
-      target_.BuildIndices();
-      Assert.AreEqual(4, target_.AttributesByTag.Count);
-      var attributeEntries =
-          target_.AttributesByTag[DwarfAttribute.DW_AT_start_scope];
-      Assert.AreEqual(2, attributeEntries.Count);
-    }
-
-    /// <summary>
-    ///A test for AttributesByEntry
-    ///</summary>
-    [TestMethod()]
-    public void AttributesByEntryTest()
-    {
-      SymbolDatabaseConstructorTest();
-      AddTestAttributes();
-      target_.BuildIndices();
-      Assert.AreEqual(3, target_.AttributesByEntry.Count);
-      var attributeEntries = target_.AttributesByEntry[1];
-      Assert.AreEqual(3, attributeEntries.Count);
-    }
-
-    /// <summary>
     ///A test for Attributes. Simple test to ensure we can modify attributes.
     ///</summary>
     [TestMethod()]
@@ -231,6 +236,20 @@ namespace NaClVsx.Package_UnitTestProject
     }
 
     /// <summary>
+    /// A test for GetScopeAddress
+    /// </summary>
+    [TestMethod()]
+    public void GetScopeAddressTest() {
+      SymbolDatabaseConstructorTest();
+      AddTestScopeTransitions();
+      target_.BuildIndices();
+      // A small offset is added here to make sure that the function will find the address for
+      // our scope, even if it does not fall on an exact scope entry point.
+      var scopeAddress = target_.GetScopeAddress(kRecurringScopeKey + 5);
+      Assert.AreEqual(kEncapsulatingScopeAddress, scopeAddress);
+    }
+
+    /// <summary>
     ///A test for GetScopeForAddress
     ///</summary>
     [TestMethod()]
@@ -239,7 +258,9 @@ namespace NaClVsx.Package_UnitTestProject
       SymbolDatabaseConstructorTest();
       AddTestScopeTransitions();
       target_.BuildIndices();
-      var scopeForAddress = target_.GetScopeForAddress(kRecurringScopeKey+5);
+      // A small offset is added here to make sure that the function will find the address for
+      // our scope, even if it does not fall on an exact scope entry point.
+      var scopeForAddress = target_.GetScopeForAddress(kRecurringScopeKey + 5);
       Assert.AreEqual(kEncapsulatingScopeAddress,
         scopeForAddress.Attributes[DwarfAttribute.DW_AT_low_pc]);
     }
@@ -248,15 +269,54 @@ namespace NaClVsx.Package_UnitTestProject
     ///A test for GetLocationsByLine
     ///</summary>
     [TestMethod()]
-    public void GetLocationsByLineTest()
-    {
+    public void GetLocationsByLineTest() {
       SymbolDatabaseConstructorTest();
       AddTestDIEs();
       AddTestLocations();
       AddTestScopeTransitions();
       target_.BuildIndices();
-      var sourceLocationsForScope = target_.GetLocationsByLine(parentDIE_);
-      Assert.AreEqual(3, sourceLocationsForScope.Count());
+      var sourceLocationsForScope = target_.GetLocationsByLine(parentDIE_, 0);
+      Assert.AreEqual(4, sourceLocationsForScope.Count());
+    }
+
+    [TestMethod()]
+    public void GetRangeForAddressTest() {
+      SymbolDatabaseConstructorTest();
+      AddTestDIEs();
+      AddTestAttributes();
+      AddTestLocations();
+      AddTestRangeLists();
+      AddTestScopeTransitions();
+
+      target_.BuildIndices();
+      var testAddress = kFirstRangeListLowPC + firstRangeListEntry_.BaseAddress;
+      // A small offset is added here to make sure that the function will find the address for
+      // our scope, even if it does not fall on an exact scope entry point.
+      var result = target_.GetRangeForAddress(
+          testAddress + 4, rangeListDie0_);
+      Assert.IsNotNull(result);
+      Assert.AreEqual(kFirstRangeListLowPC, result.LowPC);
+    }
+
+    /// <summary>
+    ///   This test checks to ensure that the GetLocationsByLine function
+    ///   works for DIEs with ranges instead of loclists.
+    /// </summary>
+    [TestMethod()]
+    public void GetLocationsByLineRangesTest() {
+      SymbolDatabaseConstructorTest();
+      AddTestDIEs();
+      AddTestAttributes();
+      AddTestLocations();
+      AddTestRangeLists();
+      AddTestScopeTransitions();
+
+      target_.BuildIndices();
+      ulong rangeListBaseAddress = target_.RangeLists[0][kFirstRangeListLowPC].BaseAddress +
+                                   kFirstRangeListLowPC;
+      var sourceLocationsForScope = target_.GetLocationsByLine
+        (rangeListDie0_, rangeListBaseAddress);
+      Assert.AreEqual(2, sourceLocationsForScope.Count());
     }
 
     /// <summary>
@@ -286,7 +346,7 @@ namespace NaClVsx.Package_UnitTestProject
       AddTestDIEs();
       target_.BuildIndices();
       var children = target_.GetChildrenForEntry(parentDIE_.Key);
-      Assert.AreEqual(7, children.Count());
+      Assert.AreEqual(9, children.Count());
     }
 
     /// <summary>
@@ -324,6 +384,7 @@ namespace NaClVsx.Package_UnitTestProject
       AddTestFiles();
       AddTestAttributes();
       AddTestLocations();
+      AddTestRangeLists();
       AddTestScopeTransitions();
       var callFrameKeys = new List<ulong> {
           kRecurringCallFrameKey,
@@ -356,11 +417,20 @@ namespace NaClVsx.Package_UnitTestProject
     private SymbolDatabase target_;
 
     private readonly DebugInfoEntry parentDIE_ = GenerateDIE(
-          290, null, 279, DwarfTag.DW_TAG_compile_unit);
+        290, null, 279, DwarfTag.DW_TAG_compile_unit);
+    private readonly DebugInfoEntry rangeListDie0_ = GenerateDIE(
+        400, null, 290, DwarfTag.DW_TAG_lexical_block);
+    private readonly DebugInfoEntry rangeListDie1_ = GenerateDIE(
+        420, null, 290, DwarfTag.DW_TAG_lexical_block);
+
+    private readonly RangeListEntry firstRangeListEntry_ = new RangeListEntry {
+      BaseAddress = 123456, HighPC = 20, LowPC = kFirstRangeListLowPC, Offset = 0
+    };
 
     // Constants that are used in more than one place for validation purposes
     // are declared here.
     const ulong kEncapsulatingScopeAddress = 123400;
+    const ulong kFirstRangeListLowPC = 10;
     const ulong kHigherRecurringCallFrameKey = 10;
     const ulong kRecurringCallFrameKey = 1;
     const uint kRecurringLocationKey = 123456;
@@ -380,10 +450,15 @@ namespace NaClVsx.Package_UnitTestProject
           GenerateAttribute(4, 1, DwarfAttribute.DW_AT_high_pc, null),
           GenerateAttribute(5, 0, DwarfAttribute.DW_AT_start_scope, null),
           GenerateAttribute(6, 5, DwarfAttribute.DW_AT_low_pc, null),
-          GenerateAttribute(7, 5, DwarfAttribute.DW_AT_high_pc, null)
+          GenerateAttribute(7, 5, DwarfAttribute.DW_AT_high_pc, null),
+          GenerateAttribute(8, rangeListDie0_.Key, DwarfAttribute.DW_AT_ranges, (ulong)0),
+          GenerateAttribute(9, rangeListDie1_.Key, DwarfAttribute.DW_AT_ranges, (ulong)12)
       };
       foreach (var attribute in attributeList)
       {
+        if (target_.Entries.ContainsKey(attribute.ParentKey)) {
+          target_.Entries[attribute.ParentKey].Attributes.Add(attribute.Tag, attribute.Value);
+        }
         TestDictionaryAccessor(attribute.Key, attribute, "Attributes");
       }
     }
@@ -404,8 +479,10 @@ namespace NaClVsx.Package_UnitTestProject
     /// Populates the "Entries" list on the target_ SymbolDatabase.
     /// </summary>
     private void AddTestDIEs() {
-      // Add DIEs to be indexed by parent (these are a few values captured from
-      // a test run with a lot of output enabled.
+      // Add DIEs to be indexed by parent (these are a few values captured from a test run with a
+      // lot of output enabled.)  The address values in this test are chosen to create a
+      // parent-child relationship between die 290 and all the DIE's that follow it.  Like in real
+      // life, DIE address occur in ascending order.  The specific numbers are unimportant.
       var dieList = new List<DebugInfoEntry> {
           GenerateDIE(11, null, 0, DwarfTag.DW_TAG_compile_unit),
           GenerateDIE(155, null, 144, DwarfTag.DW_TAG_compile_unit),
@@ -416,7 +493,9 @@ namespace NaClVsx.Package_UnitTestProject
           GenerateDIE(336, parentDIE_, 290, DwarfTag.DW_TAG_base_type),
           GenerateDIE(343, parentDIE_, 290, DwarfTag.DW_TAG_base_type),
           GenerateDIE(350, parentDIE_, 290, DwarfTag.DW_TAG_base_type),
-          GenerateDIE(357, parentDIE_, 290, DwarfTag.DW_TAG_base_type)
+          GenerateDIE(357, parentDIE_, 290, DwarfTag.DW_TAG_base_type),
+          rangeListDie0_,
+          rangeListDie1_,
       };
       foreach (var debugInfoEntry in dieList)
       {
@@ -447,12 +526,13 @@ namespace NaClVsx.Package_UnitTestProject
     }
 
     /// <summary>
-    /// Populates the "Locations" list on the target_ SymbolDatabase.
+    /// Populates the "Locations" list on the target SymbolDatabase.
     /// </summary>
     private void AddTestLocations() {
       var locationList = new List<SymbolDatabase.SourceLocation> {
           GenerateLocation(1, 10, 1, kRecurringLocationKey, 123456),
           GenerateLocation(12, 1, 1, kRecurringLocationKey, 123466),
+          GenerateLocation(13, 1, 1, kRecurringLocationKey, 123470),
           GenerateLocation(1, 4, 2, 123457, 123654)
       };
       foreach (var location in locationList)
@@ -462,17 +542,36 @@ namespace NaClVsx.Package_UnitTestProject
     }
 
     /// <summary>
-    /// Populates the "ScopeTransitions" list on the target_ SymbolDatabase.
+    /// Populates the "RangeLists" list on the target SymbolDatabase.
+    /// </summary>
+    private void AddTestRangeLists() {
+
+      var rangeList0 = new Dictionary<ulong, RangeListEntry> {
+          {kFirstRangeListLowPC, firstRangeListEntry_},
+          {20, new RangeListEntry {BaseAddress = 123456, HighPC = 40, LowPC = 20, Offset = 0}},
+          {40, new RangeListEntry {BaseAddress = 123456, HighPC = 80, LowPC = 40, Offset = 0}}
+      };
+      var rangeList1 = new Dictionary<ulong, RangeListEntry> {
+          {81, new RangeListEntry {BaseAddress = 123456, HighPC = 102, LowPC = 81, Offset = 12}},
+          {102, new RangeListEntry {BaseAddress = 123456, HighPC = 112, LowPC = 102, Offset = 12}},
+          {112, new RangeListEntry {BaseAddress = 123456, HighPC = 132, LowPC = 112, Offset = 12}}
+      };
+      TestDictionaryAccessor(0, rangeList0, "RangeLists");
+      TestDictionaryAccessor(12, rangeList1, "RangeLists");
+
+
+    }
+
+    /// <summary>
+    /// Populates the "ScopeTransitions" list on the target SymbolDatabase.  These are designed
+    /// to bracket the CodeLocations added by AddTestLocations.
     /// </summary>
     private void AddTestScopeTransitions() {
-      // In order for BuildIndices to be able to process the CodeLocations we
-      // just added, we need to add a ScopeTransition that would bracket those
-      // locations.
       parentDIE_.Attributes.Add(
           DwarfAttribute.DW_AT_low_pc,
           kEncapsulatingScopeAddress);
       var scopeTransitionList = new List<SymbolDatabase.ScopeTransition> {
-          GenerateScopeTransition(kRecurringScopeKey, parentDIE_),
+          GenerateScopeTransition(kEncapsulatingScopeAddress, parentDIE_),
           GenerateScopeTransition(
               234567,
               GenerateDIE(234567, null, 0, DwarfTag.DW_TAG_compile_unit))
@@ -619,10 +718,9 @@ namespace NaClVsx.Package_UnitTestProject
     /// </summary>
     private void ValidateIndices() {
       ValidateIndex(target_.SourceFilesByFilename);
-      ValidateIndex(target_.AttributesByTag);
-      ValidateIndex(target_.AttributesByEntry);
       ValidateIndex(target_.LocationsByFile);
       ValidateIndex(target_.EntriesByParent);
+      ValidateIndex(target_.RangeListsByDIE);
     }
 
     /// <summary>
@@ -632,7 +730,7 @@ namespace NaClVsx.Package_UnitTestProject
     /// </summary>
     /// <typeparam name="TValueType"></typeparam>
     /// <param name="index"></param>
-    private void ValidateIndex<TValueType>(IEnumerable<TValueType> index) {
+    private static void ValidateIndex<TValueType>(IEnumerable<TValueType> index) {
       Assert.IsNotNull(index);
       Assert.AreNotEqual(0, index.Count());
     }

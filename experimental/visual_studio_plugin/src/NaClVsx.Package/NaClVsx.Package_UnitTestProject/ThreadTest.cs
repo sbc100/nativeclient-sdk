@@ -81,6 +81,12 @@ namespace NaClVsx.Package_UnitTestProject {
 
       mockRegisters.Rip = printLineAddress;
       mockRegisters.Rbp = dummyValidAddress;
+      // As the stack is being analyzed, the debugger will traverse up the
+      // call chain.  The mock will thus return code locations from the inside
+      // out to simulate this procedure.
+      // Note that the symbolprovider has been loaded with real call frame
+      // information, and that the non-dummy addresses have been parsed out of
+      // the loop nexe as well.
       debuggerMock.RecordCall("GetRegisters", (uint) 1, mockRegisters);
       debuggerMock.RecordCall("GetU64", (ulong) 1000008, printLoopAddress);
       debuggerMock.RecordCall("GetU64", (ulong) 1000000, dummyValidAddress);
@@ -93,6 +99,8 @@ namespace NaClVsx.Package_UnitTestProject {
       // http://code.google.com/p/nativeclient/issues/detail?id=2012
       debuggerMock.RecordCall("GetU64", (ulong) 1000008, mainAddress);
       debuggerMock.RecordCall("GetU64", (ulong) 1000000, dummyValidAddress);
+      debuggerMock.RecordCall("GetU64", (ulong) 999984, dummyValidAddress);
+      debuggerMock.RecordCall("GetU64", (ulong) 999992, dummyValidAddress);
       var returned = target.EnumFrameInfo(
           dwFieldSpec, nRadix, out ppDebugFrames);
       Assert.AreEqual(VSConstants.S_OK, returned);

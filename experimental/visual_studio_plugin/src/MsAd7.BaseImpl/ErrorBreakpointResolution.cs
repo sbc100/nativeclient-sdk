@@ -71,6 +71,7 @@ namespace Google.MsAd7.BaseImpl {
         resolutionInfo_.dwFields = resolutionInfo_.dwFields |
                                    enum_BPERESI_FIELDS.BPERESI_TYPE;
       }
+      get { return resolutionInfo_.dwType; }
     }
 
     #region Implementation of IDebugBreakpointResolution2

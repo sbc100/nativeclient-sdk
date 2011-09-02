@@ -1,8 +1,6 @@
-﻿// Copyright 2009 The Native Client Authors. All rights reserved.
-// 
-// Use of this source code is governed by a BSD-style license that can
-// 
-// be found in the LICENSE file.
+﻿// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #region
 
@@ -31,6 +29,28 @@ namespace Google.NaClVsx.DebugSupport {
     }
 
     public ulong BaseAddress { get; set; }
+
+    /// <summary>
+    ///   Internally MSVX uses 0-indexed positions. However, DWARF and MSVC's own user interface
+    ///   do not.  This function exists because having the += 1 and -= 1 calculations all over the
+    ///   place, is extremely error-prone and confusing.
+    /// </summary>
+    /// <param name="dwarfLineIndex">A 1-based index.</param>
+    /// <returns>The 0-based index.</returns>
+    public static uint GetMSVCLineIndex(uint dwarfLineIndex) {
+      return dwarfLineIndex - 1;
+    }
+
+    /// <summary>
+    ///   Internally MSVX uses 0-indexed positions. However, DWARF and MSVC's own user interface
+    ///   do not.  This function exists because having the += 1 and -= 1 calculations all over the
+    ///   place, is extremely error-prone and confusing. 
+    /// </summary>
+    /// <param name="msvcLineIndex">A 0-based index.</param>
+    /// <returns>The 1-based index</returns>
+    public static uint GetDwarfLineIndex(uint msvcLineIndex) {
+      return msvcLineIndex + 1;
+    }
 
     #region Implementation of ISimpleSymbolProvider
 
@@ -90,16 +110,13 @@ namespace Google.NaClVsx.DebugSupport {
       programCounter -= BaseAddress;
 
       // Get the scope, current function, and frame pointer
-      //
       var scopeEntry =
           db_.GetScopeForAddress(programCounter);
       if (scopeEntry == null) {
         return result;
       }
 
-
       // Find the parent most DIE which represents this function
-      //
       var fnEntry = scopeEntry;
       while (fnEntry.Tag != DwarfTag.DW_TAG_subprogram
              && fnEntry.OuterScope != null) {
@@ -109,7 +126,6 @@ namespace Google.NaClVsx.DebugSupport {
       var functionLowPC =
           (ulong)
           fnEntry.Attributes.GetValueOrDefault(DwarfAttribute.DW_AT_low_pc, 0);
-
       var fnMax =
           (ulong)
           fnEntry.Attributes.GetValueOrDefault(DwarfAttribute.DW_AT_high_pc, 0);
@@ -154,7 +170,21 @@ namespace Google.NaClVsx.DebugSupport {
       // that same offset.
       var compilationUnitEntry =
           functionEntry.GetNearestAncestorWithTag(DwarfTag.DW_TAG_compile_unit);
-      var compilationUnitLowPC = compilationUnitEntry.GetLowPC();
+      ulong compilationUnitLowPC = 0;
+      if(compilationUnitEntry.HasAttribute(DwarfAttribute.DW_AT_low_pc)) {
+        compilationUnitLowPC = compilationUnitEntry.GetLowPC();
+      }
+      else if (compilationUnitEntry.HasAttribute(DwarfAttribute.DW_AT_ranges)) {
+        // This should never really happen.  In case it does, it warrants some
+        // explanation.  The reason we look for the functionFrameBase is because
+        // we need the rangelist entry for the location of the function, within
+        // the compilation unit.  Any addresses in nested scopes would then be
+        // treated as relative addresses to that offset.
+        var rangeListEntry = db_.GetRangeForAddress(functionFrameBase, compilationUnitEntry);
+        if (rangeListEntry != null) {
+          compilationUnitLowPC += rangeListEntry.LowPC;
+        }
+      }
 
       var codeAddress = instructionAddress - compilationUnitLowPC;
       // The VM inputs object handles feeding the VM whatever it asks for.
@@ -195,6 +225,11 @@ namespace Google.NaClVsx.DebugSupport {
       return result;
     }
 
+    /// <summary>
+    ///   Determines what function the given address is in.
+    /// </summary>
+    /// <param name="address">The address whose function is needed.</param>
+    /// <returns>The windows debugger representation of the containing function.</returns>
     public Function FunctionFromAddress(ulong address) {
       var result = new Function {
           Id = 0,
@@ -203,17 +238,14 @@ namespace Google.NaClVsx.DebugSupport {
 
       var scopeEntry =
           db_.GetScopeForAddress(address - BaseAddress);
-      var fnEntry = scopeEntry;
-      while (fnEntry != null &&
-             fnEntry.Tag != DwarfTag.DW_TAG_subprogram) {
-        fnEntry = fnEntry.OuterScope;
-      }
-
-      if (fnEntry != null) {
-        result.Id = fnEntry.Key;
-        result.Name =
-            (string)
-            fnEntry.Attributes[DwarfAttribute.DW_AT_name];
+      if (null != scopeEntry) {
+        var fnEntry =
+            scopeEntry.GetNearestAncestorWithTag(DwarfTag.DW_TAG_subprogram);
+        if (null != fnEntry) {
+          result.Id = fnEntry.Key;
+          result.Name =
+              (string) fnEntry.Attributes[DwarfAttribute.DW_AT_name];
+        }
       }
 
       return result;
@@ -339,7 +371,14 @@ namespace Google.NaClVsx.DebugSupport {
       return result;
     }
 
-    public SymbolType GetSymbolType(ulong key) {
+    /// <summary>
+    ///   Attempts to determine the symbol type for the symbol at the given address.
+    /// </summary>
+    /// <param name="address">An address.  Notes: This address needs to be an address of a DIE
+    ///   for an actual symbol.  The address is the address of the DIE in the binary file, also
+    ///   known as its "key" in the Entries dictionary of the SymbolDatabase</param>
+    /// <returns>The windows debugger SymbolType.</returns>
+    public SymbolType GetSymbolType(ulong address) {
       var result = new SymbolType {
           Key = 0,
           Name = "unknown",
@@ -349,7 +388,7 @@ namespace Google.NaClVsx.DebugSupport {
       DebugInfoEntry symbolEntry;
 
       // If we do not find this symbol, then return unknown.
-      if (!db_.Entries.TryGetValue(key, out symbolEntry)) {
+      if (!db_.Entries.TryGetValue(address, out symbolEntry)) {
         return result;
       }
 
@@ -444,9 +483,11 @@ namespace Google.NaClVsx.DebugSupport {
             return result;
 
           case DwarfTag.DW_TAG_structure_type:
-            result.Name =
-                (string) symbolEntry.Attributes[DwarfAttribute.DW_AT_name] +
-                result.Name;
+            if (symbolEntry.HasAttribute(DwarfAttribute.DW_AT_name)) {
+              result.Name =
+                  (string) symbolEntry.Attributes[DwarfAttribute.DW_AT_name] +
+                  result.Name;
+            }
             if (BaseType.Unknown == result.TypeOf) {
               result.TypeOf = BaseType.Struct;
             }
@@ -465,6 +506,12 @@ namespace Google.NaClVsx.DebugSupport {
             result.Name = result.Name.TrimEnd(trim) + ")";
             break;
           }
+
+          case DwarfTag.DW_TAG_typedef: 
+            result.Name =
+                (string) symbolEntry.Attributes[DwarfAttribute.DW_AT_name] +
+                result.Name;
+            break;
 
           default:
             result.Name = "Parse Err";

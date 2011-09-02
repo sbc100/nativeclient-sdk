@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <string>
 #include <sys/time.h>
 #include <sys/nacl_syscalls.h>
 int g_GlobalData = 0;
@@ -43,6 +44,7 @@ void print_char_type() {
 int main(int argc, const char *argv[]){
   int x = 0;
   int y = 9;
+  std::string test_string;
   printf("Hello World\n\n x: %d y: %d", x, y);
   g_GlobalData++;
   foo();

@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+using System.Collections.Generic;
 using Google.NaClVsx.DebugSupport.DWARF;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -69,7 +73,6 @@ namespace NaClVsx.Package_UnitTestProject
       EndCfiEntryTest();
     }
 
-
     /// <summary>
     /// A test for StartDIE
     /// </summary>
@@ -100,8 +103,6 @@ namespace NaClVsx.Package_UnitTestProject
       Assert.AreEqual(1, compIndex);
     }
 
-
-
     /// <summary>
     ///A test for ProcessAttribute
     ///</summary>
@@ -128,6 +129,27 @@ namespace NaClVsx.Package_UnitTestProject
                            kDeclarationAttributeData);
       ProcessAttributeTest(kDieOffset, kDieOffset, kTypeAttribute,
                            kTypeAttributeData);
+    }
+
+    /// <summary>
+    ///   A test for ProcessAttribute
+    /// </summary>
+    [TestMethod()]
+    public void ProcessAttributeTestRangesAttribute()
+    {
+      DwarfReaderImplConstructorTest();
+      const DwarfAttribute kRangesAttribute = DwarfAttribute.DW_AT_ranges;
+      const ulong kRangesAttributeData = 1;
+
+      StartDIETest();
+      var targetPrivates = new PrivateObject(target_);
+      var targetScopeStack = targetPrivates.GetField("scopeStack_") as Stack<DebugInfoEntry>;
+      Assert.IsNotNull(targetScopeStack);
+      var beforeScopeCount = targetScopeStack.Count;
+      ProcessAttributeTest(kDieOffset, kDieOffset, kRangesAttribute,
+                           kRangesAttributeData);
+      var afterScopeCount = targetScopeStack.Count;
+      Assert.AreEqual(beforeScopeCount + 1, afterScopeCount);
     }
 
     /// <summary>
@@ -298,6 +320,21 @@ namespace NaClVsx.Package_UnitTestProject
     }
 
     /// <summary>
+    ///A test for AddRangeListEntry
+    ///</summary>
+    [TestMethod()]
+    public void AddRangeListEntryTest() {
+      DwarfReaderImplConstructorTest();
+      const ulong kOffset = 123456;
+      const ulong kBaseAddress = 12345;
+      const ulong kLowPC = 123;
+      const ulong kHighPC = 456;
+      Assert.AreEqual(0, testDb_.RangeLists.Count);
+      target_.AddRangeListEntry(kOffset, kBaseAddress, kLowPC, kHighPC);
+      Assert.AreEqual(1,testDb_.RangeLists.Count);
+    }
+
+    /// <summary>
     /// A test for DwarfReaderImpl Constructor
     /// This function can be called from the beginning of any of the unit
     /// tests in this file.  It will only overwrite target_ if target is null
@@ -351,5 +388,7 @@ namespace NaClVsx.Package_UnitTestProject
       return new PrivateObject(target_);
     }
     #endregion
+
+
   }
 }

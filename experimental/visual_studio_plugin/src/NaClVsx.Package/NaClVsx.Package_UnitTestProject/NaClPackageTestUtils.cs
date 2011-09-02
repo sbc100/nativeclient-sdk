@@ -22,45 +22,55 @@ namespace NaClVsx.Package_UnitTestProject {
     #region  constants
 
     /// <summary>
-    ///   This is the location at which I is declared in void main in loop.cc.
+    /// This points at an empty line inside of a function.
     /// </summary>
-    public const uint kDeclarationOfIRow = 7;
+    public const uint kBlankLineInPrintLoop = 22;
+
+    /// <summary>
+    ///   This is the location at which I is declared in print_line in loop.cc.
+    /// </summary>
+    public const uint kDeclarationOfIRow = 8;
+
+    /// <summary>
+    ///   This is the location at which test_string is declared in void main in loop.cc.
+    /// </summary>
+    public const uint kDeclarationOfTestStringRow = 46;
 
     /// <summary>
     ///   This is the call site of the foo function in loop.cc.
     /// </summary>
-    public const uint kFooCallSiteRow = 47;
+    public const uint kFooCallSiteRow = 49;
 
     /// <summary>
     ///   This is the line of the closing paren of the main function in loop.cc.
     /// </summary>
-    public const uint kMainEndRow = 50;
+    public const uint kMainEndRow = 52;
 
     /// <summary>
     ///   This is the first line of the body of the main function in loop.cc.
     /// </summary>
-    public const uint kMainStartRow = 43;
+    public const uint kMainStartRow = 44;
 
     /// <summary>
     ///   This is the location of the printf in print_char_type in loop.cc
     /// </summary>
-    public const uint kPrintCharTypePrintfRow = 38;
+    public const uint kPrintCharTypePrintfRow = 39;
 
     /// <summary>
     ///   This is the call site of the print_line function in loop.cc.
     /// </summary>
-    public const uint kPrintLineCallSiteRow = 23;
+    public const uint kPrintLineCallSiteRow = 24;
 
     /// <summary>
     ///   This is a line number somewhere in the print_line function in loop.cc.
     ///   We don't care exactly which one.
     /// </summary>
-    public const uint kPrintLineRow = 9;
+    public const uint kPrintLineRow = 10;
 
     /// <summary>
     ///   This is the call site of the print_loop function in loop.cc.
     /// </summary>
-    public const uint kPrintLoopCallSiteRow = 30;
+    public const uint kPrintLoopCallSiteRow = 31;
 
     #endregion
 
@@ -123,12 +133,14 @@ namespace NaClVsx.Package_UnitTestProject {
     #region Private Implementation
 
     /// <summary>
-    ///   The location realtive to the  at which the loop nexe is to be found.
+    ///   The location, relative to |vsxRootDir|, at which the loop.cc source
+    ///   is to be found.
     /// </summary>
     private static readonly string kCCPath = @"src\loop\loop.cc";
 
     /// <summary>
-    ///   The location realtive to the  at which the loop nexe is to be found.
+    ///   The location, relative to |vsxRootDir|, at which the loop.nexe is to
+    ///   be found.
     /// </summary>
     private static readonly string kNexePath = @"src\loop\loop.nexe";
 
