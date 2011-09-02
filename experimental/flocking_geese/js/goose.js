@@ -337,9 +337,6 @@ Goose.prototype.turnTowardsTarget = function(target) {
 Goose.prototype.render = function(canvas) {
   var context2d = canvas.getContext('2d');
   context2d.save();
-  // Transform the coordinate system so y-increasing is up.
-  context2d.translate(0, canvas.height);
-  context2d.scale(1, -1);
   context2d.fillStyle = 'blue';
   context2d.translate(this.location_.x, this.location_.y);
   context2d.rotate(this.velocity_.heading());
