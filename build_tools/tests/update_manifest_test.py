@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import urlparse
 
 from build_tools import update_manifest
 
@@ -40,7 +41,7 @@ class TestUpdateManifest(unittest.TestCase):
     self.assertEqual(self._manifest.GetManifestString(),
                      self._json_boilerplate)
     # Test using a manifest file with a version that is too high
-    self.assertRaises(update_manifest.ManifestException,
+    self.assertRaises(update_manifest.Error,
                       self._manifest.LoadManifestString,
                       '{"manifest_version": 2}')
 
@@ -81,11 +82,12 @@ class TestUpdateManifest(unittest.TestCase):
     ''' Test function _VerifyAllOptionsConsumed '''
     options = FakeOptions()
     options.opt1 = None
-    self.assertTrue(self._manifest._VerifyAllOptionsConsumed(options))
+    self.assertTrue(self._manifest._VerifyAllOptionsConsumed(options, None))
     options.opt2 = 'blah'
-    self.assertRaises(update_manifest.ManifestException,
+    self.assertRaises(update_manifest.Error,
                       self._manifest._VerifyAllOptionsConsumed,
-                      options)
+                      options,
+                      'no bundle name')
 
   def testBundleUpdate(self):
     ''' Test function Bundle.Update '''
@@ -131,7 +133,7 @@ class TestUpdateManifest(unittest.TestCase):
     options.manifest_version = None
     options.bundle_name = 'test'
     options.stability = 'excellent'
-    self.assertRaises(update_manifest.ManifestException,
+    self.assertRaises(update_manifest.Error,
                       self._manifest.UpdateManifest,
                       options)
 
@@ -140,9 +142,41 @@ class TestUpdateManifest(unittest.TestCase):
     options = FakeOptions()
     options.manifest_version = None
     options.bundle_name = 'another_bundle'
-    self.assertRaises(update_manifest.ManifestException,
+    self.assertRaises(update_manifest.Error,
                       self._manifest.UpdateManifest,
                       options)
+
+  def testUpdateManifestArchiveComputeSha1AndSize(self):
+    ''' Test function Archive.Update '''
+    # Create a temp file with some data
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+      temp_file.write(r'abcdefghijklmnopqrstuvwxyz0123456789')
+      temp_file.flush()
+      file_path = os.path.normpath(temp_file.name)
+      temp_file.close()
+      # Create an archive with a url to the file we created above.
+      url_parts = urlparse.ParseResult('file', '', file_path, '', '', '')
+      url = urlparse.urlunparse(url_parts)
+      archive = update_manifest.Archive('mac')
+      archive.Update(url)
+      self.assertEqual(archive['checksum']['sha1'],
+                       'd2985049a677bbc4b4e8dea3b89c4820e5668e3a')
+
+  def testUpdateManifestArchiveValidate(self):
+    ''' Test function Archive.Validate '''
+    # Test invalid host-os name
+    archive = update_manifest.Archive('atari')
+    self.assertRaises(update_manifest.Error, archive.Validate)
+    # Test missing url
+    archive['host_os'] = 'mac'
+    self.assertRaises(update_manifest.Error, archive.Validate)
+    # Valid archive
+    archive['url'] = 'http://www.google.com'
+    archive.Validate()
+    # Test invalid key name
+    archive['guess'] = 'who'
+    self.assertRaises(update_manifest.Error, archive.Validate)
+
 
 def main():
   suite = unittest.TestLoader().loadTestsFromTestCase(TestUpdateManifest)

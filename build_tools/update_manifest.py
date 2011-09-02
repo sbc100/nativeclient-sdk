@@ -5,6 +5,7 @@
 
 '''Utility to update the SDK manifest file in the build_tools directory'''
 
+import hashlib
 import json
 import optparse
 import os
@@ -12,11 +13,14 @@ import shutil
 import string
 import sys
 import tempfile
+import urllib2
 
 # Valid values for bundle.stability field
 STABILITY_LITERALS = [
     'obsolete', 'post_stable', 'stable', 'beta', 'dev', 'canary'
 ]
+# Valid values for the archive.host_os field
+HOST_OS_LITERALS = frozenset(['mac', 'win', 'linux', 'all'])
 # Valid values for bundle-recommended field.
 YES_NO_LITERALS = ['yes', 'no']
 # Map option keys to manifest attribute key. Option keys are used to retrieve
@@ -31,12 +35,121 @@ OPTION_KEY_MAP = {
     'recommended':     'recommended',
     'stability':       'stability',
 }
+# Map options keys to platform key, as stored in the bundle.
+OPTION_KEY_TO_PLATFORM_MAP = {
+    'mac_tgz_url':    'mac',
+    'win_tgz_url':    'win',
+    'linux_tgz_url':  'linux',
+    'all_tgz_url':    'all',
+}
+# Valid keys for various sdk objects, used for validation.
+VALID_ARCHIVE_KEYS = frozenset(['host_os', 'size', 'checksum', 'url'])
+VALID_BUNDLE_KEYS = frozenset([
+    'name', 'version', 'revision', 'description', 'desc_url', 'stability',
+    'recommended', 'archives',
+])
+VALID_MANIFEST_KEYS = frozenset(['manifest_version', 'bundles'])
 
 
-
-class ManifestException(Exception):
+class Error(Exception):
   ''' Exceptions raised within update_manifest '''
   pass
+
+
+class Archive(dict):
+  ''' A placeholder for sdk archive information. We derive Archive from
+      dict so that it is easily serializable. '''
+  def __init__(self, host_os_name):
+    ''' Create a new archive for the given host-os name. '''
+    self['host_os'] = host_os_name
+
+  def Validate(self):
+    ''' Validate the content of the archive object. Raise an Error if
+        an invalid or missing field is found. '''
+    host_os = self.get('host_os', None)
+    if host_os and host_os not in HOST_OS_LITERALS:
+      raise Error('Invalid host-os name in archive')
+    # Ensure host_os has a valid string. We'll use it for pretty printing.
+    if not host_os:
+      host_os = 'all (default)'
+    if not self.get('url', None):
+      raise Error('Archive "%s" has no URL' % host_os)
+    # Verify that all key names are valid.
+    for key, val in self.iteritems():
+      if key not in VALID_ARCHIVE_KEYS:
+        raise Error('Archive "%s" has invalid attribute "%s"' % (host_os, key))
+
+  def _OpenURLStream(self):
+    ''' Open a file-like stream for the archives's url. Raises an Error if the
+        url can't be opened.
+
+    Return:
+      A file-like object from which the archive's data can be read.'''
+    try:
+      url_stream = urllib2.urlopen(self['url'])
+    except urllib2.URLError:
+      raise Error('"%s" is not a valid URL for archive %s' %
+          (self['url'], self['host_os']))
+
+    return url_stream
+
+  def _Download(self, from_stream, to_stream=None):
+    ''' '''
+    sha1_hash = hashlib.sha1()
+    size = 0
+    while(1):
+      data = from_stream.read(32768)
+      if not data : break
+      sha1_hash.update(data)
+      size += len(data)
+      if to_stream:
+        to_stream.write(data)
+    return sha1_hash.hexdigest(), size
+
+  def ComputeSha1AndSize(self):
+    ''' Compute the sha1 hash and size of the archive's data. Raises
+        an Error if the url can't be opened.
+
+    Return:
+      A tuple (sha1, size) with the sha1 hash and data size respectively.'''
+    stream = None
+    sha1 = None
+    size = 0
+    try:
+      stream = self._OpenURLStream()
+      sha1, size = self._Download(stream)
+    finally:
+      if stream: stream.close()
+    return sha1, size
+
+  def DownloadToFile(self, dest_path):
+    ''' Download the archive's data to a file at dest_path. As a side effect,
+        computes the sha1 hash and data size, both returned as a tuple. Raises
+        an Error if the url can't be opened, or an IOError exception if
+        dest_path can't be opened.
+
+    Args:
+      dest_path: Path for the file that will receive the data.
+    Return:
+      A tuple (sha1, size) with the sha1 hash and data size respectively.'''
+    sha1 = None
+    size = 0
+    with open(dest_path, 'wb') as to_stream:
+      try:
+        from_stream = self._OpenURLStream()
+        sha1, size = self._Download(from_stream, to_stream)
+      finally:
+        if from_stream: from_stream.close()
+    return sha1, size
+
+  def Update(self, url):
+    ''' Update the archive with the new url. Automatically update the
+        archive's size and checksum fields. Raises an Error if the url is
+        is invalid. '''
+    self['url'] = url
+    sha1, size = self.ComputeSha1AndSize()
+    self['size'] = size
+    self['checksum'] = {'sha1': sha1}
 
 
 class Bundle(dict):
@@ -45,33 +158,68 @@ class Bundle(dict):
   def __init__(self, name):
     ''' Create a new bundle with the given bundle name. '''
     self['name'] = name
+    self['archives'] = []
 
   def Validate(self):
-    ''' Validate the content of the bundle. Raise ManifestException if
-        an invalid or missing field is found. '''
+    ''' Validate the content of the bundle. Raise an Error if an invalid or
+        missing field is found. '''
     # Check required fields.
     if not self.get('name', None):
-      raise ManifestException('Bundle has no name')
+      raise Error('Bundle has no name')
     if not self.get('revision', None):
-      raise ManifestException('Bundle "%s" is missing a revision number' %
+      raise Error('Bundle "%s" is missing a revision number' %
                               self['name'])
     if not self.get('description', None):
-      raise ManifestException('Bundle "%s" is missing a description' %
+      raise Error('Bundle "%s" is missing a description' %
                               self['name'])
     if not self.get('stability', None):
-      raise ManifestException('Bundle "%s" is missing stability info' %
+      raise Error('Bundle "%s" is missing stability info' %
                               self['name'])
     if self.get('recommended', None) == None:
-      raise ManifestException('Bundle "%s" is missing the recommended field' %
+      raise Error('Bundle "%s" is missing the recommended field' %
                               self['name'])
     # Check specific values
     if self['stability'] not in STABILITY_LITERALS:
-      raise ManifestException('Bundle "%s" has invalid stability field: "%s"' %
+      raise Error('Bundle "%s" has invalid stability field: "%s"' %
                               (self['name'], self['stability']))
     if self['recommended'] not in YES_NO_LITERALS:
-      raise ManifestException(
+      raise Error(
           'Bundle "%s" has invalid recommended field: "%s"' %
           (self['name'], self['recommended']))
+    # Verify that all key names are valid.
+    for key, val in self.iteritems():
+      if key not in VALID_BUNDLE_KEYS:
+        raise Error('Bundle "%s" has invalid attribute "%s"' %
+                    (self['name'], key))
+    # Validate the archives
+    for archive in self['archives']:
+      archive.Validate()
+
+  def GetArchive(self, host_os_name):
+    ''' Retrieve the archive for the given host os.
+
+    Args:
+      host_os_name: name of host os whose archive must be retrieved.
+    Return:
+      An Archive instance or None if it doesn't exist.'''
+    for archive in self['archives']:
+      if archive.host_os is host_os_name:
+        return archive
+    return None
+
+  def UpdateArchive(self, host_os, url):
+    ''' Update or create  the archive for host_os with the new url.
+        Automatically updates the archive size and checksum info by downloading
+        the data from the given archive. Raises an Error if the url is invalid.
+
+    Args:
+      host_os: name of host os whose archive must be updated or created.
+      url: the new url for the archive.'''
+    archive = self.GetArchive(host_os)
+    if not archive:
+      archive = Archive(host_os)
+      self['archives'].append(archive)
+    archive.Update(url)
 
   def Update(self, options):
     ''' Update the bundle per content of the options.
@@ -79,11 +227,17 @@ class Bundle(dict):
     Args:
       options: options data. Attributes that are used are also deleted from
                options.'''
-    # Check, set and consume individual options
+    # Check, set and consume individual bundle options.
     for option_key, attribute_key in OPTION_KEY_MAP.iteritems():
       option_val = getattr(options, option_key, None)
       if option_val:
         self[attribute_key] = option_val
+        delattr(options, option_key);
+    # Check and consume archive-url options.
+    for option_key, host_os in OPTION_KEY_TO_PLATFORM_MAP.iteritems():
+      platform_url = getattr(options, option_key, None)
+      if platform_url:
+        self.UpdateArchive(host_os, platform_url)
         delattr(options, option_key);
 
 
@@ -106,8 +260,12 @@ class SDKManifest(object):
     '''Validate the Manifest file and raises an exception for problems'''
     # Validate the manifest top level
     if self._manifest_data["manifest_version"] > self.MANIFEST_VERSION:
-      raise ManifestException("Manifest version too high: %s" %
+      raise Error("Manifest version too high: %s" %
                               self._manifest_data["manifest_version"])
+    # Verify that all key names are valid.
+    for key, val in self._manifest_data.iteritems():
+      if key not in VALID_MANIFEST_KEYS:
+        raise Error('Manifest has invalid attribute "%s"' % key)
     # Validate each bundle
     for bundle in self._manifest_data['bundles']:
       bundle.Validate()
@@ -166,7 +324,7 @@ class SDKManifest(object):
                used (and consumed) by this function. '''
     # Get and validate the bundle name
     if not self._ValidateBundleName(options.bundle_name):
-      raise ManifestException('Invalid bundle name: "%s"' %
+      raise Error('Invalid bundle name: "%s"' %
                               options.bundle_name)
     bundle_name = options.bundle_name
     del options.bundle_name
@@ -177,17 +335,21 @@ class SDKManifest(object):
       self._AddBundle(bundle)
     bundle.Update(options)
 
-  def _VerifyAllOptionsConsumed(self, options):
+  def _VerifyAllOptionsConsumed(self, options, bundle_name):
     ''' Verify that all the options have been used. Raise an exception if
         any valid option has not been used. Returns True if all options have
         been consumed.
 
     Args:
-      options: the object containg the remaining unused options attributes.'''
+      options: the object containg the remaining unused options attributes.
+      bundl_name: The name of the bundle, or None if it's missing.'''
     # Any option left in the list should have value = None
     for key, val in options.__dict__.items():
       if val != None:
-        raise ManifestException("Unused option: %s" % key)
+        if bundle_name:
+          raise Error('Unused option "%s" for bundle "%s"' % (key, bundle_name))
+        else:
+          raise Error('No bundle name specified')
     return True;
 
 
@@ -223,9 +385,12 @@ class SDKManifest(object):
     # verify that all the options are used.
     if options.manifest_version is not None:
       self._UpdateManifestVersion(options)
-    if options.bundle_name is not None:
+    # Keep a copy of bundle_name, which will be consumed by UpdateBundle, for
+    # use in _VerifyAllOptionsConsumed below.
+    bundle_name = options.bundle_name
+    if bundle_name is not None:
       self._UpdateBundle(options)
-    self._VerifyAllOptionsConsumed(options)
+    self._VerifyAllOptionsConsumed(options, bundle_name)
     self._ValidateManifest()
 
 
@@ -273,8 +438,8 @@ class SDKManifestFile(object):
 
   def UpdateWithOptions(self, options):
     ''' Update the manifest file with the given options. Create the manifest
-        if it doesn't already exists. Raises a ManifestException if the
-        manifest doesn't validate after updating.
+        if it doesn't already exists. Raises an Error if the manifest doesn't
+        validate after updating.
 
     Args:
       options: option data'''
@@ -291,10 +456,6 @@ def main(argv):
       usage="Usage: %prog [options] [manifest_file]")
 
   # Setup options
-  parser.add_option(
-      '-A', '--all_tgz', dest='all_tgz_url',
-      default=None,
-      help='URL for an all-platform tgz archive.')
   parser.add_option(
       '-B', '--bundle_revision', dest='bundle_revision',
       type='int',
