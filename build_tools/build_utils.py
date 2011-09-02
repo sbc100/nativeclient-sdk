@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 
 from nacl_sdk_scons import nacl_utils
 
@@ -54,6 +55,47 @@ def ForceMakeDirs(abs_path, mode=0755):
       print 'ForceMakeDirs(%s, 0%o) FAILED: %s' % (abs_path, mode, os_strerr)
       raise
     pass
+
+
+def GetArchiveTableOfContents(tar_archive_file):
+  '''Walk a directory and return the table of contents.
+
+  The table of contents is an enumeration of each node in the archive, broken
+  into four separate arrays:
+    1. The list of plain files.
+    2. The list of plain directories (not symlinks).
+    3. The list of symbolic links (these can link to plain files or dirs).
+    4. The list of hard links.
+  The table of contents is returned as a 4-tuple (files, dirs, symlinks, links).
+  Symbolic links are not followed.
+
+  Args:
+    tar_archive_file: The archive file.  This is expected to be a file in a
+        tar format that the python tarfile module recognizes.
+
+  Returns:
+    (files, dirs, symlinks, links) where each element of the 4-tuple is an
+        array of platform-specific normalized path names, starting with the root
+        directory in |tar_archive_file|:
+        |files| is a list of plain files.  Might be empty.
+        |dirs| is a list of directories.  Might be empty.
+        |symlinks| is a list of symbolic links - these are not followed.  Might
+            be empty.
+        |links| is a list of hard links.  Might be empty.
+  '''
+  try:
+    tar_archive = tarfile.open(tar_archive_file)
+    files = [os.path.normpath(tarinfo.name)
+             for tarinfo in tar_archive if tarinfo.isfile()]
+    dirs = [os.path.normpath(tarinfo.name)
+            for tarinfo in tar_archive if tarinfo.isdir()]
+    symlinks = [os.path.normpath(tarinfo.name)
+                for tarinfo in tar_archive if tarinfo.issym()]
+    links = [os.path.normpath(tarinfo.name)
+             for tarinfo in tar_archive if tarinfo.islnk()]
+  finally:
+    tar_archive.close()
+  return files, dirs, symlinks, links
 
 
 # Return a shell environment suitable for use by Mac, Linux and Windows.  On

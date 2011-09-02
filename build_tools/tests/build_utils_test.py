@@ -12,6 +12,7 @@ import platform
 import os
 import subprocess
 import sys
+import tarfile
 import unittest
 
 from build_tools import build_utils
@@ -39,6 +40,52 @@ class TestBuildUtils(unittest.TestCase):
     else:
       # Windows supports either 32- or 64-bit, but not both.
       self.assertEqual(1, len(bit_widths))
+
+  def testGetArchiveTableOfContents(self):
+    """Testing the GetArchiveTableOfContents function"""
+    # Use a known test archive to validate the TOC entries.
+    # The test tar file has this content (from tar tv):
+    #   drwxr-xr-x test_links/
+    #   drwxr-xr-x test_links/test_dir/
+    #   lrwxr-xr-x test_links/test_dir_slnk -> test_dir
+    #   -rw-r--r-- test_links/test_hlnk_file_dst1.txt
+    #   hrw-r--r-- test_links/test_hlnk_file_dst2.txt link to \
+    #              test_links/test_hlnk_file_dst1.txt
+    #   hrw-r--r-- test_links/test_hlnk_file_src.txt link to \
+    #              test_links/test_hlnk_file_dst1.txt
+    #   lrwxr-xr-x test_links/test_slnk_file_dst.txt -> test_slnk_file_src.txt
+    #   -rw-r--r-- test_links/test_slnk_file_src.txt
+    #   -rw-r--r-- test_links/test_dir/test_file.txt
+
+    test_dir = os.path.join('build_tools', 'tests')
+    files, dirs, symlinks, links = build_utils.GetArchiveTableOfContents(
+        os.path.join(test_dir, 'test_links.tgz'))
+    self.assertEqual(3, len(files))
+    self.assertTrue(os.path.join('test_links', 'test_slnk_file_src.txt') in
+                    files)
+    for file in files:
+      self.assertFalse('_dir' in os.path.basename(file))
+      self.assertTrue('.txt' in os.path.basename(file))
+    self.assertTrue(os.path.join('test_links', 'test_dir', 'test_file.txt') in
+                    files)
+    self.assertEqual(2, len(dirs))
+    self.assertTrue(os.path.join('test_links', 'test_dir') in dirs)
+    for dir in dirs:
+      self.assertFalse('slnk' in dir)
+      self.assertFalse('.txt' in dir)
+    self.assertFalse(os.path.join('test_links', 'test_dir', 'test_file.txt') in
+                     dirs)
+    self.assertEqual(2, len(symlinks))
+    self.assertTrue(os.path.join('test_links', 'test_dir_slnk') in symlinks)
+    self.assertTrue(os.path.join('test_links', 'test_slnk_file_dst.txt') in
+                    symlinks)
+    self.assertEqual(2, len(links))
+    # There is no "source" file for hard links like there is for a symbolic
+    # link, so there it's possible that the hlnk_src file is in the links
+    # list, which is OK as long as one of the hlnk files is in the |files|
+    # list.  Make sure that only hlnk files are in the |links| list.
+    for link in links:
+      self.assertTrue('test_hlnk_file' in link)
 
   def testBotAnnotatorPrint(self):
     """Testing the Print function of the BotAnnotator class"""
