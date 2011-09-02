@@ -40,7 +40,7 @@ class TestNsisScript(unittest.TestCase):
   def testCreateFromDirectory(self):
     """Test creation of artifact lists from an archive directory."""
     script = nsis_script.NsisScript('test_script.nsi')
-    archive_dir = os.path.join('build_tools', 'tests', 'test_archive')
+    archive_dir = os.path.join('build_tools', 'tests', 'nsis_test_archive')
     script.CreateFromDirectory(archive_dir,
                                dir_filter=self.FilterSvn,
                                file_filter=self.FilterSvn)
@@ -75,7 +75,7 @@ class TestNsisScript(unittest.TestCase):
     path = script.NormalizeInstallPath(test_path)
     self.assertEqual(test_path, path)
     # Set a relative install path.
-    archive_dir = os.path.join(test_dir, 'test_archive')
+    archive_dir = os.path.join(test_dir, 'nsis_test_archive')
     script.CreateFromDirectory(archive_dir,
                                dir_filter=self.FilterSvn,
                                file_filter=self.FilterSvn)
@@ -87,7 +87,7 @@ class TestNsisScript(unittest.TestCase):
     """Test the section name script."""
     test_dir = os.path.join('build_tools', 'tests')
     script = nsis_script.NsisScript(os.path.join(test_dir, 'test_script.nsi'))
-    archive_dir = os.path.join(test_dir, 'test_archive')
+    archive_dir = os.path.join(test_dir, 'nsis_test_archive')
     script.CreateFromDirectory(archive_dir,
                                dir_filter=self.FilterSvn,
                                file_filter=self.FilterSvn)
