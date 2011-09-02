@@ -4,12 +4,12 @@ vars = {
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "6595",
+  "native_client_version": "6625",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "arm_toolchain_version": "6584",
-  "x86_toolchain_version": "6584",
+  "arm_toolchain_version": "6619",
+  "x86_toolchain_version": "6608",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
 }
@@ -108,6 +108,8 @@ hooks = [
           "download_toolchains.py",
         "--x86-version", Var("x86_toolchain_version"),
         "--arm-version", Var("arm_toolchain_version"),
-        "--toolchain-dir", "src/toolchain"],
+        "--toolchain-dir", "src/toolchain",
+        "--save-downloads-dir", "src/build_tools/toolchain_archives",
+        ]
   },
 ]
