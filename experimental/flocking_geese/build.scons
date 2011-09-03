@@ -4,6 +4,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Note: flocking_geese requires libpng, libjpeg and boost to be installed into
+# the SDK.  You can do this by checking out naclports.googlecode.com, and
+# doing make png; make jpeg; make boost.  This doesn't work on Windows (or
+# requires cygwin).
+
 import make_nacl_env
 import nacl_utils
 import os
@@ -15,6 +20,7 @@ nacl_env.Append(
     OPT_CCFLAGS=['-ffast-math',
                  '-mfpmath=sse',
                  '-msse2'],
+    LIBS=['png'],
    )
 
 app_sources = [os.path.join('nacl_app', src_file) for src_file in [
@@ -22,14 +28,19 @@ app_sources = [os.path.join('nacl_app', src_file) for src_file in [
     'flocking_geese_app.cc',
     'flocking_geese_module.cc',
     'goose.cc',
-    'sover_composite.cc',
+    'sprite.cc',
 ]]
 
 scripting_sources = [os.path.join('scripting', src_file) for src_file in [
-  'scripting_bridge.cc',
+   'scripting_bridge.cc',
 ]]
 
-sources = app_sources + scripting_sources
+url_io_sources = [os.path.join('url_io', src_file) for src_file in [
+    'web_resource_loader.cc',
+    'url_request.cc',
+]]
+
+sources = app_sources + scripting_sources + url_io_sources
 
 opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'flocking_geese')
 
@@ -68,7 +79,16 @@ install_css = nacl_env.Install(
     dir=os.path.join(install_dir, 'css'),
     source=css_files)
 
+image_files = [os.path.join('images', img_file) for img_file in [
+    'goose.png',
+]]
+
+install_images = nacl_env.Install(
+    dir=os.path.join(install_dir, 'images'),
+    source=image_files)
+
 nacl_env.Alias('install', [install_app,
                            install_css,
-                           install_js])
+                           install_js,
+                           install_images])
 

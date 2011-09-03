@@ -10,9 +10,11 @@
 #include <tr1/memory>
 #include <vector>
 
+#include "boost/scoped_ptr.hpp"
 #include "nacl_app/goose.h"
 #include "nacl_app/locking_image_data.h"
 #include "nacl_app/scoped_pixel_lock.h"
+#include "nacl_app/sprite.h"
 #include "nacl_app/vector2.h"
 #include "ppapi/cpp/point.h"
 #include "ppapi/cpp/rect.h"
@@ -178,6 +180,9 @@ class Flock {
   threading::ConditionLock simulation_mode_;
   std::vector<Goose> geese_;
   FrameCounter frame_counter_;
+
+  // Drawing support.
+  boost::scoped_ptr<Sprite> goose_sprite_;
 };
 
 }  // namespace flocking_geese

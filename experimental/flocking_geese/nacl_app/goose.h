@@ -52,11 +52,6 @@ class Goose {
   // @return A vector representing the new direction of the goose.
   Vector2 TurnTowardsTarget(const Vector2& target);
 
-  // Render the goose into the given graphics context.
-  // @param canvas The target canvas.  The pixel bits are assumed to be locked.
-  // @param canvas_size The size in pixels of |canvas|.
-  void Render(uint32_t* canvas, const pp::Size& canvas_size) const;
-
   // Accessors for location and velocoity.
   Vector2 location() const {
     return location_;

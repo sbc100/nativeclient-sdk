@@ -55,6 +55,12 @@ class ThreadCondition {
     pthread_cond_wait(&condition_, &cond_mutex_);
   }
 
+  // Same as Wait, but wait at most until abs_time. Returns false if the system
+  // time exceeds abs_time before the condition is signaled.
+  bool TimedWait(struct timespec *abs_time) {
+    return (pthread_cond_timedwait(&condition_, &cond_mutex_, abs_time) == 0);
+  }
+
  private:
   pthread_mutex_t cond_mutex_;
   pthread_cond_t condition_;

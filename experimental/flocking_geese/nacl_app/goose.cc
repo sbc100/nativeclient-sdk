@@ -31,10 +31,6 @@ const double kSeparationWeight = 2.0;
 const double kAlignmentWeight = 1.0;
 const double kCohesionWeight = 1.0;
 
-inline uint32_t MakeRGBA(uint32_t r, uint32_t g, uint32_t b, uint32_t a) {
-  return (((a) << 24) | ((r) << 16) | ((g) << 8) | (b));
-}
-
 }  // namespace
 
 namespace flocking_geese {
@@ -143,31 +139,6 @@ Vector2 Goose::TurnTowardsTarget(const Vector2& target) {
     newDirection.Clamp(kMaxTurningForce);
   }
   return newDirection;
-}
-
-void Goose::Render(uint32_t* canvas, const pp::Size& canvas_size) const {
-  // Assume 32-bit pixels.
-  uint32_t x = static_cast<uint32_t>(location_.x());
-  uint32_t y = static_cast<uint32_t>(location_.y());
-  uint32_t *pixel = canvas + x + y * canvas_size.width();
-  *pixel = MakeRGBA(0x00, 0x00, 0xFF, 0xFF);
-/*
-  var context2d = canvas.getContext('2d');
-  context2d.save();
-  // Transform the coordinate system so y-increasing is up.
-  context2d.translate(0, canvas.height);
-  context2d.scale(1, -1);
-  context2d.fillStyle = 'blue';
-  context2d.translate(this.location_.x, this.location_.y);
-  context2d.rotate(this.velocity_.heading());
-  // The goose points down the positive x-axis when its heading is 0.
-  context2d.beginPath();
-  context2d.moveTo(32, 0);
-  context2d.lineTo(0, -8);
-  context2d.lineTo(0, 8);
-  context2d.fill();
-  context2d.restore();
-*/
 }
 
 int32_t Goose::AccumulateSeparation(double distance,

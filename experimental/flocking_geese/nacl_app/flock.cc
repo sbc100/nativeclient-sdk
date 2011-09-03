@@ -61,8 +61,10 @@ void Flock::ResetFlock(size_t size, const Vector2& initialLocation) {
 
 void Flock::SimulationTick() {
   frame_counter_.BeginFrame();
-  for (size_t goose = 0; goose < geese_.size(); goose++) {
-    geese_[goose].SimulationTick(geese_, flockBounds_);
+  for (std::vector<Goose>::iterator goose = geese_.begin();
+       goose < geese_.end();
+       ++goose) {
+    goose->SimulationTick(geese_, flockBounds_);
   }
   frame_counter_.EndFrame();
 }
@@ -79,14 +81,27 @@ void Flock::Render() {
     return;
   }
   // Clear out the pixel buffer, then render all the geese.
-  const size_t size = shared_pixel_buffer_->size().width() *
-                      shared_pixel_buffer_->size().height();
-  std::fill(pixel_buffer, pixel_buffer + size, kBackgroundColor);
+  pp::Size canvas_size = shared_pixel_buffer_->size();
+  const size_t pixel_count = canvas_size.width() * canvas_size.height();
+  std::fill(pixel_buffer, pixel_buffer + pixel_count, kBackgroundColor);
   threading::ScopedMutexLock scoped_mutex(simulation_mutex());
   if (!scoped_mutex.is_valid())
     return;
-  for (size_t goose = 0; goose < geese_.size(); goose++) {
-    geese_[goose].Render(pixel_buffer, shared_pixel_buffer_->size());
+
+  if (goose_sprite_ == NULL) {
+    uint32_t* pixel_buffer =
+        static_cast<uint32_t*>(malloc(32 * 32 * sizeof(uint32_t)));
+    std::fill(pixel_buffer, pixel_buffer + (32 * 32), 0x7F00007F);
+    goose_sprite_.reset(new Sprite(pixel_buffer, pp::Size(32, 32), 0));
+  }
+  for (std::vector<Goose>::const_iterator goose = geese_.begin();
+       goose < geese_.end();
+       ++goose) {
+    pp::Point dest_point(goose->location().x(), goose->location().y());
+    goose_sprite_->CompositeFromRectToPoint(
+        pp::Rect(0, 0, 32, 32),
+        pixel_buffer, canvas_size, 0,
+        dest_point);
   }
 }
 
