@@ -81,6 +81,16 @@ class Flock {
     shared_pixel_buffer_ = pixel_buffer;
   }
 
+  // Flock takes ownership of |goose_sprite|.  The caller should not reference
+  // the pointer after this call.
+  void set_goose_sprite(Sprite* goose_sprite) {
+    goose_sprite_.reset(goose_sprite);
+  }
+  // Return |true| if the goose sprite data has been set.
+  bool has_goose_sprite() const {
+    return goose_sprite_ != NULL;
+  }
+
   pthread_mutex_t* simulation_mutex() {
     return &flock_simulation_mutex_;
   }

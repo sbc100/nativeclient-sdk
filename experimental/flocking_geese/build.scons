@@ -20,7 +20,7 @@ nacl_env.Append(
     OPT_CCFLAGS=['-ffast-math',
                  '-mfpmath=sse',
                  '-msse2'],
-    LIBS=['png'],
+    LIBS=['png', 'z'],
    )
 
 app_sources = [os.path.join('nacl_app', src_file) for src_file in [
@@ -28,6 +28,7 @@ app_sources = [os.path.join('nacl_app', src_file) for src_file in [
     'flocking_geese_app.cc',
     'flocking_geese_module.cc',
     'goose.cc',
+    'png_loader.cc',
     'sprite.cc',
 ]]
 

@@ -56,7 +56,7 @@ class Sprite : public boost::noncopyable {
   pp::Size pixel_buffer_size_;
   int32_t row_bytes_;
 
-  // Not implemneted, do not use.
+  // Not implemented, do not use.
   Sprite();
 };
 

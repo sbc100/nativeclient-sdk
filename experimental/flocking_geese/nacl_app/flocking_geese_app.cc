@@ -12,6 +12,8 @@
 #include "ppapi/cpp/completion_callback.h"
 #include "ppapi/cpp/module.h"
 #include "threading/scoped_mutex_lock.h"
+#include "url_io/url_request.h"
+#include "url_io/web_resource_loader.h"
 
 namespace {
 // Input method and parameter Ids.  These correspond to C++ calls.
@@ -109,6 +111,15 @@ bool FlockingGeeseApp::Init(uint32_t /* argc */,
           this, &FlockingGeeseApp::PauseSimulation));
   scripting_bridge_.AddMethodNamed(kPauseSimulationMethodId, pause_sim_method);
 
+  // Load the goose sprite.  |sprite_loader| is deleted by its delegate when
+  // the download is complete (or gets an error).  The PNG data is checked for
+  // validity at each Update(); when the PNG data has all arrived, the sprite
+  // can be used for drawing.
+  url_io::WebResourceLoader* sprite_loader =
+      new url_io::WebResourceLoader(this, &png_loader_);
+  url_io::URLRequest request("images/goose.png");
+  sprite_loader->LoadURL(request);
+
   flock_simulation_.StartSimulation();
   return true;
 }
@@ -178,6 +189,18 @@ void FlockingGeeseApp::PostSimulationInfo() {
 void FlockingGeeseApp::Update() {
   if (flush_pending())
     return;  // Don't attempt to flush if one is pending.
+
+  // See if the goose sprite is ready to be used.
+  if (png_loader_.is_valid() && !flock_simulation_.has_goose_sprite()) {
+    pp::Size pixel_buffer_size = png_loader_.png_image_size();
+    uint32_t* pixel_buffer =
+        static_cast<uint32_t*>(malloc(pixel_buffer_size.width() *
+                                      pixel_buffer_size.height() *
+                                      sizeof(uint32_t)));
+    png_loader_.FillPixelBuffer(pixel_buffer);
+    flock_simulation_.set_goose_sprite(
+        new Sprite(pixel_buffer, pp::Size(32, 32), 0));
+  }
 
   if (view_changed_size_) {
     // Delete the old pixel buffer and create a new one.

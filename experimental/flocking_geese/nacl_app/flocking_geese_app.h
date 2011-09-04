@@ -5,8 +5,9 @@
 #ifndef FLOCKING_GEESE_APP_H_
 #define FLOCKING_GEESE_APP_H_
 
-#include "nacl_app/locking_image_data.h"
 #include "nacl_app/flock.h"
+#include "nacl_app/locking_image_data.h"
+#include "nacl_app/png_loader.h"
 #include "ppapi/cpp/graphics_2d.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/rect.h"
@@ -115,6 +116,9 @@ class FlockingGeeseApp : public pp::Instance {
   bool flush_pending_;
   bool view_changed_size_;
   pp::Size view_size_;
+
+  // Resource management.
+  PngLoader png_loader_;
 };
 }  // namespace flocking_geese
 

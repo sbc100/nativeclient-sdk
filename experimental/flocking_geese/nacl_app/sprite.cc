@@ -8,7 +8,9 @@
 
 namespace {
 const uint32_t kRedBlueMask = 0x00FF00FF;
-const uint32_t kAlphaGreenMask = 0xFF00FF00;
+const uint32_t kGreenMask = 0x0000FF00;
+const uint32_t kAlphaMask = 0xFF000000;
+const uint32_t k8BitMultiplyMask = 0xFF00FF00;
 const uint32_t kPixelOne = 0xFF;
 const uint32_t kAlphaShift = 24;
 }  // namespace
@@ -77,20 +79,21 @@ void Sprite::CompositeFromRectToPoint(const pp::Rect& src_rect,
     for (int32_t x = 0; x < src_rect_clipped.width(); ++x) {
       uint32_t src = *src_scanline++;
       uint32_t dst = *dest_scanline;
-      uint32_t one_minus_alpha = kPixelOne - ((src >> kAlphaShift) & kPixelOne);
-      // Compute RB and AG separately: this allows for SIMD-like behaviour
+      uint32_t alpha = (src >> kAlphaShift) & kPixelOne;
+      uint32_t one_minus_alpha = kPixelOne - alpha;
+      // Compute RB and G separately: this allows for SIMD-like behaviour
       // when multiplying the channels by alpha.  Note that over-saturated
       // pixels will wrap to 0 and not clamp.
       uint32_t src_rb = src & kRedBlueMask;
-      // Shift the AG channels right by 8 to accomodate the 8-bit SIMD-like
-      // multiply.
-      uint32_t src_ag = (src >> 8) & kRedBlueMask;
-      uint32_t dst_rb = (dst & kRedBlueMask) * one_minus_alpha;
-      uint32_t dst_ag = ((dst >> 8) & kRedBlueMask) * one_minus_alpha;
-      uint32_t rb = (src_rb + dst_rb) & kRedBlueMask;
-      uint32_t ag = ((src_ag + dst_ag) << 8) & kAlphaGreenMask;
+      uint32_t src_g = src & kGreenMask;
+      uint32_t dst_rb = (((dst & kRedBlueMask) * one_minus_alpha) >> 8) &
+                        kRedBlueMask;
+      uint32_t dst_g = (((dst & kGreenMask) * one_minus_alpha) >> 8) &
+                       kGreenMask;
+      uint32_t rb = src_rb | dst_rb;
+      uint32_t g = src_g | dst_g;
 
-      *dest_scanline++ = rb | ag;
+      *dest_scanline++ = (dst & kAlphaMask) | (rb | g);
     }
     src_pixels += row_bytes_;
     dest_pixels += dest_row_bytes;

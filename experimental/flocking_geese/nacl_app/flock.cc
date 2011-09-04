@@ -72,7 +72,7 @@ void Flock::SimulationTick() {
 void Flock::Render() {
   ScopedPixelLock scoped_pixel_lock(shared_pixel_buffer_);
   uint32_t* pixel_buffer = scoped_pixel_lock.pixels();
-  if (pixel_buffer == NULL) {
+  if (pixel_buffer == NULL || goose_sprite_ == NULL) {
     // Note that if the pixel buffer never gets initialized, this won't ever
     // paint anything.  Which is probably the right thing to do.  Also, this
     // clause means that the image will not get the very first few sim cells,
@@ -88,18 +88,13 @@ void Flock::Render() {
   if (!scoped_mutex.is_valid())
     return;
 
-  if (goose_sprite_ == NULL) {
-    uint32_t* pixel_buffer =
-        static_cast<uint32_t*>(malloc(32 * 32 * sizeof(uint32_t)));
-    std::fill(pixel_buffer, pixel_buffer + (32 * 32), 0x7F00007F);
-    goose_sprite_.reset(new Sprite(pixel_buffer, pp::Size(32, 32), 0));
-  }
+  pp::Rect sprite_src_rect(pp::Point(), goose_sprite_->size());
   for (std::vector<Goose>::const_iterator goose = geese_.begin();
        goose < geese_.end();
        ++goose) {
     pp::Point dest_point(goose->location().x(), goose->location().y());
     goose_sprite_->CompositeFromRectToPoint(
-        pp::Rect(0, 0, 32, 32),
+        sprite_src_rect,
         pixel_buffer, canvas_size, 0,
         dest_point);
   }
