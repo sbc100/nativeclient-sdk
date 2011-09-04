@@ -199,7 +199,7 @@ void FlockingGeeseApp::Update() {
                                       sizeof(uint32_t)));
     png_loader_.FillPixelBuffer(pixel_buffer);
     flock_simulation_.set_goose_sprite(
-        new Sprite(pixel_buffer, pp::Size(32, 32), 0));
+        new Sprite(pixel_buffer, png_loader_.png_image_size(), 0));
   }
 
   if (view_changed_size_) {

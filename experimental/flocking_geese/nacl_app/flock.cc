@@ -15,6 +15,8 @@
 
 namespace {
 const uint32_t kBackgroundColor = 0xFFFFFFFF;  // Opaque white.
+// The goose sprites rotate in increments of 5 degrees.
+const double kGooseHeadingIncrement = (5.0 * M_PI) / 180.0;
 }  // namespace
 
 namespace flocking_geese {
@@ -88,11 +90,20 @@ void Flock::Render() {
   if (!scoped_mutex.is_valid())
     return;
 
-  pp::Rect sprite_src_rect(pp::Point(), goose_sprite_->size());
+  int32_t sprite_stamp_width = goose_sprite_->size().height();
+  pp::Rect sprite_src_rect(0, 0,
+                           sprite_stamp_width, goose_sprite_->size().height());
   for (std::vector<Goose>::const_iterator goose = geese_.begin();
        goose < geese_.end();
        ++goose) {
     pp::Point dest_point(goose->location().x(), goose->location().y());
+    double heading = goose->velocity().Heading();
+    if (heading < 0.0)
+      heading = M_PI * 2.0 + heading;
+    int32_t sprite_index =
+        static_cast<int32_t>(heading / kGooseHeadingIncrement) *
+        sprite_stamp_width;
+    sprite_src_rect.set_x(sprite_index);
     goose_sprite_->CompositeFromRectToPoint(
         sprite_src_rect,
         pixel_buffer, canvas_size, 0,

@@ -14,7 +14,7 @@
 
 namespace flocking_geese {
 
-// A Sprite is a siomple container of a pixel buffer.  It knows how to
+// A Sprite is a simple container of a pixel buffer.  It knows how to
 // composite itself to another pixel buffer of the same format.
 class Sprite : public boost::noncopyable {
  public:
