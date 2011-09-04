@@ -15,6 +15,10 @@
 
 namespace {
 const uint32_t kBackgroundColor = 0xFFFFFFFF;  // Opaque white.
+
+// Throttle the simulation to run a fixed number of ticks per Render() call.
+const int32_t kSimulationTicksPerRender = 16;
+
 // The goose sprites rotate in increments of 5 degrees.
 const double kGooseHeadingIncrement = (5.0 * M_PI) / 180.0;
 }  // namespace
@@ -23,7 +27,8 @@ namespace flocking_geese {
 
 Flock::Flock() : flock_simulation_thread_(NULL),
                  sim_state_condition_(kSimulationStopped),
-                 simulation_mode_(kPaused) {
+                 simulation_mode_(kPaused),
+                 tick_counter_(0) {
   pthread_mutex_init(&flock_simulation_mutex_, NULL);
 }
 
@@ -39,8 +44,15 @@ void Flock::StartSimulation() {
   pthread_create(&flock_simulation_thread_, NULL, FlockSimulation, this);
 }
 
+void Flock::set_simulation_mode(Flock::SimulationMode new_mode) {
+  simulation_mode_.Lock();
+  if (new_mode == kRunning)
+    set_tick_counter(0);
+  simulation_mode_.UnlockWithCondition(new_mode);
+}
+
 Flock::SimulationMode Flock::WaitForRunMode() {
-  simulation_mode_.LockWhenNotCondition(kPaused);
+  simulation_mode_.LockWhenCondition(kRunning);
   simulation_mode_.Unlock();
   return simulation_mode();
 }
@@ -109,6 +121,10 @@ void Flock::Render() {
         pixel_buffer, canvas_size, 0,
         dest_point);
   }
+
+  if (simulation_mode() == kRenderThrottle) {
+    set_simulation_mode(kRunning);
+  }
 }
 
 void* Flock::FlockSimulation(void* param) {
@@ -116,9 +132,14 @@ void* Flock::FlockSimulation(void* param) {
   // Run the Life simulation in an endless loop.  Shut this down when
   // is_simulation_running() returns |false|.
   flock->set_is_simulation_running(true);
+  flock->set_tick_counter(0);
   while (flock->is_simulation_running()) {
     flock->WaitForRunMode();
     flock->SimulationTick();
+    // Throttle the simulation so it doesn't outrun the browser by too much.
+    if (flock->increment_tick_counter() > kSimulationTicksPerRender) {
+      flock->set_simulation_mode(kRenderThrottle);
+    }
     //flock->Render();
   }
   return NULL;

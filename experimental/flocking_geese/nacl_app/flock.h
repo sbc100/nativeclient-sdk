@@ -31,7 +31,8 @@ class Flock {
  public:
   // The possible simulation modes.
   enum SimulationMode {
-    kRunning,
+    kRunning,  // Running simulation ticks.
+    kRenderThrottle,  // Waiting for the browser to catch up.
     kPaused
   };
 
@@ -57,7 +58,8 @@ class Flock {
   // Run one tick of the simulation.  This records the tick duration.
   void SimulationTick();
 
-  // Render the flock into the shared pixel buffer.
+  // Render the flock into the shared pixel buffer.  Clears the rendering
+  // throttle.
   void Render();
 
   // Sleep on the condition that the current simulation mode is not the
@@ -67,10 +69,7 @@ class Flock {
   SimulationMode simulation_mode() const {
     return static_cast<SimulationMode>(simulation_mode_.condition_value());
   }
-  void set_simulation_mode(SimulationMode new_mode) {
-    simulation_mode_.Lock();
-    simulation_mode_.UnlockWithCondition(new_mode);
-  }
+  void set_simulation_mode(SimulationMode new_mode);
 
   double FrameRate() const {
     return frame_counter_.frames_per_second();
@@ -104,6 +103,17 @@ class Flock {
     sim_state_condition_.Lock();
     sim_state_condition_.UnlockWithCondition(
         flag ? kSimulationRunning : kSimulationStopped);
+  }
+
+  // The simulation tick counter is locked by the simulation mode.
+  int32_t tick_counter() const {
+    return tick_counter_;
+  }
+  void set_tick_counter(int32_t count) {
+    tick_counter_ = count;
+  }
+  int32_t increment_tick_counter() {
+    return ++tick_counter_;
   }
 
  private:
@@ -190,6 +200,7 @@ class Flock {
   threading::ConditionLock simulation_mode_;
   std::vector<Goose> geese_;
   FrameCounter frame_counter_;
+  int32_t tick_counter_;  // Number of sim ticks between Render() calls.
 
   // Drawing support.
   boost::scoped_ptr<Sprite> goose_sprite_;

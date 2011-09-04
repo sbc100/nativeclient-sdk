@@ -150,7 +150,7 @@ void FlockingGeeseApp::ResetFlock(
   std::string flock_size_str = GetParameterNamed("size", parameters);
   if (flock_size_str.length()) {
     Flock::SimulationMode sim_mode = flock_simulation_.simulation_mode();
-    flock_simulation_.set_simulation_mode(Flock::kPaused);
+    flock_simulation_.set_simulation_mode(flocking_geese::Flock::kPaused);
     size_t flock_size = static_cast<size_t>(StringAsInt32(flock_size_str));
     Vector2 initialLocation(view_size_.width(), view_size_.height());
     initialLocation.Scale(0.5);
@@ -206,7 +206,7 @@ void FlockingGeeseApp::Update() {
     // Delete the old pixel buffer and create a new one.
     // Pause the simulation before changing all the buffer sizes.
     Flock::SimulationMode sim_mode = flock_simulation_.simulation_mode();
-    flock_simulation_.set_simulation_mode(Flock::kPaused);
+    flock_simulation_.set_simulation_mode(flocking_geese::Flock::kPaused);
     // Create a new device context with the new size.
     // Note: DestroyContext() releases the simulation's copy of the shared
     // pixel buffer.  *This has to happen before the reset() below!*  If the
