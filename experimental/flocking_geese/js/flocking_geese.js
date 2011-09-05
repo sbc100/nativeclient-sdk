@@ -117,6 +117,15 @@ FlockingGeese.SimModeButtonAttributes = {
 };
 
 /**
+ * The list of meter names.
+ * @enum {string}
+ */
+FlockingGeese.MeterNames = {
+  NACL: 'NaCl',
+  JAVASCRIPT: 'JavaScript'
+};
+
+/**
  * Override of disposeInternal() to dispose of retained objects.
  * @override
  */
@@ -135,11 +144,13 @@ FlockingGeese.prototype.initializeApplication = function() {
       document.getElementById(FlockingGeese.DomIds.SPEEDOMETER);
   var naclMeterAttribs = {};
   naclMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'naclMeterLabel';
-  this.speedometer_.addMeterWithName('NaCl', naclMeterAttribs);
+  this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.NACL,
+                                     naclMeterAttribs);
   var jsMeterAttribs = {};
   jsMeterAttribs[Speedometer.Attributes.DISPLAY_NAME] = 'JS';
   jsMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'jsMeterLabel';
-  this.speedometer_.addMeterWithName('JavaScript', jsMeterAttribs);
+  this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.JAVASCRIPT,
+                                     jsMeterAttribs);
   this.speedometer_.setMaximumSpeed(1000.0);  // Measured in frames per second.
 
   this.speedometer_.render(this.speedometerCanvas_);
@@ -207,6 +218,10 @@ FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
   changeEvent.stopPropagation();
   var initialLocation = this.getCanvasCenter_();
   var newFlockSize = parseInt(changeEvent.target.value);
+  // Reset the speedometers to 0.
+  this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL, 0);
+  this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT, 0);
+  this.speedometer_.render(this.speedometerCanvas_);
   this.flock_.resetFlock(newFlockSize, initialLocation);
   this.invokeNaClMethod('resetFlock', {'size' : newFlockSize});
 }
@@ -304,7 +319,8 @@ FlockingGeese.prototype.handleNaClMessage = function(messageEvent) {
         if (frameRate == 0.0) {
           frameRate = this.speedomter_.maximumSpeed();
         }
-        this.speedometer_.updateMeterNamed('NaCl', frameRate);
+        this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL,
+                                           frameRate);
         this.speedometer_.render(this.speedometerCanvas_);
       }
     }
@@ -380,7 +396,8 @@ FlockingGeese.prototype.simulationTick = function() {
   if (frameRate == 0) {
     frameRate = this.speedometer_.maximumSpeed();
   }
-  this.speedometer_.updateMeterNamed('JavaScript', frameRate);
+  this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT,
+                                     frameRate);
   this.speedometer_.render(this.speedometerCanvas_);
 
   this.startJavaScriptSimulation_();
