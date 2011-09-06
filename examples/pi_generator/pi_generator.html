@@ -12,11 +12,9 @@
       var piGenerator = null;
       var paintInterval = null;
 
-      // When the NaCl module has loaded, hook up an event listener to handle
-      // messages coming from it, and start up the paint timer.
+      // Start up the paint timer when the NaCl module has loaded.
       function moduleDidLoad() {
         piGenerator = document.getElementById('piGenerator');
-        piGenerator.addEventListener('message', handleMessage, false);
         paintInterval = setInterval('piGenerator.postMessage("paint")', 5);
       }
 
@@ -56,15 +54,19 @@
     module.  To load the debug versions of your .nexes, set the 'src'
     attribute to the _dbg.nmf version of the manifest file.
 
-    Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
-    event listener attached.  This method is used instead of attaching the
-    'load' event listener directly to the <EMBED> element to ensure that the
-    listener is active before the NaCl module 'load' event fires.
+    Note: The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
+    and a 'message' event listener attached.  This wrapping method is used
+    instead of attaching the event listeners directly to the <EMBED> element to
+    ensure that the listeners are active before the NaCl module 'load' event
+    fires.  This also allows you to use PPB_Messaging.PostMessage() (in C) or
+    pp::Instance.PostMessage() (in C++) from within the initialization code in
+    your NaCl module.
     -->
     <div id="listener">
       <script type="text/javascript">
-         document.getElementById('listener')
-             .addEventListener('load', moduleDidLoad, true);
+        var listener = document.getElementById('listener')
+        listener.addEventListener('load', moduleDidLoad, true);
+        listener.addEventListener('message', handleMessage, true);
       </script>
 
       <embed name="nacl_module"

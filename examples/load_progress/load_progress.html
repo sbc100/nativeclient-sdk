@@ -58,13 +58,9 @@
       appendToEventLog('abort');
     }
 
-    // When the NaCl module has loaded, hook up an event listener to handle
-    // messages coming from it, and then indicate success.
+    // When the NaCl module has loaded indicate success.
     function moduleDidLoad() {
       loadProgressModule = document.getElementById('load_progress');
-      // Add a message handler that accepts messages coming from the NaCl
-      // module.
-      loadProgressModule.addEventListener('message', handleMessage, false);
       appendToEventLog('load');
       updateStatus('SUCCESS');
     }
@@ -145,10 +141,13 @@
   To load the debug versions of your .nexes, set the 'src' attribute to the
   _dbg.nmf version of the manifest file.
 
-  Note that the <EMBED> element is wrapped inside a <DIV>, which has a 'load'
-  event listener attached.  This method is used instead of attaching the 'load'
-  event listener directly to the <EMBED> element to ensure that the listener
-  is active before the NaCl module 'load' event fires.
+  Note: The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
+  and a 'message' event listener attached.  This wrapping method is used
+  instead of attaching the event listeners directly to the <EMBED> element to
+  ensure that the listeners are active before the NaCl module 'load' event
+  fires.  This also allows you to use PPB_Messaging.PostMessage() (in C) or
+  pp::Instance.PostMessage() (in C++) from within the initialization code in
+  your NaCl module.
   -->
   <div id="listener">
     <script type="text/javascript">
@@ -159,6 +158,7 @@
       listener.addEventListener('abort', moduleLoadAbort, true);
       listener.addEventListener('load', moduleDidLoad, true);
       listener.addEventListener('loadend', moduleDidEndLoad, true);
+      listener.addEventListener('message', handleMessage, true);
     </script>
 
     <embed name="nacl_module"
