@@ -63,6 +63,15 @@ class Archive(dict):
     ''' Create a new archive for the given host-os name. '''
     self['host_os'] = host_os_name
 
+  def CopyFrom(self, dict):
+    ''' Update the content of the archive by copying values from the given
+        dictionary.
+
+    Args:
+      dict: The dictionary whose values must be copied to the archive.'''
+    for key, value in dict.items():
+      self[key] = value
+
   def Validate(self):
     ''' Validate the content of the archive object. Raise an Error if
         an invalid or missing field is found. '''
@@ -154,11 +163,31 @@ class Archive(dict):
 
 class Bundle(dict):
   ''' A placeholder for sdk bundle information. We derive Bundle from
-      dict so that it is easily serializable. '''
+      dict so that it is easily serializable.'''
   def __init__(self, name):
-    ''' Create a new bundle with the given bundle name. '''
-    self['name'] = name
+    ''' Create a new bundle with the given bundle name.
+
+    Args:
+      name: A name to give to the new bundle.'''
     self['archives'] = []
+    self['name'] = name
+
+  def CopyFrom(self, dict):
+    ''' Update the content of the bundle by copying values from the given
+        dictionary.
+
+    Args:
+      dict: The dictionary whose values must be copied to the bundle.'''
+    for key, value in dict.items():
+      if key == 'archives':
+        archives = []
+        for a in value:
+          new_archive = Archive(a['host_os'])
+          new_archive.CopyFrom(a)
+          archives.append(new_archive)
+        self['archives'] = archives
+      else:
+        self[key] = value
 
   def Validate(self):
     ''' Validate the content of the bundle. Raise an Error if an invalid or
@@ -217,7 +246,7 @@ class Bundle(dict):
       url: the new url for the archive.'''
     archive = self.GetArchive(host_os)
     if not archive:
-      archive = Archive(host_os)
+      archive = Archive(host_os_name=host_os)
       self['archives'].append(archive)
     archive.Update(url)
 
@@ -331,7 +360,7 @@ class SDKManifest(object):
     # Get the corresponding bundle, or create it.
     bundle = self._GetBundle(bundle_name)
     if not bundle:
-      bundle = Bundle(bundle_name)
+      bundle = Bundle(name=bundle_name)
       self._AddBundle(bundle)
     bundle.Update(options)
 
@@ -361,7 +390,16 @@ class SDKManifest(object):
       json_string: a JSON-formatted string containing the previous manifest'''
     new_manifest = json.loads(json_string)
     for key, value in new_manifest.items():
-      self._manifest_data[key] = value
+      if key == 'bundles':
+        # Remap each bundle in |value| to a Bundle instance
+        bundles = []
+        for b in value:
+          new_bundle = Bundle(b['name'])
+          new_bundle.CopyFrom(b)
+          bundles.append(new_bundle)
+        self._manifest_data[key] = bundles
+      else:
+        self._manifest_data[key] = value
     self._ValidateManifest()
 
 
