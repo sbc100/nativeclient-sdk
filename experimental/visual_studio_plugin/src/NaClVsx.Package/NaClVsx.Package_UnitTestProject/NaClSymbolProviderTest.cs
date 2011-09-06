@@ -86,7 +86,7 @@ namespace NaClVsx.Package_UnitTestProject {
       var expectedNames = new List<string> {
           "x",
           "y",
-          "test_string",          
+          "test_string",
           "argc",
           "argv",
           "g_GlobalData"
@@ -124,8 +124,7 @@ namespace NaClVsx.Package_UnitTestProject {
     }
 
     [TestMethod]
-    public void GetSymbolTypeStringTest()
-    {
+    public void GetSymbolTypeStringTest() {
       var addr = NaClPackageTestUtils.GetAddressForPosition(
           NaClPackageTestUtils.GetLoopCCPath(),
           NaClPackageTestUtils.kDeclarationOfTestStringRow,
@@ -137,7 +136,7 @@ namespace NaClVsx.Package_UnitTestProject {
           Key = 0
       };
       foreach (var symbol in symbols) {
-        if ( "test_string" == symbol.Name ) {
+        if ("test_string" == symbol.Name) {
           testStringSymbol = symbol;
         }
       }

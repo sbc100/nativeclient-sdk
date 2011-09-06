@@ -5,7 +5,6 @@
 #region
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using NaClVsx;
 
@@ -13,7 +12,6 @@ using NaClVsx;
 
 namespace Google.NaClVsx.DebugSupport.DWARF {
   public class SymbolDatabase {
-
     // Tables
     public Dictionary<ulong, DebugInfoAttribute> Attributes {
       get { return attributes_; }
@@ -78,18 +76,18 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     }
 
     /// <summary>
-    /// This function returns a list of code locations that occur in the given
-    /// scope, sorted by their line numbers.
+    ///   This function returns a list of code locations that occur in the given
+    ///   scope, sorted by their line numbers.
     /// </summary>
-    /// <param name="scope">
-    /// The scope for which lines are being required.
+    /// <param name = "scope">
+    ///   The scope for which lines are being required.
     /// </param>
-    /// <param name="address">
-    /// The address within the scope, for which lines are being required.
-    /// This is used to disambiguate between range list entries.
+    /// <param name = "address">
+    ///   The address within the scope, for which lines are being required.
+    ///   This is used to disambiguate between range list entries.
     /// </param>
     /// <returns>
-    /// A list of source locations.
+    ///   A list of source locations.
     /// </returns>
     public IEnumerable<SourceLocation> GetLocationsByLine(
         DebugInfoEntry scope, ulong address) {
@@ -101,18 +99,18 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
           locationsByLine = scopeToLocationsByLine_[scopeAddress];
         }
       } else if (scope.HasAttribute(DwarfAttribute.DW_AT_ranges)) {
-        var range = GetRangeForAddress(address, scope);        
+        var range = GetRangeForAddress(address, scope);
         var absoluteRangeAddress = ulong.MaxValue;
         // We need to add either the range's base address or the compilation unit's lowPC address.
-        if (ulong.MaxValue != range.BaseAddress)
+        if (ulong.MaxValue != range.BaseAddress) {
           absoluteRangeAddress = range.BaseAddress + range.LowPC;
-        else {
+        } else {
           var compilationUnitEntry =
               scope.GetNearestAncestorWithTag(DwarfTag.DW_TAG_compile_unit);
           if (null != compilationUnitEntry &&
               compilationUnitEntry.HasAttribute(DwarfAttribute.DW_AT_low_pc)) {
             absoluteRangeAddress = compilationUnitEntry.GetLowPC() + range.LowPC;
-          } 
+          }
         }
         if (absoluteRangeAddress != ulong.MaxValue) {
           locationsByLine = scopeToLocationsByLine_[absoluteRangeAddress];
@@ -127,7 +125,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     ///   Note that this function will always try to return a rangelist entry so it is up to the
     ///   caller to first verify that the address is contained in a rangelist.
     /// </summary>
-    /// <param name="address">An address which is thought to be contained in a rangelist.</param>
+    /// <param name = "address">An address which is thought to be contained in a rangelist.</param>
     /// <returns>A RangeListEntry whose LowPC's absolute address is less than |address|.</returns>
     public RangeListEntry GetRangeForAddress(ulong address, DebugInfoEntry scope) {
       RangeListEntry range = null;
@@ -144,7 +142,7 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     ///   Locates the scope entry which contains a given address and returns the scope entry
     ///   point.
     /// </summary>
-    /// <param name="address">The address for which a scope is needed.</param>
+    /// <param name = "address">The address for which a scope is needed.</param>
     public ulong GetScopeAddress(ulong address) {
       var row = GetRowForAddress(address, scopeTransitions_, scopeTransitionAddresses_);
       return row.Address;
@@ -171,19 +169,19 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     ///   This function generates all the "secondary" look-up tables that constitute the
     ///   SymbolDatabase.  This is basically a post-processing step for the binary data.  The
     ///   lookup structures that are generated here are as follows:
-    ///     - entriesByParent: For finding the children of any given DIE.
-    ///     - sourceFilesByFilename: For locating source files.
-    ///     - locationsByFile: For retrieving all of the SourceLocations in any given file.  This
-    ///       is used for setting breakpoints.
-    ///     - locationAddresses: The addresses of the SourceLocations, sorted to allow quick 
-    ///       inexact lookups at runtime.  They are used as keys into locations_.
-    ///     - scopeTransitionAddresses: The addresses of the scope transitions.  Used to allow
-    ///       quick inexact lookups by address into the scopeTransitions table at runtime.
-    ///     - callFrameAddresses: The addresses of the call frames.  Used to allow quick inexact
-    ///       lookups by address into the callFrames_ table at runtime.
-    ///     - scopeToLocationsByLine: A mapping of scope addresses to lists of code locations that
-    ///       are sorted by line number.  This is to quickly find the right line of code within a
-    ///       given scope at runtime.
+    ///   - entriesByParent: For finding the children of any given DIE.
+    ///   - sourceFilesByFilename: For locating source files.
+    ///   - locationsByFile: For retrieving all of the SourceLocations in any given file.  This
+    ///   is used for setting breakpoints.
+    ///   - locationAddresses: The addresses of the SourceLocations, sorted to allow quick 
+    ///   inexact lookups at runtime.  They are used as keys into locations_.
+    ///   - scopeTransitionAddresses: The addresses of the scope transitions.  Used to allow
+    ///   quick inexact lookups by address into the scopeTransitions table at runtime.
+    ///   - callFrameAddresses: The addresses of the call frames.  Used to allow quick inexact
+    ///   lookups by address into the callFrames_ table at runtime.
+    ///   - scopeToLocationsByLine: A mapping of scope addresses to lists of code locations that
+    ///   are sorted by line number.  This is to quickly find the right line of code within a
+    ///   given scope at runtime.
     ///   The function also post-processes the RangeLists to add them scope transitions and make
     ///   them searchable by the Address of the DIE to which they belong.
     /// </summary>
@@ -199,8 +197,8 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
       scopeTransitionAddresses_.Sort();
 
       callFrameAddresses_.AddRange(callFrames_.Keys);
-      callFrameAddresses_.Sort(); 
-      
+      callFrameAddresses_.Sort();
+
       // This must be called after scopeTransitionAddresses is created.
       BuildRangeListsByDIE();
       AddRangesToScopeTransitions();
@@ -253,6 +251,9 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     private readonly Dictionary<ulong, SourceLocation> locations_ =
         new Dictionary<ulong, SourceLocation>();
 
+    private readonly Dictionary<ulong, Dictionary<ulong, RangeListEntry>> rangeListsByDIE_ =
+        new Dictionary<ulong, Dictionary<ulong, RangeListEntry>>();
+
     private readonly Dictionary<ulong, Dictionary<ulong, RangeListEntry>> rangeLists_ =
         new Dictionary<ulong, Dictionary<ulong, RangeListEntry>>();
 
@@ -263,9 +264,6 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     // Sorted address lists
     private readonly List<ulong> scopeTransitionAddresses_ = new List<ulong>();
 
-    private readonly Dictionary<ulong, Dictionary<ulong, RangeListEntry>> rangeListsByDIE_ =
-    new Dictionary<ulong, Dictionary<ulong, RangeListEntry>>();
-
     private readonly Dictionary<ulong, ScopeTransition> scopeTransitions_ =
         new Dictionary<ulong, ScopeTransition>();
 
@@ -275,103 +273,6 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
     #endregion
 
     #region Private Implementation
-
-    /// <summary>
-    /// This function goes through each DIE that has a RangeList and adds
-    /// scope entries for each range in the list.  BuildRangeListsByDIE has to
-    /// be run in order for this to succeed.
-    /// </summary>
-    private void AddRangesToScopeTransitions() {
-      foreach (var dieToRangeList in RangeListsByDIE) {
-        var rangeList = dieToRangeList.Value;
-        foreach (var range in rangeList.Values) {
-          var scopeAddress = range.LowPC;
-          var scopeEndAddress = range.HighPC;
-          var die = Entries[dieToRangeList.Key];
-          if (range.BaseAddress != ulong.MaxValue) {
-            scopeAddress += range.BaseAddress;
-            scopeEndAddress += range.BaseAddress;
-          } else {
-            var compileUnit =
-                die.GetNearestAncestorWithTag(DwarfTag.DW_TAG_compile_unit);
-            if (compileUnit != null &&
-                compileUnit.HasAttribute(DwarfAttribute.DW_AT_low_pc) &&
-                compileUnit.GetLowPC() != 0) {
-              scopeAddress += compileUnit.GetLowPC();
-              scopeEndAddress += compileUnit.GetLowPC();
-            }
-          }
-          die.AddRangeListEntryByAddress(scopeAddress, range);
-          var scopeTransition = new ScopeTransition {
-              Address = scopeAddress,
-              Entry = die
-          };
-          if (ScopeTransitions.ContainsKey(scopeAddress)) {
-            // If the DIE that has this Key is a child of this DIE, don't add
-            // our own entry.  Otherwise, overwrite it since the current DIE
-            // is a more specific scope.
-            var collidingTransition = ScopeTransitions[scopeAddress];
-            if(die.HasAsAncestor(collidingTransition.Entry.Key)) {
-              InsertRangeScopeTransition(scopeTransition, scopeEndAddress, false);
-            }
-          }
-          else {
-            InsertRangeScopeTransition(scopeTransition, scopeEndAddress, true);
-          }
-        }
-      }
-    }
-
-    /// <summary>
-    /// This mapping is useful because it allows us to skip the step where we
-    /// always have to search DIEs for the correct range list offset.
-    /// </summary>
-    private void BuildRangeListsByDIE() {
-      var entriesWithRanges = 
-          from entry in Entries
-          where entry.Value.HasAttribute(DwarfAttribute.DW_AT_ranges)
-          select entry.Value;
-      foreach (var entry in entriesWithRanges) {
-        var rangesKey = entry.GetRangesOffset();
-        var rangeList = RangeLists[rangesKey];
-        RangeListsByDIE.Add(entry.Key, rangeList);
-      }
-    }
-
-    /// <summary>
-    /// This function assumes that the decision to add the scope transition
-    /// has been finalized.  It will only make sure that the transition is
-    /// added in the correct order and that, if appropriate, a transition back
-    /// to the parent scope is added as well.
-    /// </summary>
-    private void InsertRangeScopeTransition(ScopeTransition scopeTransition,
-                                            ulong highPC,
-                                            bool isNewEntry) {
-      ulong previousScopeAddress = GetScopeAddress(scopeTransition.Address);
-      var nextScopeIndex =
-          scopeTransitionAddresses_.IndexOf(previousScopeAddress) + 1;
-      ulong nextScopeAddress = scopeTransitionAddresses_[nextScopeIndex];
-      
-      // If the range and its parent entry end on the same address, we need to
-      // add a transition back to the parent.
-      bool needsReturnScope = (nextScopeAddress >= highPC);
-      ScopeTransitions[scopeTransition.Address] = scopeTransition;
-      if(isNewEntry) {
-        // Since we needed this sorted in order to proceed, we keep it sorted
-        // to save time.
-        scopeTransitionAddresses_.Insert(
-            nextScopeIndex++, scopeTransition.Address);
-      }
-      if(needsReturnScope) {
-        var parentDIE = ScopeTransitions[previousScopeAddress].Entry;
-        var parentScopeTransition = new ScopeTransition {
-            Address = highPC, Entry = parentDIE
-        };
-        ScopeTransitions[highPC] = parentScopeTransition;
-        scopeTransitionAddresses_.Insert(
-            nextScopeIndex, parentScopeTransition.Address);
-      }
-    }
 
     private static void BuildIndex<TRow, TColumn>(
         IEnumerable<KeyValuePair<ulong, TRow>> table,
@@ -423,6 +324,103 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
         result = table[closestAddress];
       }
       return result;
+    }
+
+    /// <summary>
+    ///   This function goes through each DIE that has a RangeList and adds
+    ///   scope entries for each range in the list.  BuildRangeListsByDIE has to
+    ///   be run in order for this to succeed.
+    /// </summary>
+    private void AddRangesToScopeTransitions() {
+      foreach (var dieToRangeList in RangeListsByDIE) {
+        var rangeList = dieToRangeList.Value;
+        foreach (var range in rangeList.Values) {
+          var scopeAddress = range.LowPC;
+          var scopeEndAddress = range.HighPC;
+          var die = Entries[dieToRangeList.Key];
+          if (range.BaseAddress != ulong.MaxValue) {
+            scopeAddress += range.BaseAddress;
+            scopeEndAddress += range.BaseAddress;
+          } else {
+            var compileUnit =
+                die.GetNearestAncestorWithTag(DwarfTag.DW_TAG_compile_unit);
+            if (compileUnit != null &&
+                compileUnit.HasAttribute(DwarfAttribute.DW_AT_low_pc) &&
+                compileUnit.GetLowPC() != 0) {
+              scopeAddress += compileUnit.GetLowPC();
+              scopeEndAddress += compileUnit.GetLowPC();
+            }
+          }
+          die.AddRangeListEntryByAddress(scopeAddress, range);
+          var scopeTransition = new ScopeTransition {
+              Address = scopeAddress,
+              Entry = die
+          };
+          if (ScopeTransitions.ContainsKey(scopeAddress)) {
+            // If the DIE that has this Key is a child of this DIE, don't add
+            // our own entry.  Otherwise, overwrite it since the current DIE
+            // is a more specific scope.
+            var collidingTransition = ScopeTransitions[scopeAddress];
+            if (die.HasAsAncestor(collidingTransition.Entry.Key)) {
+              InsertRangeScopeTransition(scopeTransition, scopeEndAddress, false);
+            }
+          } else {
+            InsertRangeScopeTransition(scopeTransition, scopeEndAddress, true);
+          }
+        }
+      }
+    }
+
+    /// <summary>
+    ///   This mapping is useful because it allows us to skip the step where we
+    ///   always have to search DIEs for the correct range list offset.
+    /// </summary>
+    private void BuildRangeListsByDIE() {
+      var entriesWithRanges =
+          from entry in Entries
+          where entry.Value.HasAttribute(DwarfAttribute.DW_AT_ranges)
+          select entry.Value;
+      foreach (var entry in entriesWithRanges) {
+        var rangesKey = entry.GetRangesOffset();
+        var rangeList = RangeLists[rangesKey];
+        RangeListsByDIE.Add(entry.Key, rangeList);
+      }
+    }
+
+    /// <summary>
+    ///   This function assumes that the decision to add the scope transition
+    ///   has been finalized.  It will only make sure that the transition is
+    ///   added in the correct order and that, if appropriate, a transition back
+    ///   to the parent scope is added as well.
+    /// </summary>
+    private void InsertRangeScopeTransition(ScopeTransition scopeTransition,
+                                            ulong highPC,
+                                            bool isNewEntry) {
+      var previousScopeAddress = GetScopeAddress(scopeTransition.Address);
+      var nextScopeIndex =
+          scopeTransitionAddresses_.IndexOf(previousScopeAddress) + 1;
+      var nextScopeAddress = scopeTransitionAddresses_[nextScopeIndex];
+
+      // If the range and its parent entry end on the same address, we need to
+      // add a transition back to the parent.
+      var needsReturnScope = (nextScopeAddress >= highPC);
+      ScopeTransitions[scopeTransition.Address] = scopeTransition;
+      if (isNewEntry) {
+        // Since we needed this sorted in order to proceed, we keep it sorted
+        // to save time.
+        scopeTransitionAddresses_.Insert(
+            nextScopeIndex++, scopeTransition.Address);
+      }
+      if (needsReturnScope) {
+        var parentDIE = ScopeTransitions[previousScopeAddress].Entry;
+        var parentScopeTransition = new ScopeTransition {
+            Address = highPC,
+            Entry = parentDIE
+        };
+        ScopeTransitions[highPC] = parentScopeTransition;
+        scopeTransitionAddresses_.Insert(
+            nextScopeIndex, parentScopeTransition.Address);
+      }
     }
 
     #endregion

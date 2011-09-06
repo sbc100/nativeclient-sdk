@@ -2,19 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#region
+
 using Google.NaClVsx.DebugSupport.DWARF;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NaClVsx;
+
+#endregion
 
 namespace NaClVsx.Package_UnitTestProject {
   /// <summary>
-  /// This is a test class for DebugInfoEntryTest and is intended
-  /// to contain all DebugInfoEntryTest Unit Tests
+  ///   This is a test class for DebugInfoEntryTest and is intended
+  ///   to contain all DebugInfoEntryTest Unit Tests
   /// </summary>
   [TestClass]
   public class DebugInfoEntryTest {
     /// <summary>
-    /// Adds a few RangeList entries to a DIE.
+    ///   Adds a few RangeList entries to a DIE.
     /// </summary>
     [TestMethod]
     public void AddRangeListEntryByAddressTest() {
@@ -29,7 +32,7 @@ namespace NaClVsx.Package_UnitTestProject {
     }
 
     /// <summary>
-    /// A test for GetLowPC
+    ///   A test for GetLowPC
     /// </summary>
     [TestMethod]
     public void GetLowPCTest() {
@@ -42,7 +45,7 @@ namespace NaClVsx.Package_UnitTestProject {
     }
 
     /// <summary>
-    /// A test for GetFrameBase
+    ///   A test for GetFrameBase
     /// </summary>
     [TestMethod]
     public void GetFrameBaseTest() {
@@ -55,7 +58,7 @@ namespace NaClVsx.Package_UnitTestProject {
     }
 
     /// <summary>
-    /// A test for DebugInfoEntry Constructor
+    ///   A test for DebugInfoEntry Constructor
     /// </summary>
     [TestMethod]
     public void DebugInfoEntryConstructorTest() {
@@ -64,7 +67,7 @@ namespace NaClVsx.Package_UnitTestProject {
     }
 
     /// <summary>
-    /// A test for GetNearestAncestorWithTag
+    ///   A test for GetNearestAncestorWithTag
     /// </summary>
     [TestMethod]
     public void GetNearestAncestorWithTagTest() {
@@ -90,9 +93,8 @@ namespace NaClVsx.Package_UnitTestProject {
     /// <summary>
     ///   A test for HasAttribute.  Checks both "true" and "false" cases.
     /// </summary>
-    [TestMethod()]
-    public void HasAttributeTest()
-    {
+    [TestMethod]
+    public void HasAttributeTest() {
       var target = new DebugInfoEntry();
       const DwarfAttribute kAttribute = DwarfAttribute.DW_AT_ranges;
       Assert.IsFalse(target.HasAttribute(kAttribute));
@@ -104,9 +106,8 @@ namespace NaClVsx.Package_UnitTestProject {
     ///   A test for HasAsAncestor.  Checks the case where the ancestor does not exist, the case
     ///   where the ancestor is a direct parent, and the case where the ancestor is more distant.
     /// </summary>
-    [TestMethod()]
-    public void HasAsAncestorTest()
-    {
+    [TestMethod]
+    public void HasAsAncestorTest() {
       var target = new DebugInfoEntry();
       const ulong kAncestorKey = 123456;
       Assert.IsFalse(target.HasAsAncestor(kAncestorKey));
@@ -125,9 +126,8 @@ namespace NaClVsx.Package_UnitTestProject {
     /// <summary>
     ///   A test for GetRangesOffset
     /// </summary>
-    [TestMethod()]
-    public void GetRangesOffsetTest()
-    {
+    [TestMethod]
+    public void GetRangesOffsetTest() {
       var target = new DebugInfoEntry();
       Assert.AreEqual(ulong.MaxValue, target.GetRangesOffset());
       const ulong kRangesOffset = 123456;

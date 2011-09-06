@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Google.MsAd7.BaseImpl;
-using Google.MsAd7.BaseImpl.Ad7Enumerators;
 using Google.NaClVsx.DebugSupport;
 using Google.NaClVsx.DebugSupport.DWARF;
 using Microsoft.VisualStudio;
@@ -50,9 +49,10 @@ namespace NaClVsx.Package_UnitTestProject {
     /// </summary>
     [TestMethod]
     public void GetBindErrorsTestNoErrors() {
-      TestGetBindErrors(NaClPackageTestUtils.kMainStartRow,
-                        VSConstants.S_OK,
-                        new List<enum_BP_ERROR_TYPE>());
+      TestGetBindErrors(
+          NaClPackageTestUtils.kMainStartRow,
+          VSConstants.S_OK,
+          new List<enum_BP_ERROR_TYPE>());
     }
 
     /// <summary>
@@ -64,11 +64,12 @@ namespace NaClVsx.Package_UnitTestProject {
     public void GetBindErrorsTestNonCritical() {
       var expectedErrorTypes = new List<enum_BP_ERROR_TYPE>();
       const enum_BP_ERROR_TYPE kExpectedResolutionType =
-        enum_BP_ERROR_TYPE.BPET_SEV_LOW | enum_BP_ERROR_TYPE.BPET_TYPE_WARNING;
+          enum_BP_ERROR_TYPE.BPET_SEV_LOW | enum_BP_ERROR_TYPE.BPET_TYPE_WARNING;
       expectedErrorTypes.Add(kExpectedResolutionType);
-      TestGetBindErrors(NaClPackageTestUtils.kBlankLineInPrintLoop,
-                        BreakpointInfo.kBindErrorWarning,
-                        expectedErrorTypes);
+      TestGetBindErrors(
+          NaClPackageTestUtils.kBlankLineInPrintLoop,
+          BreakpointInfo.kBindErrorWarning,
+          expectedErrorTypes);
     }
 
     ///<summary>
@@ -189,13 +190,12 @@ namespace NaClVsx.Package_UnitTestProject {
     ///   the expected error types were returned.
     /// </summary>
     /// <param name = "lineToTest">The line of code to test.</param>
-    /// <param name="expectedReturnCode">What return code to expect from GetBindErrors()</param>
-    /// <param name="expectedTypes">What error resolutions are expected to result from this
+    /// <param name = "expectedReturnCode">What return code to expect from GetBindErrors()</param>
+    /// <param name = "expectedTypes">What error resolutions are expected to result from this
     ///   call.</param>
     private void TestGetBindErrors(uint lineToTest,
                                    int expectedReturnCode,
-                                   List<enum_BP_ERROR_TYPE> expectedTypes)
-    {
+                                   List<enum_BP_ERROR_TYPE> expectedTypes) {
       InitializeSymbolProvider();
       var symbolProviderPrivates = new PrivateObject(symbolProvider_);
       var database = symbolProviderPrivates.GetField("db_") as SymbolDatabase;
@@ -209,7 +209,7 @@ namespace NaClVsx.Package_UnitTestProject {
       Assert.AreEqual(expectedReturnCode, actualReturnCode);
       uint errorCount;
       outErrorEnum.GetCount(out errorCount);
-      Assert.AreEqual((uint)expectedTypes.Count(), errorCount);
+      Assert.AreEqual((uint) expectedTypes.Count(), errorCount);
       if (0 != expectedTypes.Count()) {
         var errorsFetched = 0u;
         var errorBreakpointArray = new IDebugErrorBreakpoint2[errorCount];
@@ -219,8 +219,9 @@ namespace NaClVsx.Package_UnitTestProject {
         for (var i = 0; i < expectedTypes.Count(); ++i) {
           IDebugErrorBreakpointResolution2 actualBreakpointResolution;
           errorBreakpointArray[i].GetBreakpointResolution(out actualBreakpointResolution);
-          Assert.AreEqual(expectedTypes[i],
-                          ((ErrorBreakpointResolution) actualBreakpointResolution).Type);
+          Assert.AreEqual(
+              expectedTypes[i],
+              ((ErrorBreakpointResolution) actualBreakpointResolution).Type);
         }
       }
     }

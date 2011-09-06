@@ -22,13 +22,17 @@ namespace Google.NaClVsx.DebugSupport {
   ///   Provides address and code look-ups specific to breakpoint operations.
   /// </summary>
   public class BreakpointInfo : IBreakpointInfo {
+    #region  constants
+
+    public const int kBindErrorWarning = 2;
+
+    #endregion
+
     public BreakpointInfo(SymbolDatabase database,
                           ISimpleSymbolProvider symbolProvider) {
       database_ = database;
       symbolProvider_ = symbolProvider;
     }
-
-    public const int kBindErrorWarning = 2;
 
     #region IBreakpointInfo Members
 

@@ -252,10 +252,10 @@ namespace Google.NaClVsx.DebugSupport.DWARF {
         }
         if (!db_.RangeLists[offset].ContainsKey(lowPC)) {
           var entry = new RangeListEntry {
-            Offset = offset,
-            BaseAddress = baseAddress,
-            LowPC = lowPC,
-            HighPC = highPC
+              Offset = offset,
+              BaseAddress = baseAddress,
+              LowPC = lowPC,
+              HighPC = highPC
           };
           db_.RangeLists[offset].Add(lowPC, entry);
         }

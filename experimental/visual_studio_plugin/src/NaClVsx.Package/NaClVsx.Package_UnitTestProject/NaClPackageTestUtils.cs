@@ -22,7 +22,7 @@ namespace NaClVsx.Package_UnitTestProject {
     #region  constants
 
     /// <summary>
-    /// This points at an empty line inside of a function.
+    ///   This points at an empty line inside of a function.
     /// </summary>
     public const uint kBlankLineInPrintLoop = 22;
 

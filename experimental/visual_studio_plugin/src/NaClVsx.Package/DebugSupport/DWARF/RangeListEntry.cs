@@ -2,16 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NaClVsx;
-
-namespace Google.NaClVsx.DebugSupport.DWARF
-{
+namespace Google.NaClVsx.DebugSupport.DWARF {
   /// <summary>
-  /// Represents a Range List entry.
+  ///   Represents a Range List entry.
   /// </summary>
   public class RangeListEntry {
     public ulong Offset;
