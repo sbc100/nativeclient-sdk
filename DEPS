@@ -1,15 +1,18 @@
 vars = {
+  # Get PPAPI directly from Chrome, not via the NaCl repo.
+  "chromium_trunk": "http://src.chromium.org/svn/trunk",
+  "chrome_ppapi_rev": "99752",
   "gmock_trunk": "http://googlemock.googlecode.com/svn/trunk/",
   "gmock_version": "382",
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "6625",
+  "native_client_version": "6641",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "arm_toolchain_version": "6619",
-  "x86_toolchain_version": "6608",
+  "arm_toolchain_version": "6632",
+  "x86_toolchain_version": "6632",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
 }
@@ -42,7 +45,7 @@ deps = {
     Var("native_client_trunk") + "/src/native_client@" +
     Var("native_client_version"),
   "src/third_party/native_client/ppapi":
-    From("nacl_deps", "ppapi"),
+    Var("chromium_trunk") + "/src/ppapi@" + Var("chrome_ppapi_rev"),
   "src/third_party/native_client/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
   "src/third_party/pymox":
