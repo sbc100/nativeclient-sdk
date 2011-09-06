@@ -148,19 +148,25 @@ class TestUpdateManifest(unittest.TestCase):
 
   def testUpdateManifestArchiveComputeSha1AndSize(self):
     ''' Test function Archive.Update '''
-    # Create a temp file with some data
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-      temp_file.write(r'abcdefghijklmnopqrstuvwxyz0123456789')
-      temp_file.flush()
-      file_path = os.path.normpath(temp_file.name)
-      temp_file.close()
-      # Create an archive with a url to the file we created above.
-      url_parts = urlparse.ParseResult('file', '', file_path, '', '', '')
-      url = urlparse.urlunparse(url_parts)
-      archive = update_manifest.Archive('mac')
-      archive.Update(url)
-      self.assertEqual(archive['checksum']['sha1'],
-                       'd2985049a677bbc4b4e8dea3b89c4820e5668e3a')
+    temp_file_path = None
+    try:
+      with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        # Create a temp file with some data
+        temp_file.write(r'abcdefghijklmnopqrstuvwxyz0123456789')
+        temp_file_path = temp_file.name
+        # Windows requires that we close the file before reading from it.
+        temp_file.close()
+
+        # Create an archive with a url to the file we created above.
+        url_parts = urlparse.ParseResult('file', '', temp_file_path, '', '', '')
+        url = urlparse.urlunparse(url_parts)
+        archive = update_manifest.Archive('mac')
+        archive.Update(url)
+        self.assertEqual(archive['checksum']['sha1'],
+                         'd2985049a677bbc4b4e8dea3b89c4820e5668e3a')
+    finally:
+      if temp_file_path and os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
 
   def testUpdateManifestArchiveValidate(self):
     ''' Test function Archive.Validate '''
