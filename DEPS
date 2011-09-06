@@ -1,7 +1,5 @@
 vars = {
   # Get PPAPI directly from Chrome, not via the NaCl repo.
-  "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chrome_ppapi_rev": "99752",
   "gmock_trunk": "http://googlemock.googlecode.com/svn/trunk/",
   "gmock_version": "382",
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
@@ -45,7 +43,7 @@ deps = {
     Var("native_client_trunk") + "/src/native_client@" +
     Var("native_client_version"),
   "src/third_party/native_client/ppapi":
-    Var("chromium_trunk") + "/src/ppapi@" + Var("chrome_ppapi_rev"),
+    From("nacl_deps", "ppapi"),
   "src/third_party/native_client/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
   "src/third_party/pymox":
