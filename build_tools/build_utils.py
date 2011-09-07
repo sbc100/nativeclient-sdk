@@ -61,11 +61,13 @@ def GetArchiveTableOfContents(tar_archive_file):
   '''Walk a directory and return the table of contents.
 
   The table of contents is an enumeration of each node in the archive, broken
-  into four separate arrays:
-    1. The list of plain files.
-    2. The list of plain directories (not symlinks).
-    3. The list of symbolic links (these can link to plain files or dirs).
-    4. The list of hard links.
+  into four separate collections:
+    1. The set of plain files.
+    2. The set of plain directories (not symlinks).
+    3. A dictionary of symbolic links (these can link to plain files or dirs),
+       the value of each key is the source file of the link.
+    4. A dictionary of hard links, the value of each key is the source file of
+       the link.
   The table of contents is returned as a 4-tuple (files, dirs, symlinks, links).
   Symbolic links are not followed.
 
@@ -77,22 +79,34 @@ def GetArchiveTableOfContents(tar_archive_file):
     (files, dirs, symlinks, links) where each element of the 4-tuple is an
         array of platform-specific normalized path names, starting with the root
         directory in |tar_archive_file|:
-        |files| is a list of plain files.  Might be empty.
-        |dirs| is a list of directories.  Might be empty.
-        |symlinks| is a list of symbolic links - these are not followed.  Might
-            be empty.
-        |links| is a list of hard links.  Might be empty.
+        |files| is a set of plain files.  Might be empty.
+        |dirs| is a set of directories.  Might be empty.
+        |symlinks| is a dictionary of symbolic links - these are not followed.
+            Might be empty.
+        |links| is a dictionary of hard links.  Might be empty.
   '''
+  def MakePathSet(condition):
+    '''Helper function used with a lambda to generate a set of path names.'''
+    return set([os.path.normpath(tarinfo.name)
+                for tarinfo in tar_archive if condition(tarinfo)])
+
+  def MakeLinksDict(condition):
+    '''Helper function used with a lambda to generate the link dicitonaries.
+
+    Note that accessing tarinfo.linkname raises an exception if
+    the TarInfo member is not a link, which is why there are two separate
+    helper functions.
+    '''
+    return dict([(os.path.normpath(tarinfo.name),
+                  os.path.normpath(tarinfo.linkname))
+                 for tarinfo in tar_archive if condition(tarinfo)])
+
   try:
     tar_archive = tarfile.open(tar_archive_file)
-    files = [os.path.normpath(tarinfo.name)
-             for tarinfo in tar_archive if tarinfo.isfile()]
-    dirs = [os.path.normpath(tarinfo.name)
-            for tarinfo in tar_archive if tarinfo.isdir()]
-    symlinks = [os.path.normpath(tarinfo.name)
-                for tarinfo in tar_archive if tarinfo.issym()]
-    links = [os.path.normpath(tarinfo.name)
-             for tarinfo in tar_archive if tarinfo.islnk()]
+    files = MakePathSet(lambda x: x.isfile())
+    dirs = MakePathSet(lambda x: x.isdir())
+    symlinks = MakeLinksDict(lambda x: x.issym())
+    links = MakeLinksDict(lambda x: x.islnk())
   finally:
     tar_archive.close()
   return files, dirs, symlinks, links
