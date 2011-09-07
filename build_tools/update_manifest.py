@@ -37,10 +37,10 @@ OPTION_KEY_MAP = {
 }
 # Map options keys to platform key, as stored in the bundle.
 OPTION_KEY_TO_PLATFORM_MAP = {
-    'mac_tgz_url':    'mac',
-    'win_tgz_url':    'win',
-    'linux_tgz_url':  'linux',
-    'all_tgz_url':    'all',
+    'mac_arch_url':    'mac',
+    'win_arch_url':    'win',
+    'linux_arch_url':  'linux',
+    'all_arch_url':    'all',
 }
 # Valid keys for various sdk objects, used for validation.
 VALID_ARCHIVE_KEYS = frozenset(['host_os', 'size', 'checksum', 'url'])
@@ -232,7 +232,7 @@ class Bundle(dict):
     Return:
       An Archive instance or None if it doesn't exist.'''
     for archive in self['archives']:
-      if archive.host_os is host_os_name:
+      if archive['host_os'] == host_os_name:
         return archive
     return None
 
@@ -509,13 +509,13 @@ def main(argv):
       default=None,
       help='Required: Description for this bundle.')
   parser.add_option(
-      '-M', '--mac_tgz', dest='mac_tgz_url',
+      '-M', '--mac_archive', dest='mac_arch_url',
       default=None,
-      help='URL for the Mac tgz archive.')
+      help='URL for the Mac archive.')
   parser.add_option(
-      '-L', '--linux_tgz', dest='linux_tgz_url',
+      '-L', '--linux_archive', dest='linux_arch_url',
       default=None,
-      help='URL for the Linux tgz archive.')
+      help='URL for the Linux archive.')
   parser.add_option(
       '-n', '--bundle_name', dest='bundle_name',
       default=None,
@@ -542,9 +542,9 @@ def main(argv):
       help='Required for new manifest files: '
            'Version number for the manifest.')
   parser.add_option(
-      '-W', '--win_tgz', dest='win_tgz_url',
+      '-W', '--win_archive', dest='win_arch_url',
       default=None,
-      help='URL for the Windows tgz archive.')
+      help='URL for the Windows archive.')
 
   # Parse options and arguments and check.
   (options, args) = parser.parse_args(argv)

@@ -1,0 +1,40 @@
+{
+  "bundles": [
+    {
+      "name": "pepper_14",
+      "desc_url": "http://code.google.com/chrome/nativeclient/docs/download.html",
+      "description": "Chrome 14 bundle, revision 1052",
+      "stability": "dev",
+      "recommended": "no",
+      "version": 14,
+      "archives": [
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/naclsdk_mac.tgz",
+          "checksum": {
+            "sha1": "e4b12fcb2dde33ff8b56e9ac3b83830a46205880"
+          },
+          "host_os": "mac",
+          "size": 51242839
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/naclsdk_linux.tgz",
+          "checksum": {
+            "sha1": "52e6dd6efbd060956ac62b20dc3ba4bf0d34bcca"
+          },
+          "host_os": "linux",
+          "size": 55819823
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/naclsdk_win.exe",
+          "checksum": {
+            "sha1": "9451dae079d19c7c5b270a4557aeec5d964858b7"
+          },
+          "host_os": "win",
+          "size": 18970313
+        }
+      ],
+      "revision": 1052
+    }
+  ],
+  "manifest_version": 1
+}
