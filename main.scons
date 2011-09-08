@@ -25,7 +25,7 @@ import sys
 import toolchainbinaries
 from build_tools import build_utils
 
-#------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 HELP_STRING = """
 ===============================================================================
 Help for NaCl SDK
@@ -47,6 +47,7 @@ Supported targets:
 Flags:
   * USE_EXISTING_INSTALLER=1        Do not rebuild the installer if it exists.
   * chrome_browser_path=<full_path> Download Chrome to <full_path>.
+  * browser_headless=True           Suppress browser GUI while testing.
 
 More targets are listed below in the automatically generated help section.
 
@@ -55,7 +56,7 @@ Automatically generated help follows:
 ===============================================================================
 """
 
-#------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Perform some environment checks before running.
 # Note that scons should set NACL_SDK_ROOT before this script runs.
 
@@ -63,7 +64,6 @@ if os.getenv('NACL_SDK_ROOT') is None:
   sys.stderr.write('NACL_SDK_ROOT must be defined as the root directory'
                    ' of NaCl SDK.\n')
   sys.exit(1)
-
 
 # By default, run with a parallel build (i.e. '-j num_jobs').
 # Use a default value proportional to the number of cpu cores on the system.
@@ -77,13 +77,13 @@ except (ImportError, NotImplementedError):
 SetOption('num_jobs', CORE_COUNT * 2)
 print 'Building with', GetOption('num_jobs'), 'parallel jobs'
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # The environment_list contains all the build environments that we want to
 # specify.  Selecting a particular environment is done using the --mode option.
 # Each environment that we support gets appended to this list.
 environment_list = []
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Create the base environment, from which all other environments are derived.
 base_env = Environment(
     tools = ['component_setup'],
@@ -119,6 +119,7 @@ base_env.Append(
         'debugger/build.scons',
         'documentation/build.scons',
         'experimental/visual_studio_plugin/build.scons',
+        'experimental/webgtt/tests/nacltest/test.scons',
         'project_templates/test.scons',
     ],
 )
@@ -182,6 +183,7 @@ def AddNodeToTestSuite(env, node, suite_names, node_name, test_size='all'):
 
 base_env.AddMethod(AddNodeToTestSuite)
 
+
 def ShouldBeCleaned(env, targets, suite_names, node_name):
   '''Determines whether a given set of targets require cleaning.
 
@@ -211,6 +213,7 @@ def ShouldBeCleaned(env, targets, suite_names, node_name):
       return True
   return False
 
+
 def AddCleanAction(env, targets, action, suite_names, node_name):
   '''Adds a cleanup action that scons cannot detect automatically.
 
@@ -231,6 +234,7 @@ def AddCleanAction(env, targets, action, suite_names, node_name):
     env.Execute(action)
 
 base_env.AddMethod(AddCleanAction)
+
 
 def AddNodeAliases(env, node, suite_names, node_name):
   '''Allow a given node to be built under a different name or as a suite
@@ -276,6 +280,7 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
 
   basename = os.path.splitext(os.path.basename(filename))[0]
   outfilename = "%s_output.txt" % basename
+
 
   def RunPythonUnitTest(env, target, source):
     """Runs unit tests using the given target as a command.
@@ -346,7 +351,7 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
 base_env.AddMethod(CreatePythonUnitTest)
 
 
-# ----------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Support for running Chrome.  These functions access the construction
 # Environment() to produce a path to Chrome.
 
@@ -406,9 +411,8 @@ def GetDefaultChromeBinary(env):
     raise Exception('Unsupported OS')
 
   return env.File(os.path.join('${CHROME_DOWNLOAD_DIR}',
-                               os_name,
-                               env.ChromeArchitectureSpec(),
-                               binary))
+                              '%s_%s' % (os_name, env.ChromeArchitectureSpec()),
+                              binary))
 
 base_env.AddMethod(GetDefaultChromeBinary)
 
@@ -456,7 +460,7 @@ def DependsOnChrome(env, dependency):
 base_env.AddMethod(DependsOnChrome)
 
 
-# ----------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Targets for updating sdk headers and libraries
 # NACL_SDK_XXX vars are defined by  site_scons/site_tools/naclsdk.py
 # NOTE: Our task here is complicated by the fact that there might already be
@@ -512,6 +516,7 @@ def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dirs = None):
 
 base_env.AddMethod(AddHeaderToSdk)
 
+
 def AddLibraryToSdkHelper(env, nodes, is_lib, is_platform):
   """"Helper function to install libs/objs into the toolchain
   and associate the action with the extra_sdk_update.
@@ -546,9 +551,9 @@ def AddLibraryToSdk(env, nodes, is_platform=False):
 base_env.AddMethod(AddLibraryToSdk)
 
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # This is a simple environment that is primarily for targets that aren't built
-# directly by scons, and therefore don't need any special environment setup
+# directly by scons, and therefore don't need any special environment setup.
 build_env = base_env.Clone(
     BUILD_TYPE = 'build',
     BUILD_GROUPS = ['default', 'all'],
@@ -558,8 +563,9 @@ build_env = base_env.Clone(
 
 environment_list.append(build_env)
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Get the appropriate build command depending on the environment.
+
 
 def SconsBuildCommand(env):
   '''Return the build command used to run separate scons instances.
@@ -574,11 +580,12 @@ def SconsBuildCommand(env):
   else:
     return './scons --jobs=%s' % GetOption('num_jobs')
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Add a builder for examples.  This adds an Alias() node named 'examples' that
 # is always built.  There is some special handling for the clean mode, since
 # SCons relies on actual build products for its clean processing and will not
 # run Alias() actions during clean unless they actually produce something.
+
 
 def BuildExamples(env, target, source):
   '''Build the examples.
@@ -586,7 +593,7 @@ def BuildExamples(env, target, source):
   This runs the build command in the 'examples' directory.
 
   Args:
-    env: The construction Environment that is building the examples.
+    env: The construction Environment() that is building the examples.
     target: The target that triggered this build.  Not used.
     source: The sources used for this build.  Not used.
   '''
@@ -601,9 +608,9 @@ def CleanExamples(env, target, source):
   This runs the clean command in the 'examples' directory.
 
   Args:
-    env: The construction Environment that is building the examples.
+    env: The construction Environment() that is building the examples.
   '''
-  subprocess.check_call(SconsBuildCommand(env) + ' --clean',
+  subprocess.check_call('%s --clean' % SconsBuildCommand(env),
                         cwd='examples',
                         shell=True)
 
@@ -614,12 +621,13 @@ build_env.AddCleanAction(['examples'], CleanExamples, ['bot'],
                          examples_builder)
 
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Add a builder for experimental projects.  This adds an Alias() node named
 # 'experimental' that is always built.  There is some special handling for the
 # clean mode, since SCons relies on actual build products for its clean
 # processing and will not run Alias() actions during clean unless they actually
 # produce something.
+
 
 def BuildExperimental(env, target, source):
   '''Build the experimental projects.
@@ -627,8 +635,8 @@ def BuildExperimental(env, target, source):
   This runs the build command in the 'experimental' directory.
 
   Args:
-    env: The construction Environment that is building the experimental
-    projects.
+    env: The construction Environment() that is building the experimental
+         projects.
     target: The target that triggered this build.  Not used.
     source: The sources used for this build.  Not used.
   '''
@@ -643,10 +651,10 @@ def CleanExperimental(env, target, source):
   This runs the clean command in the 'experimental' directory.
 
   Args:
-    env: The construction Environment that is building the experimental
-    projects.
+    env: The construction Environment() that is building the experimental
+         projects.
   '''
-  subprocess.check_call(SconsBuildCommand(env) + ' --clean',
+  subprocess.check_call('%s --clean' % SconsBuildCommand(env),
                         cwd='experimental',
                         shell=True)
 
@@ -657,7 +665,234 @@ build_env.AlwaysBuild(experimental_builder)
 build_env.AddCleanAction(['experimental'], CleanExperimental, ['bot'],
                          experimental_builder)
 
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Add helper functions that build/clean a test by invoking scons under the
+# test directory (|cwd|, when specified).  These functions are meant to be
+# called from corresponding project-specific 'Build<project>Test' and
+# 'Clean<project>Test' functions in the local test.scons scripts.  Note that the
+# CleanNaClTest does not require a |cwd| because its cwd is always '.'
+
+
+def BuildNaClTest(env, cwd):
+  '''Build the test.
+
+  This runs the build command in the test directory from which it is called.
+
+  Args:
+    env: The construction Environment() that is building the test.
+    cwd: The directory under which the test's build.scons rests.
+  '''
+  subprocess.check_call('%s stage' % SconsBuildCommand(env),
+                        cwd=cwd,
+                        shell=True)
+
+build_env.AddMethod(BuildNaClTest)
+
+
+def CleanNaClTest(env):
+  '''Clean the test.
+
+  This runs the clean command in the test directory from which it is called.
+
+  Args:
+    env: The construction Environment() that is building the test.
+    cwd: The directory under which the test's build.scons rests.
+  '''
+  subprocess.check_call('%s stage --clean' % SconsBuildCommand(env),
+                        shell=True)
+  # The step above still leaves behind two empty 'opt' directories, so a second
+  # cleaning pass is necessary.
+  subprocess.check_call('%s --clean' % SconsBuildCommand(env),
+                        shell=True)
+
+build_env.AddMethod(CleanNaClTest)
+
+# ----------------------------------------------------------------------------
+# Enable PPAPIBrowserTester() functionality using nacltest.js
+# NOTE: The three main functions in this section: PPAPIBrowserTester(),
+# CommandTest(), and AutoDepsCommand() are 'LITE' versions of their counterparts
+# provided by Native Client @ third_party/native_client/native_client/SConstruct
+
+
+def SetupBrowserEnv(env):
+  '''Set up the environment for running the browser.
+
+  This copies environment parameters provided by the OS in order to run the
+  browser reliably.
+
+  Args:
+    env: The construction Environment() that runs the browser.
+  '''
+  EXTRA_ENV = ['XAUTHORITY', 'HOME', 'DISPLAY', 'SSH_TTY', 'KRB5CCNAME']
+  for var_name in EXTRA_ENV:
+    if var_name in os.environ:
+      env['ENV'][var_name] = os.environ[var_name]
+
+  env.Append(
+    PYTHONPATH = [
+        build_utils.JoinPathToNaClRepo(
+            'third_party', 'pylib',
+            root_dir=os.getenv('NACL_SDK_ROOT')),
+        build_utils.JoinPathToNaClRepo(
+            'tools', 'valgrind',
+            root_dir=os.getenv('NACL_SDK_ROOT')),
+        ]
+    )
+
+
+def PPAPIBrowserTester(env,
+                       target,
+                       url,
+                       files,
+                       timeout=20):
+  '''The main test wrapper for browser integration tests.
+
+  This constructs the command that invokes the browser_tester.py script on an
+  existing Chrome binary (to be downloaded if necessary).
+
+  Args:
+    env: The construction Environment() that runs the browser.
+    target: The output file to which the output of the test is to be written.
+    url: The test web page.
+    files: The files necessary for the web page to be served.
+    timeout: How long to wait for a response before concluding failure.
+
+  Returns: A command node that executes the browser test.
+  '''
+
+  env = env.Clone()
+  SetupBrowserEnv(env)
+
+  python_tester_script = build_utils.JoinPathToNaClRepo(
+      'native_client', 'tools', 'browser_tester', 'browser_tester.py',
+      root_dir=env['ROOT_DIR'])
+
+  # Check if browser GUI needs to be suppressed (possible only in Linux)
+  headless_prefix = []
+  if ARGUMENTS.get('browser_headless', False) and env.get('IS_LINUX'):
+    headless_prefix = ['xvfb-run', '--auto-servernum']
+
+  command = headless_prefix + [
+      '${PYTHON}', python_tester_script,
+      '--browser_path', env.GetChromeBinary(),
+      '--url', url,
+      # Fail if there is no response for X seconds.
+      '--timeout', str(timeout)]
+
+  for dep_file in files:
+    command.extend(['--file', dep_file])
+
+  cmd = env.CommandTest(target,
+                         command,
+                         # Set to 'huge' so that the browser tester's timeout
+                         # takes precedence over the default of the test suite.
+                         size='huge',
+                         capture_output=False)
+  env.DependsOnChrome(cmd)
+
+  return cmd
+
+build_env.AddMethod(PPAPIBrowserTester)
+
+
+def CommandTest(env,
+                name,
+                command,
+                size='small',
+                capture_output=True):
+  '''The wrapper for testing execution of a command and logging details.
+
+  This constructs the command that invokes the command_tester.py script on a
+  given command.
+
+  Args:
+    env: The construction Environment() that runs the command.
+    name: The output file to which the output of the tester is to be written.
+    command: The command to be tested.
+    size: This dictates certain timeout thresholds.
+    capture_output: This specifies whether the command's output needs to be
+                    captured for further processing. When this option is False,
+                    stdout and stderr will be streamed out. For more info, see
+                    <NACL_REPO>/native_client/tools/command_tester.py
+
+  Returns: A command node that executes the command test.
+  '''
+  TEST_TIME_THRESHOLD = {
+    'small':   2,
+    'medium': 10,
+    'large':  60,
+    'huge': 1800,
+    }
+
+  if not name.endswith('out') or name.startswith('$'):
+    raise Exception('ERROR: bad test filename for test output %r' % name)
+
+  arch_string = env.ChromeArchitectureSpec();
+  if env['IS_LINUX']:
+    platform_string = 'linux'
+  elif env['IS_MAC']:
+    platform_string = 'mac'
+  elif env['IS_WINDOWS']:
+    platform_string = 'windows'
+
+  name = '${TARGET_ROOT}/test_results/' + name
+  max_time = TEST_TIME_THRESHOLD[size]
+
+  script_flags = ['--name', name,
+                  '--report', name,
+                  '--time_warning', str(max_time),
+                  '--time_error', str(10 * max_time),
+                  '--perf_env_description', platform_string + '_' + arch_string,
+                  '--arch', 'x86',
+                  '--subarch', arch_string[-2:],
+                  ]
+  if not capture_output:
+    script_flags.extend(['--capture_output', '0'])
+
+  test_script = build_utils.JoinPathToNaClRepo(
+      'native_client', 'tools', 'command_tester.py',
+      root_dir=env['ROOT_DIR'])
+  command = ['${PYTHON}', test_script] + script_flags + command
+  return AutoDepsCommand(env, name, command)
+
+build_env.AddMethod(CommandTest)
+
+
+def AutoDepsCommand(env, name, command):
+  """AutoDepsCommand() takes a command as an array of arguments.  Each
+  argument may either be:
+
+   * a string, or
+   * a Scons file object, e.g. one created with env.File() or as the
+     result of another build target.
+
+  In the second case, the file is automatically declared as a
+  dependency of this command.
+
+  Args:
+    env: The construction Environment() that runs the command.
+    name: The target file to which the output is to be written.
+    command: The command to be executed.
+
+  Returns: A command node in the standard SCons format.
+  """
+  deps = []
+  for index, arg in enumerate(command):
+    if not isinstance(arg, str):
+      if len(Flatten(arg)) != 1:
+        # Do not allow this, because it would cause "deps" to get out
+        # of sync with the indexes in "command".
+        # See http://code.google.com/p/nativeclient/issues/detail?id=1086
+        raise AssertionError('Argument to AutoDepsCommand() actually contains '
+                             'multiple (or zero) arguments: %r' % arg)
+      command[index] = '${SOURCES[%d].abspath}' % len(deps)
+      deps.append(arg)
+
+  return env.Command(name, deps, ' '.join(command))
+
+build_env.AddMethod(AutoDepsCommand)
+
+# ----------------------------------------------------------------------------
 BuildComponents(environment_list)
 
 # Require specifying an explicit target only when not cleaning

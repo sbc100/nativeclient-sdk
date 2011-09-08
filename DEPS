@@ -50,8 +50,12 @@ deps = {
     Var("pymox") + "@" + Var("pymox_version"),
   "src/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
+  "src/third_party/native_client/third_party/pylib":
+    From("nacl_deps", "third_party/pylib"),
   "src/third_party/native_client/third_party/simplejson":
     From("nacl_deps", "third_party/simplejson"),
+  "src/third_party/native_client/tools/valgrind":
+    From("nacl_deps", "tools/valgrind"),
 }
 
 deps_os = {

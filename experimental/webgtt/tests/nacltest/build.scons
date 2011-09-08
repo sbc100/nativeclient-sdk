@@ -1,0 +1,51 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import make_nacl_env
+import os
+import sys
+
+ROOT_DIR = os.getenv('NACL_SDK_ROOT')
+
+sys.path.append(ROOT_DIR)
+from build_tools import build_utils
+
+nacl_env = make_nacl_env.NaClEnvironment(
+    nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
+nacl_env.Append(
+    # Add a CPPPATH that enables the full-path #include directives, such as
+    # #include "examples/sine_synth/sine_synth.h"
+    CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+    # Strict ANSI compliance.
+    EXTRA_CCFLAGS=['-pedantic'],
+   )
+
+nacl_env.Append(CPPPATH=[build_utils.JoinPathToNaClRepo(root_dir=ROOT_DIR)])
+nacl_env.Append(CPPPATH=[ROOT_DIR])
+
+sources = ['ppapi_messaging.c']
+
+nacl_env.AllNaClModules(sources, 'ppapi_messaging')
+
+# Copy the files required by the test to the staging directory where the browser
+# test can find them. See test.scons under this directory.
+
+ppapi_files = ['ppapi_messaging.html', 'ppapi_messaging.nmf',
+               'ppapi_messaging_x86_32.nexe', 'ppapi_messaging_x86_64.nexe']
+
+nacltest_js = build_utils.JoinPathToNaClRepo('native_client',
+                                             'tools',
+                                             'browser_tester',
+                                             'browserdata',
+                                             'nacltest.js',
+                                             root_dir=ROOT_DIR)
+
+STAGING_DIR = os.path.join(ROOT_DIR, 'scons-out', 'build', 'staging')
+
+stage_install = nacl_env.Install(dir=STAGING_DIR,
+                                 source=ppapi_files+[nacltest_js])
+
+Alias('stage', stage_install)
