@@ -495,12 +495,12 @@ def main(argv):
 
   # Setup options
   parser.add_option(
-      '-B', '--bundle_revision', dest='bundle_revision',
+      '-B', '--bundle-revision', dest='bundle_revision',
       type='int',
       default=None,
       help='Required: Revision number for the bundle.')
   parser.add_option(
-      '-b', '--bundle_version', dest='bundle_version',
+      '-b', '--bundle-version', dest='bundle_version',
       type='int',
       default=None,
       help='Optional: Version number for the bundle.')
@@ -509,15 +509,15 @@ def main(argv):
       default=None,
       help='Required: Description for this bundle.')
   parser.add_option(
-      '-M', '--mac_archive', dest='mac_arch_url',
+      '-M', '--mac-archive', dest='mac_arch_url',
       default=None,
       help='URL for the Mac archive.')
   parser.add_option(
-      '-L', '--linux_archive', dest='linux_arch_url',
+      '-L', '--linux-archive', dest='linux_arch_url',
       default=None,
       help='URL for the Linux archive.')
   parser.add_option(
-      '-n', '--bundle_name', dest='bundle_name',
+      '-n', '--bundle-name', dest='bundle_name',
       default=None,
       help='Required: Name of the bundle.')
   parser.add_option(
@@ -532,17 +532,17 @@ def main(argv):
       help='Required: Stability for this bundle; one of. '
            '"obsolete", "post_stable", "stable", "beta", "dev", "canary".')
   parser.add_option(
-      '-u', '--desc_url', dest='bundle_desc_url',
+      '-u', '--desc-url', dest='bundle_desc_url',
       default=None,
       help='Optional: URL to follow to read additional bundle info.')
   parser.add_option(
-      '-v', '--manifest_version', dest='manifest_version',
+      '-v', '--manifest-version', dest='manifest_version',
       type='int',
       default=None,
       help='Required for new manifest files: '
            'Version number for the manifest.')
   parser.add_option(
-      '-W', '--win_archive', dest='win_arch_url',
+      '-W', '--win-archive', dest='win_arch_url',
       default=None,
       help='URL for the Windows archive.')
 
