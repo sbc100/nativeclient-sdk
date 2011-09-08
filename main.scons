@@ -47,7 +47,8 @@ Supported targets:
 Flags:
   * USE_EXISTING_INSTALLER=1        Do not rebuild the installer if it exists.
   * chrome_browser_path=<full_path> Download Chrome to <full_path>.
-  * browser_headless=True           Suppress browser GUI while testing.
+  * BROWSER_HEADLESS=False          Don't suppress browser GUI while performing
+                                    browser tests in Linux.
 
 More targets are listed below in the automatically generated help section.
 
@@ -110,6 +111,7 @@ base_env = Environment(
 base_env.SetDefault(
     PYTHON = ARGUMENTS.get('PYTHON', 'python'),
     USE_EXISTING_INSTALLER = ARGUMENTS.get('USE_EXISTING_INSTALLER', False),
+    BROWSER_HEADLESS = ARGUMENTS.get('BROWSER_HEADLESS', True),
 )
 
 base_env.Append(
@@ -398,13 +400,13 @@ def GetDefaultChromeBinary(env):
 
   Returns: A File object representing the Chrome binary.
   '''
-  if env.get('IS_LINUX'):
+  if env['IS_LINUX']:
     os_name = 'linux'
     binary = 'chrome'
-  elif env.get('IS_WINDOWS'):
+  elif env['IS_WINDOWS']:
     os_name = 'windows'
     binary = 'chrome.exe'
-  elif env.get('IS_MAC'):
+  elif env['IS_MAC']:
     os_name = 'mac'
     binary = 'Chromium.app/Contents/MacOS/Chromium'
   else:
@@ -575,7 +577,7 @@ def SconsBuildCommand(env):
     A string representing the platform-specific build command that will run the
     scons instances.
   '''
-  if env.get('IS_WINDOWS'):
+  if env['IS_WINDOWS']:
     return 'scons.bat --jobs=%s' % GetOption('num_jobs')
   else:
     return './scons --jobs=%s' % GetOption('num_jobs')
@@ -769,7 +771,7 @@ def PPAPIBrowserTester(env,
 
   # Check if browser GUI needs to be suppressed (possible only in Linux)
   headless_prefix = []
-  if ARGUMENTS.get('browser_headless', False) and env.get('IS_LINUX'):
+  if env['BROWSER_HEADLESS'] and env['IS_LINUX']:
     headless_prefix = ['xvfb-run', '--auto-servernum']
 
   command = headless_prefix + [
