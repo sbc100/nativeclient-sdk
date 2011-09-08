@@ -13,6 +13,11 @@ html,body {
   height: 100%;
   width: 100%;
   background-color: #A9A9A9;
+  font-family: "Arial", "Helvetica", sans-serif;
+  color: #222;
+  font-size: 13px;
+  line-height: 1;
+  background: white;
 }
 
 body {
@@ -20,6 +25,12 @@ body {
   font-size: 10pt;
   border: 0px;
   overflow: hidden;
+}
+
+p {
+  margin: 0 0 1em;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /**

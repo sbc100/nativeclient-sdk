@@ -1,0 +1,52 @@
+/* Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/**
+ * Styling for a progress bar.
+ */
+
+ /**
+  * The status text.  This is title text that goes above the progress bar.
+  */
+.progressstatus {
+  color:#202020;
+  margin-bottom:0;
+}
+
+/**
+ * Text that indicates the progress, usually displayed as a number or a
+ * percent (as in, "53% complete).
+ */
+.progresstext {
+  color:#999;
+}
+
+/**
+ * The progress bar itself.  This bar contains the track (see below).
+ */
+.progressbar {
+  width:320px;
+  border:1px solid #999;
+  padding:1px;
+}
+
+/**
+ * The progress track.  This changes size to indicate progress.  Change the
+ * size by changing the style.width value.
+ */
+.progresstrack {
+  background:#CCC;
+  width:170px;
+  height:5px;
+}
+
+/**
+ * "Tall" versions of the progress bar.
+ */
+.tall .progresstrack,
+.tall .quantitytrack {
+  height:8px;
+}
+

@@ -98,6 +98,8 @@ FlockingGeese.DomIds = {
   // The <DIV> containing the simulation drawing area (either the NaCl module
   // or the <CANVAS>.
   NACL_VIEW: 'nacl_flocking_geese',
+  // The <DIV> containing the load progress bar.
+  PROGRESS_BAR: 'progress_bar',
   // The button used to select sim type (NaCL vs. JavaScript).  Contained in
   // the info panel.
   SIM_MODE_BUTTON: 'sim_mode_button',
@@ -194,6 +196,10 @@ FlockingGeese.prototype.moduleDidLoad = function(opt_naclModuleId) {
     this.invokeNaClMethod('resetFlock',
                           {'size' : parseInt(flockSizeSelect.value)});
   }
+  // Hide the load progress bar and make the modeul element visible.
+  var progress_bar = document.getElementById(FlockingGeese.DomIds.PROGRESS_BAR);
+  progress_bar.style.visibility = 'hidden';
+  this.naclModule_.style.visibility = 'visible';
 }
 
 /**
@@ -366,12 +372,24 @@ FlockingGeese.prototype.run = function(opt_viewDivName) {
                            true);
 
   var viewSize = goog.style.getSize(viewDiv);
-  viewDiv.innerHTML = '<embed id="' + FlockingGeese.DomIds.NACL_MODULE + '" ' +
-                       ' class="autosize-view"' +
-                       ' width=' + viewSize.width +
-                       ' height=' + viewSize.height +
-                       ' src="flocking_geese.nmf"' +
-                       ' type="application/x-nacl" />'
+  viewDiv.innerHTML =
+    '<div id="' + FlockingGeese.DomIds.PROGRESS_BAR + '" ' +
+          'class="autosize-view" ' +
+          'style="width: ' + viewSize.width + '; ' +
+                '"height: ' + viewSize.height + ';">' +
+      '<p class="progressstatus">Loading NaCl Module&hellip;</p>' +
+      '<div class="progressbar tall">' +
+        '<div class="progresstrack"></div>' +
+      '</div>' +
+      '<p class="progresstext">53% complete.</p>' +
+    '</div>' +
+    '<embed id="' + FlockingGeese.DomIds.NACL_MODULE + '" ' +
+          ' class="autosize-view"' +
+          ' width=' + viewSize.width +
+          ' height=' + viewSize.height +
+          ' src="flocking_geese.nmf"' +
+          ' type="application/x-nacl"' +
+          ' style="visibility:hidden;" />'
 
   this.startJavaScriptSimulation_();
 }

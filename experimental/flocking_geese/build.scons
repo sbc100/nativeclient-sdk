@@ -73,6 +73,7 @@ install_js = nacl_env.Install(
 css_files = [os.path.join('css', css_file) for css_file in [
     'flocking_geese.css',
     'info_panel.css',
+    'progress_bar.css',
     'speedometer.css',
 ]]
 
