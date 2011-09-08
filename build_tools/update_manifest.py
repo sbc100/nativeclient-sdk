@@ -51,6 +51,23 @@ VALID_BUNDLE_KEYS = frozenset([
 VALID_MANIFEST_KEYS = frozenset(['manifest_version', 'bundles'])
 
 
+def ShowProgress(progress):
+  ''' A download-progress function used by class Archive.
+      (See Archive._Download).'''
+  global count  # A divider, so we don't emit dots too often.
+
+  if progress == 0:
+    count = 0
+  elif progress == 100:
+    sys.stdout.write('\n')
+  else:
+    count = count + 1
+    if count > 10:
+      sys.stdout.write('.')
+      sys.stdout.flush()
+      count = 0
+
+
 class Error(Exception):
   ''' Exceptions raised within update_manifest '''
   pass
@@ -102,10 +119,30 @@ class Archive(dict):
 
     return url_stream
 
-  def _Download(self, from_stream, to_stream=None):
-    ''' '''
+  def _Download(self, from_stream, to_stream=None, progress_func=None):
+    ''' Download the archive data from from-stream and generate sha1 and
+        size info.
+
+    Args:
+      from_stream:   An input stream that supports read.
+      to_stream:     [optional] the data is written to to_stream if it is
+                     provided.
+      progress_func: [optional] A function used to report download progress. If
+                     provided, progress_func is called with progress=0 at the
+                     begining of the download, periodically with progress=1
+                     during the download, and progress=100 at the end.
+
+    Return
+      A ruple (sha1, size) where sha1 is a sha1-hash for the archive data and
+      size is the size of the archive data in bytes.'''
+    # Use a no-op progress function if none is specified.
+    def progress_no_op(progress): pass
+    if not progress_func:
+      progress_func = progress_no_op
+
     sha1_hash = hashlib.sha1()
     size = 0
+    progress_func(progress=0)
     while(1):
       data = from_stream.read(32768)
       if not data : break
@@ -113,6 +150,9 @@ class Archive(dict):
       size += len(data)
       if to_stream:
         to_stream.write(data)
+      progress_func(progress=1)
+
+    progress_func(progress=100)
     return sha1_hash.hexdigest(), size
 
   def ComputeSha1AndSize(self):
@@ -125,8 +165,10 @@ class Archive(dict):
     sha1 = None
     size = 0
     try:
+      print 'Scanning archive to generate sha1 and size info:'
       stream = self._OpenURLStream()
-      sha1, size = self._Download(stream)
+      sha1, size = self._Download(from_stream=stream,
+                                  progress_func=ShowProgress)
     finally:
       if stream: stream.close()
     return sha1, size
@@ -262,6 +304,9 @@ class Bundle(dict):
       if option_val:
         self[attribute_key] = option_val
         delattr(options, option_key);
+    # Validate what we have so far; we may just avoid going through a lengthy
+    # download, just to realize that some other trivial stuff is missing.
+    self.Validate()
     # Check and consume archive-url options.
     for option_key, host_os in OPTION_KEY_TO_PLATFORM_MAP.iteritems():
       platform_url = getattr(options, option_key, None)

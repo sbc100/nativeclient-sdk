@@ -94,6 +94,9 @@ class TestUpdateManifest(unittest.TestCase):
     bundle = update_manifest.Bundle('test')
     options = FakeOptions()
     options.bundle_revision = 1
+    options.desc = 'What a hoot'
+    options.stability = 'dev'
+    options.recommended = 'yes'
     bundle.Update(options)
     self.assertEqual(bundle['revision'], 1)
 
