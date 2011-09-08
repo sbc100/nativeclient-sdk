@@ -16,7 +16,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tarfile
 
 from nacl_sdk_scons import nacl_utils
 
@@ -55,98 +54,6 @@ def ForceMakeDirs(abs_path, mode=0755):
       print 'ForceMakeDirs(%s, 0%o) FAILED: %s' % (abs_path, mode, os_strerr)
       raise
     pass
-
-
-def GetArchiveTableOfContents(tar_archive_file):
-  '''Walk a directory and return the table of contents.
-
-  The table of contents is an enumeration of each node in the archive, broken
-  into four separate collections:
-    1. The set of plain files.
-    2. The set of plain directories (not symlinks).
-    3. A dictionary of symbolic links (these can link to plain files or dirs),
-       the value of each key is the source file of the link.
-    4. A dictionary of hard links, the value of each key is the source file of
-       the link.
-  The table of contents is returned as a 4-tuple (files, dirs, symlinks, links).
-  Symbolic links are not followed.
-
-  Args:
-    tar_archive_file: The archive file.  This is expected to be a file in a
-        tar format that the python tarfile module recognizes.
-
-  Returns:
-    (files, dirs, symlinks, links) where each element of the 4-tuple is an
-        array of platform-specific normalized path names, starting with the root
-        directory in |tar_archive_file|:
-        |files| is a set of plain files.  Might be empty.
-        |dirs| is a set of directories.  Might be empty.
-        |symlinks| is a dictionary of symbolic links - these are not followed.
-            Might be empty.
-        |links| is a dictionary of hard links.  Might be empty.
-  '''
-  def MakePathSet(condition):
-    '''Helper function used with a lambda to generate a set of path names.'''
-    return set([os.path.normpath(tarinfo.name)
-                for tarinfo in tar_archive if condition(tarinfo)])
-
-  def MakeLinksDict(condition):
-    '''Helper function used with a lambda to generate the link dicitonaries.
-
-    Note that accessing tarinfo.linkname raises an exception if
-    the TarInfo member is not a link, which is why there are two separate
-    helper functions.
-    '''
-    return dict([(os.path.normpath(tarinfo.name),
-                  os.path.normpath(tarinfo.linkname))
-                 for tarinfo in tar_archive if condition(tarinfo)])
-
-  try:
-    tar_archive = tarfile.open(tar_archive_file)
-    files = MakePathSet(lambda x: x.isfile())
-    dirs = MakePathSet(lambda x: x.isdir())
-    symlinks = MakeLinksDict(lambda x: x.issym())
-    links = MakeLinksDict(lambda x: x.islnk())
-  finally:
-    tar_archive.close()
-  return files, dirs, symlinks, links
-
-
-# Return a shell environment suitable for use by Mac, Linux and Windows.  On
-# Mac and Linux, this is just a copy of os.environ.  On Windows, the PATH
-# variable is extended to include the hermetic cygwin installation.
-# |nacl_sdk_root| should point to the place where the hermetic cygwin was
-# installed, this is typically something like C:/nacl_sdk/src.  If
-# |nacl_sdk_root| is None, then the NACL_SDK_ROOT environment variable is used.
-# if NACL_SDK_ROOT is not set, then the location of this script file is used.
-def GetShellEnvironment(nacl_sdk_root=None):
-  shell_env = os.environ.copy()
-  if (sys.platform == 'win32'):
-    # This adds the assumption that cygwin is installed in the default
-    # location when building the SDK for windows.
-    if nacl_sdk_root is None:
-      toolchain_dir = os.path.dirname(os.path.dirname(
-                                      os.path.abspath(__file__)))
-      nacl_sdk_root = os.getenv('NACL_SDK_ROOT', toolchain_dir)
-    cygwin_dir = os.path.join(nacl_sdk_root, 'third_party', 'cygwin', 'bin')
-    shell_env['PATH'] = cygwin_dir + ';' + shell_env['PATH']
-
-  return shell_env
-
-
-# Return a "normalized" path that will work with both hermetic cygwin and *nix
-# shell environments.  On *nix, this method just returns the original path; on
-# Windows running hermetic cygwin, this alters the path.  |abs_path| must be
-# a fully-qualified absolute path, on Windows it must include the drive letter.
-# |shell_env| describes the environment used by any subprocess (this is
-# normally obtained from GetShellEnvironment()
-# TODO(dspringer,khim): make this work properly for hermetic cygwin (see bug
-# http://code.google.com/p/nativeclient/issues/detail?id=1122)
-def HermeticBuildPath(abs_path, shell_env):
-  if (sys.platform == 'win32'):
-    return abs_path
-
-  return abs_path
 
 
 # patch version 2.6 doesn't work.  Most of our Linux distros use patch 2.6.

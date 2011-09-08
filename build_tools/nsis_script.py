@@ -11,7 +11,7 @@ import tarfile
 import tempfile
 
 
-class NsisScript:
+class NsisScript(object):
   '''Container for a NSIS script file
 
   Use this class to create and manage an NSIS script.  You can construct this
