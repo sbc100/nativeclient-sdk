@@ -80,6 +80,13 @@ env.AddNodeToTestSuite(update_manifest_test,
                        'run_update_manifest_test',
                        'small')
 
+sdk_update_test = env.CreatePythonUnitTest('tests/sdk_update_test.py',
+                                           ['sdk_update.py'])
+env.AddNodeToTestSuite(sdk_update_test,
+                       ['bot'],
+                       'run_sdk_update_test',
+                       'small')
+
 installer_contents_test = env.CreatePythonUnitTest(
     'tests/installer_contents_test.py', ['installer_contents.py'])
 env.AddNodeToTestSuite(installer_contents_test,
