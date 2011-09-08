@@ -5,11 +5,17 @@
 # found in the LICENSE file.
 
 import make_nacl_env
-import nacl_utils
 import os
 
 nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
+nacl_env.Append(
+    # Add a CPPPATH that enables the full-path #include directives, such as
+    # #include "examples/sine_synth/sine_synth.h"
+    CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+    # Strict ANSI compliance.
+    EXTRA_CCFLAGS=['-pedantic'],
+   )
 
 sources = ['webgtt.cc']
 

@@ -49,14 +49,14 @@ env.AddCleanAction(['.'], CleanWebGTTTest, ['bot'], webgtt_test_builder)
 
 # Create the test node
 
-ppapi_files = ['ppapi_messaging.html', 'ppapi_messaging.nmf',
-               'ppapi_messaging_x86_32.nexe', 'ppapi_messaging_x86_64.nexe']
+webgtt_files = ['webgtt_test.html', 'webgtt_test.js', 'webgtt.nmf',
+               'webgtt_x86_32.nexe', 'webgtt_x86_64.nexe']
 
-ppapi_staging_files = [os.path.join('$STAGING_DIR', x) for x in ppapi_files]
+webgtt_staging_files = [os.path.join('$STAGING_DIR', x) for x in webgtt_files]
 
-node = env.PPAPIBrowserTester('ppapi_messaging_browser_test.out',
-                              url='ppapi_messaging.html',
-                              files=ppapi_staging_files)
+node = env.PPAPIBrowserTester('webgtt_test.out',
+                              url='webgtt_test.html',
+                              files=webgtt_staging_files)
 
 env.AddNodeToTestSuite(node,
                       ['bot'],

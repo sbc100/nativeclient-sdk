@@ -47,7 +47,7 @@ Supported targets:
 Flags:
   * USE_EXISTING_INSTALLER=1        Do not rebuild the installer if it exists.
   * chrome_browser_path=<full_path> Download Chrome to <full_path>.
-  * BROWSER_HEADLESS=False          Don't suppress browser GUI while performing
+  * SHOW_BROWSER=1                  Don't suppress browser GUI while performing
                                     browser tests in Linux.
 
 More targets are listed below in the automatically generated help section.
@@ -111,7 +111,7 @@ base_env = Environment(
 base_env.SetDefault(
     PYTHON = ARGUMENTS.get('PYTHON', 'python'),
     USE_EXISTING_INSTALLER = ARGUMENTS.get('USE_EXISTING_INSTALLER', False),
-    BROWSER_HEADLESS = ARGUMENTS.get('BROWSER_HEADLESS', True),
+    SHOW_BROWSER = ARGUMENTS.get('SHOW_BROWSER', False),
 )
 
 base_env.Append(
@@ -771,7 +771,7 @@ def PPAPIBrowserTester(env,
 
   # Check if browser GUI needs to be suppressed (possible only in Linux)
   headless_prefix = []
-  if env['BROWSER_HEADLESS'] and env['IS_LINUX']:
+  if not env['SHOW_BROWSER'] and env['IS_LINUX']:
     headless_prefix = ['xvfb-run', '--auto-servernum']
 
   command = headless_prefix + [
