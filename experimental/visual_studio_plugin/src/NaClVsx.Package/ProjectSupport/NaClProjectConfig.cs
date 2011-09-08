@@ -202,27 +202,11 @@ namespace Google.NaClVsx.ProjectSupport {
             GetConfigurationProperty("DebugArgs", false),
             safeNexeString);
       } else if (host.Contains("chrome.exe")) {
-        // chrome needs --enable-nacl-debug --no-sandbox to enable debugger
+        // Use for in-process debugger
         var html_page = hostName + ":" + portNum + "/" +
                         GetConfigurationProperty("HtmlPage", false);
-        // TODO(mmortensen) Determine if all these flags are needed.  In the
-        // short term, the more important thing is to get the VSX/chrome 
-        // interaction to be more stable.
-        var chrome_debug_args = "--enable-file-cookies --dom-automation" +
-                                " --disable-web-resources " +
-                                "--disable-preconnect" +
-                                " --no-first-run --no-default-browser-check" +
-                                " --enable-logging" +
-                                " --safebrowsing-disable-auto-update" +
-                                " --no-default-browser-check " +
-                                " --noerrdialogs --metrics-recording-only" +
-                                " --enable-logging" +
-                                " --allow-file-access-from-files" +
-                                " --disable-tab-closeable-state-watcher" +
-                                " --allow-file-access" +
-                                " --unlimited-quota-for-files --enable-nacl" +
-                                " --enable-nacl-debug --no-sandbox" +
-                                " --log-level=3 --incognito";
+        // Get args based on project property
+        var chrome_debug_args = GetConfigurationProperty("DebugArgs", false);
         info.bstrArg = string.Format(
             "{0} {1} {2}",
             chrome_debug_args,

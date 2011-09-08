@@ -17,6 +17,7 @@
     <Lib>$(NaClSDKRoot)\toolchain\$(Toolchain)\lib</Lib>
     <LinkLibs>ppapi</LinkLibs>
     <DebugHost>C:\Program Files (x86)\Google\Chrome\Application\chrome.exe</DebugHost>
+    <DebugArgs>--enable-file-cookies --dom-automation --disable-web-resources --disable-preconnect --no-first-run --no-default-browser-check --enable-logging --safebrowsing-disable-auto-update --no-default-browser-check --noerrdialogs --metrics-recording-only --enable-logging --allow-file-access-from-files --allow-file-access --unlimited-quota-for-files --enable-nacl --enable-nacl-debug --no-sandbox --log-level=3 --incognito</DebugArgs>    
     <HtmlPage>$safeprojectname$.html</HtmlPage>
     <WebServer>$(NaClSDKRoot)\examples\httpd.cmd</WebServer>
     <WebServerArgs>--no_dir_check</WebServerArgs>
