@@ -11,6 +11,8 @@ vars = {
   # TODO(mball) find some clever way to extract this from NaCl DEPS
   "pnacl_toolchain_version": "6655",
   "x86_toolchain_version": "6655",
+  # ARM is not supported, this number can stay pinned at 6645.
+  "arm_trusted_toolchain_version": "6645",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
   "pymox_version": "61",
 }
@@ -113,6 +115,7 @@ hooks = [
           "download_toolchains.py",
         "--x86-version", Var("x86_toolchain_version"),
         "--pnacl-version", Var("pnacl_toolchain_version"),
+        "--arm-trusted-version", Var("arm_trusted_toolchain_version"),
         "--toolchain-dir", "src/toolchain",
         "--save-downloads-dir", "src/build_tools/toolchain_archives",
         ]
