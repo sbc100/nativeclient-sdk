@@ -1,0 +1,25 @@
+what is working:
+ - runs chrome + sel_ldr + nexe
+ - intercepts nexe before it started
+ - loading address of nexe is passed to debugger
+ - can insert upto 4 breakpoints in nexe
+ - stops nexe when breakpoint is hit
+ - can continue from breakpoint
+ - can read and write registers and memory
+ - can catch division by zero and zero pointer access
+
+what is not implemented or have some uglinness:
+ - single step is not implemented (but is possible)
+ - break-in is not implemented
+ - hardware single step is not working (due to NaCl sandbox)
+ - software breakpoints are not working (due to NaCl sandbox)
+ - breakpoints are implemented with HW breakpoints (registers D0-D7),
+  limiting them to 4 max
+ - breakpoints can be set on jump instructions, but breakpoint could be lost
+  after continue from breakpoint
+ - user has to specify length of instruction on which he wants breakpoint to be
+set
+ - debugger has to be run from sudo
+ - chrome has to be started with --disable-breakpad
+ - code is ugly
+ - debug helpers that go into TCB are not yet ready for CL & commit
