@@ -7,12 +7,34 @@
  * Styling for a progress bar.
  */
 
- /**
-  * The status text.  This is title text that goes above the progress bar.
-  */
+/**
+ * Center the progress bar in its container.
+ */
+.progress {
+  position: absolute;
+  margin-top: -32px;
+  margin-left: -80px;
+  margin-bottom: 0px;
+  top: 50%;
+  left: 50%;
+  width: 320px;
+}
+
+/**
+ * Apply any horizontal centering to <P> elements within the progress bar.
+ */
+.progress p {
+  margin-left: inherit;
+  margin-right: inherit;
+  width: inherit;
+}
+
+/**
+ * The status text.  This is title text that goes above the progress bar.
+ */
 .progressstatus {
-  color:#202020;
-  margin-bottom:0;
+  color: #202020;
+  margin-bottom: 0;
 }
 
 /**
@@ -20,16 +42,18 @@
  * percent (as in, "53% complete).
  */
 .progresstext {
-  color:#999;
+  color: #999;
 }
 
 /**
  * The progress bar itself.  This bar contains the track (see below).
  */
 .progressbar {
-  width:320px;
-  border:1px solid #999;
-  padding:1px;
+  border: 1px solid #999;
+  margin-left: inherit;
+  margin-right: inherit;
+  padding: 1px;
+  width: inherit;
 }
 
 /**
@@ -37,16 +61,15 @@
  * size by changing the style.width value.
  */
 .progresstrack {
-  background:#CCC;
-  width:170px;
-  height:5px;
+  background: #CCC;
+  width: 120px;
+  height: 5px;
 }
 
 /**
  * "Tall" versions of the progress bar.
  */
-.tall .progresstrack,
-.tall .quantitytrack {
-  height:8px;
+.tall .progresstrack {
+  height: 8px;
 }
 

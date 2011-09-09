@@ -39,22 +39,26 @@
 
 </head>
 <body>
-  <div id="autosize_background">
+  <div id="autosize_background" class="autosize-view">
     <!-- The main simulation area.  This element contains either a <canvas> that
     get rendered by the JavaScript implementation, or a NaCl module that runs
     the C++ implementation. -->
-    <div id="flocking_geese" class="flocking-geese-view">
+    <div id="flocking_geese">
       <!-- The JavaScript version. -->
       <script type="text/javascript">
         var geeseView = document.getElementById('flocking_geese');
         var viewSize = goog.style.getSize(geeseView);
-        geeseView.innerHTML = '<canvas id="flocking_geese_canvas" ' +
-                              ' width=' + viewSize.width +
-                              ' height=' + viewSize.height +
-                              '></canvas>';
+        // The JavaScripot <CANVAS>-based version.
+        geeseView.innerHTML =
+          '<canvas id="flocking_geese_canvas"' +
+              ' width=' + viewSize.width +
+              ' height=' + viewSize.height +
+              '></canvas>' +
+          // The C++ version.
+          '<div id="nacl_flocking_geese"' +
+              ' class="autosize-view"' +
+              ' style="display: table; visibility: hidden;"></div>';
       </script>
-      <!-- The C++ version -->
-      <div id="nacl_flocking_geese" class="hidden"></div>
     </div>
     <!-- The information panel. Contains these elements:
       1. The speedometer, which is a <canvas> and an implementation in
@@ -64,7 +68,9 @@
          geese.
       3. An info area for attributions and useful links.
     -->
-    <div id="info_panel" class="horizontal-align-center">
+    <div id="info_panel"
+         class="horizontal-align-center"
+         style="display: inline;">
       <h2 style="width: 100%;">Info Panel</h2>
       <canvas id="speedometer_canvas"></canvas><br />
       <!-- Show the meter values. -->

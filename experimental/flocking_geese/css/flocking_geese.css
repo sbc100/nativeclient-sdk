@@ -34,30 +34,17 @@ p {
 }
 
 /**
- * The DIV with this id establishes the autosizing container for the NaCl
- * module.
- */
-#autosize_background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
-
-/**
  * The simulation view.  The right margin dimensioon has to match the width
  * of the info panel (see info_panel.css).
  */
-.flocking-geese-view {
+#flocking_geese {
+  display: inline;
   position: absolute;
   top: 0;
   left: 0;
-  bottom: 0;
   right: 0;
-  height: auto
-  width: 100%;
-  margin: 0 250px 0 0;
+  height: 100%;
+  margin-right: 250px;
 }
 
 /**
@@ -73,13 +60,6 @@ p {
   left: 0;
   height: 100%;
   width: 100%;
-}
-
-/**
- * Makes an element hidden.
- */
-.hidden {
-  visibility: hidden;
 }
 
 /**
