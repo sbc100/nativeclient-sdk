@@ -15,10 +15,12 @@ goog.provide('FlockingGeese');
 
 goog.require('Flock');
 goog.require('Goose');
+goog.require('LoadProgress');
 goog.require('Speedometer');
 goog.require('Speedometer.Attributes');
 goog.require('goog.Disposable');
 goog.require('goog.array');
+goog.require('goog.dom');
 goog.require('goog.events.EventType');
 goog.require('goog.style');
 
@@ -52,6 +54,13 @@ FlockingGeese = function() {
    * @private
    */
   this.naclModule_ = null;
+
+  /**
+   * The load progress bar.
+   * @type {LoadProgress}
+   * @private
+   */
+  this.progressBar_ = new LoadProgress();
 
   /**
    * The speedometer.
@@ -98,15 +107,6 @@ FlockingGeese.DomIds = {
   // The <DIV> containing the simulation drawing area (either the NaCl module
   // or the <CANVAS>.
   NACL_VIEW: 'nacl_flocking_geese',
-  // The <DIV> containing all the load progress elements: title text, a
-  // progress bar and some status text.
-  PROGRESS: 'progress',
-  // The <DIV> containing the load progress bar.
-  PROGRESS_BAR: 'progress_bar',
-  // The element containing the progress text.
-  PROGRESS_BAR_TEXT: 'progress_bar_text',
-  // The progress bar track, the width of this element tracks progress.
-  PROGRESS_TRACK: 'progress_track',
   // The button used to select sim type (NaCL vs. JavaScript).  Contained in
   // the info panel.
   SIM_MODE_BUTTON: 'sim_mode_button',
@@ -204,8 +204,7 @@ FlockingGeese.prototype.moduleDidLoad = function(opt_naclModuleId) {
                           {'size' : parseInt(flockSizeSelect.value)});
   }
   // Hide the load progress bar and make the module element visible.
-  var progress_bar = document.getElementById(FlockingGeese.DomIds.PROGRESS);
-  progress_bar.style.visibility = 'hidden';
+  this.progressBar_.setVisibile(false);
   this.naclModule_.style.visibility = 'inherit';
   // If the NaCL module is being displayed, then start the simulation.
   var naclView = document.getElementById(FlockingGeese.DomIds.NACL_VIEW);
@@ -350,46 +349,6 @@ FlockingGeese.prototype.handleNaClMessage = function(messageEvent) {
 }
 
 /**
- * Handle a progress event by the NaCl module loader.  |progressEvent| contains
- * a couple of interesting properties that are used in this example:
- *     total The size of the NaCl module in bytes.  Note that this value
- *         is 0 until |lengthComputable| is true.  In particular, this
- *         value is 0 for the first 'progress' event.
- *     loaded The number of bytes loaded so far.
- *     lengthComputable A boolean indicating that the |total| field
- *         represents a valid length.
- * @param {Event} progressEvent The ProgressEvent that triggered this handler.
- */
-FlockingGeese.prototype.handleProgressEvent = function(progressEvent) {
-  var loadPercent = 0.0;
-  var loadPercentString;
-  if (event.lengthComputable && event.total > 0) {
-    loadPercent = event.loaded / event.total;
-    loadPercentString = (loadPercent * 100.0).toFixed() + '%';
-  } else {
-    // The total length is not yet known.
-    loadPercent = -1.0;
-    loadPercentString = 'Computing size&hellip;';
-  }
-  var progressBarText = document.getElementById(
-      FlockingGeese.DomIds.PROGRESS_BAR_TEXT);
-  progressBarText.innerHTML = loadPercentString +
-    ' (' + event.loaded + ' of ' + event.total + ' bytes)';
-  var progressTrack = document.getElementById(
-      FlockingGeese.DomIds.PROGRESS_TRACK);
-  if (loadPercent >= 0.0) {
-    var progressBar =
-        document.getElementById(FlockingGeese.DomIds.PROGRESS_BAR);
-    var paddingBox = goog.style.getPaddingBox(progressBar);
-    var maxTrackWidth = progressBar.clientWidth -
-                        (paddingBox.left + paddingBox.right);
-    progressTrack.style.width = (loadPercent * maxTrackWidth).toFixed() + 'px';
-  } else {
-    progressTrack.style.width = '0px';
-  }
-}
-
-/**
  * The run() method starts and 'runs' the FlockingGeese app.  An <EMBED> tag is
  * injected into the <DIV> element |opt_viewDivName| which causes the NaCl
  * module to be loaded.  Once loaded, the moduleDidLoad() method is called via
@@ -423,31 +382,23 @@ FlockingGeese.prototype.run = function(opt_viewDivName) {
                            goog.bind(this.handleNaClMessage, this),
                            true);
   // Handle the load progress.
-  viewDiv.addEventListener('progress',
-                           goog.bind(this.handleProgressEvent, this),
-                           true);
+  viewDiv.addEventListener(
+      'progress',
+      goog.bind(this.progressBar_.handleProgressEvent, this.progressBar_),
+      true);
 
   var viewSize = goog.style.getSize(viewDiv);
-  viewDiv.innerHTML =
-    '<div id="' + FlockingGeese.DomIds.PROGRESS + '" ' + 'class="progress">' +
-      '<p class="progressstatus">' +
-          'Loading NaCl Module&hellip;</p>' +
-      '<div id="' + FlockingGeese.DomIds.PROGRESS_BAR + '" ' +
-          'class="progressbar tall">' +
-        '<div id="' + FlockingGeese.DomIds.PROGRESS_TRACK + '" ' +
-            'class="progresstrack"></div>' +
-      '</div>' +
-      '<p id="' + FlockingGeese.DomIds.PROGRESS_BAR_TEXT + '" ' +
-          'class="progresstext">' +
-          'Computing size&hellip;</p>' +
-    '</div>' +
-    '<embed id="' + FlockingGeese.DomIds.NACL_MODULE + '" ' +
-          ' class="autosize-view"' +
-          ' width=' + viewSize.width +
-          ' height=' + viewSize.height +
-          ' src="flocking_geese.nmf"' +
-          ' type="application/x-nacl"' +
-          ' style="visibility: hidden;" />'
+  viewDiv.appendChild(this.progressBar_.createDom());
+  var naclDom = goog.dom.createDom('embed', {
+      'id': FlockingGeese.DomIds.NACL_MODULE,
+      'class': 'autosize-view',
+      'width': viewSize.width,
+      'height': viewSize.height,
+      'src': 'flocking_geese.nmf',
+      'type': 'application/x-nacl',
+      'style': 'visibility: hidden'
+  });
+  viewDiv.appendChild(naclDom);
   this.startJavaScriptSimulation_();
 }
 

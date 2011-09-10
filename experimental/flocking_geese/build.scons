@@ -20,7 +20,7 @@ nacl_env.Append(
     OPT_CCFLAGS=['-ffast-math',
                  '-mfpmath=sse',
                  '-msse2'],
-    LIBS=['png', 'z'],
+    LIBS=['jpeg', 'png', 'z'],
    )
 
 app_sources = [os.path.join('nacl_app', src_file) for src_file in [
@@ -63,6 +63,7 @@ js_files = [os.path.join('js', js_file) for js_file in [
     'flocking_geese.js',
     'frame_counter.js',
     'goose.js',
+    'load_progress.js',
     'speedometer.js',
 ]]
 
@@ -82,6 +83,7 @@ install_css = nacl_env.Install(
     source=css_files)
 
 image_files = [os.path.join('images', img_file) for img_file in [
+    'canada.jpg',
     'goose.png',
 ]]
 
