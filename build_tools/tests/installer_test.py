@@ -72,11 +72,7 @@ def TestingClosure(_outdir, _jobs):
         annotator.Run(' '.join(command), cwd=path, shell=True)
 
       buildExamplesWithFlags(['--architecture=x86', '--variant=newlib'])
-      # TODO(dspringer): re-enable this when the glibc install/build works on
-      # windows.  Bug is here:
-      # http://code.google.com/p/nativeclient-sdk/issues/detail?id=129
-      if (sys.platform != 'win32'):
-        buildExamplesWithFlags(['--architecture=x86', '--variant=glibc'])
+      buildExamplesWithFlags(['--architecture=x86', '--variant=glibc'])
       print "Test with bogus architectures, variants."
       print "We expect these tests to throw exceptions:"
       self.assertRaises(subprocess.CalledProcessError,
