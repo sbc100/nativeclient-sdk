@@ -14,6 +14,7 @@ The general structure is as follows:
 
 from __future__ import with_statement
 
+import cStringIO
 import datetime
 import httplib
 import optparse
@@ -26,8 +27,11 @@ import subprocess
 import sys
 import time
 import unittest
+import urllib
 
 from build_tools import build_utils
+from build_tools import sdk_update
+from build_tools import update_manifest
 
 annotator = build_utils.BotAnnotator()
 
@@ -298,7 +302,7 @@ def TestingClosure(_outdir, _jobs):
   return TestSDK
 
 
-def ExtractInstaller(installer, outdir):
+def ExtractInstaller(installer, outdir, bundle_name):
   '''Extract the SDK installer into a given directory
 
   If the outdir already exists, then this function deletes it
@@ -306,6 +310,7 @@ def ExtractInstaller(installer, outdir):
   Args:
     installer: full path of the SDK installer
     outdir: output directory where to extract the installer
+    bundle_name: name of sdk bundle within outdir
 
   Raises:
     OSError - if the outdir already exists
@@ -317,17 +322,33 @@ def ExtractInstaller(installer, outdir):
   if os.path.exists(outdir):
     RemoveDir(outdir)
 
-  if sys.platform == 'win32':
-    # Run the self-extracting installer in silent mode with a specified
-    # output directory
-    command = [installer, '/S', '/D=%s' % outdir]
-  else:
-    os.mkdir(outdir)
-    command = ['tar', '-C', outdir, '--strip-components=1',
-               '-xvzf', installer]
+  os.mkdir(outdir)
 
-  annotator.Print('Running command: %s' % command)
-  subprocess.check_call(command)
+  manifest_filename = os.path.join(os.path.abspath(outdir),
+                                   'test_manifest.json')
+  update_manifest_options = [
+       '--bundle-revision=1',
+       '--description=installer_test bundle',
+       '--%s-archive=file://%s' % (
+           sdk_update.GetHostOS(),
+           urllib.pathname2url(os.path.abspath(installer))),
+       '--bundle-name=%s' % bundle_name,
+       '--recommended=yes',
+       '--stability=stable',
+       '--manifest-version=1',
+       manifest_filename]
+  annotator.Print('Running update manifest with %s' % update_manifest_options)
+  if 0 != update_manifest.main(update_manifest_options):
+    raise Exception('update_manifest terminated abnormally.')
+
+  sdk_update_options = [
+      '--manifest-url=file://%s' % urllib.pathname2url(manifest_filename),
+      '--sdk-root-dir=%s' % outdir,
+      '--user-data-dir=%s' % outdir,
+      'update']
+  annotator.Print('Running sdk_update with %s' % sdk_update_options)
+  if 0 != sdk_update.main(sdk_update_options):
+    raise Exception('sdk_update terminated abnormally.')
 
 
 def RemoveDir(outdir):
@@ -363,6 +384,7 @@ def main():
   Also, raises various exceptions for error conditions.
   '''
 
+  BUNDLE_NAME = 'test_sdk_bundle'
   parser = optparse.OptionParser(
       usage='Usage: %prog [options] sdk_installer')
   parser.add_option(
@@ -385,10 +407,10 @@ def main():
 
   annotator.Print("Running with installer = %s, outdir = %s, jobs = %s" % (
                   installer, outdir, options.jobs))
-  ExtractInstaller(installer, outdir)
+  ExtractInstaller(installer, outdir, BUNDLE_NAME)
 
   suite = unittest.TestLoader().loadTestsFromTestCase(
-      TestingClosure(outdir, options.jobs))
+      TestingClosure(os.path.join(outdir, BUNDLE_NAME), options.jobs))
   result = unittest.TextTestRunner(verbosity=2).run(suite)
 
   RemoveDir(outdir)

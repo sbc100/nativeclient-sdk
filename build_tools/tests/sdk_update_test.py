@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import urllib
 
 from build_tools import sdk_update
 
@@ -73,8 +74,9 @@ class TestSDKUpdate(unittest.TestCase):
 
   def testList(self):
     '''Test the List function'''
-    command = ['--manifest-url',
-               os.path.join(SCRIPT_DIR, 'naclsdk_manifest_test.json'),
+    command = ['--manifest-url=file://%s' %
+               urllib.pathname2url(os.path.join(
+                   SCRIPT_DIR, 'naclsdk_manifest_test.json')),
                'list']
     bundle_list = CallSDKUpdate(command)
     # Just do some simple sanity checks on the resulting string

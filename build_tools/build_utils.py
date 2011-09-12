@@ -220,6 +220,10 @@ class BotAnnotator:
   def BuildStep(self, name):
     self.Print("@@@BUILD_STEP %s@@@" % name)
 
+  def BuildStepFailure(self):
+    '''Signal a failure in the current build step to the annotator'''
+    self.Print("@@@STEP_FAILURE@@@")
+
   def Run(self, *popenargs, **kwargs):
     '''Implements the functionality of subprocess.check_output, but also
     prints out the command-line and the command output.

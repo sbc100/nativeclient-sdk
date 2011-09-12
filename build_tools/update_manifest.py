@@ -53,7 +53,7 @@ VALID_MANIFEST_KEYS = frozenset(['manifest_version', 'bundles'])
 
 def ShowProgress(progress):
   ''' A download-progress function used by class Archive.
-      (See Archive._Download).'''
+      (See DownloadAndComputeHash).'''
   global count  # A divider, so we don't emit dots too often.
 
   if progress == 0:
@@ -66,6 +66,45 @@ def ShowProgress(progress):
       sys.stdout.write('.')
       sys.stdout.flush()
       count = 0
+
+
+def DownloadAndComputeHash(from_stream, to_stream=None, progress_func=None):
+  ''' Download the archive data from from-stream and generate sha1 and
+      size info.
+
+  Args:
+    from_stream:   An input stream that supports read.
+    to_stream:     [optional] the data is written to to_stream if it is
+                   provided.
+    progress_func: [optional] A function used to report download progress. If
+                   provided, progress_func is called with progress=0 at the
+                   beginning of the download, periodically with progress=1
+                   during the download, and progress=100 at the end.
+
+  Return
+    A tuple (sha1, size) where sha1 is a sha1-hash for the archive data and
+    size is the size of the archive data in bytes.'''
+  # Use a no-op progress function if none is specified.
+  def progress_no_op(progress):
+    pass
+  if not progress_func:
+    progress_func = progress_no_op
+
+  sha1_hash = hashlib.sha1()
+  size = 0
+  progress_func(progress=0)
+  while(1):
+    data = from_stream.read(32768)
+    if not data:
+      break
+    sha1_hash.update(data)
+    size += len(data)
+    if to_stream:
+      to_stream.write(data)
+    progress_func(progress=1)
+
+  progress_func(progress=100)
+  return sha1_hash.hexdigest(), size
 
 
 class Error(Exception):
@@ -119,42 +158,6 @@ class Archive(dict):
 
     return url_stream
 
-  def _Download(self, from_stream, to_stream=None, progress_func=None):
-    ''' Download the archive data from from-stream and generate sha1 and
-        size info.
-
-    Args:
-      from_stream:   An input stream that supports read.
-      to_stream:     [optional] the data is written to to_stream if it is
-                     provided.
-      progress_func: [optional] A function used to report download progress. If
-                     provided, progress_func is called with progress=0 at the
-                     begining of the download, periodically with progress=1
-                     during the download, and progress=100 at the end.
-
-    Return
-      A ruple (sha1, size) where sha1 is a sha1-hash for the archive data and
-      size is the size of the archive data in bytes.'''
-    # Use a no-op progress function if none is specified.
-    def progress_no_op(progress): pass
-    if not progress_func:
-      progress_func = progress_no_op
-
-    sha1_hash = hashlib.sha1()
-    size = 0
-    progress_func(progress=0)
-    while(1):
-      data = from_stream.read(32768)
-      if not data : break
-      sha1_hash.update(data)
-      size += len(data)
-      if to_stream:
-        to_stream.write(data)
-      progress_func(progress=1)
-
-    progress_func(progress=100)
-    return sha1_hash.hexdigest(), size
-
   def ComputeSha1AndSize(self):
     ''' Compute the sha1 hash and size of the archive's data. Raises
         an Error if the url can't be opened.
@@ -167,8 +170,8 @@ class Archive(dict):
     try:
       print 'Scanning archive to generate sha1 and size info:'
       stream = self._OpenURLStream()
-      sha1, size = self._Download(from_stream=stream,
-                                  progress_func=ShowProgress)
+      sha1, size = DownloadAndComputeHash(from_stream=stream,
+                                          progress_func=ShowProgress)
     finally:
       if stream: stream.close()
     return sha1, size
@@ -188,7 +191,7 @@ class Archive(dict):
     with open(dest_path, 'wb') as to_stream:
       try:
         from_stream = self._OpenURLStream()
-        sha1, size = self._Download(from_stream, to_stream)
+        sha1, size = DownloadAndComputeHash(from_stream, to_stream)
       finally:
         if from_stream: from_stream.close()
     return sha1, size
@@ -569,7 +572,7 @@ def main(argv):
       '-r', '--recommended', dest='recommended',
       choices=YES_NO_LITERALS,
       default=None,
-      help='Required: True or False, whether this bundle is recommended.')
+      help='Required: whether this bundle is recommended. one of "yes" or "no"')
   parser.add_option(
       '-s', '--stability', dest='stability',
       choices=STABILITY_LITERALS,

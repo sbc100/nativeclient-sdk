@@ -301,8 +301,8 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
       None for good status
       An error string for bad status
     """
+    bot = build_utils.BotAnnotator()
     if banner:
-      bot = build_utils.BotAnnotator()
       bot.BuildStep(banner)
 
     if disabled:
@@ -342,6 +342,9 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
       with open(target_str, 'r') as resultfile:
         sys.stdout.write(resultfile.read())
       sys.stdout.flush()
+
+    if ret_val:
+      bot.BuildStepFailure()
 
     return ret_val
 
