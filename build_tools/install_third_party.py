@@ -1,6 +1,7 @@
-#!/usr/bin/python
-# Copyright (c) 2010 The Native Client Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that be
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """Build and install all the third-party tools and libraries required to build
@@ -15,23 +16,24 @@ import subprocess
 import sys
 
 THIRD_PARTY_SCRIPTS = [
-    os.path.join('install_gtest', 'install_gtest.py'),
     os.path.join('install_boost', 'install_boost.py'),
 ]
 
 
 def main(argv):
-  # TODO(strotheide): This needs to work on windows, too.  See bug
-  # http://code.google.com/p/nativeclient/issues/detail?id=1122
-  if sys.platform == 'win32':
-    print "NaCl SDK does not install third party packages on Windows."
-    sys.exit(0)
-
   script_dir = os.path.abspath(os.path.dirname(__file__))
-  sep_char = ';' if sys.platform == 'win32' else ':'
-  os.putenv('PYTHONPATH', '%s%s%s' %(os.getenv('PYTHONPATH'),
-                                     sep_char,
-                                     script_dir))
+  scons_dir = os.path.join(script_dir,
+                           '..',
+                           'third_party',
+                           'scons-2.0.1',
+                           'engine')
+  if os.getenv('PYTHONPATH'):
+    os.putenv('PYTHONPATH', os.pathsep.join([script_dir,
+                                             scons_dir,
+                                             os.getenv('PYTHONPATH')]))
+  else:
+    os.putenv('PYTHONPATH', os.pathsep.join([script_dir,
+                                             scons_dir]))
   # Force NACL_SDK_ROOT to point to the toolchain in this repo.
   (nacl_sdk_root, _) = os.path.split(script_dir)
   os.putenv('NACL_SDK_ROOT', nacl_sdk_root)

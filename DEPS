@@ -120,4 +120,11 @@ hooks = [
         "--save-downloads-dir", "src/build_tools/toolchain_archives",
         ]
   },
+  {
+    "pattern": ".",
+    "action": [
+        "python",
+        "src/build_tools/install_third_party.py"
+        ]
+  }
 ]
