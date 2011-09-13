@@ -55,6 +55,8 @@ TEST_F(DwarfParserTestFixture, TestPopulateReader) {
       .Times(AtLeast(1));
   EXPECT_CALL(mock_dwarf_reader, EndDIE(_, _))
       .Times(AtLeast(1));
+  EXPECT_CALL(mock_dwarf_reader, ProcessAttributeSigned(_, _, _, _, _, _))
+      .Times(AtLeast(1));
   EXPECT_CALL(mock_dwarf_reader, ProcessAttributeUnsigned(_, _, _, _, _, _))
       .Times(AtLeast(1));
   EXPECT_CALL(mock_dwarf_reader, ProcessAttributeReference(_, _, _, _, _, _))
