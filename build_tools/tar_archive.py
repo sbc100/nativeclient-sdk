@@ -8,6 +8,8 @@
 import os
 import tarfile
 
+class Error(Exception):
+  pass
 
 class TarArchive(object):
   '''Container for a tar archive table of contents.
@@ -39,6 +41,27 @@ class TarArchive(object):
     self.dirs = set()
     self.symlinks = dict()
     self.links = dict()
+    self._path_filter = os.path.normpath
+
+  @property
+  def path_filter(self):
+    '''A filter to apply to paths in the tar archive.
+
+    |path_filter| is assumbed to be a callable that gets applied to all paths
+    in the object's tar archive before the paths are added to any of the
+    sets or dictionaries.  Setting this callable to None has the same effect as
+    using a pass-through filter (such as lambda x: x).  This property cannot be
+    deleted.
+    '''
+    return self._path_filter
+
+  @path_filter.setter
+  def path_filter(self, path_filter):
+    self._path_filter = path_filter or (lambda x: x)
+
+  @path_filter.deleter
+  def path_filter(self):
+    raise Error('path_filter cannot be deleted')
 
   def InitWithTarFile(self, tar_archive_file):
     '''Initialize the object using a tar-format archive file.
@@ -55,7 +78,7 @@ class TarArchive(object):
     '''
     def MakePathSet(condition):
       '''Helper function used with a lambda to generate a set of path names.'''
-      return set([os.path.normpath(tarinfo.name)
+      return set([self.path_filter(tarinfo.name)
                   for tarinfo in tar_archive if condition(tarinfo)])
 
     def MakeLinksDict(condition):
@@ -65,8 +88,8 @@ class TarArchive(object):
       the TarInfo member is not a link, which is why there are two separate
       helper functions.
       '''
-      return dict([(os.path.normpath(tarinfo.name),
-                    os.path.normpath(tarinfo.linkname))
+      return dict([(self.path_filter(tarinfo.name),
+                    self.path_filter(tarinfo.linkname))
                    for tarinfo in tar_archive if condition(tarinfo)])
 
     if not os.path.exists(tar_archive_file):
@@ -110,6 +133,10 @@ class TarArchive(object):
 
     if not os.path.exists(tar_manifest_file):
       raise OSError('%s does not exist' % tar_manifest_file)
+    self.files = set()
+    self.dirs = set()
+    self.symlinks = dict()
+    self.links = dict()
     with open(tar_manifest_file) as manifest:
       for manifest_item in map(lambda line: line.split(), manifest):
         # Parse a single tar -tv entry in a manifest.
@@ -126,20 +153,20 @@ class TarArchive(object):
         file_type = manifest_item[PERM_BITS_INDEX][0]
         if file_type == 'd':
           # A directory: the name is the final element of the entry.
-          self.dirs.add(os.path.normpath(manifest_item[LAST_ITEM_INDEX]))
+          self.dirs.add(self.path_filter(manifest_item[LAST_ITEM_INDEX]))
         elif file_type == 'h':
           # A hard link: the last element is the source of the hard link, and is
           # entered as the key in the |links| dictionary.
-          link_name = os.path.normpath(manifest_item[HLINK_FILENAME_INDEX])
-          self.links[link_name] = os.path.normpath(
+          link_name = self.path_filter(manifest_item[HLINK_FILENAME_INDEX])
+          self.links[link_name] = self.path_filter(
               manifest_item[LAST_ITEM_INDEX])
         elif file_type == 'l':
           # A symbolic link: the last element is the source of the symbolic
           # link.
-          link_name = os.path.normpath(manifest_item[SYMLINK_FILENAME_INDEX])
-          self.symlinks[link_name] = os.path.normpath(
+          link_name = self.path_filter(manifest_item[SYMLINK_FILENAME_INDEX])
+          self.symlinks[link_name] = self.path_filter(
               manifest_item[LAST_ITEM_INDEX])
         else:
           # Everything else is considered a plain file.
-          self.files.add(os.path.normpath(manifest_item[LAST_ITEM_INDEX]))
+          self.files.add(self.path_filter(manifest_item[LAST_ITEM_INDEX]))
 

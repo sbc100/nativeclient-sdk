@@ -20,7 +20,7 @@ class TestTarArchive(unittest.TestCase):
   def setUp(self):
     self.archive = tar_archive.TarArchive()
 
-  def ValidateTableOfContents(self, archive):
+  def ValidateTableOfContents(self, archive, path_filter=None):
     '''Helper method to validate an archive table of contents.
 
     The test table of contents file has these entries (from tar tv):
@@ -43,18 +43,20 @@ class TestTarArchive(unittest.TestCase):
     Args:
       archive: The TarArchive object under test.
     '''
+    if not path_filter:
+      path_filter = lambda p: os.path.join('test_links', p)
+
     self.assertEqual(3, len(archive.files))
-    self.assertTrue(os.path.join('test_links', 'test_slnk_file_src.txt') in
-                    archive.files)
-    self.assertTrue(os.path.join('test_links', 'test_dir', 'test_file.txt') in
+    self.assertTrue(path_filter('test_slnk_file_src.txt') in archive.files)
+    self.assertTrue(path_filter(os.path.join('test_dir', 'test_file.txt')) in
                     archive.files)
     for file in archive.files:
       self.assertFalse('_dir' in os.path.basename(file))
-    self.assertTrue(os.path.join('test_links', 'test_dir', 'test_file.txt') in
+    self.assertTrue(path_filter(os.path.join('test_dir', 'test_file.txt')) in
                     archive.files)
 
     self.assertEqual(2, len(archive.dirs))
-    self.assertTrue(os.path.join('test_links', 'test_dir') in archive.dirs)
+    self.assertTrue(path_filter('test_dir') in archive.dirs)
     for dir in archive.dirs:
       self.assertFalse('slnk' in dir)
       self.assertFalse('.txt' in dir)
@@ -62,10 +64,8 @@ class TestTarArchive(unittest.TestCase):
       self.assertFalse(dir in archive.symlinks.keys())
 
     self.assertEqual(3, len(archive.symlinks))
-    self.assertTrue(os.path.join('test_links', 'test_dir_slnk') in
-                    archive.symlinks)
-    self.assertTrue(os.path.join('test_links', 'test_slnk_file_dst.txt') in
-                    archive.symlinks)
+    self.assertTrue(path_filter('test_dir_slnk') in archive.symlinks)
+    self.assertTrue(path_filter('test_slnk_file_dst.txt') in archive.symlinks)
     for path, target in archive.symlinks.items():
       self.assertFalse(path in archive.files)
       self.assertFalse(path in archive.dirs)
@@ -130,6 +130,64 @@ class TestTarArchive(unittest.TestCase):
     """Testing the TarArchive when using a bad manifest file"""
     self.assertRaises(OSError, self.archive.InitWithManifest, 'nosuchfile')
 
+  def testPathFilter(self):
+    """Testing the TarArchive when applying a path filter"""
+    def StripTestLinks(tar_path):
+      # Strip off the leading 'test_links/' path component.
+      pos = tar_path.find('test_links/')
+      if pos >= 0:
+        return os.path.normpath(tar_path[len('test_links/'):])
+      else:
+        return os.path.normpath(tar_path)
+
+    self.archive.path_filter = StripTestLinks
+    self.archive.InitWithTarFile(os.path.join('build_tools',
+                                              'tests',
+                                              'test_links.tgz'))
+    self.ValidateTableOfContents(self.archive, path_filter=lambda p: p)
+    self.archive.InitWithManifest(os.path.join('build_tools',
+                                               'tests',
+                                               'test_links.tgz.manifest'))
+    self.ValidateTableOfContents(self.archive, path_filter=lambda p: p)
+
+  def testPathFilterNone(self):
+    """Testing the TarArchive when applying a None path filter"""
+    # Verify that the paths in the |archive| object have the tar-style '/'
+    # separator.
+    def ValidateTarStylePaths(archive):
+      def AssertTarPath(iterable):
+        for i in iterable:
+          self.assertTrue(len(i.split('/')) > 0)
+
+      self.assertEqual(3, len(archive.files))
+      AssertTarPath(archive.files)
+      self.assertEqual(2, len(archive.dirs))
+      AssertTarPath(archive.dirs)
+      self.assertEqual(3, len(archive.symlinks))
+      AssertTarPath(archive.symlinks.keys())
+      self.assertEqual(3, len(archive.links))
+      AssertTarPath(archive.links.keys())
+
+    self.archive.path_filter = None
+    self.archive.InitWithTarFile(os.path.join('build_tools',
+                                              'tests',
+                                              'test_links.tgz'))
+    ValidateTarStylePaths(self.archive)
+    self.archive.InitWithManifest(os.path.join('build_tools',
+                                               'tests',
+                                               'test_links.tgz.manifest'))
+    ValidateTarStylePaths(self.archive)
+
+  def testDeletePathFilter(self):
+    # Note: due to the use of del() here, self.assertRaises() can't be used.
+    # Also, the with self.assertRaises() idiom is not in python 2.6 so it
+    # can't be used either.
+    try:
+      del(self.archive.path_filter)
+    except tar_archive.Error:
+      pass
+    else:
+      raise
 
 def RunTests():
   suite = unittest.TestLoader().loadTestsFromTestCase(TestTarArchive)
