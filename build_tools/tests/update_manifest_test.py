@@ -16,7 +16,7 @@ import tempfile
 import unittest
 import urlparse
 
-from build_tools import update_manifest
+from build_tools import sdk_update
 
 
 class FakeOptions(object):
@@ -25,7 +25,11 @@ class FakeOptions(object):
 
 
 class TestUpdateManifest(unittest.TestCase):
-  ''' Test basic functionality of the update_manifest package '''
+  ''' Test basic functionality of the update_manifest package.
+
+  Note that update_manifest.py now imports sdk_update.py, so this file
+  tests the update_manifest features within sdk_update.'''
+
   def setUp(self):
     self._json_boilerplate=(
         '{\n'
@@ -34,14 +38,14 @@ class TestUpdateManifest(unittest.TestCase):
         '}\n')
     self._temp_dir = tempfile.gettempdir()
     # os.path.join('build_tools', 'tests', 'test_archive')
-    self._manifest = update_manifest.SDKManifest()
+    self._manifest = sdk_update.SDKManifest()
 
   def testJSONBoilerplate(self):
     ''' Test creating a manifest object'''
     self.assertEqual(self._manifest.GetManifestString(),
                      self._json_boilerplate)
     # Test using a manifest file with a version that is too high
-    self.assertRaises(update_manifest.Error,
+    self.assertRaises(sdk_update.Error,
                       self._manifest.LoadManifestString,
                       '{"manifest_version": 2}')
 
@@ -52,7 +56,7 @@ class TestUpdateManifest(unittest.TestCase):
     if os.path.exists(file_path):
       os.remove(file_path)
     # Create a basic manifest file
-    manifest_file = update_manifest.SDKManifestFile(file_path)
+    manifest_file = sdk_update.SDKManifestFile(file_path)
     manifest_file._WriteFile();
     self.assertTrue(os.path.exists(file_path))
     # Test re-loading the file
@@ -84,14 +88,14 @@ class TestUpdateManifest(unittest.TestCase):
     options.opt1 = None
     self.assertTrue(self._manifest._VerifyAllOptionsConsumed(options, None))
     options.opt2 = 'blah'
-    self.assertRaises(update_manifest.Error,
+    self.assertRaises(sdk_update.Error,
                       self._manifest._VerifyAllOptionsConsumed,
                       options,
                       'no bundle name')
 
   def testBundleUpdate(self):
     ''' Test function Bundle.Update '''
-    bundle = update_manifest.Bundle('test')
+    bundle = sdk_update.Bundle('test')
     options = FakeOptions()
     options.bundle_revision = 1
     options.desc = 'What a hoot'
@@ -136,7 +140,7 @@ class TestUpdateManifest(unittest.TestCase):
     options.manifest_version = None
     options.bundle_name = 'test'
     options.stability = 'excellent'
-    self.assertRaises(update_manifest.Error,
+    self.assertRaises(sdk_update.Error,
                       self._manifest.UpdateManifest,
                       options)
 
@@ -145,7 +149,7 @@ class TestUpdateManifest(unittest.TestCase):
     options = FakeOptions()
     options.manifest_version = None
     options.bundle_name = 'another_bundle'
-    self.assertRaises(update_manifest.Error,
+    self.assertRaises(sdk_update.Error,
                       self._manifest.UpdateManifest,
                       options)
 
@@ -163,7 +167,7 @@ class TestUpdateManifest(unittest.TestCase):
         # Create an archive with a url to the file we created above.
         url_parts = urlparse.ParseResult('file', '', temp_file_path, '', '', '')
         url = urlparse.urlunparse(url_parts)
-        archive = update_manifest.Archive('mac')
+        archive = sdk_update.Archive('mac')
         archive.Update(url)
         self.assertEqual(archive['checksum']['sha1'],
                          'd2985049a677bbc4b4e8dea3b89c4820e5668e3a')
@@ -174,17 +178,17 @@ class TestUpdateManifest(unittest.TestCase):
   def testUpdateManifestArchiveValidate(self):
     ''' Test function Archive.Validate '''
     # Test invalid host-os name
-    archive = update_manifest.Archive('atari')
-    self.assertRaises(update_manifest.Error, archive.Validate)
+    archive = sdk_update.Archive('atari')
+    self.assertRaises(sdk_update.Error, archive.Validate)
     # Test missing url
     archive['host_os'] = 'mac'
-    self.assertRaises(update_manifest.Error, archive.Validate)
+    self.assertRaises(sdk_update.Error, archive.Validate)
     # Valid archive
     archive['url'] = 'http://www.google.com'
     archive.Validate()
     # Test invalid key name
     archive['guess'] = 'who'
-    self.assertRaises(update_manifest.Error, archive.Validate)
+    self.assertRaises(sdk_update.Error, archive.Validate)
 
 
 def main():
