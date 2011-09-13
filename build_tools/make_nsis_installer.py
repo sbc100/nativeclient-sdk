@@ -38,6 +38,6 @@ def MakeNsisInstaller(installer_dir, sdk_version=None, cwd=None):
 
   install_nsis.Install(cwd)
   script = nsis_script.NsisScript(os.path.join(cwd, 'make_sdk_installer.nsi'))
-  script.SetInstallDirectory(os.path.join('C:', sdk_full_name))
+  script.SetInstallDirectory(os.path.join('C:', os.sep, sdk_full_name))
   script.CreateFromDirectory(installer_dir)
   script.Compile()
