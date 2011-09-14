@@ -5,6 +5,7 @@
   <meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
   <meta HTTP-EQUIV="Expires" CONTENT="-1">
   <link href="css/flocking_geese.css" rel="stylesheet" type="text/css">
+  <link href="css/form_input.css" rel="stylesheet" type="text/css">
   <link href="css/info_panel.css" rel="stylesheet" type="text/css">
   <link href="css/progress_bar.css" rel="stylesheet" type="text/css">
   <link href="css/slider.css" rel="stylesheet" type="text/css">
@@ -75,11 +76,11 @@
     -->
     <div id="info_panel"
          style="display: inline;">
-      <h2 style="width: 100%;">Info Panel</h2>
+      <h2 style="margin-left: 16px; width: 100%;">Info Panel</h2>
       <canvas id="speedometer_canvas"
               class="horizontal-align-center"></canvas><br />
       <!-- Show the meter values. -->
-      <table style="font-size: 10pt;">
+      <table style="font-size: 10pt; margin-bottom: 1em;">
         <tr>
           <td align="right">NaCl:</td>
           <td id="naclMeterLabel">0.0</td>
@@ -92,14 +93,16 @@
       <form id="game_controls_form"
             action=""
             method="get">
-        <p>Displaying:
-        <button id="sim_mode_button"
-                type="button"
-                alttext="NaCl"
-                state="off">JavaScript</button>
+        <p style="margin-left: 16px; margin-bottom: 0px">Simulation Mode</p>
+        <p style="margin-left: 32px;">
+          <input type="radio"
+                 name="sim_mode_select"
+                 value="JavaScript" checked>JavaScript</input><br />
+          <input type="radio" name="sim_mode_select" value="NaCl">Native
+          Client</input>
         </p>
       </form>
-      <p style="margin-left: 20px;">Flock Size:</p>
+      <p style="margin-left: 16px; margin-bottom: 0px;">Flock Size</p>
       <div id="flock_size_slider" class="kd-slider kd-slider-discrete">
         <ol id="flock_size_slider_ruler" class="kd-sliderruler">
           <li class="kd-sliderstep">20</li>

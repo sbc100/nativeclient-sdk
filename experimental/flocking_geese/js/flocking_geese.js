@@ -75,6 +75,13 @@ FlockingGeese = function() {
    * @private
    */
   this.flockSizeSlider_ = null;
+
+  /**
+   * THe current simulation mode.  Starts in 'JavaScript'.
+   * @type {string}
+   * @private
+   */
+  this.simulationMode_ = FlockingGeese.SimulationMode.JAVASCRIPT;
 }
 goog.inherits(FlockingGeese, goog.Disposable);
 
@@ -118,6 +125,8 @@ FlockingGeese.DomIds = {
   FLOCK_SIZE_SLIDER: 'flock_size_slider',
   FLOCK_SIZE_SLIDER_RULER: 'flock_size_slider_ruler',
   FLOCK_SIZE_SLIDER_THUMB: 'flock_size_slider_thumb',
+  // The <FORM> containing various controls.
+  CONTROLS_FORM: 'game_controls_form',
   // The <CANVAS> where the JS implementation draws its geese.
   GOOSE_CANVAS: 'flocking_geese_canvas',
   // The <EMBED> element containing the NaCl module.
@@ -125,22 +134,21 @@ FlockingGeese.DomIds = {
   // The <DIV> containing the simulation drawing area (either the NaCl module
   // or the <CANVAS>.
   NACL_VIEW: 'nacl_flocking_geese',
-  // The button used to select sim type (NaCL vs. JavaScript).  Contained in
-  // the info panel.
-  SIM_MODE_BUTTON: 'sim_mode_button',
+  // The radio buttons used to select sim type (NaCL vs. JavaScript).
+  // Contained in the info panel.
+  SIM_MODE_SELECT: 'sim_mode_select',
   // The speedometer <CANVAS> element.  Contained in the info panel.
   SPEEDOMETER: 'speedometer_canvas'
 };
 
 /**
- * The simulation mode select button attribute labels.  These are used to
- * determine the state and label of the button.
+ * The list of simulation modes.  These are the values assigned to the
+ * simulation mode radio buttons.
  * @enum {string}
  */
-FlockingGeese.SimModeButtonAttributes = {
-  ALT_IMAGE: 'altimage',  // Image to display in the "on" state.
-  ALT_TEXT: 'alttext',  // Text to display in the "on" state.
-  STATE: 'state'  // The button's state.
+FlockingGeese.SimulationMode = {
+  NACL: 'NaCl',
+  JAVASCRIPT: 'JavaScript'
 };
 
 /**
@@ -196,11 +204,17 @@ FlockingGeese.prototype.initializeApplication = function() {
         this.selectFlockSize, false, this);
   }
 
-  var simModeButton =
-      document.getElementById(FlockingGeese.DomIds.SIM_MODE_BUTTON);
-  if (simModeButton) {
-    goog.events.listen(simModeButton, goog.events.EventType.CLICK,
-        this.toggleSimMode, false, this);
+  var controlsForm =
+      document.getElementById(FlockingGeese.DomIds.CONTROLS_FORM);
+  var simModeRadios = controlsForm[FlockingGeese.DomIds.SIM_MODE_SELECT];
+  if (simModeRadios) {
+    for (var radioButton = 0;
+         radioButton < simModeRadios.length;
+         radioButton++) {
+      goog.events.listen(
+          simModeRadios[radioButton], goog.events.EventType.CLICK,
+          this.toggleSimMode, false, this);
+    }
   }
 
   // Populate the JavaScript verison of the simulation.
@@ -272,22 +286,13 @@ FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
  */
 FlockingGeese.prototype.toggleSimMode = function(clickEvent) {
   clickEvent.stopPropagation();
-  var button = clickEvent.target;
-  var buttonText = button.innerHTML;
-  var altText = button.getAttribute(
-      FlockingGeese.SimModeButtonAttributes.ALT_TEXT);
-  var state = button.getAttribute(
-      FlockingGeese.SimModeButtonAttributes.STATE);
-  // Switch the inner and alternate labels.
-  button.innerHTML = altText;
-  button.setAttribute(FlockingGeese.SimModeButtonAttributes.ALT_TEXT,
-                      buttonText);
-  if (state == 'off') {
-    // In the 'off' state, the simulation runs the JavaScript implementation.
-    // When toggling to 'on', turn off the JavaScript simulation timer and
+  var simMode = clickEvent.target.value;
+  if (simMode == this.simulationMode_)
+    return;
+  this.simulationMode_ = simMode;
+  if (simMode == FlockingGeese.SimulationMode.NACL) {
+    // When toggling to 'NaCl', turn off the JavaScript simulation timer and
     // swap the DOM elements to display the NaCl implementation.
-    button.setAttribute(
-        FlockingGeese.SimModeButtonAttributes.STATE, 'on');
     this.stopJavaScriptSimulation_();
     var flockingCanvas =
         document.getElementById(FlockingGeese.DomIds.GOOSE_CANVAS);
@@ -299,8 +304,6 @@ FlockingGeese.prototype.toggleSimMode = function(clickEvent) {
     this.invokeNaClMethod('runSimulation');
   } else {
     // In the 'on' state, the simulation runs the NaCl implementation.
-    button.setAttribute(
-        FlockingGeese.SimModeButtonAttributes.STATE, 'off');
     this.invokeNaClMethod('pauseSimulation');
     this.startJavaScriptSimulation_();
     var flockingCanvas =
