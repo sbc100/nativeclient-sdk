@@ -65,6 +65,7 @@ js_files = [os.path.join('js', js_file) for js_file in [
     'goose.js',
     'load_progress.js',
     'slider.js',
+    'slider_event.js',
     'speedometer.js',
 ]]
 
