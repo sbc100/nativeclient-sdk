@@ -68,6 +68,13 @@ FlockingGeese = function() {
    * @private
    */
   this.speedometer_ = new Speedometer();
+
+  /**
+   * The flock size slider.  This becomes a Slider object.
+   * @type {Slider}
+   * @private
+   */
+  this.flockSizeSlider_ = null;
 }
 goog.inherits(FlockingGeese, goog.Disposable);
 
@@ -93,13 +100,24 @@ FlockingGeese.prototype.MethodSignatures_ = {
 };
 
 /**
+ * The array of flock sizes that map to slider step values.
+ * @type {Array<number>}
+ * @private
+ */
+FlockingGeese.prototype.FlockSizes_ = [
+  20, 100, 500, 1000
+];
+
+/**
  * The ids used for elements in the DOM.  The FlockingGeese application
  * expects these elements to exist.
  * @enum {string}
  */
 FlockingGeese.DomIds = {
-  // The <SELECT> element for flock size.  Contained in the info panel.
-  FLOCK_SIZE_SELECT: 'flock_size_select',
+  // The elements for the flock size slider.  Contained in the info panel.
+  FLOCK_SIZE_SLIDER: 'flock_size_slider',
+  FLOCK_SIZE_SLIDER_RULER: 'flock_size_slider_ruler',
+  FLOCK_SIZE_SLIDER_THUMB: 'flock_size_slider_thumb',
   // The <CANVAS> where the JS implementation draws its geese.
   GOOSE_CANVAS: 'flocking_geese_canvas',
   // The <EMBED> element containing the NaCl module.
@@ -165,10 +183,16 @@ FlockingGeese.prototype.initializeApplication = function() {
   this.speedometer_.render(this.speedometerCanvas_);
 
   // Wire up the various controls.
-  var flockSizeSelect =
-      document.getElementById(FlockingGeese.DomIds.FLOCK_SIZE_SELECT);
-  if (flockSizeSelect) {
-    goog.events.listen(flockSizeSelect, goog.events.EventType.CHANGE,
+  var flockSizeSlider =
+      document.getElementById(FlockingGeese.DomIds.FLOCK_SIZE_SLIDER);
+  var sliderRuler = document.getElementById(
+      FlockingGeese.DomIds.FLOCK_SIZE_SLIDER_RULER);
+  var sliderThumb = document.getElementById(
+      FlockingGeese.DomIds.FLOCK_SIZE_SLIDER_THUMB);
+  if (flockSizeSlider) {
+    this.flockSizeSlider_ = new Slider(
+        flockSizeSlider, sliderRuler, sliderThumb, 3);
+    goog.events.listen(this.flockSizeSlider_, goog.events.EventType.CHANGE,
         this.selectFlockSize, false, this);
   }
 
@@ -181,8 +205,8 @@ FlockingGeese.prototype.initializeApplication = function() {
 
   // Populate the JavaScript verison of the simulation.
   var flockSize = 0;
-  if (flockSizeSelect) {
-    flockSize = parseInt(flockSizeSelect.value);
+  if (this.flockSizeSlider_) {
+    flockSize = this.flockSize_();
   }
   var initialLocation = this.getCanvasCenter_();
   this.flock_.resetFlock(flockSize, initialLocation);
@@ -197,11 +221,9 @@ FlockingGeese.prototype.moduleDidLoad = function(opt_naclModuleId) {
   // Set up the view controller, it contains the NaCl module.
   var naclModuleId = opt_naclModuleId || FlockingGeese.DomIds.NACL_MODULE;
   this.naclModule_ = document.getElementById(naclModuleId);
-  var flockSizeSelect =
-      document.getElementById(FlockingGeese.DomIds.FLOCK_SIZE_SELECT);
-  if (flockSizeSelect) {
+  if (this.flockSizeSlider_) {
     this.invokeNaClMethod('resetFlock',
-                          {'size' : parseInt(flockSizeSelect.value)});
+                          {'size' : this.flockSize_()});
   }
   // Hide the load progress bar and make the module element visible.
   this.progressBar_.setVisibile(false);
@@ -234,7 +256,7 @@ FlockingGeese.prototype.assert = function(cond, message) {
 FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
   changeEvent.stopPropagation();
   var initialLocation = this.getCanvasCenter_();
-  var newFlockSize = parseInt(changeEvent.target.value);
+  var newFlockSize = this.flockSize_();
   // Reset the speedometers to 0.
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL, 0);
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT, 0);
@@ -396,7 +418,7 @@ FlockingGeese.prototype.run = function(opt_viewDivName) {
       'height': viewSize.height,
       'src': 'flocking_geese.nmf',
       'type': 'application/x-nacl',
-      'style': 'visibility: hidden'
+      'style': 'visibility: inherit'
   });
   viewDiv.appendChild(naclDom);
   this.startJavaScriptSimulation_();
@@ -436,6 +458,15 @@ FlockingGeese.prototype.simulationTick = function() {
 FlockingGeese.prototype.terminate = function() {
   goog.events.removeAll();
   this.stopJavaScriptSimulation_();
+}
+
+/**
+ * Compute the flock size based on the flock slider step value.
+ * @return {number} The flock size.
+ * @private
+ */
+FlockingGeese.prototype.flockSize_ = function() {
+  return this.FlockSizes_[this.flockSizeSlider_.stepValue()];
 }
 
 /**

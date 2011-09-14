@@ -64,6 +64,7 @@ js_files = [os.path.join('js', js_file) for js_file in [
     'frame_counter.js',
     'goose.js',
     'load_progress.js',
+    'slider.js',
     'speedometer.js',
 ]]
 
@@ -75,6 +76,7 @@ css_files = [os.path.join('css', css_file) for css_file in [
     'flocking_geese.css',
     'info_panel.css',
     'progress_bar.css',
+    'slider.css',
     'speedometer.css',
 ]]
 
