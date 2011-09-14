@@ -12,11 +12,17 @@ nacl_env = make_nacl_env.NaClEnvironment(
 nacl_env.Append(
     # Add a CPPPATH that enables the full-path #include directives, such as
     # #include "examples/sine_synth/sine_synth.h"
-    CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+    CPPPATH=[
+        os.path.dirname(os.path.dirname(os.getcwd())),
+        os.path.join(os.getcwd(), '..'),
+        ],
     # Strict ANSI compliance.
     EXTRA_CCFLAGS=['-pedantic'],
    )
 
-sources = ['webgtt.cc']
+sources = [
+    'graph.cc',
+    'webgtt.cc',
+    ]
 
 nacl_env.AllNaClModules(sources, 'webgtt')
