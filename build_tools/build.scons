@@ -234,8 +234,22 @@ def build_nacl_tools(env, target, source):
     sys.stdout.flush()
     make_nacl_tools.main(args)
 
-nacl_tools_cmd = env.Command('nacl_tools_dummy_target',
-                             'make_nacl_tools.py',
+tools = [
+    os.path.join('bin', 'sel_ldr_x86_32'),
+    os.path.join('bin', 'sel_ldr_x86_64'),
+    os.path.join('bin', 'ncval_x86_32'),
+    os.path.join('bin', 'ncval_x86_64'),
+    os.path.join('runtime', 'irt_core_x86_32.nexe'),
+    os.path.join('runtime', 'irt_core_x86_64.nexe'),
+    ]
+
+all_tools = []
+for dir in env['NACL_TOOLCHAIN_ROOTS'].values():
+  all_tools += [os.path.join(dir, tool) for tool in tools]
+
+nacl_tools_cmd = env.Command(all_tools,
+                             ['make_nacl_tools.py',
+                              os.path.join(env['ROOT_DIR'], 'DEPS')],
                              build_nacl_tools)
 env.Depends(nacl_tools_cmd, env.GetHeadersNode())
 env.Depends(env.GetToolchainNode(), nacl_tools_cmd)
