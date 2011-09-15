@@ -8,51 +8,38 @@
 import os
 import tarfile
 
+from build_tools import path_set
+
+
 class Error(Exception):
   pass
 
-class TarArchive(object):
+
+class TarArchive(path_set.PathSet):
   '''Container for a tar archive table of contents.
 
-  The table of contents is an enumeration of each node in the archive, broken
-  into four separate collections, each accessible as a property (see the
-  "Attributes" section, below).
+  The table of contents is an enumeration of each node in the archive, stored
+  as the attributes of a PathSet (see path_set.py for details).
 
   The tar archive can be taken directly from a tarball (as long as the format
   is supported by the tarfile module), or from a manifest file that was
   generated using tar -tv.
 
   Attributes:
-    files: A set of plain files, keys are platform-specific normalized path
-        names.  Might be empty.
-    dirs: A set of directories, keys are platform-specific normalized path
-        names.  Might be empty.
-    symlinks: A dictionary of symbolic links - these are not followed.  Keys
-        are platform-specific normalized path names.  The value of each key is
-        the source file of the link (also a platform-specific normalized path).
-        Might be empty.
-    links: A dictionary of hard links.  Keys are platform-specific normalized
-        path names.  The value of each key is the source file of the link (also
-        a platform-specific normalized path).  Might be empty.
+    path_filter: A callable that gets applied to all paths in the object's tar
+        archive before the paths are added to any of the sets or dictionaries.
+        Setting this callable to None has the same effect as using a
+        pass-through filter (such as lambda x: x).  This property cannot be
+        deleted.
   '''
 
   def __init__(self):
-    self.files = set()
-    self.dirs = set()
-    self.symlinks = dict()
-    self.links = dict()
+    path_set.PathSet.__init__(self)
     self._path_filter = os.path.normpath
 
   @property
   def path_filter(self):
-    '''A filter to apply to paths in the tar archive.
-
-    |path_filter| is assumbed to be a callable that gets applied to all paths
-    in the object's tar archive before the paths are added to any of the
-    sets or dictionaries.  Setting this callable to None has the same effect as
-    using a pass-through filter (such as lambda x: x).  This property cannot be
-    deleted.
-    '''
+    '''A filter to apply to paths in the tar archive.'''
     return self._path_filter
 
   @path_filter.setter

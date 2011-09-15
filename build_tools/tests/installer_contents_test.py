@@ -46,6 +46,15 @@ class TestInstallerContents(unittest.TestCase):
     self.assertEqual(output[2], '')
     self.assertEqual(output[3], os.path.join('abs', 'path'))
 
+  def testGetToolchainManifest(self):
+    self.assertRaises(KeyError,
+                      installer_contents.GetToolchainManifest,
+                      'notatoolchain')
+    newlib_manifest_path = installer_contents.GetToolchainManifest('newlib')
+    self.assertTrue(os.path.exists(newlib_manifest_path))
+    glibc_manifest_path = installer_contents.GetToolchainManifest('glibc')
+    self.assertTrue(os.path.exists(glibc_manifest_path))
+
 
 def RunTests():
   suite = unittest.TestLoader().loadTestsFromTestCase(TestInstallerContents)

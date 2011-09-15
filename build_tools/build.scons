@@ -98,7 +98,14 @@ installer_contents_test = env.CreatePythonUnitTest(
     'tests/installer_contents_test.py', ['installer_contents.py'])
 env.AddNodeToTestSuite(installer_contents_test,
                        ['bot'],
-                       'run_build_utils_test',
+                       'run_installer_contents_test',
+                       'small')
+
+path_set_test = env.CreatePythonUnitTest(
+    'tests/path_set_test.py', ['path_set.py'])
+env.AddNodeToTestSuite(path_set_test,
+                       ['bot'],
+                       'run_path_set_test',
                        'small')
 
 nacl_utils_test = env.CreatePythonUnitTest('nacl_sdk_scons/nacl_utils_test.py',

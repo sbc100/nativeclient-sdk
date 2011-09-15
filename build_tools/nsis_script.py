@@ -10,8 +10,14 @@ import subprocess
 import tarfile
 import tempfile
 
+from build_tools import path_set
 
-class NsisScript(object):
+
+class Error(Exception):
+  pass
+
+
+class NsisScript(path_set.PathSet):
   '''Container for a NSIS script file
 
   Use this class to create and manage an NSIS script.  You can construct this
@@ -20,48 +26,32 @@ class NsisScript(object):
   '''
 
   def __init__(self, script_file='nsis.nsi'):
+    path_set.PathSet.__init__(self)
     self._script_file = script_file
-    self._install_dir = "C:\\nsis_install"
+    self._install_dir = os.path.join('C:%s' % os.sep, 'nsis_install')
     self._relative_install_root = None
-    self._file_list = []
-    self._dir_list = []
-    self._symlink_list = []
 
-  def GetScriptFile(self):
-    '''Accessor for |_script_file|.'''
+  @property
+  def script_file(self):
+    '''The output NSIS script file. Read-only.'''
     return self._script_file
 
-  def GetInstallDirectory(self):
-    '''The installation directory.
-    Return:
-      The value of the installation directory.  This is where the NSIS installer
-      built from this script puts its contents when run.
+  @property
+  def install_dir(self):
+    '''The default directory where the NSIS installer will unpack its contents.
+
+    This must be a full path, including the dirve letter.  E.g.:
+        C:\native_client_sdk
     '''
     return self._install_dir
 
-  def SetInstallDirectory(self, install_dir):
-    '''Set the install name for the script.
-
-    This sets the InstallDir property in the NSIS script.  When the final
-    installer is run, the contents get put here.
-
-    Args:
-      install_dir: The target install directory.  Should be a full path
-          (including a drive letter on Windows).
-    '''
-    self._install_dir = install_dir
-
-  def GetFileList(self):
-    '''Accessor for |_file_list|.'''
-    return self._file_list
-
-  def GetDirectoryList(self):
-    '''Accessor for |_dir_list|.'''
-    return self._dir_list
-
-  def GetSymlinkList(self):
-    '''Accessor for |_symlink_list|.'''
-    return self._symlink_list
+  @install_dir.setter
+  def install_dir(self, new_install_dir):
+    if (os.path.isabs(new_install_dir) and
+        len(os.path.splitdrive(new_install_dir)[0]) > 0):
+      self._install_dir = new_install_dir
+    else:
+      raise Error('install_dir must be an absolute path')
 
   def CreateFromDirectory(self,
                           artifact_dir,
@@ -83,29 +73,23 @@ class NsisScript(object):
 
       dir_filter: A filter function for directories.  This can be written as a
           list comprehension.  If dir_filter is not None, then it is called
-          with |_dir_list|, and |_dir_list| is replaced with the filter's
+          with |_dirs|, and |_dirs| is replaced with the filter's
           output.
 
       file_filter: A filter function for files.  This can be written as a
           list comprehension.  If file_filter is not None, then it is called
-          with |_file_list|, and |_file_list| is replaced with the filter's
+          with |_files|, and |_files| is replaced with the filter's
           output.
     '''
     self._relative_install_root = artifact_dir
-    self._file_list = []
-    self._dir_list = []
-    self._symlink_list = []
+    self.Reset()
     for root, dirs, files in os.walk(artifact_dir):
-      self._dir_list.extend([os.path.join(root, d) for d in dirs])
-      self._file_list.extend([os.path.join(root, f)
-          for f in files if not os.path.islink(f)])
-      self._symlink_list.extend([os.path.join(root, l)
-          for l in files if os.path.islink(l)])
+      map(lambda dir: self._dirs.add(os.path.join(root, dir)), dirs)
+      map(lambda file: self._files.add(os.path.join(root, file)), files)
     if dir_filter:
-      self._dir_list = dir_filter(self._dir_list)
-      self._symlink_list = dir_filter(self._symlink_list)
+      self._dirs = set(dir_filter(self._dirs))
     if file_filter:
-      self._file_list = file_filter(self._file_list)
+      self._files = set(file_filter(self._files))
 
 
   def CreateInstallNameScript(self, cwd='.'):
@@ -158,16 +142,22 @@ class NsisScript(object):
       script.write('Section "!Native Client SDK" NativeClientSDK\n')
       script.write('  SectionIn RO\n')
       script.write('  SetOutPath $INSTDIR\n')
-      for d in self._dir_list:
-        d = self.NormalizeInstallPath(d)
-        script.write('  CreateDirectory "%s"\n' % os.path.join('$INSTDIR', d))
-      for f in self._file_list:
-        f_rel = self.NormalizeInstallPath(f)
-        script.write('  File "/oname=%s" "%s"\n' % (f_rel, f))
-      for l in self._symlink_list:
-        l = self.NormalizeInstallPath(l)
+      for dir in self._dirs:
+        dir = self.NormalizeInstallPath(dir)
+        script.write('  CreateDirectory "%s"\n' % os.path.join('$INSTDIR', dir))
+      for file in self._files:
+        file_rel = self.NormalizeInstallPath(file)
+        script.write('  File "/oname=%s" "%s"\n' % (file_rel, file))
+      for src, symlink in self._symlinks.items():
+        src = self.NormalizeInstallPath(src)
+        symlink = self.NormalizeInstallPath(symlink)
         script.write('  MkLink::SoftD "%s" "%s"\n' % (
-            os.path.join('$INSTDIR', l), os.path.realpath(l)))
+            os.path.join('$INSTDIR', symlink), os.path.realpath(src)))
+      for src, link in self._links.items():
+        src = self.NormalizeInstallPath(src)
+        link = self.NormalizeInstallPath(link)
+        script.write('  MkLink::HardD "%s" "%s"\n' % (
+            os.path.join('$INSTDIR', link), os.path.realpath(src)))
       script.write('SectionEnd\n')
 
   def Compile(self):
@@ -175,7 +165,7 @@ class NsisScript(object):
 
     Compilation happens in a couple of steps: first, the install directory
     script is generated from |_install_dir|, then the section commands script
-    is generated from |_file_list|.  Finally |_script_file| is compiled, which
+    is generated from |_files|.  Finally |_script_file| is compiled, which
     produces the NSIS installer specified by the OutFile property in
     |_script_file|.
     '''

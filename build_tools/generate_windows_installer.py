@@ -15,6 +15,7 @@ import stat
 import string
 import subprocess
 import sys
+import tar_archive
 
 IGNORE_PATTERN = ('.download*', '.svn*')
 
@@ -111,15 +112,46 @@ def main(argv):
 
   # Make everything read/write (windows needs this).
   for root, dirs, files in os.walk(installer_dir):
-    for d in dirs:
-      os.chmod(os.path.join(root, d), stat.S_IWRITE | stat.S_IREAD)
-    for f in files:
-      os.chmod(os.path.join(root, f), stat.S_IWRITE | stat.S_IREAD)
+    def UpdatePermissions(list):
+      for file in map(lambda f: os.path.join(root, f), list):
+        os.chmod(file, os.lstat(file).st_mode | stat.S_IWRITE | stat.S_IREAD)
+    UpdatePermissions(dirs)
+    UpdatePermissions(files)
 
+  # Grab the toolchain manifest files and massage them so their paths are
+  # corrected for the actual toolchain layout in the SDK.  The newlib toolchain
+  # manifest has these changes made:
+  #  1. Transform path components 'sdk/nacl-sdk' to 'toolchain/win_x86_newlib'
+  #  2. Remove the spurious 'sdk' directory entry.
+  # The glibc manifests can be used unmolested.
+  bot.BuildStep('generate toolchain manifests')
+  def TransformNewlibPath(npath):
+    return os.path.normpath(npath.replace('sdk/nacl-sdk',
+                                          'toolchain/win_x86_newlib'))
+  newlib_manifest = tar_archive.TarArchive()
+  newlib_manifest.path_filter = TransformNewlibPath
+  newlib_manifest_path = os.path.join(
+      home_dir,
+      'src',
+      installer_contents.GetToolchainManifest('newlib'))
+  newlib_manifest.InitWithManifest(newlib_manifest_path)
+  newlib_manifest.dirs.discard('sdk')
+
+  glibc_manifest_path = os.path.join(
+      home_dir,
+      'src',
+      installer_contents.GetToolchainManifest('glibc'))
+  glibc_manifest = tar_archive.TarArchive()
+  glibc_manifest.InitWithManifest(glibc_manifest_path)
+
+  # Merge the newlib and glibc manifests and send them to the script generator.
   bot.BuildStep('create Windows installer')
   bot.Print('generate_windows_installer is creating the windows installer.')
   build_tools_dir = os.path.join(home_dir, 'src', 'build_tools')
-  make_nsis_installer.MakeNsisInstaller(installer_dir, cwd=build_tools_dir)
+  make_nsis_installer.MakeNsisInstaller(
+      installer_dir,
+      cwd=build_tools_dir,
+      toolchain_manifests=newlib_manifest | glibc_manifest)
   bot.Print("Installer created!")
 
   # Clean up.
