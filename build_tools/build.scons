@@ -66,69 +66,34 @@ env.AddNodeToTestSuite(installer_test_node, ['bot'],
 
 #------------------------------------------------------------------------------
 # Add build_tools unit tests
-build_utils_test = env.CreatePythonUnitTest('tests/build_utils_test.py',
-                                            ['build_utils.py'])
-env.AddNodeToTestSuite(build_utils_test,
-                       ['bot'],
-                       'run_build_utils_test',
-                       'small')
 
-tar_archive_test = env.CreatePythonUnitTest('tests/tar_archive_test.py',
-                                            ['tar_archive.py'])
-env.AddNodeToTestSuite(tar_archive_test,
-                       ['bot'],
-                       'run_tar_archive_test',
-                       'small')
+def AddPythonUnitTest(command, file, size='small', **kwargs):
+  ''' Adds a new python unit test
 
-update_manifest_test = env.CreatePythonUnitTest('tests/update_manifest_test.py',
-                                                ['update_manifest.py'])
-env.AddNodeToTestSuite(update_manifest_test,
-                       ['bot'],
-                       'run_update_manifest_test',
-                       'small')
+  Args:
+    command: The scons command to run this unit test
+    file: The python file containing the unit test
+    size: How big is this test?  small, medium, or large
+    kwargs: See named parameters to CreatePythonUnitTest
 
-sdk_update_test = env.CreatePythonUnitTest('tests/sdk_update_test.py',
-                                           ['sdk_update.py'])
-env.AddNodeToTestSuite(sdk_update_test,
-                       ['bot'],
-                       'run_sdk_update_test',
-                       'small')
+  returns:
+    test node for this newly created test'''
+  test_node = env.CreatePythonUnitTest(file, **kwargs)
+  env.AddNodeToTestSuite(test_node, ['bot'], command, size)
+  return test_node
 
-installer_contents_test = env.CreatePythonUnitTest(
-    'tests/installer_contents_test.py', ['installer_contents.py'])
-env.AddNodeToTestSuite(installer_contents_test,
-                       ['bot'],
-                       'run_installer_contents_test',
-                       'small')
-
-path_set_test = env.CreatePythonUnitTest(
-    'tests/path_set_test.py', ['path_set.py'])
-env.AddNodeToTestSuite(path_set_test,
-                       ['bot'],
-                       'run_path_set_test',
-                       'small')
-
-nacl_utils_test = env.CreatePythonUnitTest('nacl_sdk_scons/nacl_utils_test.py',
-                                           ['nacl_sdk_scons/nacl_utils.py'])
-env.AddNodeToTestSuite(nacl_utils_test,
-                       ['bot'],
-                       'run_nacl_utils_test',
-                       'small')
+AddPythonUnitTest('run_build_utils_test', 'tests/build_utils_test.py')
+AddPythonUnitTest('run_tar_archive_test', 'tests/tar_archive_test.py')
+AddPythonUnitTest('run_update_manifest_test', 'tests/update_manifest_test.py')
+AddPythonUnitTest('run_sdk_update_test', 'tests/sdk_update_test.py')
+AddPythonUnitTest('run_installer_contents_test',
+                  'tests/installer_contents_test.py')
+AddPythonUnitTest('run_nacl_utils_test', 'nacl_sdk_scons/nacl_utils_test.py')
+AddPythonUnitTest('run_path_set_test', 'tests/path_set_test.py')
 
 if env['IS_WINDOWS']:
-  install_nsis_test = env.CreatePythonUnitTest('tests/install_nsis_test.py',
-                                               ['install_nsis.py'])
-  env.AddNodeToTestSuite(install_nsis_test,
-                         ['bot'],
-                         'run_install_nsis_test',
-                         'small')
-
-  nsis_script_test = env.CreatePythonUnitTest('tests/nsis_script_test.py',
-                                              ['nsis_script.py'])
-  env.AddNodeToTestSuite(nsis_script_test,
-                         ['bot'],
-                         'run_nsis_script_test',
-                         'small')
+  AddPythonUnitTest('run_install_nsis_test', 'tests/install_nsis_test.py')
+  AddPythonUnitTest('run_nsis_script_test', 'tests/nsis_script_test.py')
 
 
 #------------------------------------------------------------------------------
