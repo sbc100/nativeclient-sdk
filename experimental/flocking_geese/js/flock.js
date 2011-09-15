@@ -63,6 +63,7 @@ Flock.prototype.resetFlock = function(size, opt_initialLocation) {
   for (var goose = 0; goose < size; goose++) {
     this.geese_[goose] = new Goose(initialLocation);
   }
+  this.frameCounter_.reset();
 }
 
 /**

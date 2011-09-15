@@ -25,31 +25,31 @@ goog.require('goog.events.EventTarget');
  */
 Speedometer = function() {
   goog.events.EventTarget.call(this);
+  /**
+   * The dictionary of individual meters.
+   * @type {Array.Object}
+   * @private
+   */
+  this.meters_ = [];
+
+  /**
+   * The number of unique meters added to the speedometer.
+   * @type {number}
+   * @private
+   */
+  this.meterCount_ = 0;
+
+  /**
+   * The maximum speed that any meter can reach.  Meters that go past this
+   * value are clipped.
+   * @type {real}
+   * @private
+   */
+  this.maxSpeed_ = 1.0;
+  this.logMaxSpeed_ = 0.0;  // log(maxSpeed_).
+  this.logScale_ = Math.log(2.0);  // The log scaling factor.
 };
 goog.inherits(Speedometer, goog.events.EventTarget);
-
-/**
- * The dictionary of individual meters.  These meters are drawn as a row of
- * vertical bars.
- * @type {Array.Object}
- * @private
- */
-Speedometer.prototype.meters_ = [];
-
-/**
- * The number of unique meters added to the speedometer.
- * @type {number}
- * @private
- */
-Speedometer.prototype.meterCount_ = 0;
-
-/**
- * The maximum speed that any meter can reach.  Meters that go past this
- * value are clipped.
- * @type {real}
- * @private
- */
-Speedometer.prototype.maxSpeed_ = 1.0;
 
 /**
  * Meter dictionary values.
@@ -106,6 +106,7 @@ Speedometer.prototype.setMaximumSpeed = function(maxSpeed) {
   }
   var oldMaxSpeed = this.maxSpeed_;
   this.maxSpeed_ = maxSpeed;
+  this.logMaxSpeed_ = Math.log(this.maxSpeed_) / this.logScale_;
   return oldMaxSpeed;
 }
 
@@ -145,38 +146,53 @@ Speedometer.prototype.updateMeterNamed =
     function(meterName, value) {
   var oldValue = 0.0;
   if (meterName in this.meters_) {
-    oldValue = this.meters_[meterName][Speedometer.Attributes.VALUE];
-    this.meters_[meterName][Speedometer.Attributes.VALUE] = value;
+    oldValue = this.meters_[meterName].value;
+    this.meters_[meterName].value = value;
   }
   return oldValue;
 }
 
 /**
  * Render the speedometer.  Draws each meter in turn, displaying their labels.
- * Meter width and height is adjusted to fit proportionally inside |context2d|.
- * If a meter has an attached value label, then its text is updated with the
- * new meter value as well.
+ * The meter value is displayed on a log scale.
  * @param {!Canvas} canvas The 2D canvas.
  */
 Speedometer.prototype.render = function(canvas, opt_labelElements) {
-  var meterWidth = canvas.width / this.meterCount_;
   var context2d = canvas.getContext('2d');
+
+  var radius = Math.min(canvas.width, canvas.height);
+  var canvasCenterX = canvas.width / 2;
+
   context2d.save();
   // Paint the background image.
-  context2d.fillStyle = 'red';
+  context2d.fillStyle = 'white';
   context2d.fillRect(0, 0, canvas.width, canvas.height);
+  context2d.beginPath();
+  context2d.arc(canvasCenterX, canvas.height, radius, 0, Math.PI, true);
+  context2d.closePath();
+  context2d.fillStyle = 'red';
+  context2d.fill();
+
   // Paint the meters.
   context2d.fillStyle = 'green';
-  // Change the coordinate system to y-positive going up.
-  context2d.translate(0, context2d.canvas.height);
-  context2d.scale(1, -1);
-  var i = 0;
   for (meterName in this.meters_) {
     var meter = this.meters_[meterName]
-    var meterHeight = (meter.value * context2d.canvas.height) /
-                      this.maximumSpeed() ;
-    context2d.fillRect(i * meterWidth, 0, meterWidth, meterHeight);
-    i++;
+    var logMeterValue = Math.log(meter.value) / this.logScale_;
+    var meterAngle = (logMeterValue / this.logMaxSpeed_) * Math.PI;
+    meterAngle = Math.min(meterAngle, Math.PI);
+    meterAngle = Math.max(meterAngle, 0.0);
+    console.log('meterAngle = ' + meterAngle);
+    context2d.save();
+      context2d.translate(canvasCenterX, canvas.height - 8);
+      context2d.rotate(meterAngle);
+      context2d.beginPath();
+      // The meter needle points down the negative x-axis when the angle is 0.
+      context2d.moveTo(-radius, 0);
+      context2d.lineTo(0, 8);
+      context2d.lineTo(0, -8);
+      context2d.closePath();
+      context2d.fill();
+    context2d.restore();
     if (Speedometer.Attributes.VALUE_LABEL in meter) {
       var labelElement =
           document.getElementById(meter[Speedometer.Attributes.VALUE_LABEL]);

@@ -186,7 +186,7 @@ FlockingGeese.prototype.initializeApplication = function() {
   jsMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'jsMeterLabel';
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.JAVASCRIPT,
                                      jsMeterAttribs);
-  this.speedometer_.setMaximumSpeed(1000.0);  // Measured in frames per second.
+  this.speedometer_.setMaximumSpeed(10000.0);  // Measured in frames per second.
 
   this.speedometer_.render(this.speedometerCanvas_);
 
@@ -358,9 +358,6 @@ FlockingGeese.prototype.handleNaClMessage = function(messageEvent) {
       // value.
       if (parameter[0] == this.MethodSignatures_.FRAME_RATE) {
         var frameRate = parseFloat(parameter[1]);
-        if (frameRate == 0.0) {
-          frameRate = this.speedometer_.maximumSpeed();
-        }
         this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL,
                                            frameRate);
         this.speedometer_.render(this.speedometerCanvas_);
@@ -443,10 +440,6 @@ FlockingGeese.prototype.simulationTick = function() {
                      flockBox.height);
   var frameRate = this.flock_.flock(flockBox);
   this.flock_.render(flockingCanvas);
-
-  if (frameRate == 0) {
-    frameRate = this.speedometer_.maximumSpeed();
-  }
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT,
                                      frameRate);
   this.speedometer_.render(this.speedometerCanvas_);

@@ -71,6 +71,7 @@ void Flock::ResetFlock(size_t size, const Vector2& initialLocation) {
   while (--size) {
     geese_.push_back(Goose(initialLocation));
   }
+  frame_counter_.Reset();
 }
 
 void Flock::SimulationTick() {

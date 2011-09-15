@@ -161,6 +161,13 @@ class Flock {
       }
     }
 
+    // Reset the frame counters back to 0.
+    void Reset() {
+      frames_per_second_ = 0;
+      frame_duration_accumulator_ = 0;
+      frame_count_ = 0;
+    }
+
     // The current frame rate.  Note that this is 0 for the first second in
     // the accumulator, and is updated every 100 frames (and at least once
     // every second of simulation time or so).

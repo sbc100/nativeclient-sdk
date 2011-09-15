@@ -51,6 +51,8 @@ FrameCounter = function() {
    * @private
    */
   this.framesPerSecond_ = 0;
+
+  this.reset();
 }
 goog.inherits(FrameCounter, goog.Disposable);
 
@@ -115,5 +117,14 @@ FrameCounter.prototype.endFrame = function() {
  */
 FrameCounter.prototype.framesPerSecond = function() {
   return this.framesPerSecond_;
+}
+
+/**
+ * Reset all the counters back to 0.
+ */
+FrameCounter.prototype.reset = function() {
+  this.frameDurationAccumulator_ = 0;
+  this.framesPerSecond_ = 0;
+  this.frameCount_ = 0;
 }
 
