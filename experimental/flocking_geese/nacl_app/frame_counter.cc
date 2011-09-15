@@ -5,6 +5,7 @@
 #include "nacl_app/flock.h"
 
 #include <time.h>
+#include <limits>
 
 void FrameCounter::BeginFrame() {
   struct timeval start_time;
@@ -27,7 +28,9 @@ void FrameCounter::EndFrame() {
       frame_duration_accumulator_ >= kMicroSecondsPerSecond) {
     double elapsed_time = frame_duration_accumulator_ /
                           kMicroSecondsPerSecond;
-    frames_per_second_ = frame_count_ / elapsed_time;
+    if (fabs(elapsed_time) > std::numeric_limits<double>::epsilon()) {
+      frames_per_second_ = frame_count_ / elapsed_time;
+    }
     frame_duration_accumulator_ = 0;
     frame_count_ = 0;
   }

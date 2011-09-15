@@ -181,7 +181,6 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
     var meterAngle = (logMeterValue / this.logMaxSpeed_) * Math.PI;
     meterAngle = Math.min(meterAngle, Math.PI);
     meterAngle = Math.max(meterAngle, 0.0);
-    console.log('meterAngle = ' + meterAngle);
     context2d.save();
       context2d.translate(canvasCenterX, canvas.height - 8);
       context2d.rotate(meterAngle);

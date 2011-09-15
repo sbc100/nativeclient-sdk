@@ -358,6 +358,9 @@ FlockingGeese.prototype.handleNaClMessage = function(messageEvent) {
       // value.
       if (parameter[0] == this.MethodSignatures_.FRAME_RATE) {
         var frameRate = parseFloat(parameter[1]);
+        if (isNaN(frameRate)) {
+          console.log(parameter[1] + ' parses to NaN');
+        }
         this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL,
                                            frameRate);
         this.speedometer_.render(this.speedometerCanvas_);

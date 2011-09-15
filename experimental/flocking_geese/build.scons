@@ -96,8 +96,9 @@ install_images = nacl_env.Install(
     dir=os.path.join(install_dir, 'images'),
     source=image_files)
 
-nacl_env.Alias('install', [install_app,
-                           install_css,
-                           install_js,
-                           install_images])
+nacl_env.Alias('install',
+               source=[install_app,
+                       install_css,
+                       install_js,
+                       install_images])
 
