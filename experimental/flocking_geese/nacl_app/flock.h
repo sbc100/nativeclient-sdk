@@ -117,7 +117,7 @@ class Flock {
   }
 
  private:
-  // The state of the main simulaiton thread.  These are values that the
+  // The state of the main simulation thread.  These are values that the
   // simulation condition lock can have.
   enum SimulationState {
     kSimulationStopped,

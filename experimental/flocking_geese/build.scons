@@ -78,7 +78,7 @@ css_files = [os.path.join('css', css_file) for css_file in [
     'flocking_geese.css',
     'form_input.css',
     'info_panel.css',
-    'progress_bar.css',
+    'load_progress.css',
     'slider.css',
     'speedometer.css',
 ]]
