@@ -6,13 +6,13 @@
 #define FLOCK_H_
 
 #include <string>
-#include <time.h>
 #include <tr1/memory>
 #include <vector>
 
 #include "boost/scoped_ptr.hpp"
 #include "nacl_app/goose.h"
 #include "nacl_app/locking_image_data.h"
+#include "nacl_app/frame_counter.h"
 #include "nacl_app/scoped_pixel_lock.h"
 #include "nacl_app/sprite.h"
 #include "nacl_app/vector2.h"
@@ -117,74 +117,6 @@ class Flock {
   }
 
  private:
-  // A small helper class that keeps track of tick deltas and a tick
-  // count.  It accumulates the duration of each frame.  Updates the frame rate
-  // every 100 frames.
-  class FrameCounter {
-   public:
-    FrameCounter()
-        : frame_duration_accumulator_(0),
-          frame_count_(0),
-          frames_per_second_(0) {}
-    ~FrameCounter() {}
-
-    // Record the current time, which is used to compute the frame duration
-    // when EndFrame() is called.
-    void BeginFrame() {
-      struct timeval start_time;
-      gettimeofday(&start_time, NULL);
-      frame_start_ = start_time.tv_sec * kMicroSecondsPerSecond +
-                     start_time.tv_usec;
-    }
-
-    // Compute the delta since the last call to BeginFrame() and increment the
-    // frame count.  Update the frame rate whenever the prescribed number of
-    // frames have been counted, or at least one second of simulator time has
-    // passed, whichever is less.
-    void EndFrame() {
-      struct timeval end_time;
-      gettimeofday(&end_time, NULL);
-      double frame_end = end_time.tv_sec * kMicroSecondsPerSecond +
-                         end_time.tv_usec;
-      double dt = frame_end - frame_start_;
-      if (dt < 0)
-        return;
-      frame_duration_accumulator_ += dt;
-      frame_count_++;
-      if (frame_count_ > kFrameRateRefreshCount ||
-          frame_duration_accumulator_ >= kMicroSecondsPerSecond) {
-        double elapsed_time = frame_duration_accumulator_ /
-                              kMicroSecondsPerSecond;
-        frames_per_second_ = frame_count_ / elapsed_time;
-        frame_duration_accumulator_ = 0;
-        frame_count_ = 0;
-      }
-    }
-
-    // Reset the frame counters back to 0.
-    void Reset() {
-      frames_per_second_ = 0;
-      frame_duration_accumulator_ = 0;
-      frame_count_ = 0;
-    }
-
-    // The current frame rate.  Note that this is 0 for the first second in
-    // the accumulator, and is updated every 100 frames (and at least once
-    // every second of simulation time or so).
-    double frames_per_second() const {
-      return frames_per_second_;
-    }
-
-   private:
-    static const double kMicroSecondsPerSecond = 1000000.0;
-    static const int32_t kFrameRateRefreshCount = 100;
-
-    double frame_duration_accumulator_;  // Measured in microseconds.
-    int32_t frame_count_;
-    double frame_start_;
-    double frames_per_second_;
-  };
-
   // The state of the main simulaiton thread.  These are values that the
   // simulation condition lock can have.
   enum SimulationState {

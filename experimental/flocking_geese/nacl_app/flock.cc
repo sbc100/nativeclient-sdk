@@ -4,7 +4,6 @@
 
 #include "nacl_app/flock.h"
 
-#include <sys/time.h>
 #include <algorithm>
 #include <cmath>
 #include <string>

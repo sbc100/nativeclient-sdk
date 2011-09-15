@@ -27,6 +27,7 @@ app_sources = [os.path.join('nacl_app', src_file) for src_file in [
     'flock.cc',
     'flocking_geese_app.cc',
     'flocking_geese_module.cc',
+    'frame_counter.cc',
     'goose.cc',
     'png_loader.cc',
     'sprite.cc',
