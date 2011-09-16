@@ -89,7 +89,7 @@ install_css = nacl_env.Install(
 
 image_files = [os.path.join('images', img_file) for img_file in [
     'goose.png',
-    'speedometer.png',
+    'Dial_background.png',
 ]]
 
 install_images = nacl_env.Install(

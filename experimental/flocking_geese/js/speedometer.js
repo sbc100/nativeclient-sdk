@@ -55,7 +55,7 @@ Speedometer = function() {
    * @private
    */
   this.dialImage_ = new Image();
-  this.dialImage_.src = 'images/speedometer.png';
+  this.dialImage_.src = 'images/Dial_background.png';
 };
 goog.inherits(Speedometer, goog.events.EventTarget);
 
