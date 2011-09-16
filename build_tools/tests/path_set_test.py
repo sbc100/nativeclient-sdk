@@ -135,6 +135,29 @@ class TestPathSet(unittest.TestCase):
     self.assertTrue('link2' in self.pathset.links)
     self.assertFalse('file1' in self.pathset.links)
 
+  def testPrependPath(self):
+    path_prefix = os.path.join('C:%s' % os.sep, 'path', 'prefix')
+    self.pathset.files = set(['file1', 'file2'])
+    self.pathset.dirs = set(['dir1', 'dir2'])
+    self.pathset.symlinks = {'symlink': 'symlink_target'}
+    self.pathset.links = {'link': 'link_target'}
+    prepended_files = set([os.path.join(path_prefix, f)
+                           for f in self.pathset.files])
+    prepended_dirs = set([os.path.join(path_prefix, d)
+                          for d in self.pathset.dirs])
+    prepended_symlinks = {os.path.join(path_prefix, 'symlink'):
+                              'symlink_target'}
+    prepended_links = {os.path.join(path_prefix, 'link'): 'link_target'}
+    self.pathset.PrependPath(path_prefix)
+    self.assertTrue(isinstance(self.pathset.files, set))
+    self.assertTrue(isinstance(self.pathset.dirs, set))
+    self.assertTrue(isinstance(self.pathset.symlinks, dict))
+    self.assertTrue(isinstance(self.pathset.links, dict))
+    self.assertEqual(prepended_files, self.pathset.files)
+    self.assertEqual(prepended_dirs, self.pathset.dirs)
+    self.assertEqual(prepended_symlinks, self.pathset.symlinks)
+    self.assertEqual(prepended_links, self.pathset.links)
+
 
 def RunTests():
   suite = unittest.TestLoader().loadTestsFromTestCase(TestPathSet)

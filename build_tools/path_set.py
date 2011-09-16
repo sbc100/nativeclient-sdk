@@ -124,3 +124,21 @@ class PathSet(object):
     self._dirs = set()
     self._symlinks = dict()
     self._links = dict()
+
+  def PrependPath(self, path_prefix):
+    '''Prepend paths in all collections with |path_prefix|.
+
+    All the keys in all the colletions get prepended with |path_prefix|.  The
+    resulting path is an os-specific path.
+
+    Args:
+      path_prefix: The path to prepend to all collection keys.
+    '''
+    prepend_path = lambda p: os.path.join(path_prefix, p)
+    def PrependToLinkDict(link_dict):
+      return dict([prepend_path(p), link] for p, link in link_dict.items())
+
+    self._files = set(map(prepend_path, self._files))
+    self._dirs = set(map(prepend_path, self._dirs))
+    self._symlinks = PrependToLinkDict(self._symlinks)
+    self._links = PrependToLinkDict(self._links)

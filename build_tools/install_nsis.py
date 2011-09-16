@@ -13,10 +13,27 @@ import zipfile
 
 # The name of the archive that contains the AccessControl extensions.
 ACCESS_CONTROL_ZIP = 'AccessControl.zip'
+# The name of the MkLnk extension DLL.  This is checked into the SDK repo.
+MKLINK_DLL = os.path.join('MkLink', 'Release Unicode', 'MkLink.dll')
 # The name of the NSIS installer.  This file is checked into the SDK repo.
 NSIS_INSTALLER = 'nsis-2.46-Unicode-setup.exe'
 # The default directory name for the NSIS installation.
 NSIS_DIR = 'NSIS'
+
+def MakeDirsIgnoreExist(dir_path, mode=0755):
+  '''Recursively make a directory path.
+
+  Recursively makes all the paths in |dir_path|.  If |dir_path| already exists,
+  do nothing.
+
+  Args:
+    dir_path: A directory path.  All necessary comonents of this path are
+        created.
+    mode: The mode to use if creating |dir_path|.  Default is 0755.
+  '''
+  if not os.path.exists(dir_path):
+    os.makedirs(dir_path, mode=mode)
+
 
 def InstallNsis(installer_exe, target_dir):
   '''Install NSIS into |target_dir|.
@@ -36,10 +53,7 @@ def InstallNsis(installer_exe, target_dir):
   if not os.path.isabs(target_dir):
     raise ValueError('%s must be an absolute path' % target_dir)
 
-  try:
-    os.makedirs(target_dir, mode=0755)
-  except OSError:
-    pass
+  MakeDirsIgnoreExist(target_dir)
 
   subprocess.check_call([installer_exe,
                          '/S',
@@ -63,10 +77,7 @@ def InstallAccessControlExtensions(cwd, access_control_zip, target_dir):
   if not os.path.exists(access_control_zip):
     raise IOError('%s not found' % access_control_zip)
 
-  try:
-    os.makedirs(os.path.join(target_dir, 'Plugins'), mode=0755)
-  except OSError:
-    pass
+  MakeDirsIgnoreExist(os.path.join(target_dir, 'Plugins'), mode=0755)
 
   zip_file = zipfile.ZipFile(access_control_zip, 'r')
   try:
@@ -82,6 +93,25 @@ def InstallAccessControlExtensions(cwd, access_control_zip, target_dir):
   dst_plugin_dir = os.path.join(target_dir, 'Plugins')
   for plugin in access_control_plugins:
     shutil.copy(plugin, dst_plugin_dir)
+
+
+def InstallMkLinkExtensions(mklink_dll, target_dir):
+  '''Install the AccessControl extensions into the NSIS directory.
+
+  Args:
+    mklink_dll: The full path of the MkLink.dll file.
+
+    target_dir: The full path of the target directory for the MkLink
+        extensions.
+  '''
+  if not os.path.exists(mklink_dll):
+    raise IOError('%s not found' % access_control_zip)
+
+  MakeDirsIgnoreExist(os.path.join(target_dir, 'Plugins'))
+
+  # Copy the MkLink plugin DLLs into the main NSIS Plugins directory.
+  dst_plugin_dir = os.path.join(target_dir, 'Plugins')
+  shutil.copy(mklink_dll, dst_plugin_dir)
 
 
 def Install(cwd, target_dir=None, force=False):
@@ -106,5 +136,6 @@ def Install(cwd, target_dir=None, force=False):
   nsis_dir = target_dir or os.path.join(cwd, NSIS_DIR)
   if force or not os.path.exists(os.path.join(nsis_dir, 'makensis.exe')):
     InstallNsis(os.path.join(cwd, NSIS_INSTALLER), nsis_dir)
+    InstallMkLinkExtensions(os.path.join(cwd, MKLINK_DLL), nsis_dir)
     InstallAccessControlExtensions(
         cwd, os.path.join(cwd, ACCESS_CONTROL_ZIP), nsis_dir)

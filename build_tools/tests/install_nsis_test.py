@@ -52,6 +52,15 @@ class TestInstallNsis(unittest.TestCase):
     self.assertTrue(os.path.exists(
         os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
 
+  def testMkLinkExtensions(self):
+    """Make sure the MkLink extensions are installed."""
+    script_dir = os.path.dirname(self.nsis_installer_)
+    install_nsis.InstallMkLinkExtensions(
+        os.path.join(script_dir, install_nsis.MKLINK_DLL),
+        self.target_dir_)
+    self.assertTrue(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'MkLink.dll')))
+
   def testForceTargetInstall(self):
     """Test that a force install to a target directory works."""
     try:
