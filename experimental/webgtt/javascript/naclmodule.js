@@ -41,6 +41,10 @@ var COLOR_PALETTE = [
 NaClModule = function (naclModule, graph1) {
   this.naclModule = naclModule;
   this.graph1 = graph1;
+  coloringButton1.setText(BUTTON_TEXT);
+  if (canvas1.graph1.listOfVertices.length > 0) {
+    coloringButton1.setDisabled(false);
+  }
 };
 
 /**

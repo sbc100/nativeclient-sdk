@@ -142,7 +142,7 @@ Canvas.prototype.handleCanvasClick = function (clickEvent) {
       this.redrawCanvas();
     }
 
-    if (this.graph1.listOfVertices.length > 0) {
+    if ((this.graph1.listOfVertices.length > 0) && (naclModule1 != undefined)) {
       coloringButton1.setDisabled(false);
     } else {
       coloringButton1.setDisabled(true);
