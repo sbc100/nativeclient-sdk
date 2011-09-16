@@ -53,10 +53,10 @@ class NsisScript(path_set.PathSet):
     else:
       raise Error('install_dir must be an absolute path')
 
-  def CreateFromDirectory(self,
-                          artifact_dir,
-                          dir_filter=None,
-                          file_filter=None):
+  def InitFromDirectory(self,
+                        artifact_dir,
+                        dir_filter=None,
+                        file_filter=None):
     '''Create the list of installer artifacts.
 
     Creates three lists:
@@ -90,7 +90,6 @@ class NsisScript(path_set.PathSet):
       self._dirs = set(dir_filter(self._dirs))
     if file_filter:
       self._files = set(file_filter(self._files))
-
 
   def CreateInstallNameScript(self, cwd='.'):
     '''Write out the installer name script.
@@ -138,6 +137,15 @@ class NsisScript(path_set.PathSet):
     Args:
       cwd: The directory where sdk_section.sdk is placed.
     '''
+
+    def SymlinkType(symlink):
+      '''Return whether the source of symlink is a file or a directory.'''
+      symlink_basename = os.path.basename(symlink)
+      for file in self._files:
+        if os.path.basename(file) == symlink_basename:
+          return 'SoftF'
+      return 'SoftD'
+
     with open(os.path.join(cwd, 'sdk_section.nsh'), 'wb') as script:
       script.write('Section "!Native Client SDK" NativeClientSDK\n')
       script.write('  SectionIn RO\n')
@@ -146,18 +154,19 @@ class NsisScript(path_set.PathSet):
         dir = self.NormalizeInstallPath(dir)
         script.write('  CreateDirectory "%s"\n' % os.path.join('$INSTDIR', dir))
       for file in self._files:
-        file_rel = self.NormalizeInstallPath(file)
-        script.write('  File "/oname=%s" "%s"\n' % (file_rel, file))
+        file_norm = self.NormalizeInstallPath(file)
+        script.write('  File "/oname=%s" "%s"\n' % (file_norm, file))
       for src, symlink in self._symlinks.items():
-        src = self.NormalizeInstallPath(src)
-        symlink = self.NormalizeInstallPath(symlink)
-        script.write('  MkLink::SoftD "%s" "%s"\n' % (
-            os.path.join('$INSTDIR', symlink), os.path.realpath(src)))
+        src_norm = self.NormalizeInstallPath(src)
+        link_type = SymlinkType(symlink)
+        script.write('  MkLink::%s "%s" "%s"\n' % (
+            link_type, os.path.join('$INSTDIR', src_norm), symlink))
       for src, link in self._links.items():
-        src = self.NormalizeInstallPath(src)
-        link = self.NormalizeInstallPath(link)
-        script.write('  MkLink::HardD "%s" "%s"\n' % (
-            os.path.join('$INSTDIR', link), os.path.realpath(src)))
+        src_norm = self.NormalizeInstallPath(src)
+        link_norm = self.NormalizeInstallPath(link)
+        script.write('  MkLink::Hard "%s" "%s"\n' % (
+            os.path.join('$INSTDIR', src_norm),
+            os.path.join('$INSTDIR', link_norm)))
       script.write('SectionEnd\n')
 
   def Compile(self):

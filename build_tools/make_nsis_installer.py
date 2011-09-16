@@ -51,5 +51,8 @@ def MakeNsisInstaller(installer_dir,
   install_nsis.Install(cwd)
   script = nsis_script.NsisScript(os.path.join(cwd, 'make_sdk_installer.nsi'))
   script.install_dir = os.path.join('C:%s' % os.sep, sdk_full_name)
-  script.CreateFromDirectory(installer_dir)
+  script.InitFromDirectory(installer_dir)
+  if toolchain_manifests:
+    toolchain_manifests.PrependPath(installer_dir)
+    script |= toolchain_manifests
   script.Compile()

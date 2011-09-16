@@ -50,13 +50,13 @@ class TestNsisScript(unittest.TestCase):
     else:
       raise
 
-  def testCreateFromDirectory(self):
+  def testInitFromDirectory(self):
     """Test creation of artifact lists from an archive directory."""
     script = nsis_script.NsisScript('test_script.nsi')
     archive_dir = os.path.join('build_tools', 'tests', 'nsis_test_archive')
-    script.CreateFromDirectory(archive_dir,
-                               dir_filter=self.FilterSvn,
-                               file_filter=self.FilterSvn)
+    script.InitFromDirectory(archive_dir,
+                             dir_filter=self.FilterSvn,
+                             file_filter=self.FilterSvn)
     file_set = script.files
     self.assertEqual(3, len(file_set))
     self.assertTrue(os.path.join(archive_dir, 'test_file.txt') in file_set)
@@ -81,7 +81,7 @@ class TestNsisScript(unittest.TestCase):
 
   def testNormalizeInstallPath(self):
     """Test NormalizeInstallPath."""
-    # If CreateFromDirectory() is not called, then install paths are unchanged.
+    # If InitFromDirectory() is not called, then install paths are unchanged.
     test_dir = os.path.join('build_tools', 'tests')
     script = nsis_script.NsisScript(os.path.join(test_dir, 'test_script.nsi'))
     test_path = os.path.join('C:', 'test', 'path')
@@ -89,7 +89,7 @@ class TestNsisScript(unittest.TestCase):
     self.assertEqual(test_path, path)
     # Set a relative install path.
     archive_dir = os.path.join(test_dir, 'nsis_test_archive')
-    script.CreateFromDirectory(archive_dir,
+    script.InitFromDirectory(archive_dir,
                                dir_filter=self.FilterSvn,
                                file_filter=self.FilterSvn)
     test_path = os.path.join('test', 'relative', 'path')
@@ -101,7 +101,7 @@ class TestNsisScript(unittest.TestCase):
     test_dir = os.path.join('build_tools', 'tests')
     script = nsis_script.NsisScript(os.path.join(test_dir, 'test_script.nsi'))
     archive_dir = os.path.join(test_dir, 'nsis_test_archive')
-    script.CreateFromDirectory(archive_dir,
+    script.InitFromDirectory(archive_dir,
                                dir_filter=self.FilterSvn,
                                file_filter=self.FilterSvn)
     script.CreateSectionNameScript(cwd=test_dir)

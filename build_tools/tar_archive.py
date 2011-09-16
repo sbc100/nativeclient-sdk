@@ -120,10 +120,7 @@ class TarArchive(path_set.PathSet):
 
     if not os.path.exists(tar_manifest_file):
       raise OSError('%s does not exist' % tar_manifest_file)
-    self.files = set()
-    self.dirs = set()
-    self.symlinks = dict()
-    self.links = dict()
+    self.Reset()
     with open(tar_manifest_file) as manifest:
       for manifest_item in map(lambda line: line.split(), manifest):
         # Parse a single tar -tv entry in a manifest.
