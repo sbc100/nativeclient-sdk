@@ -81,9 +81,9 @@ Speedometer.Attributes = {
  */
 Speedometer.prototype.MeterColours_ = {
   NEEDLE_DEFAULT: 'darkgray',  // Default needle colour.
-  NEEDLE_GRADIENT_START: 'darkgray',
-  NEEDLE_0_SPEED: 'darkgray',  // Colour of the needle at rest.
-  NEEDLE_OUTLINE: 'lightgray'
+  NEEDLE_GRADIENT_START: '#7F7F7F',
+  NEEDLE_0_SPEED: '#999999',  // Colour of the needle at rest.
+  NEEDLE_OUTLINE: 'white'
 };
 
 /**
@@ -91,7 +91,7 @@ Speedometer.prototype.MeterColours_ = {
  * @type {number}
  * @private
  */
-Speedometer.prototype.NEEDLE_INSET_ = 30;
+Speedometer.prototype.NEEDLE_INSET_ = 15;
 
 /**
  * Beginning and ending angles for the meter.  |METER_ANGLE_START_| represents
@@ -233,17 +233,14 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
     context2d.save();
       context2d.translate(canvasCenterX, canvasCenterY);
       context2d.rotate(dampedAngle);
-      if (meter.value == 0.0) {
-        // Use the 0-speed colour for the needle.
-        context2d.fillStyle = this.MeterColours_.NEEDLE_0_SPEED;
-      } else {
-        // Use a gradient to fill the needle.
-        var needleGradient = context2d.createLinearGradient(0, 0, radius, 0);
-        needleGradient.addColorStop(
-            0, this.MeterColours_.NEEDLE_GRADIENT_START);
-        needleGradient.addColorStop(1, meter[Speedometer.Attributes.COLOR]);
-        context2d.fillStyle = needleGradient;
-      }
+      // Use a gradient to fill the needle.
+      var needleGradient = context2d.createLinearGradient(0, 0, radius, 0);
+      needleGradient.addColorStop(
+          0, this.MeterColours_.NEEDLE_GRADIENT_START);
+      needleGradient.addColorStop(
+          1, meter.value == 0.0 ? this.MeterColours_.NEEDLE_0_SPEED :
+                                  meter[Speedometer.Attributes.COLOR]);
+      context2d.fillStyle = needleGradient;
       context2d.beginPath();
       // The meter needle points down the positive x-axis when the angle is 0.
       context2d.moveTo(radius, 0);
