@@ -88,8 +88,8 @@ install_css = nacl_env.Install(
     source=css_files)
 
 image_files = [os.path.join('images', img_file) for img_file in [
-    'canada.jpg',
     'goose.png',
+    'speedometer.png',
 ]]
 
 install_images = nacl_env.Install(

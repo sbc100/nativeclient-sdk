@@ -179,11 +179,13 @@ FlockingGeese.prototype.initializeApplication = function() {
       document.getElementById(FlockingGeese.DomIds.SPEEDOMETER);
   var naclMeterAttribs = {};
   naclMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'naclMeterLabel';
+  naclMeterAttribs[Speedometer.Attributes.COLOR] = 'green';
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.NACL,
                                      naclMeterAttribs);
   var jsMeterAttribs = {};
   jsMeterAttribs[Speedometer.Attributes.DISPLAY_NAME] = 'JS';
   jsMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'jsMeterLabel';
+  jsMeterAttribs[Speedometer.Attributes.COLOR] = 'red';
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.JAVASCRIPT,
                                      jsMeterAttribs);
   this.speedometer_.setMaximumSpeed(10000.0);  // Measured in frames per second.
@@ -240,7 +242,7 @@ FlockingGeese.prototype.moduleDidLoad = function(opt_naclModuleId) {
                           {'size' : this.flockSize_()});
   }
   // Hide the load progress bar and make the module element visible.
-  this.progressBar_.setVisibile(false);
+  this.progressBar_.setVisible(false);
   this.naclModule_.style.visibility = 'inherit';
   // If the NaCL module is being displayed, then start the simulation.
   var naclView = document.getElementById(FlockingGeese.DomIds.NACL_VIEW);

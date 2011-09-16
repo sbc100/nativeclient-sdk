@@ -48,6 +48,14 @@ Speedometer = function() {
   this.maxSpeed_ = 1.0;
   this.logMaxSpeed_ = 0.0;  // log(maxSpeed_).
   this.logScale_ = Math.log(2.0);  // The log scaling factor.
+
+  /**
+   * The background image.
+   * @type {Image}
+   * @private
+   */
+  this.dialImage_ = new Image();
+  this.dialImage_.src = 'images/speedometer.png';
 };
 goog.inherits(Speedometer, goog.events.EventTarget);
 
@@ -56,6 +64,7 @@ goog.inherits(Speedometer, goog.events.EventTarget);
  * @enum {string}
  */
 Speedometer.Attributes = {
+  COLOR: 'color',  // The needle color.
   DISPLAY_NAME: 'displayName',  // The name used to display the meter.
   NAME: 'name',  // The name of the meter.  Not optional.
   VALUE: 'value',  // The value of the meter.  Not optional.
@@ -67,14 +76,41 @@ Speedometer.Attributes = {
  * Meter colours.  Meters are coloured according to their value: red for
  * 25% of |maxSpeed_| and below, yellow for 25% - 50% of |maxSpeed_| and
  * green for 50% - 100%.
- * @enum {string}
+ * @type {string}
  * @private
  */
 Speedometer.prototype.MeterColours_ = {
-  LOW_SPEED: 'red',  // Low speed is below 25% of |maxSpeed_|.
-  MEDIUM_SPEED: 'yellow',  // 25% - 50%
-  HIGH_SPEED: 'green'  // 50% - 100%
+  NEEDLE_DEFAULT: 'darkgray',  // Default needle colour.
+  NEEDLE_GRADIENT_START: 'darkgray',
+  NEEDLE_0_SPEED: 'darkgray',  // Colour of the needle at rest.
+  NEEDLE_OUTLINE: 'lightgray'
 };
+
+/**
+ * Meter needles are inset from the meter radius by this amount.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.NEEDLE_INSET_ = 30;
+
+/**
+ * Beginning and ending angles for the meter.  |METER_ANGLE_START_| represents
+ * "speed" of 0, |METER_ANGLE_RANGE_| is the angular range of the meter needle.
+ * maximumSpeed() is |METER_ANGLE_START_ + METER_ANGLE_RANGE_|.  Measured
+ * cockwise in radians from the line y = 0.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.METER_ANGLE_START_ = 3.0 * Math.PI / 4.0;
+Speedometer.prototype.METER_ANGLE_RANGE_ = 6.0 * Math.PI / 4.0;
+
+/**
+ * Value used to provde damping to the meter.  The meter reading can change by
+ * at most this amount per frame.  Measured in radians.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.DAMPING_FACTOR_ = Math.PI / 36.0;
 
 /**
  * Override of disposeInternal() to dispose of retained objects and unhook all
@@ -131,6 +167,11 @@ Speedometer.prototype.addMeterWithName =
   if (!(Speedometer.Attributes.VALUE in meterDictionary)) {
     meterDictionary[Speedometer.Attributes.VALUE] = 0.0;
   }
+  if (!(Speedometer.Attributes.COLOR in meterDictionary)) {
+    meterDictionary[Speedometer.Attributes.COLOR] =
+        this.MeterColours_.NEEDLE_DEFAULT;
+  }
+  meterDictionary.previousAngle = 0.0;
   this.meters_[meterName] = meterDictionary;
 }
 
@@ -160,37 +201,59 @@ Speedometer.prototype.updateMeterNamed =
 Speedometer.prototype.render = function(canvas, opt_labelElements) {
   var context2d = canvas.getContext('2d');
 
-  var radius = Math.min(canvas.width, canvas.height);
   var canvasCenterX = canvas.width / 2;
+  var canvasCenterY = canvas.height / 2;
+  var radius = Math.min(canvasCenterX, canvasCenterY) - this.NEEDLE_INSET_;
 
   context2d.save();
   // Paint the background image.
-  context2d.fillStyle = 'white';
-  context2d.fillRect(0, 0, canvas.width, canvas.height);
-  context2d.beginPath();
-  context2d.arc(canvasCenterX, canvas.height, radius, 0, Math.PI, true);
-  context2d.closePath();
-  context2d.fillStyle = 'red';
-  context2d.fill();
+  if (this.dialImage_.complete) {
+    context2d.drawImage(this.dialImage_, 0, 0);
+  } else {
+    context2d.fillStyle = 'white';
+    context2d.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   // Paint the meters.
-  context2d.fillStyle = 'green';
   for (meterName in this.meters_) {
     var meter = this.meters_[meterName]
     var logMeterValue = Math.log(meter.value) / this.logScale_;
-    var meterAngle = (logMeterValue / this.logMaxSpeed_) * Math.PI;
-    meterAngle = Math.min(meterAngle, Math.PI);
+    var meterAngle = (logMeterValue / this.logMaxSpeed_) *
+                     this.METER_ANGLE_RANGE_;
+    meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
     meterAngle = Math.max(meterAngle, 0.0);
+    // Dampen the meter's angular change.
+    var delta = meterAngle - meter.previousAngle;
+    if (Math.abs(delta) > this.DAMPING_FACTOR_) {
+      delta = delta < 0 ? -this.DAMPING_FACTOR_ : this.DAMPING_FACTOR_;
+    }
+    var dampedAngle = meter.previousAngle + delta;
+    meter.previousAngle = dampedAngle;
+    dampedAngle += this.METER_ANGLE_START_;
     context2d.save();
-      context2d.translate(canvasCenterX, canvas.height - 8);
-      context2d.rotate(meterAngle);
+      context2d.translate(canvasCenterX, canvasCenterY);
+      context2d.rotate(dampedAngle);
+      if (meter.value == 0.0) {
+        // Use the 0-speed colour for the needle.
+        context2d.fillStyle = this.MeterColours_.NEEDLE_0_SPEED;
+      } else {
+        // Use a gradient to fill the needle.
+        var needleGradient = context2d.createLinearGradient(0, 0, radius, 0);
+        needleGradient.addColorStop(
+            0, this.MeterColours_.NEEDLE_GRADIENT_START);
+        needleGradient.addColorStop(1, meter[Speedometer.Attributes.COLOR]);
+        context2d.fillStyle = needleGradient;
+      }
       context2d.beginPath();
-      // The meter needle points down the negative x-axis when the angle is 0.
-      context2d.moveTo(-radius, 0);
-      context2d.lineTo(0, 8);
-      context2d.lineTo(0, -8);
+      // The meter needle points down the positive x-axis when the angle is 0.
+      context2d.moveTo(radius, 0);
+      context2d.lineTo(5, 5);
+      context2d.arc(5, 0, 5, Math.PI / 2, 3 * Math.PI / 2, false);
       context2d.closePath();
       context2d.fill();
+      context2d.strokeStyle = this.MeterColours_.NEEDLE_OUTLINE;
+      context2d.lineWidth = 1;
+      context2d.stroke();
     context2d.restore();
     if (Speedometer.Attributes.VALUE_LABEL in meter) {
       var labelElement =
