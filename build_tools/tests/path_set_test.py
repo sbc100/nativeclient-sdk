@@ -82,24 +82,27 @@ class TestPathSet(unittest.TestCase):
       raise
 
   def testOrOperator(self):
-    self.pathset.files = set(['file1', 'file2'])
+    self.pathset.files = set(['file1', 'file2', 'file3'])
     self.pathset.dirs = set(['dir1', 'dir2'])
     self.pathset.symlinks = {'symlink': 'symlink_target'}
     self.pathset.links = {'link': 'link_target'}
     pathset2 = path_set.PathSet()
-    pathset2.files = set(['file1', 'file3'])
+    pathset2.files = set(['file1', 'file4'])
     pathset2.dirs = set(['dir1', 'dir3'])
-    pathset2.symlinks = {'symlink2': 'symlink_target2'}
+    pathset2.symlinks = {'symlink2': 'symlink_target2',
+                         'dir2': 'link_to_dir',
+                         'file3': 'link_to_file'}
     pathset2.links = {'link2': 'link_target2'}
     merged_pathset = self.pathset | pathset2
     self.assertFalse('file3' in self.pathset.files)
     self.assertFalse('dir3' in self.pathset.dirs)
     self.assertTrue('file1' in merged_pathset.files)
     self.assertTrue('file2' in merged_pathset.files)
-    self.assertTrue('file3' in merged_pathset.files)
+    self.assertFalse('file3' in merged_pathset.files)
+    self.assertTrue('file4' in merged_pathset.files)
     self.assertFalse('dir1' in merged_pathset.files)
     self.assertTrue('dir1' in merged_pathset.dirs)
-    self.assertTrue('dir2' in merged_pathset.dirs)
+    self.assertFalse('dir2' in merged_pathset.dirs)
     self.assertTrue('dir3' in merged_pathset.dirs)
     self.assertFalse('file1' in merged_pathset.dirs)
     self.assertTrue('symlink' in merged_pathset.symlinks)
@@ -110,22 +113,24 @@ class TestPathSet(unittest.TestCase):
     self.assertFalse('file1' in merged_pathset.links)
 
   def testOrEqualsOperator(self):
-    self.pathset.files = set(['file1', 'file2'])
+    self.pathset.files = set(['file1', 'file2', 'file3'])
     self.pathset.dirs = set(['dir1', 'dir2'])
     self.pathset.symlinks = {'symlink': 'symlink_target'}
     self.pathset.links = {'link': 'link_target'}
     pathset2 = path_set.PathSet()
-    pathset2.files = set(['file1', 'file3'])
+    pathset2.files = set(['file1', 'file4'])
     pathset2.dirs = set(['dir1', 'dir3'])
-    pathset2.symlinks = {'symlink2': 'symlink_target2'}
+    pathset2.symlinks = {'symlink2': 'symlink_target2',
+                         'dir2': 'link_to_dir',
+                         'file3': 'link_to_file'}
     pathset2.links = {'link2': 'link_target2'}
     self.pathset |= pathset2
     self.assertTrue('file1' in self.pathset.files)
     self.assertTrue('file2' in self.pathset.files)
-    self.assertTrue('file3' in self.pathset.files)
+    self.assertFalse('file3' in self.pathset.files)
     self.assertFalse('dir1' in self.pathset.files)
     self.assertTrue('dir1' in self.pathset.dirs)
-    self.assertTrue('dir2' in self.pathset.dirs)
+    self.assertFalse('dir2' in self.pathset.dirs)
     self.assertTrue('dir3' in self.pathset.dirs)
     self.assertFalse('file1' in self.pathset.dirs)
     self.assertTrue('symlink' in self.pathset.symlinks)

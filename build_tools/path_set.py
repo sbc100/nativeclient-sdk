@@ -56,7 +56,11 @@ class PathSet(object):
     Forms the union of the |_files| and |_dirs| sets, then merges the
     |_symlinks| and |_links| dicts.  The dictionaries are merged in such that
     keys are not duplicated: the values of the keys in |path_set| take
-    precedence in the returnd dictionaries.
+    precedence in the returned dictionaries.
+
+    Any keys in either the symlink or links dictionaries that also exist in
+    either of the files or dicts sets are removed from the latter, meaning that
+    symlinks or links which overlap file or directory entries take precedence.
 
     Args:
       path_set: The other path set.  Must be an object with four properties:
@@ -65,6 +69,14 @@ class PathSet(object):
       A four-tuple (files, dirs, symlinks, links) which is the result of merging
       the two PathSets.
     '''
+    def DiscardOverlappingLinks(links_dict):
+      '''Discard all overlapping keys from files and dirs.'''
+      for link in links_dict:
+        self._files.discard(link)
+        self._dirs.discard(link)
+
+    DiscardOverlappingLinks(path_set.symlinks)
+    DiscardOverlappingLinks(path_set.links)
     return (self._files | path_set.files,
             self._dirs | path_set.dirs,
             dict(self._symlinks.items() + path_set.symlinks.items()),
