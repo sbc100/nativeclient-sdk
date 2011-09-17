@@ -75,6 +75,8 @@ class TestInstallNsis(unittest.TestCase):
         os.path.join(self.target_dir_, 'Plugins', 'AccessControl.dll')))
     self.assertFalse(os.path.exists(
         os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
+    self.assertFalse(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'MkLink.dll')))
 
     install_nsis.Install(os.path.dirname(self.nsis_installer_),
                          target_dir=self.target_dir_,
@@ -86,6 +88,8 @@ class TestInstallNsis(unittest.TestCase):
         os.path.join(self.target_dir_, 'Plugins', 'AccessControl.dll')))
     self.assertTrue(os.path.exists(
         os.path.join(self.target_dir_, 'Plugins', 'AccessControlW.dll')))
+    self.assertTrue(os.path.exists(
+        os.path.join(self.target_dir_, 'Plugins', 'MkLink.dll')))
 
 
 def RunTests():
