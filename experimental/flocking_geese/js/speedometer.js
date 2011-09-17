@@ -56,6 +56,15 @@ Speedometer = function() {
    */
   this.dialImage_ = new Image();
   this.dialImage_.src = 'images/Dial_background.png';
+
+  /**
+   * The odometer number images.  There is an image strip for the integer
+   * part of the odometer and one for the fractional part.
+   */
+  this.odometerDigits_ = new Image();
+  this.odometerDigits_.src = 'images/Numbers_Light.png';
+  this.odometerTenths_ = new Image();
+  this.odometerTenths_.src = 'images/Numbers_Red.png';
 };
 goog.inherits(Speedometer, goog.events.EventTarget);
 
@@ -67,6 +76,8 @@ Speedometer.Attributes = {
   COLOR: 'color',  // The needle color.
   DISPLAY_NAME: 'displayName',  // The name used to display the meter.
   NAME: 'name',  // The name of the meter.  Not optional.
+  ODOMETER_LEFT: 'odometerLeft',  // The left coordinate of the odometer.
+  ODOMETER_TOP: 'odometerTop',
   VALUE: 'value',  // The value of the meter.  Not optional.
   // The id of a DOM element that can display the meter's value as text.
   VALUE_LABEL: 'valueLabel'
@@ -82,8 +93,18 @@ Speedometer.Attributes = {
 Speedometer.prototype.MeterColours_ = {
   NEEDLE_DEFAULT: 'darkgray',  // Default needle colour.
   NEEDLE_GRADIENT_START: '#7F7F7F',
-  NEEDLE_0_SPEED: '#999999',  // Colour of the needle at rest.
+  NEEDLE_STOPPED: '#999999',  // Colour of the needle at rest.
   NEEDLE_OUTLINE: 'white'
+};
+
+/**
+ * Odometer dimensions.
+ * @enum {number}
+ * @private
+ */
+Speedometer.prototype.OdometerDims_ = {
+  DIGIT_WIDTH: 12,
+  DIGIT_HEIGHT: 14,
 };
 
 /**
@@ -111,6 +132,13 @@ Speedometer.prototype.METER_ANGLE_RANGE_ = 6.0 * Math.PI / 4.0;
  * @private
  */
 Speedometer.prototype.DAMPING_FACTOR_ = Math.PI / 36.0;
+
+/**
+ * Maximum odometer value.  Speeds are clapmed to this.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.MAX_ODOMETER_VALUE_ = 999999.99;
 
 /**
  * Override of disposeInternal() to dispose of retained objects and unhook all
@@ -165,11 +193,16 @@ Speedometer.prototype.addMeterWithName =
   // Fill in the non-optional attributes.
   meterDictionary[Speedometer.Attributes.NAME] = meterName;
   if (!(Speedometer.Attributes.VALUE in meterDictionary)) {
-    meterDictionary[Speedometer.Attributes.VALUE] = 0.0;
+    meterDictionary.value = 0.0;
   }
   if (!(Speedometer.Attributes.COLOR in meterDictionary)) {
-    meterDictionary[Speedometer.Attributes.COLOR] =
-        this.MeterColours_.NEEDLE_DEFAULT;
+    meterDictionary.color = this.MeterColours_.NEEDLE_DEFAULT;
+  }
+  if (!(Speedometer.Attributes.ODOMETER_LEFT in meterDictionary)) {
+    meterDictionary.odometerLeft = 0;
+  }
+  if (!(Speedometer.Attributes.ODOMETER_TOP in meterDictionary)) {
+    meterDictionary.odometerTop = 0;
   }
   meterDictionary.previousAngle = 0.0;
   this.meters_[meterName] = meterDictionary;
@@ -238,8 +271,8 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
       needleGradient.addColorStop(
           0, this.MeterColours_.NEEDLE_GRADIENT_START);
       needleGradient.addColorStop(
-          1, meter.value == 0.0 ? this.MeterColours_.NEEDLE_0_SPEED :
-                                  meter[Speedometer.Attributes.COLOR]);
+          1, meter.value == 0.0 ? this.MeterColours_.NEEDLE_STOPPED :
+                                  meter.color);
       context2d.fillStyle = needleGradient;
       context2d.beginPath();
       // The meter needle points down the positive x-axis when the angle is 0.
@@ -252,6 +285,7 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
       context2d.lineWidth = 1;
       context2d.stroke();
     context2d.restore();
+    this.drawOdometer_(context2d, meter);
     if (Speedometer.Attributes.VALUE_LABEL in meter) {
       var labelElement =
           document.getElementById(meter[Speedometer.Attributes.VALUE_LABEL]);
@@ -263,3 +297,66 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
   context2d.restore();
 }
 
+/**
+ * Draw the odometer for a given meter.
+ * @param {Graphics2d} context2d The 2D canvas context.
+ * @param {Object} meter The meter.
+ * @private
+ */
+Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
+  if (!this.odometerTenths_.complete || !this.odometerDigits_.complete) {
+    return;
+  }
+  context2d.save();
+  context2d.translate(meter.odometerLeft, meter.odometerTop);
+  var odometerValue = Math.min(meter.value.toFixed(2),
+                               this.MAX_ODOMETER_VALUE_);
+  // Draw the tenths digit.
+  var tenths = (odometerValue - Math.floor(odometerValue)) * 10;
+  this.drawOdometerDigit_(context2d, tenths, 6, this.odometerTenths_);
+  // Draw the integer part, up to 5 digits (max value is 999,999.9).
+  for (var column = 5; column >= 0; column--) {
+    var digitValue = odometerValue / 10;
+    digitValue = digitValue - Math.floor(digitValue);
+    digitValue *= 10;
+    this.drawOdometerDigit_(context2d, digitValue,
+                            column, this.odometerDigits_);
+    odometerValue = odometerValue / 10;
+  }
+  context2d.restore();
+}
+
+/**
+ * Draw a single odometer digit.  The digit source is a vertical strip of
+ * pre-rendered numbers.  When drawing the last digit in the strip, the image
+ * source is wrapped back to the beginning of the strip.  In this way, drawing
+ * a partial '9' will also draw part of the '0'.
+ * @param {Graphics2d} context2d The drawing context.
+ * @param {number} value The value, must be in range [0..10).  The fractional
+ *     part is used to 'roll' the digit image.
+ * @param {number} column The odometer column index, 0-based numbered from the
+ *     left-most (most significant) digit.  For example, column 0 is the
+ *     100,000's place, column 6 is the 1/10's place.
+ * @param {Image} digits The digit source image.
+ * @private
+ */
+Speedometer.prototype.drawOdometerDigit_ = function(
+    context2d, value, column, digits) {
+  var digitOffset = value * this.OdometerDims_.DIGIT_HEIGHT;
+  var digitHeight = Math.min(digits.height - digitOffset,
+                             this.OdometerDims_.DIGIT_HEIGHT);
+  var digitWrapHeight = this.OdometerDims_.DIGIT_HEIGHT - digitHeight;
+  context2d.drawImage(digits,
+                      0, digitOffset,
+                      this.OdometerDims_.DIGIT_WIDTH, digitHeight,
+                      column * this.OdometerDims_.DIGIT_WIDTH, 0,
+                      this.OdometerDims_.DIGIT_WIDTH, digitHeight);
+  if (digitWrapHeight > 0) {
+    context2d.drawImage(digits,
+                        0, 0,
+                        this.OdometerDims_.DIGIT_WIDTH, digitWrapHeight,
+                        column * this.OdometerDims_.DIGIT_WIDTH,
+                        this.OdometerDims_.DIGIT_HEIGHT - digitWrapHeight,
+                        this.OdometerDims_.DIGIT_WIDTH, digitWrapHeight);
+  }
+}

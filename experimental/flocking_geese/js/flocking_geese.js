@@ -180,12 +180,16 @@ FlockingGeese.prototype.initializeApplication = function() {
   var naclMeterAttribs = {};
   naclMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'naclMeterLabel';
   naclMeterAttribs[Speedometer.Attributes.COLOR] = '#009933';
+  naclMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
+  naclMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 160;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.NACL,
                                      naclMeterAttribs);
   var jsMeterAttribs = {};
   jsMeterAttribs[Speedometer.Attributes.DISPLAY_NAME] = 'JS';
   jsMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'jsMeterLabel';
   jsMeterAttribs[Speedometer.Attributes.COLOR] = '#FF0033';
+  jsMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
+  jsMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 193;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.JAVASCRIPT,
                                      jsMeterAttribs);
   this.speedometer_.setMaximumSpeed(10000.0);  // Measured in frames per second.
