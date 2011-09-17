@@ -50,21 +50,12 @@ Speedometer = function() {
   this.logScale_ = Math.log(2.0);  // The log scaling factor.
 
   /**
-   * The background image.
-   * @type {Image}
+   * The images.
+   * @type {Object.Image}
    * @private
    */
-  this.dialImage_ = new Image();
-  this.dialImage_.src = 'images/Dial_background.png';
-
-  /**
-   * The odometer number images.  There is an image strip for the integer
-   * part of the odometer and one for the fractional part.
-   */
-  this.odometerDigits_ = new Image();
-  this.odometerDigits_.src = 'images/Numbers_Light.png';
-  this.odometerTenths_ = new Image();
-  this.odometerTenths_.src = 'images/Numbers_Red.png';
+  this.images_ = {}
+  this.loadImages_();
 };
 goog.inherits(Speedometer, goog.events.EventTarget);
 
@@ -73,7 +64,7 @@ goog.inherits(Speedometer, goog.events.EventTarget);
  * @enum {string}
  */
 Speedometer.Attributes = {
-  COLOR: 'color',  // The needle color.
+  THEME: 'theme',  // The needle theme.  Has value Speedometer.Themes.
   DISPLAY_NAME: 'displayName',  // The name used to display the meter.
   NAME: 'name',  // The name of the meter.  Not optional.
   ODOMETER_LEFT: 'odometerLeft',  // The left coordinate of the odometer.
@@ -81,6 +72,16 @@ Speedometer.Attributes = {
   VALUE: 'value',  // The value of the meter.  Not optional.
   // The id of a DOM element that can display the meter's value as text.
   VALUE_LABEL: 'valueLabel'
+};
+
+/**
+ * Drawing themes.
+ * @enum {string}
+ */
+Speedometer.Themes = {
+  DEFAULT: 'greenTheme',
+  GREEN: 'greenTheme',
+  RED: 'redTheme'
 };
 
 /**
@@ -178,25 +179,23 @@ Speedometer.prototype.setMaximumSpeed = function(maxSpeed) {
  * Add a named meter.  If a meter with |meterName| already exists, then do
  * nothing.
  * @param {!string} meterName The name for the new meter.
- * @param {?string} opt_displayDictionary A dictionary containing optional
- *     values for the meter.  Some key names are special, for example
- *     the 'valueLabel' key contains the id of a value label DOM element for
- *     the meter - this label will be updated with a test representation of the
- *     meter's value.
+ * @param {?string} opt_attributes A dictionary containing optional attributes
+ *     for the meter.  Some key names are special, for example the 'valueLabel'
+ *     key contains the id of a value label DOM element for the meter - this
+ *     label will be updated with a text representation of the meter's value.
  */
-Speedometer.prototype.addMeterWithName =
-    function(meterName, opt_displayDictionary) {
+Speedometer.prototype.addMeterWithName = function(meterName, opt_attributes) {
   if (!(meterName in this.meters_)) {
     this.meterCount_++;
   }
-  var meterDictionary = opt_displayDictionary || {};
+  var meterDictionary = opt_attributes || {};
   // Fill in the non-optional attributes.
   meterDictionary[Speedometer.Attributes.NAME] = meterName;
   if (!(Speedometer.Attributes.VALUE in meterDictionary)) {
     meterDictionary.value = 0.0;
   }
-  if (!(Speedometer.Attributes.COLOR in meterDictionary)) {
-    meterDictionary.color = this.MeterColours_.NEEDLE_DEFAULT;
+  if (!(Speedometer.Attributes.THEME in meterDictionary)) {
+    meterDictionary.theme = Speedometer.Themes.DEFAULT;
   }
   if (!(Speedometer.Attributes.ODOMETER_LEFT in meterDictionary)) {
     meterDictionary.odometerLeft = 0;
@@ -234,14 +233,10 @@ Speedometer.prototype.updateMeterNamed =
 Speedometer.prototype.render = function(canvas, opt_labelElements) {
   var context2d = canvas.getContext('2d');
 
-  var canvasCenterX = canvas.width / 2;
-  var canvasCenterY = canvas.height / 2;
-  var radius = Math.min(canvasCenterX, canvasCenterY) - this.NEEDLE_INSET_;
-
   context2d.save();
   // Paint the background image.
-  if (this.dialImage_.complete) {
-    context2d.drawImage(this.dialImage_, 0, 0);
+  if (this.images_.background.complete) {
+    context2d.drawImage(this.images_.background, 0, 0);
   } else {
     context2d.fillStyle = 'white';
     context2d.fillRect(0, 0, canvas.width, canvas.height);
@@ -249,42 +244,8 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
 
   // Paint the meters.
   for (meterName in this.meters_) {
-    var meter = this.meters_[meterName]
-    var logMeterValue = Math.log(meter.value) / this.logScale_;
-    var meterAngle = (logMeterValue / this.logMaxSpeed_) *
-                     this.METER_ANGLE_RANGE_;
-    meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
-    meterAngle = Math.max(meterAngle, 0.0);
-    // Dampen the meter's angular change.
-    var delta = meterAngle - meter.previousAngle;
-    if (Math.abs(delta) > this.DAMPING_FACTOR_) {
-      delta = delta < 0 ? -this.DAMPING_FACTOR_ : this.DAMPING_FACTOR_;
-    }
-    var dampedAngle = meter.previousAngle + delta;
-    meter.previousAngle = dampedAngle;
-    dampedAngle += this.METER_ANGLE_START_;
-    context2d.save();
-      context2d.translate(canvasCenterX, canvasCenterY);
-      context2d.rotate(dampedAngle);
-      // Use a gradient to fill the needle.
-      var needleGradient = context2d.createLinearGradient(0, 0, radius, 0);
-      needleGradient.addColorStop(
-          0, this.MeterColours_.NEEDLE_GRADIENT_START);
-      needleGradient.addColorStop(
-          1, meter.value == 0.0 ? this.MeterColours_.NEEDLE_STOPPED :
-                                  meter.color);
-      context2d.fillStyle = needleGradient;
-      context2d.beginPath();
-      // The meter needle points down the positive x-axis when the angle is 0.
-      context2d.moveTo(radius, 0);
-      context2d.lineTo(5, 5);
-      context2d.arc(5, 0, 5, Math.PI / 2, 3 * Math.PI / 2, false);
-      context2d.closePath();
-      context2d.fill();
-      context2d.strokeStyle = this.MeterColours_.NEEDLE_OUTLINE;
-      context2d.lineWidth = 1;
-      context2d.stroke();
-    context2d.restore();
+    var meter = this.meters_[meterName];
+    this.drawNeedle_(context2d, meter);
     this.drawOdometer_(context2d, meter);
     if (Speedometer.Attributes.VALUE_LABEL in meter) {
       var labelElement =
@@ -298,13 +259,58 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
 }
 
 /**
+ * Draw a meter's needle.
+ * @param {Graphics2d} context2d The 2D canvas context.
+ * @param {Object} meter The meter.
+ * @private
+ */
+Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
+  var canvasCenterX = context2d.canvas.width / 2;
+  var canvasCenterY = context2d.canvas.height / 2;
+  var radius = Math.min(canvasCenterX, canvasCenterY) - this.NEEDLE_INSET_;
+  var logMeterValue = Math.log(meter.value) / this.logScale_;
+  var meterAngle = (logMeterValue / this.logMaxSpeed_) *
+                   this.METER_ANGLE_RANGE_;
+  meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
+  meterAngle = Math.max(meterAngle, 0.0);
+  // Dampen the meter's angular change.
+  var delta = meterAngle - meter.previousAngle;
+  if (Math.abs(delta) > this.DAMPING_FACTOR_) {
+    delta = delta < 0 ? -this.DAMPING_FACTOR_ : this.DAMPING_FACTOR_;
+  }
+  var dampedAngle = meter.previousAngle + delta;
+  meter.previousAngle = dampedAngle;
+  dampedAngle += this.METER_ANGLE_START_;
+  context2d.save();
+  context2d.translate(canvasCenterX, canvasCenterY);
+  context2d.rotate(dampedAngle);
+  // Select the needle image based on the meter's theme and value.
+  var needleImage = null;
+  if (meter.value == 0) {
+    needleImage = this.images_.stoppedNeedle;
+  } else if (meter.theme == Speedometer.Themes.GREEN) {
+    needleImage = this.images_.greenNeedle;
+  } else if (meter.theme == Speedometer.Themes.RED) {
+    needleImage = this.images_.redNeedle;
+  }
+  if (needleImage && needleImage.complete) {
+    context2d.drawImage(
+        needleImage,
+        0, 0, needleImage.width, needleImage.height,
+        -12, -12, needleImage.width, needleImage.height);
+  }
+  context2d.restore();
+}
+
+/**
  * Draw the odometer for a given meter.
  * @param {Graphics2d} context2d The 2D canvas context.
  * @param {Object} meter The meter.
  * @private
  */
 Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
-  if (!this.odometerTenths_.complete || !this.odometerDigits_.complete) {
+  if (!this.images_.odometerTenths.complete ||
+      !this.images_.odometerDigits.complete) {
     return;
   }
   context2d.save();
@@ -313,14 +319,14 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
                                this.MAX_ODOMETER_VALUE_);
   // Draw the tenths digit.
   var tenths = (odometerValue - Math.floor(odometerValue)) * 10;
-  this.drawOdometerDigit_(context2d, tenths, 6, this.odometerTenths_);
+  this.drawOdometerDigit_(context2d, tenths, 6, this.images_.odometerTenths);
   // Draw the integer part, up to 5 digits (max value is 999,999.9).
   for (var column = 5; column >= 0; column--) {
     var digitValue = odometerValue / 10;
     digitValue = digitValue - Math.floor(digitValue);
     digitValue *= 10;
     this.drawOdometerDigit_(context2d, digitValue,
-                            column, this.odometerDigits_);
+                            column, this.images_.odometerDigits);
     odometerValue = odometerValue / 10;
   }
   context2d.restore();
@@ -360,3 +366,23 @@ Speedometer.prototype.drawOdometerDigit_ = function(
                         this.OdometerDims_.DIGIT_WIDTH, digitWrapHeight);
   }
 }
+
+/**
+ * Load all the images.
+ * @private
+ */
+Speedometer.prototype.loadImages_ = function() {
+  this.images_.background = new Image();
+  this.images_.background.src = 'images/Dial_background.png';
+  this.images_.odometerDigits = new Image();
+  this.images_.odometerDigits.src = 'images/Numbers_Light.png';
+  this.images_.odometerTenths = new Image();
+  this.images_.odometerTenths.src = 'images/Numbers_Red.png';
+  this.images_.stoppedNeedle = new Image();
+  this.images_.stoppedNeedle.src = 'images/GreyPointer.png'
+  this.images_.greenNeedle = new Image();
+  this.images_.greenNeedle.src = 'images/GreenPointer.png'
+  this.images_.redNeedle = new Image();
+  this.images_.redNeedle.src = 'images/RedPointer.png'
+}
+

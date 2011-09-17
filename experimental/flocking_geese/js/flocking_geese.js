@@ -179,7 +179,7 @@ FlockingGeese.prototype.initializeApplication = function() {
       document.getElementById(FlockingGeese.DomIds.SPEEDOMETER);
   var naclMeterAttribs = {};
   naclMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'naclMeterLabel';
-  naclMeterAttribs[Speedometer.Attributes.COLOR] = '#009933';
+  naclMeterAttribs[Speedometer.Attributes.THEME] = Speedometer.Themes.GREEN;
   naclMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
   naclMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 160;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.NACL,
@@ -187,7 +187,7 @@ FlockingGeese.prototype.initializeApplication = function() {
   var jsMeterAttribs = {};
   jsMeterAttribs[Speedometer.Attributes.DISPLAY_NAME] = 'JS';
   jsMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'jsMeterLabel';
-  jsMeterAttribs[Speedometer.Attributes.COLOR] = '#FF0033';
+  jsMeterAttribs[Speedometer.Attributes.THEME] = Speedometer.Themes.RED;
   jsMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
   jsMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 193;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.JAVASCRIPT,
