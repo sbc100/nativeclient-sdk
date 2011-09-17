@@ -59,6 +59,7 @@ install_app = nacl_env.Install(dir=install_dir,
                                source=opt_nexes + app_files)
 
 js_files = [os.path.join('js', js_file) for js_file in [
+    'check_browser.js',
     'closure.js',
     'flock.js',
     'flocking_geese.js',

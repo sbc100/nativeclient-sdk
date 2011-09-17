@@ -13,6 +13,7 @@
 
   <!-- <script src="closure-library/closure/goog/base.js"></script> -->
   <script type="text/javascript" src="js/closure.js"></script>
+  <script type="text/javascript" src="js/check_browser.js"></script>
   <script type="text/javascript" src="js/flock.js"></script>
   <script type="text/javascript" src="js/flocking_geese.js"></script>
   <script type="text/javascript" src="js/frame_counter.js"></script>
@@ -34,6 +35,17 @@
   </script>
 
   <script type="text/javascript">
+    // Check for Native Client support in the browser.
+    var isValidBrowser = false;
+    var browserSupportStatus = 0;
+    var checker = new browser_version.BrowserChecker(
+        14,  // Minumum Chrome version.
+        navigator["appVersion"],
+        navigator["plugins"]);
+    checker.checkBrowser();
+    browserSupportStatus = checker.getBrowserSupportStatus();
+    isValidBrowser = checker.getIsValidBrowser();
+
     // Resize the simulation canvas to fill its parent element.
     // @param {Event} e The resize event.
     window.onresize = function(e) {
@@ -101,9 +113,13 @@
         <p style="margin-left: 32px;">
           <input type="radio"
                  name="sim_mode_select"
-                 value="JavaScript" checked>JavaScript</input><br />
-          <input type="radio" name="sim_mode_select" value="NaCl">Native
-          Client</input>
+                 value="JavaScript" checked></input>
+          <span>JavaScript</span><br />
+          <input id="nacl_radio_button"
+                 type="radio"
+                 name="sim_mode_select"
+                 value="NaCl"></input>
+          <span id="nacl_radio_label">Native Client</span>
         </p>
       </form>
       <p style="margin-left: 16px; margin-bottom: 0px;">Flock Size</p>
@@ -118,8 +134,51 @@
           <span class="kd-sliderhandle-inner">V</span>
         </div>
       </div>
+      <p id="browser_status" style="margin-left: 16px;"></p>
     </div>
     <script type="text/javascript">
+      if (!isValidBrowser) {
+        var naclRadioButton = document.getElementById('nacl_radio_button');
+        naclRadioButton.setAttribute('disabled', 'disabled');
+        var naclRadioLabel = document.getElementById('nacl_radio_label');
+        naclRadioLabel.style.color = 'lightgray';
+      }
+      var browserStatus = document.getElementById('browser_status');
+      switch (browserSupportStatus) {
+      case browser_version.BrowserChecker.StatusValues.NACL_ENABLED:
+        break;
+      case browser_version.BrowserChecker.StatusValues.UNKNOWN_BROWSER:
+        browserStatus.innerHTML =
+            '<strong>Native Client disabled.</strong><br />Native Client ' +
+            'has been disabled because your browser does not ' +
+            'support it.';
+        break;
+      case browser_version.BrowserChecker.StatusValues.CHROME_VERSION_TOO_OLD:
+        browserStatus.innerHTML =
+            '<strong>Native Client disabled.</strong><br />You are ' +
+            'running a version of Chrome that is too old to support Native ' +
+            'Client. Please use Chrome version 14 or later.<br />' +
+    '<a href="http://www.google.com/chrome">http://www.google.com/chrome</a>';
+        break;
+      case browser_version.BrowserChecker.StatusValues.NACL_NOT_ENABLED:
+        browserStatus.innerHTML =
+            '<strong>Native Client disabled.</strong><br />Native Client is ' +
+            'is not enabled.<br>' +
+            'Please go to <b>chrome://plugins</b> and enable the Native ' +
+            'Client plugin.';
+        break;
+      case browser_version.BrowserChecker.StatusValues.NOT_USING_SERVER:
+        browserStatus.innerHTML =
+            '<strong>Native Client disabled.</strong><br />' +
+            'file:// URL detected, please use a web server to host Native ' +
+            'Client applications.';
+      default:
+        browserStatus.innerHTML =
+            '<strong>Native Client disabled.</strong><br />' +
+            'Unknown error: Unable to detect browser and/or Native Client ' +
+            'support.';
+        break;
+      }
       var application = new FlockingGeese();
       application.run('nacl_flocking_geese');
     </script>
