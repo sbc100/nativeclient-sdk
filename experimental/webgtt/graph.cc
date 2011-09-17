@@ -3,6 +3,7 @@
 // in the LICENSE file.
 
 #include "webgtt/graph.h"
+
 #include <boost/concept_check.hpp>
 #include <boost/graph/adjacency_matrix.hpp>
 #include <boost/graph/graph_concepts.hpp>
@@ -10,6 +11,7 @@
 #include <boost/property_map/property_map.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/type_traits.hpp>
+
 #include <limits>
 #include <map>
 #include <utility>
@@ -42,24 +44,24 @@ sequential_vertex_coloring(const VertexListGraph& graph,
   typename GraphTraits::vertex_iterator vertex, lastVertex;
   for (tie(vertex, lastVertex) = boost::vertices(graph); vertex != lastVertex;
        ++vertex) {
-    color[*vertex] = numberOfVertices - 1;  // which means "not colored"
+    color[*vertex] = numberOfVertices - 1;  // which means "not colored".
   }
 
   for (size_type i = 0; i < numberOfVertices; ++i) {
     vertex_descriptor currentVertex = order[i];
-    // mark all the colors of the adjacent vertices
+    // Mark all the colors of the adjacent vertices.
     typename GraphTraits::adjacency_iterator adjacentVertex, lastAdjacentVertex;
     for (tie(adjacentVertex, lastAdjacentVertex) =
          boost::adjacent_vertices(currentVertex, graph);
          adjacentVertex != lastAdjacentVertex; ++adjacentVertex) {
       mark[color[*adjacentVertex]] = i;
     }
-    // find the smallest color unused by the adjacent vertices
+    // Find the smallest color unused by the adjacent vertices.
     size_type smallest_color = 0;
     while (smallest_color < max_color && mark[smallest_color] == i) {
       ++smallest_color;
     }
-    // if all the colors are used up, increase the number of colors
+    // If all the colors are used up, increase the number of colors.
     if (smallest_color == max_color) {
       ++max_color;
     }
@@ -69,45 +71,44 @@ sequential_vertex_coloring(const VertexListGraph& graph,
 }
 
 Graph::Graph(int numberOfVertices,
-             std::vector< std::vector<int> > adjacencyMatrix) {
-  this->numberOfVertices = numberOfVertices;
-  this->adjacencyMatrix = adjacencyMatrix;
-}
+             std::vector< std::vector<int> > adjacencyMatrix)
+    : number_of_vertices_(numberOfVertices),
+      adjacency_matrix_(adjacencyMatrix) { }
 
-std::vector<int> Graph::getColoring(void) {
-  // Construct boost graph
+std::vector<int> Graph::getColoring(void) const {
+  // Construct the boost graph.
   typedef boost::adjacency_matrix<boost::undirectedS> UndirectedGraph;
   typedef boost::graph_traits<UndirectedGraph> GraphTraits;
   typedef GraphTraits::vertex_descriptor vertex_descriptor;
   typedef GraphTraits::vertex_iterator vertex_iterator;
-  UndirectedGraph undirectedGraph(numberOfVertices);
-  for (int i = 0; i < numberOfVertices; ++i) {
-    for (int j = i + 1; j < numberOfVertices; ++j) {
-      if (adjacencyMatrix[i][j] == 1) {
+  UndirectedGraph undirectedGraph(number_of_vertices_);
+  for (int i = 0; i < number_of_vertices_; ++i) {
+    for (int j = i + 1; j < number_of_vertices_; ++j) {
+      if (adjacency_matrix_[i][j] == 1) {
         boost::add_edge(i, j, undirectedGraph);
       }
     }
   }
-  // Create order as an externally stored property
+  // Create order as an externally stored property.
   boost::scoped_array<vertex_descriptor>
-      order(new vertex_descriptor[numberOfVertices]);
+      order(new vertex_descriptor[number_of_vertices_]);
   std::pair<vertex_iterator, vertex_iterator> firstLastVertex =
       boost::vertices(undirectedGraph);
-  for (int i = 0; i < numberOfVertices; ++i) {
+  for (int i = 0; i < number_of_vertices_; ++i) {
     order[i] = firstLastVertex.first[i];
   }
-  // Create color as an externally stored property
+  // Create color as an externally stored property.
   std::map<vertex_descriptor, int> color;
-  for (int i = 0; i < numberOfVertices; ++i) {
+  for (int i = 0; i < number_of_vertices_; ++i) {
     color.insert(std::make_pair(vertex_descriptor(firstLastVertex.first[i]),
                                 0));
   }
-  // Get the coloring
+  // Get the coloring.
   sequential_vertex_coloring(undirectedGraph, order.get(),
                              boost::make_assoc_property_map(color));
-  // Return the coloring
-  std::vector<int> vertexColors(numberOfVertices);
-  for (int i = 0; i < numberOfVertices; ++i) {
+  // Return the coloring.
+  std::vector<int> vertexColors(number_of_vertices_);
+  for (int i = 0; i < number_of_vertices_; ++i) {
     vertexColors[i] = color[firstLastVertex.first[i]];
   }
   return vertexColors;

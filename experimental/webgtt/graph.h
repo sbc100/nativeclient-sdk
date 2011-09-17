@@ -16,6 +16,7 @@
 /// @author ragad@google.com (Raga Gopalakrishnan)
 
 #include <boost/graph/graph_traits.hpp>
+
 #include <vector>
 
 namespace graph {
@@ -65,11 +66,11 @@ class Graph {
   /// @param[in] numberOfVertices The number of vertices in the graph.
   /// @param[in] adjacencyMatrix The adjacency matrix of the graph.
   /// @return A vector containing a valid coloring of the graph.
-  std::vector<int> getColoring(void);
+  std::vector<int> getColoring(void) const;
 
  private:
-  int numberOfVertices;
-  std::vector< std::vector<int> > adjacencyMatrix;
+  int number_of_vertices_;
+  std::vector< std::vector<int> > adjacency_matrix_;
 };
 }  // namespace graph
 

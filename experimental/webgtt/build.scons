@@ -22,6 +22,8 @@ nacl_env.Append(
 
 sources = [
     'graph.cc',
+    'parser.cc',
+    'taskmap.cc',
     'webgtt.cc',
     ]
 

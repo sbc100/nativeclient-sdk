@@ -2,29 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file.
 
-/// @fileoverview This file contains code for a simple prototype of the WebGTT
-/// project. It demonstrates loading, running and scripting a simple NaCl
-/// module, which, when given the adjacency matrix of a graph by the browser,
-/// returns a valid vertex coloring of the graph. To load the NaCl module, the
-/// browser first looks for the CreateModule() factory method. It calls
-/// CreateModule() once to load the module code from the .nexe. After the .nexe
-/// code is loaded, CreateModule() is not called again. Once the .nexe code is
-/// loaded, the browser then calls the CreateInstance() method on the object
-/// returned by CreateModule(). It calls CreateInstance() each time it
-/// encounters an <embed> tag that references the NaCl module.
-///
-/// @author ragad@google.com (Raga Gopalakrishnan)
+#include "webgtt/webgtt.h"
 
 #include <cmath>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
+
 #include "webgtt/graph.h"
+#include "webgtt/parser.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
 
+namespace webgtt {
 /// The Instance class. One of these exists for each instance of the NaCl module
 /// on the web page. The browser will ask the Module object to create a new
 /// Instance for each occurence of the <embed> tag that has these attributes:
@@ -55,32 +47,13 @@ class WebgttInstance : public pp::Instance {
     }
     std::string message = var_message.AsString();
 
-    // Use the knowledge of how the incoming message is formatted.
-    int numberOfVertices = sqrt((message.length()+1)/2);
-
-    std::vector< std::vector<int> > adjacencyMatrix(numberOfVertices,
-        std::vector<int>(numberOfVertices));
-    int i = 0;
-    for (int counter_i = 0 ; counter_i < numberOfVertices ; ++counter_i) {
-      for (int counter_j = 0 ; counter_j < numberOfVertices ; ++counter_j) {
-        adjacencyMatrix[counter_i][counter_j] = ((message[i] == '0') ? 0 : 1);
-        i += 2;
-      }
+    Parser parseMessage(message);
+    pp::Var var_reply;
+    if (parseMessage.decodeMessage()) {
+      var_reply = pp::Var(parseMessage.getResponse());
+    } else {
+      var_reply = pp::Var("Error encountered while parsing the message!");
     }
-
-    // Construct the graph
-    graph::Graph inputGraph(numberOfVertices, adjacencyMatrix);
-    // Get the coloring
-    std::vector<int> vertexColors = inputGraph.getColoring();
-    // Format the message to be sent back to the browser.
-    std::ostringstream answer;
-    for (int i = 0; i < numberOfVertices; ++i) {
-      answer << vertexColors[i];
-      if (i != numberOfVertices - 1) {
-        answer << ',';
-      }
-    }
-    pp::Var var_reply = pp::Var(answer.str());
     PostMessage(var_reply);
   }
 };
@@ -102,6 +75,20 @@ class WebgttModule : public pp::Module {
   }
 };
 
+std::string getColoring(const graph::Graph& inputGraph) {
+  std::vector<int> vertexColors = inputGraph.getColoring();
+  // Format the message to be sent back to the browser.
+  std::ostringstream answer;
+  for (int i = 0; i < static_cast<int>(vertexColors.size()); ++i) {
+    answer << vertexColors[i];
+    if (i != static_cast<int>(vertexColors.size()) - 1) {
+      answer << ',';
+    }
+  }
+  return answer.str();
+}
+}  // namespace webgtt
+
 namespace pp {
   /// This is the factory function called by the browser when the module is
   /// first loaded. The browser keeps a singleton of this module. It calls the
@@ -109,6 +96,6 @@ namespace pp {
   /// There is one instance per <embed> tag on the page. This is the main
   /// binding point for the NaCl module with the browser.
   Module* CreateModule() {
-    return new WebgttModule();
+    return new webgtt::WebgttModule();
   }
 }  // namespace pp

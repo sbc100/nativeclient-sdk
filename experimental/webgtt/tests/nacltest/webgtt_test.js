@@ -32,7 +32,7 @@ function setupTests(tester, plugin) {
   // TEST 1: Test coloring on a complete graph on three vertices.
   tester.addAsyncTest('Complete Graph', function(status) {
     status.expectMessageSequence(plugin, ['0,1,2']);
-    plugin.postMessage('0,1,1,1,0,1,1,1,0');
+    plugin.postMessage('::0,1,1,1,0,1,1,1,0::0::');
   });
   // TODO(ragad): Add more tests.
 }

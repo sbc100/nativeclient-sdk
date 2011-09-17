@@ -28,13 +28,14 @@ nacl_env.Append(
     EXTRA_CCFLAGS=['-pedantic'],
    )
 
-nacl_env.Install(dir='.', source=os.path.join('..', '..', 'graph.cc'))
-nacl_env.Install(dir='.', source=os.path.join('..', '..', 'webgtt.cc'))
-
 sources = [
     'graph.cc',
+    'parser.cc',
+    'taskmap.cc',
     'webgtt.cc',
     ]
+nacl_env.Install(dir='.', source=[os.path.join('..', '..', source)
+                                  for source in sources])
 
 nacl_env.AllNaClModules(sources, 'webgtt')
 

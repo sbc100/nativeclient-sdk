@@ -21,8 +21,9 @@ BUTTON_TEXT = 'Get a valid coloring';
 /**
  * This class is used to represent a coloring button.
  *
- * @param coloringButton Handle to the DOM object representing the button.
- * @param {Graph} graph1 Reference to the graph associated with the button.
+ * @param {object} coloringButton Handle to the DOM object representing the
+ *     button.
+ * @param {object} graph1 Reference to the graph associated with the button.
  * @constructor
  */
 ColoringButton = function (coloringButton, graph1) {
@@ -30,6 +31,7 @@ ColoringButton = function (coloringButton, graph1) {
   this.graph1 = graph1;
 
   this.coloringButton.disabled = true;
+  this.setText('Please wait...');
 };
 
 /**
@@ -55,11 +57,17 @@ ColoringButton.prototype.setText = function (buttonText) {
  * This function handles the click event on the coloring button. Note that the
  * event object passed to this function is of no use here.
  *
- * @param e The Event object containing information about the click event.
+ * @param {object} e The Event object containing information about the click
+ *     event.
  */
 ColoringButton.prototype.handleColoringButtonClick = function (e) {
   canvas1.setEditMode(false);
   this.setDisabled(true);
   this.setText('Please wait...');
-  naclModule1.postMessage(this.graph1.getAdjacencyMatrix().toString());
+  naclModule1.postMessage(
+      '::' +
+      this.graph1.getAdjacencyMatrix().toString() +
+      '::' +
+      '0' +
+      '::');
 };
