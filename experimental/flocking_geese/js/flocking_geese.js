@@ -107,15 +107,6 @@ FlockingGeese.prototype.MethodSignatures_ = {
 };
 
 /**
- * The array of flock sizes that map to slider step values.
- * @type {Array<number>}
- * @private
- */
-FlockingGeese.prototype.FlockSizes_ = [
-  20, 100, 500, 1000
-];
-
-/**
  * The ids used for elements in the DOM.  The FlockingGeese application
  * expects these elements to exist.
  * @enum {string}
@@ -205,7 +196,12 @@ FlockingGeese.prototype.initializeApplication = function() {
       FlockingGeese.DomIds.FLOCK_SIZE_SLIDER_THUMB);
   if (flockSizeSlider) {
     this.flockSizeSlider_ = new Slider(
-        flockSizeSlider, sliderRuler, sliderThumb, 3);
+        flockSizeSlider, sliderRuler, sliderThumb,
+        [{gooseCount: 20, meterLimit: 100000.0},
+         {gooseCount: 100, meterLimit: 8000.0},
+         {gooseCount: 500, meterLimit: 400.0},
+         {gooseCount: 1000, meterLimit: 100.0}
+        ]);
     goog.events.listen(this.flockSizeSlider_, SliderEvent.EventType.CHANGE,
         this.selectFlockSize, false, this);
   }
@@ -226,7 +222,9 @@ FlockingGeese.prototype.initializeApplication = function() {
   // Populate the JavaScript verison of the simulation.
   var flockSize = 0;
   if (this.flockSizeSlider_) {
-    flockSize = this.flockSize_();
+    var stepObject = this.flockSizeSlider_.objectAtStepValue();
+    flockSize = stepObject.gooseCount;
+    this.speedometer_.setMaximumSpeed(stepObject.meterLimit);
   }
   var initialLocation = this.getCanvasCenter_();
   this.flock_.resetFlock(flockSize, initialLocation);
@@ -243,7 +241,7 @@ FlockingGeese.prototype.moduleDidLoad = function(opt_naclModuleId) {
   this.naclModule_ = document.getElementById(naclModuleId);
   if (this.flockSizeSlider_) {
     this.invokeNaClMethod('resetFlock',
-                          {'size' : this.flockSize_()});
+        {'size' : this.flockSizeSlider_.objectAtStepValue().gooseCount});
   }
   // Hide the load progress bar and make the module element visible.
   this.progressBar_.setVisible(false);
@@ -276,7 +274,10 @@ FlockingGeese.prototype.assert = function(cond, message) {
 FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
   changeEvent.stopPropagation();
   var initialLocation = this.getCanvasCenter_();
-  var newFlockSize = this.flockSize_(changeEvent.stepValue);
+  var stepObject =
+      this.flockSizeSlider_.objectAtStepValue(changeEvent.stepValue);
+  var newFlockSize = stepObject.gooseCount;
+  this.speedometer_.setMaximumSpeed(stepObject.meterLimit);
   // Reset the speedometers to 0.
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL, 0);
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT, 0);
@@ -463,18 +464,6 @@ FlockingGeese.prototype.simulationTick = function() {
 FlockingGeese.prototype.terminate = function() {
   goog.events.removeAll();
   this.stopJavaScriptSimulation_();
-}
-
-/**
- * Compute the flock size based on the flock slider step value.
- * @param {?number} opt_stepValue The index into the FlickSizes array of the
- *     new flock size.
- * @return {number} The flock size.
- * @private
- */
-FlockingGeese.prototype.flockSize_ = function(opt_stepValue) {
-  var stepValue = opt_stepValue || this.flockSizeSlider_.stepValue();
-  return this.FlockSizes_[stepValue];
 }
 
 /**

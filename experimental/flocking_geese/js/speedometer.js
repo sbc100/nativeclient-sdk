@@ -46,8 +46,6 @@ Speedometer = function() {
    * @private
    */
   this.maxSpeed_ = 1.0;
-  this.logMaxSpeed_ = 0.0;  // log(maxSpeed_).
-  this.logScale_ = Math.log(2.0);  // The log scaling factor.
 
   /**
    * The images.
@@ -82,20 +80,6 @@ Speedometer.Themes = {
   DEFAULT: 'greenTheme',
   GREEN: 'greenTheme',
   RED: 'redTheme'
-};
-
-/**
- * Meter colours.  Meters are coloured according to their value: red for
- * 25% of |maxSpeed_| and below, yellow for 25% - 50% of |maxSpeed_| and
- * green for 50% - 100%.
- * @type {string}
- * @private
- */
-Speedometer.prototype.MeterColours_ = {
-  NEEDLE_DEFAULT: 'darkgray',  // Default needle colour.
-  NEEDLE_GRADIENT_START: '#7F7F7F',
-  NEEDLE_STOPPED: '#999999',  // Colour of the needle at rest.
-  NEEDLE_OUTLINE: 'white'
 };
 
 /**
@@ -171,7 +155,6 @@ Speedometer.prototype.setMaximumSpeed = function(maxSpeed) {
   }
   var oldMaxSpeed = this.maxSpeed_;
   this.maxSpeed_ = maxSpeed;
-  this.logMaxSpeed_ = Math.log(this.maxSpeed_) / this.logScale_;
   return oldMaxSpeed;
 }
 
@@ -268,9 +251,7 @@ Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
   var canvasCenterX = context2d.canvas.width / 2;
   var canvasCenterY = context2d.canvas.height / 2;
   var radius = Math.min(canvasCenterX, canvasCenterY) - this.NEEDLE_INSET_;
-  var logMeterValue = Math.log(meter.value) / this.logScale_;
-  var meterAngle = (logMeterValue / this.logMaxSpeed_) *
-                   this.METER_ANGLE_RANGE_;
+  var meterAngle = (meter.value / this.maxSpeed_) * this.METER_ANGLE_RANGE_;
   meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
   meterAngle = Math.max(meterAngle, 0.0);
   // Dampen the meter's angular change.

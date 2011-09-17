@@ -23,13 +23,14 @@ goog.require('goog.style');
  * @param {!Element} container The DOM element containing the entire slider.
  * @param {!Element} ruler The DOM element containing the slider's ruler.
  * @param {!Element} thumb The DOM elelemnt representing the slider's thumb.
- * @param {number} stepCount The number of steps in between the start and end
- *     values.  The slider's maximum value is |stepCount| * |stepSize|.
+ * @param {!Array} stepObjects An array of objects, each object is associated
+ *     with the step at the object's index in the array.  The object is
+ *     returned by objectAtStepValue().
  * @param {?string} opt_orientation The orentation, default is HORIZONTAL.
  * @constructor
  * @extends {goog.EventTarget}
  */
-Slider = function(container, ruler, thumb, stepCount, opt_orientation) {
+Slider = function(container, ruler, thumb, stepObjects, opt_orientation) {
   goog.events.EventTarget.call(this);
 
   /**
@@ -42,7 +43,7 @@ Slider = function(container, ruler, thumb, stepCount, opt_orientation) {
   this.thumb_ = thumb;  // The slider's thumb.
 
   /**
-   * The current value.  IN a discreet slider, this has to be an even multiple
+   * The current value.  In a discreet slider, this has to be an even multiple
    * of |this.stepSize_|.
    */
   this.currentValue_ = 0;
@@ -53,7 +54,14 @@ Slider = function(container, ruler, thumb, stepCount, opt_orientation) {
    * @type {number}
    * @private
    */
-  this.stepCount_ = stepCount || 0;
+  this.stepCount_ = stepObjects.length;
+
+  /**
+   * The step objects.
+   * @type {Array}
+   * @private
+   */
+  this.stepObjects_ = stepObjects;
 
   /**
    * The step size.  In a discreet slider, the thumb can only be an even
@@ -147,6 +155,17 @@ Slider.prototype.value = function() {
  */
 Slider.prototype.stepValue = function() {
   return Math.round(this.currentValue_ / this.stepSize_);
+}
+
+/**
+ * The object at a step value.
+ * @param {number} opt_step The step index (0-based).  Default is to use the
+ *     current step value.
+ * @return {number} the value.
+ */
+Slider.prototype.objectAtStepValue = function(opt_step) {
+  var stepValue = opt_step || this.stepValue();
+  return this.stepObjects_[stepValue];
 }
 
 /**
@@ -275,7 +294,7 @@ Slider.prototype.updateSize_ = function() {
     this.rulerLength_ = rulerSize.height;
   }
   if (this.stepCount_ != 0) {
-    this.stepSize_ = this.rulerLength_ / this.stepCount_;
+    this.stepSize_ = this.rulerLength_ / (this.stepCount_ - 1);
   }
   this.slideToValue(this.currentValue_);
 };
