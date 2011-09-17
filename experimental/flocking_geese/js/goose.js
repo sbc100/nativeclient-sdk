@@ -331,25 +331,6 @@ Goose.prototype.turnTowardsTarget = function(target) {
 }
 
 /**
- * Render the goose into the given graphics context.
- * @param {!Canvas} canvas The target canvas.
- */
-Goose.prototype.render = function(canvas) {
-  var context2d = canvas.getContext('2d');
-  context2d.save();
-  context2d.fillStyle = 'blue';
-  context2d.translate(this.location_.x, this.location_.y);
-  context2d.rotate(this.velocity_.heading());
-  // The goose points down the positive x-axis when its heading is 0.
-  context2d.beginPath();
-  context2d.moveTo(32, 0);
-  context2d.lineTo(0, -8);
-  context2d.lineTo(0, 8);
-  context2d.fill();
-  context2d.restore();
-}
-
-/**
  * Clamp a vector to a maximum magnitude.  Works on the vector in-place.
  * @param {!goog.math.Vec2} v The vector.
  * @param {!number} max_mag The maximum magnitude of the vector.

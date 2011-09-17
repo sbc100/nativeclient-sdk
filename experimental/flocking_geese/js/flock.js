@@ -36,8 +36,23 @@ Flock = function() {
    * @private
    */
   this.frameCounter_ = new FrameCounter();
+
+  /**
+   * The goose sprite image.
+   * @type {Image}
+   * @private
+   */
+  this.gooseImage_ = new Image();
+  this.gooseImage_.src = 'images/Flock32_red.png';
 }
 goog.inherits(Flock, goog.Disposable);
+
+/**
+ * The angular increment between goose sprites.  Measured in radians.
+ * @type {number}
+ * @private
+ */
+Flock.prototype.GOOSE_HEADING_INCREMENT_ = (5.0 * Math.PI) / 180.0;
 
 /**
  * Override of disposeInternal() to dispose of retained objects.
@@ -87,7 +102,26 @@ Flock.prototype.flock = function(opt_flockBox) {
  * @param {!Canvas} canvas The target canvas.
  */
 Flock.prototype.render = function(canvas) {
-  for (var goose = 0; goose < this.geese_.length; goose++) {
-    this.geese_[goose].render(canvas);
+  if (!this.gooseImage_.complete) {
+    return;
+  }
+  var context2d = canvas.getContext('2d');
+  for (var g = 0; g < this.geese_.length; g++) {
+    var goose = this.geese_[g];
+    context2d.save();
+    context2d.translate(goose.location().x, goose.location().y);
+    var heading = goose.velocity().heading();
+    if (heading < 0.0) {
+      heading = Math.PI * 2.0 + heading;
+    }
+    // The goose points down the positive x-axis when its heading is 0.
+    //context2d.rotate(heading);
+    var spriteWidth = this.gooseImage_.height;
+    var spriteIndex = Math.floor(heading / this.GOOSE_HEADING_INCREMENT_) *
+                      spriteWidth;
+    context2d.drawImage(this.gooseImage_,
+                        spriteIndex, 0, spriteWidth, this.gooseImage_.height,
+                        0, 0, spriteWidth, this.gooseImage_.height);
+    context2d.restore();
   }
 }

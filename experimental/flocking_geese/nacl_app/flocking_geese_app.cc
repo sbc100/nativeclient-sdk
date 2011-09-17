@@ -117,7 +117,7 @@ bool FlockingGeeseApp::Init(uint32_t /* argc */,
   // can be used for drawing.
   url_io::WebResourceLoader* sprite_loader =
       new url_io::WebResourceLoader(this, &png_loader_);
-  url_io::URLRequest request("images/goose.png");
+  url_io::URLRequest request("images/Flock32_Green.png");
   sprite_loader->LoadURL(request);
 
   flock_simulation_.StartSimulation();

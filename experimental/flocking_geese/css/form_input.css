@@ -1,0 +1,69 @@
+/* Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/**
+ * Styling for checkboxes and radio buttons.
+ */
+input[type=checkbox], input[type=radio], .fakecheckbox, .fakeradio{
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #DCDCDC;
+  margin:0;
+  -webkit-border-radius:1px;
+  -moz-border-radius:1px;
+  border-radius:1px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  cursor:default;
+  position:relative;
+}
+
+input[type=checkbox]:active, input[type=radio]:active, .fakecheckbox:active, .fakeradio:active{
+  border-color:#C6C6C6;
+  background:#ebebeb;
+}
+
+input[type=checkbox]:hover, input[type=radio]:hover, .fakecheckbox:hover, .fakeradio:hover{
+  border-color:#C6C6C6;
+  -webkit-box-shadow: inset 0px 1px 1px rgba(0,0,0,0.1);
+  -moz-box-shadow: inset 0px 1px 1px rgba(0,0,0,0.1);
+  box-shadow: inset 0px 1px 1px rgba(0,0,0,0.1);
+}
+
+input[type=radio], .fakeradio{
+  border-radius:50%;
+  width: 15px;
+  height: 15px;
+}
+
+input[type=radio]:checked::after, .fakeradio.checked::after{
+  content:'';
+  display:block;
+  position:relative;
+  top:3px;
+  left:3px;
+  width:7px;
+  height:7px;
+  background:#666;
+  border-radius:50%;
+}
+
+input[type=checkbox]:checked::after, .fakecheckbox.checked::after {
+  content:url('../images/check_no_box.png');
+  display:block;
+  position:absolute;
+  top:-6px;
+  left:-5px;
+}
+
+input[type=checkbox]:focus, .fakecheckbox.focus {
+  outline: none;
+  border-color:#4d90fe;
+}
+.fakecheckbox, .fakeradio{
+  display:inline-block;
+}

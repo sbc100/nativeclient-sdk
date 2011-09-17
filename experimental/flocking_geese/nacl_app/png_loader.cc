@@ -150,7 +150,7 @@ void PngLoader::OnLoaderCompletedDownload(WebResourceLoader* loader) {
   if (png_get_valid(png_ptr_, png_info_ptr_, PNG_INFO_tRNS))
     png_set_tRNS_to_alpha(png_ptr_);
   // Change RGBA -> ARGB.
-  png_set_swap_alpha(png_ptr_);
+  // png_set_swap_alpha(png_ptr_);
 }
 
 void PngLoader::OnLoaderError(int32_t error, WebResourceLoader* loader) {
