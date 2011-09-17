@@ -59,7 +59,7 @@ Graph.prototype.setDirected = function (isDirected) {
 /**
  * This function adds a vertex to the graph.
  *
- * @param {Vertex} newVertex Reference to the new vertex to be added.
+ * @param {object} newVertex Reference to the new vertex to be added.
  */
 Graph.prototype.addVertex = function (newVertex) {
   this.listOfVertices.push(newVertex);
@@ -92,7 +92,7 @@ Graph.prototype.deleteVertexByIndex = function (vertexIndex) {
  *
  * @param {number} x The given x-coordinate.
  * @param {number} y The given y-coordinate.
- * @return {Vertex} Reference to the nearest vertex (undefined if none).
+ * @return {object} Reference to the nearest vertex (undefined if none).
  */
 Graph.prototype.getNearestVertex = function (x, y) {
   var closestVertex = undefined;
@@ -117,7 +117,7 @@ Graph.prototype.getNearestVertex = function (x, y) {
 /**
  * This function adds an edge to the graph.
  *
- * @param {Edge} newEdge Reference to the new edge to be added.
+ * @param {object} newEdge Reference to the new edge to be added.
  */
 Graph.prototype.addEdge = function (newEdge) {
   this.listOfEdges.push(newEdge);
@@ -140,9 +140,9 @@ Graph.prototype.deleteEdgeByIndex = function (edgeIndex) {
  * This function returns a reference to the edge that is adjacent to the given
  * vertices.
  *
- * @param {Vertex} start Reference to the start vertex.
- * @param {Vertex} end Reference to the end vertex.
- * @return {Edge} Reference to the adjacent edge (undefined if none).
+ * @param {object} start Reference to the start vertex.
+ * @param {object} end Reference to the end vertex.
+ * @return {object} Reference to the adjacent edge (undefined if none).
  */
 Graph.prototype.getEdge = function (start, end) {
   var returnEdge = undefined;
@@ -167,9 +167,10 @@ Graph.prototype.getEdge = function (start, end) {
  * This function draws the given list of elements (vertices or edges) on the
  * canvas.
  *
- * @param drawingContext The handle to the drawing surface of the canvas.
- * @param {Array.<Vertex/Edge>} listOfElements The list of elements (vertices
- *     or edges) to be drawn on to the canvas.
+ * @param {object} drawingContext The handle to the drawing surface of the
+ *     canvas.
+ * @param {object} listOfElements The list of elements (vertices or edges) to be
+ *     drawn on to the canvas.
  */
 Graph.prototype.drawSpecific = function (drawingContext, listOfElements) {
   for (var i = 0 ; i < listOfElements.length ; i++) {
@@ -180,7 +181,8 @@ Graph.prototype.drawSpecific = function (drawingContext, listOfElements) {
 /**
  * This function draws the graph on the canvas.
  *
- * @param drawingContext The handle to the drawing surface of the canvas.
+ * @param {object} drawingContext The handle to the drawing surface of the
+ *     canvas.
  */
 Graph.prototype.draw = function (drawingContext) {
   drawingContext.globalCompositeOperation = 'destination-over';
@@ -190,7 +192,7 @@ Graph.prototype.draw = function (drawingContext) {
 
 /** This function returns the adjacency matrix of the graph.
  *
- * @return {Array.<Array.<number>>} The adjacency matrix of the graph.
+ * @return {object} The adjacency matrix of the graph.
  */
 Graph.prototype.getAdjacencyMatrix = function () {
   var adjacencyMatrix = new Array();

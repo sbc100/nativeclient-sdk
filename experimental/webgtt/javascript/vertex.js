@@ -21,8 +21,10 @@ var VERTEX_SIZE = 6;
 /**
  * This class is used to represent a vertex of the graph.
  *
- * @param x The x-coordinate of the center of the vertex relative to the canvas.
- * @param y The y-coordinate of the center of the vertex relative to the canvas.
+ * @param {number} x The x-coordinate of the center of the vertex relative to
+ *     the canvas.
+ * @param {number} y The y-coordinate of the center of the vertex relative to
+ *     the canvas.
  * @constructor
  */
 Vertex = function (x, y) {
@@ -62,7 +64,8 @@ Vertex.prototype.setColor = function (color) {
  * This function draws the vertex on the canvas, with a specified color and
  * radius.
  *
- * @param drawingContext The handle to the drawing surface of the canvas.
+ * @param {object} drawingContext The handle to the drawing surface of the
+ *     canvas.
  * @param {string} color The color with which the vertex is to be drawn.
  * @param {number} radius The radius with which the vertex is to be drawn.
  */
@@ -81,7 +84,8 @@ Vertex.prototype.drawSpecific = function (drawingContext, color, radius) {
  * specified by VERTEX_SIZE. If isSelected is true, a bigger red circle is
  * also drawn, to indicate that the vertex is selected.
  *
- * @param drawingContext The handle to the drawing surface of the canvas.
+ * @param {object} drawingContext The handle to the drawing surface of the
+ *     canvas.
  */
 Vertex.prototype.draw = function (drawingContext) {
   this.drawSpecific(drawingContext, this.color, VERTEX_SIZE);

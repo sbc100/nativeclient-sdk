@@ -21,8 +21,8 @@ var EDGE_SIZE = 4;
 /**
  * This class is used to represent an edge of the graph.
  *
- * @param {Vertex} start Reference to the object representing the start vertex.
- * @param {Vertex} end Reference to the object representing the end vertex.
+ * @param {object} start Reference to the object representing the start vertex.
+ * @param {object} end Reference to the object representing the end vertex.
  * @constructor
  */
 Edge = function (start, end) {
@@ -62,7 +62,8 @@ Edge.prototype.setColor = function (color) {
  * This function draws the edge on the canvas, with a specified color and
  * line width.
  *
- * @param drawingContext The handle to the drawing surface of the canvas.
+ * @param {object} drawingContext The handle to the drawing surface of the
+ *     canvas.
  * @param {string} color The color with which the edge is to be drawn.
  * @param {number} lineWidth The width with which the edge is to be drawn.
  */
@@ -83,7 +84,8 @@ Edge.prototype.drawSpecific = function (drawingContext, color, lineWidth) {
  * size (thickness) specified by EDGE_SIZE. If isSelected is true, a thicker
  * red line is also drawn, to indicate that the edge is selected.
  *
- * @param drawingContext The handle to the drawing surface of the canvas.
+ * @param {object} drawingContext The handle to the drawing surface of the
+ *     canvas.
  */
 Edge.prototype.draw = function (drawingContext) {
   this.drawSpecific(drawingContext, this.color, EDGE_SIZE);

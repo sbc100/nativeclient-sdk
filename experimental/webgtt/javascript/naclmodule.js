@@ -13,7 +13,7 @@
 
 /**
  * This constant holds the color palette used to color the vertices.
- * @type {Array.<string>}
+ * @type {object}
  * @const
  */
 var COLOR_PALETTE = [
@@ -34,8 +34,10 @@ var COLOR_PALETTE = [
 /**
  * This class is used to represent a NaCl module.
  *
- * @param naclModule Handle to the DOM object representing the NaCl module.
- * @param {Graph} graph1 Reference to the graph associated with the NaCl module.
+ * @param {object} naclModule Handle to the DOM object representing the NaCl
+ *     module.
+ * @param {object} graph1 Reference to the graph associated with the NaCl
+ *     module.
  * @constructor
  */
 NaClModule = function (naclModule, graph1) {
@@ -63,8 +65,8 @@ NaClModule.prototype.postMessage = function (message) {
  * Here, we color the graph according to the coloring that is received from the
  * NaCl module.
  *
- * @param messageEvent The Event object containing information about the
- *     'message' event.
+ * @param {object} messageEvent The Event object containing information about
+ *     the 'message' event.
  */
 NaClModule.prototype.handleMessage = function (messageEvent) {
   var tempString = '';

@@ -77,8 +77,8 @@ Canvas.prototype.setEditMode = function (editMode) {
  * selected/deselected. Finally, the control panel (the coloring button) should
  * be enabled only if there is at least one vertex on the canvas.
  *
- * @param clickEvent The Event object containing information about the click
- *     event.
+ * @param {object} clickEvent The Event object containing information about the
+ *     click event.
  */
 Canvas.prototype.handleCanvasClick = function (clickEvent) {
   if (this.editMode) {
@@ -159,8 +159,8 @@ Canvas.prototype.handleCanvasClick = function (clickEvent) {
  * and/or edges are deleted. Finally, the control panel (the coloring button)
  * should be enabled only if there is at least one vertex on the canvas.
  *
- * @param keydownEvent The Event object containing information about the
- *     keydown event.
+ * @param {object} keydownEvent The Event object containing information about
+ *     the keydown event.
  */
 Canvas.prototype.handleCanvasKeydown = function (keydownEvent) {
   if (keydownEvent.keyCode == 46 && this.editMode) {
