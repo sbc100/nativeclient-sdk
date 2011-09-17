@@ -64,6 +64,8 @@ class TestUpdateManifest(unittest.TestCase):
     manifest_file._LoadFile()
     self.assertEqual(manifest_file._manifest.GetManifestString(),
                      self._json_boilerplate)
+    os.remove(file_path)
+
 
   def testValidateBundleName(self):
     ''' Test validating good and bad bundle names '''

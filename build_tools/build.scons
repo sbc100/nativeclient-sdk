@@ -90,6 +90,12 @@ AddPythonUnitTest('run_installer_contents_test',
                   'tests/installer_contents_test.py')
 AddPythonUnitTest('run_nacl_utils_test', 'nacl_sdk_scons/nacl_utils_test.py')
 AddPythonUnitTest('run_path_set_test', 'tests/path_set_test.py')
+AddPythonUnitTest('run_nmf_test',
+                  'nacl_sdk_scons/nmf_test.py',
+                  size='medium',
+                  dependencies=[env.GetToolchainNode()],
+                  params=['--toolchain-dir=%s' %
+                          env['NACL_TOOLCHAIN_ROOTS'][('x86', 'glibc')]])
 
 if env['IS_WINDOWS']:
   AddPythonUnitTest('run_install_nsis_test', 'tests/install_nsis_test.py')
@@ -234,11 +240,13 @@ def build_nacl_tools(env, target, source):
     sys.stdout.flush()
     make_nacl_tools.main(args)
 
+exe = '.exe' if sys.platform in ['cygwin', 'win32'] else ''
+
 tools = [
-    os.path.join('bin', 'sel_ldr_x86_32'),
-    os.path.join('bin', 'sel_ldr_x86_64'),
-    os.path.join('bin', 'ncval_x86_32'),
-    os.path.join('bin', 'ncval_x86_64'),
+    os.path.join('bin', 'sel_ldr_x86_32%s' % exe),
+    os.path.join('bin', 'sel_ldr_x86_64%s' % exe),
+    os.path.join('bin', 'ncval_x86_32%s' % exe),
+    os.path.join('bin', 'ncval_x86_64%s' % exe),
     os.path.join('runtime', 'irt_core_x86_32.nexe'),
     os.path.join('runtime', 'irt_core_x86_64.nexe'),
     ]
