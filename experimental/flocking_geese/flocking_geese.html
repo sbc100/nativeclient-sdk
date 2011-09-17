@@ -150,8 +150,9 @@
       case browser_version.BrowserChecker.StatusValues.UNKNOWN_BROWSER:
         browserStatus.innerHTML =
             '<strong>Native Client disabled.</strong><br />Native Client ' +
-            'has been disabled because your browser does not ' +
-            'support it.';
+            'has been disabled because your browser does not support it. ' +
+            'To learn more about Native Client, please visit:<br/>' +
+'<a href="http://code.google.com/chrome/nativeclient/">http://code.google.com/chrome/nativeclient/</a> ';
         break;
       case browser_version.BrowserChecker.StatusValues.CHROME_VERSION_TOO_OLD:
         browserStatus.innerHTML =
