@@ -128,6 +128,8 @@ FlockingGeese.DomIds = {
   // The radio buttons used to select sim type (NaCL vs. JavaScript).
   // Contained in the info panel.
   SIM_MODE_SELECT: 'sim_mode_select',
+  // The text that displays the speed difference.
+  SPEED_DIFFERENCE_LABEL: 'speed_difference',
   // The speedometer <CANVAS> element.  Contained in the info panel.
   SPEEDOMETER: 'speedometer_canvas'
 };
@@ -166,18 +168,13 @@ FlockingGeese.prototype.disposeInternal = function() {
 FlockingGeese.prototype.initializeApplication = function() {
   // Listen for 'unload' in order to terminate cleanly.
   goog.events.listen(window, goog.events.EventType.UNLOAD, this.terminate);
-  this.speedometerCanvas_ =
-      document.getElementById(FlockingGeese.DomIds.SPEEDOMETER);
   var naclMeterAttribs = {};
-  naclMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'naclMeterLabel';
   naclMeterAttribs[Speedometer.Attributes.THEME] = Speedometer.Themes.GREEN;
   naclMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
   naclMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 160;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.NACL,
                                      naclMeterAttribs);
   var jsMeterAttribs = {};
-  jsMeterAttribs[Speedometer.Attributes.DISPLAY_NAME] = 'JS';
-  jsMeterAttribs[Speedometer.Attributes.VALUE_LABEL] = 'jsMeterLabel';
   jsMeterAttribs[Speedometer.Attributes.THEME] = Speedometer.Themes.RED;
   jsMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
   jsMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 193;
@@ -185,6 +182,10 @@ FlockingGeese.prototype.initializeApplication = function() {
                                      jsMeterAttribs);
   this.speedometer_.setMaximumSpeed(10000.0);  // Measured in frames per second.
 
+  var speedometerCanvas =
+      document.getElementById(FlockingGeese.DomIds.SPEEDOMETER);
+  this.speedometer_.setCanvas(speedometerCanvas);
+  this.speedometer_.start();
   this.speedometer_.render(this.speedometerCanvas_);
 
   // Wire up the various controls.
@@ -197,7 +198,7 @@ FlockingGeese.prototype.initializeApplication = function() {
   if (flockSizeSlider) {
     this.flockSizeSlider_ = new Slider(
         flockSizeSlider, sliderRuler, sliderThumb,
-        [{gooseCount: 20, meterLimit: 100000.0},
+        [{gooseCount: 50, meterLimit: 30000.0},
          {gooseCount: 100, meterLimit: 8000.0},
          {gooseCount: 500, meterLimit: 400.0},
          {gooseCount: 1000, meterLimit: 100.0}
@@ -281,9 +282,9 @@ FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
   // Reset the speedometers to 0.
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL, 0);
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT, 0);
-  this.speedometer_.render(this.speedometerCanvas_);
   this.flock_.resetFlock(newFlockSize, initialLocation);
   this.invokeNaClMethod('resetFlock', {'size' : newFlockSize});
+  this.updateSpeedDifference_();
 }
 
 /**
@@ -365,12 +366,9 @@ FlockingGeese.prototype.handleNaClMessage = function(messageEvent) {
       // value.
       if (parameter[0] == this.MethodSignatures_.FRAME_RATE) {
         var frameRate = parseFloat(parameter[1]);
-        if (isNaN(frameRate)) {
-          console.log(parameter[1] + ' parses to NaN');
-        }
         this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL,
                                            frameRate);
-        this.speedometer_.render(this.speedometerCanvas_);
+        this.updateSpeedDifference_();
       }
     }
   } else {
@@ -434,6 +432,10 @@ FlockingGeese.prototype.run = function(opt_viewDivName) {
   this.startJavaScriptSimulation_();
 }
 
+/**
+ * Run one tick of the simulation and then render the new flock.  Update the
+ * speedometer with new timing values.
+ */
 FlockingGeese.prototype.simulationTick = function() {
   var flockingCanvas =
       document.getElementById(FlockingGeese.DomIds.GOOSE_CANVAS);
@@ -452,8 +454,7 @@ FlockingGeese.prototype.simulationTick = function() {
   this.flock_.render(flockingCanvas);
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT,
                                      frameRate);
-  this.speedometer_.render(this.speedometerCanvas_);
-
+  this.updateSpeedDifference_();
   this.startJavaScriptSimulation_();
 }
 
@@ -483,10 +484,36 @@ FlockingGeese.prototype.startJavaScriptSimulation_ = function() {
  * @private
  */
 FlockingGeese.prototype.stopJavaScriptSimulation_ = function() {
-  // Start up the JavaScript implementation of the simulation.
+  // Stop the JavaScript implementation of the simulation.
   if (this.flockingSimTimer_) {
     clearTimeout(this.flockingSimTimer_);
     this.flockingSimTimer_ = null;
+  }
+}
+
+/**
+ * Recompute the speed difference between JavaScript and Native Client.
+ * Color the result depending on which is faster.
+ * @private
+ */
+FlockingGeese.prototype.updateSpeedDifference_ = function() {
+  var speedDifferenceLabel =
+      document.getElementById(FlockingGeese.DomIds.SPEED_DIFFERENCE_LABEL);
+  var naclSpeed = this.speedometer_.valueForMeterNamed(
+      FlockingGeese.MeterNames.NACL,
+      Speedometer.Attributes.ODOMETER_DISPLAY_VALUE);
+  var jsSpeed = this.speedometer_.valueForMeterNamed(
+      FlockingGeese.MeterNames.JAVASCRIPT,
+      Speedometer.Attributes.ODOMETER_DISPLAY_VALUE);
+  if (naclSpeed == 0 || jsSpeed == 0) {
+    speedDifferenceLabel.innerHTML = 'Not available&hellip;';
+    speedDifferenceLabel.style.fontStyle = 'italic';
+    speedDifferenceLabel.style.color = '#222';
+  } else {
+    var diff = naclSpeed / jsSpeed;
+    speedDifferenceLabel.innerHTML = diff.toFixed(1) + 'X';
+    speedDifferenceLabel.style.fontStyle = 'normal';
+    speedDifferenceLabel.style.color = diff > 1.0 ? '#009933' : '#FF0033';
   }
 }
 

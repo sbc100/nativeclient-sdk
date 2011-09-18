@@ -23,3 +23,7 @@
   border-width: 2px;
 }
 
+#info_panel p,h1,h2,h3 {
+  margin-left: 16px;
+}
+

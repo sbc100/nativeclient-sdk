@@ -20,11 +20,20 @@ goog.require('goog.events.EventTarget');
 /**
  * Manages a map of individual speedometers.  Use addMeterWithName()
  * to add speedometer bars.
+ * @param {Canvas} opt_canvas The <CANVAS> element to use for drawing.
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-Speedometer = function() {
+Speedometer = function(opt_canvas) {
   goog.events.EventTarget.call(this);
+
+  /**
+   * The canvas.
+   * @type {Canvas}
+   * @private
+   */
+  this.canvas_ = opt_canvas || null;
+
   /**
    * The dictionary of individual meters.
    * @type {Array.Object}
@@ -48,12 +57,21 @@ Speedometer = function() {
   this.maxSpeed_ = 1.0;
 
   /**
+   * Display timers.  There is a timer for updating the needles and one for
+   * updating the odometers, these run on different frequencies.  These
+   * timers are started with the first call to render().
+   * @type {Timer}
+   * @private
+   */
+  this.needleUpdateTimer_ = null;
+  this.odometerUpdateTimer_ = null;
+
+  /**
    * The images.
    * @type {Object.Image}
    * @private
    */
   this.images_ = {}
-  this.loadImages_();
 };
 goog.inherits(Speedometer, goog.events.EventTarget);
 
@@ -62,14 +80,13 @@ goog.inherits(Speedometer, goog.events.EventTarget);
  * @enum {string}
  */
 Speedometer.Attributes = {
+  DISPLAY_VALUE: 'displayValue',
   THEME: 'theme',  // The needle theme.  Has value Speedometer.Themes.
-  DISPLAY_NAME: 'displayName',  // The name used to display the meter.
   NAME: 'name',  // The name of the meter.  Not optional.
+  ODOMETER_DISPLAY_VALUE: 'odometerDisplayValue',
   ODOMETER_LEFT: 'odometerLeft',  // The left coordinate of the odometer.
   ODOMETER_TOP: 'odometerTop',
   VALUE: 'value',  // The value of the meter.  Not optional.
-  // The id of a DOM element that can display the meter's value as text.
-  VALUE_LABEL: 'valueLabel'
 };
 
 /**
@@ -93,11 +110,18 @@ Speedometer.prototype.OdometerDims_ = {
 };
 
 /**
- * Meter needles are inset from the meter radius by this amount.
+ * The render animation interval time.  Measured in milliseconds.
  * @type {number}
  * @private
  */
-Speedometer.prototype.NEEDLE_INSET_ = 15;
+Speedometer.prototype.RENDER_INTERVAL_ = 83.0;  // About 12 frames/sec.
+
+/**
+ * The needle update interval time.  Measured in milliseconds.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.NEEDLE_UPDATE_INTERVAL_ = 218.0;
 
 /**
  * Beginning and ending angles for the meter.  |METER_ANGLE_START_| represents
@@ -126,13 +150,49 @@ Speedometer.prototype.DAMPING_FACTOR_ = Math.PI / 36.0;
 Speedometer.prototype.MAX_ODOMETER_VALUE_ = 999999.99;
 
 /**
+ * The odometer update interval time.  Measured in milliseconds.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.ODOMETER_UPDATE_INTERVAL_ = 1000.0;
+
+/**
+ * The transition time for odometer digits.  Measured in milliseconds.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.ODOMETER_TRANSITION_TIME_ = 218.0;
+
+/**
  * Override of disposeInternal() to dispose of retained objects and unhook all
  * events.
  * @override
  */
 Speedometer.prototype.disposeInternal = function() {
-  this.domElement_ = null;
+  function stopTimer(timer) {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+
+  stopTimer(this.needleUpdateTimer_);
+  this.needleUpdateTimer_ = null;
+  stopTimer(this.odometerUpdateTimer_);
+  this.odometerUpdateTimer_ = null;
+  for (image in this.images_) {
+    delete this.images_[image];
+    this.images_[image] = null;
+  }
+  this.canvas_ = null;
   Speedometer.superClass_.disposeInternal.call(this);
+}
+
+/**
+ * Set the canvas for drawing.
+ * @param !{Canvas} canvas The <CANVAS> element for drawing.
+ */
+Speedometer.prototype.setCanvas = function(canvas) {
+  this.canvas_ = canvas;
 }
 
 /**
@@ -144,8 +204,7 @@ Speedometer.prototype.maximumSpeed = function() {
 }
 
 /**
- * Set the maximum speed value for all meters.  The height of a meter's bar
- * is directly proportinal to meter.value / |maxSpeed_|.
+ * Set the maximum speed value for all meters.
  * @param {real} maxSpeed The new maximum speed.  Must be > 0.
  * @return {real} The previous maximum speed.
  */
@@ -162,7 +221,7 @@ Speedometer.prototype.setMaximumSpeed = function(maxSpeed) {
  * Add a named meter.  If a meter with |meterName| already exists, then do
  * nothing.
  * @param {!string} meterName The name for the new meter.
- * @param {?string} opt_attributes A dictionary containing optional attributes
+ * @param {?Object} opt_attributes A dictionary containing optional attributes
  *     for the meter.  Some key names are special, for example the 'valueLabel'
  *     key contains the id of a value label DOM element for the meter - this
  *     label will be updated with a text representation of the meter's value.
@@ -171,23 +230,25 @@ Speedometer.prototype.addMeterWithName = function(meterName, opt_attributes) {
   if (!(meterName in this.meters_)) {
     this.meterCount_++;
   }
-  var meterDictionary = opt_attributes || {};
+  var attributes = opt_attributes || {};
   // Fill in the non-optional attributes.
-  meterDictionary[Speedometer.Attributes.NAME] = meterName;
-  if (!(Speedometer.Attributes.VALUE in meterDictionary)) {
-    meterDictionary.value = 0.0;
+  var meter = {
+    name: meterName,
+    value: 0.0,
+    displayValue: 0.0,  // Updated every NEEDLE_UPDATE_INTERVAL_
+    maxValue: 0.0,
+    theme: Speedometer.Themes.DEFAULT,
+    odometerLeft: 0,
+    odometerTop: 0,
+    odometerDisplayValue: 0.0,  // Updated every ODOMETER_UPDATE_INTERVAL_
+    previousAngle: 0.0,
+  };
+  for (attrib in attributes) {
+    // Overwrite meter defaults with passed-in values if present.  Otherwise,
+    // add the passed-in element.
+    meter[attrib] = attributes[attrib];
   }
-  if (!(Speedometer.Attributes.THEME in meterDictionary)) {
-    meterDictionary.theme = Speedometer.Themes.DEFAULT;
-  }
-  if (!(Speedometer.Attributes.ODOMETER_LEFT in meterDictionary)) {
-    meterDictionary.odometerLeft = 0;
-  }
-  if (!(Speedometer.Attributes.ODOMETER_TOP in meterDictionary)) {
-    meterDictionary.odometerTop = 0;
-  }
-  meterDictionary.previousAngle = 0.0;
-  this.meters_[meterName] = meterDictionary;
+  this.meters_[meterName] = meter;
 }
 
 /**
@@ -202,43 +263,111 @@ Speedometer.prototype.updateMeterNamed =
     function(meterName, value) {
   var oldValue = 0.0;
   if (meterName in this.meters_) {
-    oldValue = this.meters_[meterName].value;
-    this.meters_[meterName].value = value;
+    var meter = this.meters_[meterName];
+    oldValue = meter.value;
+    // Update the actual values.  Display values are updated by the update
+    // interval handlers.
+    meter.value = value;
+    meter.maxValue = Math.max(meter.maxValue, value);
   }
   return oldValue;
 }
 
 /**
- * Render the speedometer.  Draws each meter in turn, displaying their labels.
- * The meter value is displayed on a log scale.
- * @param {!Canvas} canvas The 2D canvas.
+ * The value for a meter.  If the meter doesn't exist, or if the given key is
+ * not valid, returns -1.
+ * @param {!string} meterName The name of the meter.
+ * @param {?string} opt_key The key name of the value.  Defaults to 'value'.
+ * @return {number} The current meter's value or -1 if the meter doesn't exist.
  */
-Speedometer.prototype.render = function(canvas, opt_labelElements) {
-  var context2d = canvas.getContext('2d');
-
-  context2d.save();
-  // Paint the background image.
-  if (this.images_.background.complete) {
-    context2d.drawImage(this.images_.background, 0, 0);
-  } else {
-    context2d.fillStyle = 'white';
-    context2d.fillRect(0, 0, canvas.width, canvas.height);
+Speedometer.prototype.valueForMeterNamed = function(meterName, opt_key) {
+  if (meterName in this.meters_) {
+    var key = opt_key || Speedometer.Attributes.VALUE;
+    var meter = this.meters_[meterName];
+    if (key in meter) {
+      return meter[key];
+    }
   }
+  return -1;
+}
 
+/**
+ * Update the needles to their new values, and restart the needle update timer.
+ */
+Speedometer.prototype.updateNeedles = function() {
+  for (meterName in this.meters_) {
+    var meter = this.meters_[meterName];
+    meter.displayValue = meter.value;
+  }
+  this.render();
+  this.needleUpdateTimer_ = setTimeout(goog.bind(this.updateNeedles, this),
+                                       this.NEEDLE_UPDATE_INTERVAL_);
+}
+
+/**
+ * Update the odometers to their new values, and restart the odometer update
+ * timer.
+ */
+Speedometer.prototype.updateOdometers = function() {
+  for (meterName in this.meters_) {
+    var meter = this.meters_[meterName];
+    meter.odometerDisplayValue = meter.value;
+  }
+  this.render();
+  this.needleUpdateTimer_ = setTimeout(goog.bind(this.updateOdometers, this),
+                                       this.ODOMETER_UPDATE_INTERVAL_);
+}
+
+/**
+ * Start the display timers and perform any other display initialization.
+ */
+Speedometer.prototype.start = function() {
+  this.loadImages_();
+  for (meterName in this.meters_) {
+    var meter = this.meters_[meterName];
+    meter.displayValue = meter.value;
+    meter.odometerDisplayValue = meter.maxValue;
+  }
+  this.needleUpdateTimer_ = setTimeout(goog.bind(this.updateNeedles, this),
+                                       this.NEEDLE_UPDATE_INTERVAL_);
+  this.odometerUpdateTimer_ = setTimeout(goog.bind(this.updateOdometers, this),
+                                         this.ODOMETER_UPDATE_INTERVAL_);
+}
+
+/**
+ * Render the speedometer.
+ */
+Speedometer.prototype.render = function() {
+  if (!this.canvas_) {
+    return;
+  }
+  var context2d = this.canvas_.getContext('2d');
+  context2d.save();
+  this.drawBackground_(context2d, this.canvas_.width, this.canvas_.height);
   // Paint the meters.
   for (meterName in this.meters_) {
     var meter = this.meters_[meterName];
     this.drawNeedle_(context2d, meter);
     this.drawOdometer_(context2d, meter);
-    if (Speedometer.Attributes.VALUE_LABEL in meter) {
-      var labelElement =
-          document.getElementById(meter[Speedometer.Attributes.VALUE_LABEL]);
-      if (labelElement) {
-        labelElement.innerHTML = meter.value.toFixed(3);
-      }
-    }
   }
   context2d.restore();
+}
+
+/**
+ * Draw the background.
+ * @param {Graphics2d} context2d The 2D canvas context.
+ * @param {number} width The background width, measured in pixels.
+ * @param {number} height The background height, measured in pixels.
+ * @private
+ */
+Speedometer.prototype.drawBackground_ = function(context2d, width, height) {
+  // Paint the background image.
+  if (this.images_.background.complete) {
+    context2d.drawImage(this.images_.background, 0, 0);
+  } else {
+    context2d.fillStyle = 'white';
+    context2d.fillRect(0, 0, width, height);
+  }
 }
 
 /**
@@ -248,10 +377,10 @@ Speedometer.prototype.render = function(canvas, opt_labelElements) {
  * @private
  */
 Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
-  var canvasCenterX = context2d.canvas.width / 2;
-  var canvasCenterY = context2d.canvas.height / 2;
-  var radius = Math.min(canvasCenterX, canvasCenterY) - this.NEEDLE_INSET_;
-  var meterAngle = (meter.value / this.maxSpeed_) * this.METER_ANGLE_RANGE_;
+  var canvasCenterX = this.canvas_.width / 2;
+  var canvasCenterY = this.canvas_.height / 2;
+  var meterAngle = (meter.displayValue / this.maxSpeed_) *
+                   this.METER_ANGLE_RANGE_;
   meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
   meterAngle = Math.max(meterAngle, 0.0);
   // Dampen the meter's angular change.
@@ -267,7 +396,7 @@ Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
   context2d.rotate(dampedAngle);
   // Select the needle image based on the meter's theme and value.
   var needleImage = null;
-  if (meter.value == 0) {
+  if (meter.displayValue == 0) {
     needleImage = this.images_.stoppedNeedle;
   } else if (meter.theme == Speedometer.Themes.GREEN) {
     needleImage = this.images_.greenNeedle;
@@ -296,7 +425,7 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
   }
   context2d.save();
   context2d.translate(meter.odometerLeft, meter.odometerTop);
-  var odometerValue = Math.min(meter.value.toFixed(2),
+  var odometerValue = Math.min(meter.odometerDisplayValue.toFixed(2),
                                this.MAX_ODOMETER_VALUE_);
   // Draw the tenths digit.
   var tenths = (odometerValue - Math.floor(odometerValue)) * 10;
@@ -329,7 +458,7 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
  */
 Speedometer.prototype.drawOdometerDigit_ = function(
     context2d, value, column, digits) {
-  var digitOffset = value * this.OdometerDims_.DIGIT_HEIGHT;
+  var digitOffset = Math.floor(value) * this.OdometerDims_.DIGIT_HEIGHT;
   var digitHeight = Math.min(digits.height - digitOffset,
                              this.OdometerDims_.DIGIT_HEIGHT);
   var digitWrapHeight = this.OdometerDims_.DIGIT_HEIGHT - digitHeight;

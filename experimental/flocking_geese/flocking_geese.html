@@ -68,13 +68,13 @@
       <script type="text/javascript">
         var geeseView = document.getElementById('flocking_geese');
         var viewSize = goog.style.getSize(geeseView);
-        // The JavaScripot <CANVAS>-based version.
         geeseView.innerHTML =
+          // The JavaScript <CANVAS>-based version.
           '<canvas id="flocking_geese_canvas"' +
               ' width=' + viewSize.width +
               ' height=' + viewSize.height +
               '></canvas>' +
-          // The C++ version.
+          // The C++ Native Client-based version.
           '<div id="nacl_flocking_geese"' +
               ' class="autosize-view"' +
               ' style="display: table; visibility: hidden;"></div>';
@@ -90,26 +90,20 @@
     -->
     <div id="info_panel"
          style="display: inline;">
-      <h2 style="margin-left: 16px; width: 100%;">Info Panel</h2>
+      <h2 style="width: 100%;">Info Panel</h2>
       <canvas id="speedometer_canvas"
               class="horizontal-align-center"
               width=230
               height=230></canvas><br />
-      <!-- Show the meter values. -->
-      <table style="font-size: 10pt; margin-bottom: 1em;">
-        <tr>
-          <td align="right">NaCl:</td>
-          <td id="naclMeterLabel">0.0</td>
-        </tr>
-        <tr>
-          <td align="right">JS:</td>
-          <td id="jsMeterLabel">0.0</td>
-        </tr>
-      </table>
+      <!-- Show the speed difference. -->
+      <p>Speed difference:
+        <span id="speed_difference"
+              style="font-style: italic">Computing&hellip;</span>
+      </p>
       <form id="game_controls_form"
             action=""
             method="get">
-        <p style="margin-left: 16px; margin-bottom: 0px">Simulation Mode</p>
+        <p style="margin-bottom: 0px">Simulation Mode</p>
         <p style="margin-left: 32px;">
           <input type="radio"
                  name="sim_mode_select"
@@ -122,10 +116,10 @@
           <span id="nacl_radio_label">Native Client</span>
         </p>
       </form>
-      <p style="margin-left: 16px; margin-bottom: 0px;">Flock Size</p>
+      <p style="margin-bottom: 0px;">Flock Size</p>
       <div id="flock_size_slider" class="kd-slider kd-slider-discrete">
         <ol id="flock_size_slider_ruler" class="kd-sliderruler">
-          <li class="kd-sliderstep">20</li>
+          <li class="kd-sliderstep">50</li>
           <li class="kd-sliderstep">100</li>
           <li class="kd-sliderstep">500</li>
           <li class="kd-sliderstep">1000</li>
@@ -134,7 +128,33 @@
           <span class="kd-sliderhandle-inner">V</span>
         </div>
       </div>
-      <p id="browser_status" style="margin-left: 16px;"></p>
+      <p id="browser_status"></p>
+      <div style="position: absolute; bottom: 16px;">
+      <p style="margin-bottom: 0px;">Acknowledgments:</p>
+      <p style="font-size: 80%;
+                margin-left: 32px;
+                margin-right: 32px;
+                line-height: 1em"><em>Code:</em> David
+      Springer
+      (<a href="mailto:dspringer@chromium.org.com">dspringer@chromium.org</a>)
+        and Georges Winkenbach
+        (<a href="mailto:dspringer@chromium.org.com">gwink@chromium.org</a>),
+        with help from the
+        <a href="mailto:native-client-discuss@googlegroups.com">Native Client
+        community</a><br /><br />
+        <em>Images:</em> Greg Wirt
+        (<a href="mailto:gregw@google.com">gregw@google.com</a>)<br /><br />
+        <em>Libraries:</em><br />
+        Boost headers:
+        <a href="http://www.boost.org/">http://www.boost.org/</a><br />
+        PNG library:
+        <a href="http://libpng.sourceforge.net/">http://libpng.sourceforge.net/</a><br />
+        JPEG library:
+        <a href="http://libjpeg.sourceforge.net/">http://libjpeg.sourceforge.net/</a><br /><br />
+        Native Client ports of these libraries and more are available in
+        <a href="http://code.google.com/p/naclports/">naclports.googlecode.com</a>
+      </p>
+      </div>
     </div>
     <script type="text/javascript">
       if (!isValidBrowser) {
