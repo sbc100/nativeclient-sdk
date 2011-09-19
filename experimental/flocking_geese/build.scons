@@ -51,7 +51,8 @@ install_dir = os.getenv('INSTALL_ROOT',
                                      'Sites',
                                      'flocking_geese'))
 
-app_files = ['flocking_geese.html',
+app_files = ['about.html',
+             'flocking_geese.html',
              'flocking_geese.nmf',
             ]
 
