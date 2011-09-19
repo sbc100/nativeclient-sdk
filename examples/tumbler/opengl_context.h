@@ -18,9 +18,9 @@
 #include <string>
 
 #include "examples/tumbler/opengl_context_ptrs.h"
-#include "ppapi/c/dev/ppb_opengles_dev.h"
-#include "ppapi/cpp/dev/graphics_3d_client_dev.h"
-#include "ppapi/cpp/dev/graphics_3d_dev.h"
+#include "ppapi/c/ppb_opengles2.h"
+#include "ppapi/cpp/graphics_3d_client.h"
+#include "ppapi/cpp/graphics_3d.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/size.h"
 
@@ -28,7 +28,7 @@ namespace tumbler {
 
 /// OpenGLContext manages an OpenGL rendering context in the browser.
 ///
-class OpenGLContext : public pp::Graphics3DClient_Dev {
+class OpenGLContext : public pp::Graphics3DClient {
  public:
   explicit OpenGLContext(pp::Instance* instance);
 
@@ -61,7 +61,7 @@ class OpenGLContext : public pp::Graphics3DClient_Dev {
   void ResizeContext(const pp::Size& size);
 
   /// The OpenGL ES 2.0 interface.
-  const struct PPB_OpenGLES2_Dev* gles2() const {
+  const struct PPB_OpenGLES2* gles2() const {
     return gles2_interface_;
   }
 
@@ -81,10 +81,10 @@ class OpenGLContext : public pp::Graphics3DClient_Dev {
 
  private:
   pp::Size size_;
-  pp::Graphics3D_Dev context_;
+  pp::Graphics3D context_;
   bool flush_pending_;
 
-  const struct PPB_OpenGLES2_Dev* gles2_interface_;
+  const struct PPB_OpenGLES2* gles2_interface_;
 };
 
 }  // namespace tumbler

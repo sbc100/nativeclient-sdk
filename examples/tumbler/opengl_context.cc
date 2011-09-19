@@ -19,12 +19,12 @@ void FlushCallback(void* data, int32_t result) {
 namespace tumbler {
 
 OpenGLContext::OpenGLContext(pp::Instance* instance)
-    : pp::Graphics3DClient_Dev(instance),
+    : pp::Graphics3DClient(instance),
       flush_pending_(false) {
   pp::Module* module = pp::Module::Get();
   assert(module);
-  gles2_interface_ = static_cast<const struct PPB_OpenGLES2_Dev*>(
-      module->GetBrowserInterface(PPB_OPENGLES2_DEV_INTERFACE));
+  gles2_interface_ = static_cast<const struct PPB_OpenGLES2*>(
+      module->GetBrowserInterface(PPB_OPENGLES2_INTERFACE));
   assert(gles2_interface_);
 }
 
@@ -49,7 +49,7 @@ bool OpenGLContext::MakeContextCurrent(pp::Instance* instance) {
         PP_GRAPHICS3DATTRIB_HEIGHT, size_.height(),
         PP_GRAPHICS3DATTRIB_NONE
     };
-    context_ = pp::Graphics3D_Dev(*instance, pp::Graphics3D_Dev(), attribs);
+    context_ = pp::Graphics3D(instance, pp::Graphics3D(), attribs);
     if (context_.is_null()) {
       glSetCurrentContextPPAPI(0);
       return false;
