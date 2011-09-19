@@ -62,15 +62,19 @@ def InstallBoost(options):
   print 'Installing boost headers...'
   # Make sure the target directories exist.
   nacl_include = os.path.abspath(os.path.join(options.toolchain,
-                                                  'x86_64-nacl',
-                                                  'include'))
+                                              'x86_64-nacl',
+                                              'include'))
   build_utils.ForceMakeDirs(nacl_include)
   boost_path = os.path.abspath(os.path.join(options.working_dir, BOOST_PATH))
-  # Copy the headers
-  shutil.rmtree(os.path.join(nacl_include, 'boost'), ignore_errors=True)
+  # Copy the headers.
+  dst_include_dir = os.path.join(nacl_include, 'boost')
+  shutil.rmtree(dst_include_dir, ignore_errors=True)
   shutil.copytree(os.path.join(boost_path, 'boost'),
-                  os.path.join(nacl_include, 'boost'),
+                  dst_include_dir,
                   symlinks=True)
+  # Copy the license file.
+  print 'Installing boost license...'
+  shutil.copy(os.path.join(boost_path, 'LICENSE_1_0.txt'), dst_include_dir)
   # Clean up.
   shutil.rmtree(options.working_dir, ignore_errors=True)
   return 0
