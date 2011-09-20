@@ -18,6 +18,7 @@
 #include "webgtt/webgtt.h"
 
 namespace webgtt {
+
 Parser::Parser(const std::string& message)
     : message_(message),
       is_valid_(false),
@@ -27,19 +28,19 @@ Parser::Parser(const std::string& message)
 /// "kSentinel<adjacency_matrix_>kSentinel<task_ID_>kSentinel<args_>kSentinel"
 /// If at any stage during the decoding process, the message is found to be
 /// invalid (not conforming to the above format), parsing is aborted, and the
-/// isValid bit contains false. Upon successful completion of the decoding
-/// process, the isValid bit is set to true.
-bool Parser::decodeMessage(void) {
+/// is_valid_ bit contains false. Upon successful completion of the decoding
+/// process, the is_valid_ bit is set to true.
+bool Parser::DecodeMessage() {
   assert(!is_valid_);
 
-  int messageLength = message_.size();
+  const size_t message_length = message_.size();
   // We start parsing from the beginning of the message.
-  int parsePosition = 0;
+  int parse_position = 0;
 
   // The shortest valid message is for a coloring request on a graph with
   // exactly one vertex, which would look like:
   // "<kSentinel>0<kSentinel>0<kSentinel>"
-  if (messageLength < 2 + (3 * static_cast<int>(kSentinel.size()))) {
+  if (message_length < 2 + (3 * kSentinel.size())) {
     return false;
   }
   // Look for the first sentinel.
@@ -47,79 +48,79 @@ bool Parser::decodeMessage(void) {
     return false;
   }
   // Skip over the sentinel that we just found, and continue parsing.
-  parsePosition += kSentinel.size();
+  parse_position += kSentinel.size();
 
-  std::string adjacencyMatrix = getNextChunk(message_, &parsePosition);
-  if (adjacencyMatrix.compare(kSentinel) == 0) {
+  std::string adjacency_matrix = GetNextChunk(message_, &parse_position);
+  if (adjacency_matrix.compare(kSentinel) == 0) {
     return false;
   }
-  // adjacencyMatrix should be in CSV format; obtain the positions of commas.
-  std::vector<int> commaPositions = getCommaPositions(adjacencyMatrix);
-  // There should be a total of (numberOfVertices)^2 - 1 commas, since
-  // adjacencyMatrix is a square matrix.
-  int numberOfVertices = sqrt(commaPositions.size() + 1);
-  if (static_cast<int>(commaPositions.size()) !=
-      (numberOfVertices * numberOfVertices) - 1) {
+  // adjacency_matrix should be in CSV format; obtain the positions of commas.
+  std::vector<int> comma_positions = GetCommaPositions(adjacency_matrix);
+  // There should be a total of (number_of_vertices)^2 - 1 commas, since
+  // adjacency_matrix is a square matrix.
+  int number_of_vertices = sqrt(comma_positions.size() + 1);
+  if (static_cast<int>(comma_positions.size()) !=
+      (number_of_vertices * number_of_vertices) - 1) {
     return false;
   }
   // Decode the adjacency matrix
-  int adjPosition = 0;
-  for (int i = 1; i <= numberOfVertices; ++i) {
-    std::vector<int> row = decodeCSV(adjacencyMatrix.substr(adjPosition,
-        commaPositions[(i * numberOfVertices) - 1] - adjPosition));
-    for (int j = 0; j < static_cast<int>(row.size()); ++j) {
+  int adj_position = 0;
+  for (int i = 1; i <= number_of_vertices; ++i) {
+    std::vector<int> row = DecodeCSV(adjacency_matrix.substr(adj_position,
+        comma_positions[(i * number_of_vertices) - 1] - adj_position));
+    for (size_t j = 0; j < row.size(); ++j) {
       if (row[j] == kInvalidValue) {
         return false;
       }
     }
     adjacency_matrix_.push_back(row);
-    adjPosition = commaPositions[(i * numberOfVertices) - 1] + 1;
+    adj_position = comma_positions[(i * number_of_vertices) - 1] + 1;
   }
-  commaPositions.clear();
+  comma_positions.clear();
   // Construct the graph
-  graph::Graph inputGraph(numberOfVertices, adjacency_matrix_);
+  graph::Graph input_graph(number_of_vertices, adjacency_matrix_);
 
-  std::string taskID = getNextChunk(message_, &parsePosition);
-  if (taskID.compare(kSentinel) == 0) {
+  std::string task_ID = GetNextChunk(message_, &parse_position);
+  if (task_ID.compare(kSentinel) == 0) {
     return false;
   }
-  if (strtoi(taskID) == kInvalidValue) {
+  if (StringToInteger(task_ID) == kInvalidValue) {
     return false;
   }
-  task_ID_ = strtoi(taskID);
+  task_ID_ = StringToInteger(task_ID);
 
   std::string args = "";
-  if (parsePosition != messageLength) {
+  if (parse_position != static_cast<int>(message_length)) {
     // There may be some arguments.
-    args = getNextChunk(message_, &parsePosition);
+    args = GetNextChunk(message_, &parse_position);
     if (args.compare(kSentinel) == 0) {
       return false;
     }
   }
   if (args.size() != 0) {
     // args should be in CSV format; decode it.
-    args_ = decodeCSV(args);
-    for (int i = 0; i < static_cast<int>(args_.size()); ++i) {
+    args_ = DecodeCSV(args);
+    for (size_t i = 0; i < args_.size(); ++i) {
       if (args_[i] == kInvalidValue) {
         return false;
       }
     }
   }
-  int numberOfArguments = static_cast<int>(args_.size());
-  if (numberOfArguments < kMaxArgs) {
+  int number_of_arguments = static_cast<int>(args_.size());
+  if (number_of_arguments < kMaxArgs) {
     // Append enough dummy elements (zeros) to the end of args_.
-    args_.insert(args_.end(), kMaxArgs - numberOfArguments, 0);
+    args_.insert(args_.end(), kMaxArgs - number_of_arguments, 0);
   }
 
   // Obtain the task_map_ lookup.
-  TaskMap taskMapObject(inputGraph, args_);
-  task_map_ = taskMapObject.getTaskMap();
+  TaskMap task_map_object(input_graph, args_);
+  task_map_ = task_map_object.task_map();
 
   // Perform final validation checks.
   if (task_ID_ >= static_cast<int>(task_map_.size())) {
     return false;
   }
-  if (numberOfArguments != task_map_[task_ID_].numberOfArguments) {
+  if (number_of_arguments != task_map_[task_ID_].number_of_arguments) {
     return false;
   }
 
@@ -127,55 +128,55 @@ bool Parser::decodeMessage(void) {
   return true;
 }
 
-std::string Parser::getResponse(void) {
+std::string Parser::GetResponse() const {
   assert(is_valid_);
-  return task_map_[task_ID_].functionToCall();
+  return task_map_[task_ID_].function_to_call();
 }
 
-std::vector<int> decodeCSV(const std::string& message) {
+std::vector<int> DecodeCSV(const std::string& message) {
   std::vector<int> answer;
-  std::vector<int> commaPositions = getCommaPositions(message);
-  int parsePosition = 0;
-  for (int i = 0; i < static_cast<int>(commaPositions.size()) + 1; ++i) {
-    int nextCommaPosition;
+  std::vector<int> comma_positions = GetCommaPositions(message);
+  int parse_position = 0;
+  for (size_t i = 0; i < comma_positions.size() + 1; ++i) {
+    int next_comma_position;
     // There is no comma at the end of the list.
-    if (i == static_cast<int>(commaPositions.size())) {
-      nextCommaPosition = message.size();
+    if (i == comma_positions.size()) {
+      next_comma_position = message.size();
     } else {
-      nextCommaPosition = commaPositions[i];
+      next_comma_position = comma_positions[i];
     }
-    std::string entry = message.substr(parsePosition,
-                                       nextCommaPosition - parsePosition);
-    answer.push_back(strtoi(entry));
-    parsePosition = nextCommaPosition + 1;
+    std::string entry = message.substr(parse_position,
+                                       next_comma_position - parse_position);
+    answer.push_back(StringToInteger(entry));
+    parse_position = next_comma_position + 1;
   }
   return answer;
 }
 
-std::string getNextChunk(const std::string& message, int* parsePosition) {
-  assert(*parsePosition < static_cast<int>(message.size()));
-  unsigned int nextSentinelPosition = message.find(kSentinel, *parsePosition);
-  if (nextSentinelPosition == std::string::npos) {
+std::string GetNextChunk(const std::string& message, int* parse_position) {
+  assert(*parse_position < static_cast<int>(message.size()));
+  unsigned int next_sentinel_position = message.find(kSentinel,
+                                                     *parse_position);
+  if (next_sentinel_position == std::string::npos) {
     return kSentinel;  // Return the sentinel string itself indicating error.
   }
-  std::string nextChunk = message.substr(*parsePosition,
-                                         nextSentinelPosition - *parsePosition);
-  // Update the position to continue parsing from. Move it to skip over the
-  // sentinel.
-  *parsePosition = nextSentinelPosition + kSentinel.size();
-  return nextChunk;
+  std::string next_chunk = message.substr(*parse_position,
+      next_sentinel_position - *parse_position);
+  // Update the position to continue parsing from (skip over the sentinel).
+  *parse_position = next_sentinel_position + kSentinel.size();
+  return next_chunk;
 }
 
-std::vector<int> getCommaPositions(const std::string& message) {
-  std::vector<int> commaPositions;
+std::vector<int> GetCommaPositions(const std::string& message) {
+  std::vector<int> comma_positions;
   for (std::string temp = message; temp.find(',') != std::string::npos;
        temp.replace(temp.find(','), 1, 1, '.')) {
-    commaPositions.push_back(temp.find(','));
+    comma_positions.push_back(temp.find(','));
   }
-  return commaPositions;
+  return comma_positions;
 }
 
-int strtoi(const std::string& message) {
+int StringToInteger(const std::string& message) {
   if (message.size() == 0) {
     return kInvalidValue;
   }
@@ -184,4 +185,5 @@ int strtoi(const std::string& message) {
   }
   return atoi(message.c_str());
 }
+
 }  // namespace webgtt

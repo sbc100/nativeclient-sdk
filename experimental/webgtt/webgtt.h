@@ -20,19 +20,20 @@
 
 #include <string>
 
-#include "ppapi/cpp/instance.h"
-#include "ppapi/cpp/module.h"
-#include "ppapi/cpp/var.h"
-#include "webgtt/graph.h"
+namespace graph {
+class Graph;
+}
 
 namespace webgtt {
+
 /// This function obtains a vertex coloring and formats it into the response
 /// string to be sent back to the browser.
 ///
-/// @param[in] inputGraph A pointer to the input graph object that is used to
-///                       obtain the vertex coloring.
+/// @param[in] input_graph A pointer to the input graph object that is used to
+///     obtain the vertex coloring.
 /// @return The response string to be sent back to the browser.
-std::string getColoring(const graph::Graph& inputGraph);
+std::string GetColoring(const graph::Graph& input_graph);
+
 }  // namespace webgtt
 
 #endif  // EXPERIMENTAL_WEBGTT_WEBGTT_H_

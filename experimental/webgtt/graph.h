@@ -20,6 +20,7 @@
 #include <vector>
 
 namespace graph {
+
 /// This function extends the Boost library of graph algorithms. It finds a
 /// coloring of the graph, given the adjacency matrix.
 ///
@@ -37,14 +38,14 @@ namespace graph {
 ///
 /// @param[in] graph The graph object.
 /// @param[in] order A property map object that maps vertex indices to their
-///                  corresponding vertex descriptors.
+///     corresponding vertex descriptors.
 /// @param[in] color A property map object that maps vertex descriptors to
-///                  their corresponding vertex colors.
+///     their corresponding vertex colors.
 /// @return The number of colors used to color the graph.
 template <class VertexListGraph, class Order, class Color>
 typename boost::graph_traits<VertexListGraph>::vertices_size_type
-sequential_vertex_coloring(const VertexListGraph& graph,
-                           Order order, const Color& color);
+SequentialVertexColoring(const VertexListGraph& graph,
+                         Order order, const Color& color);
 
 /// The Graph class. This class is a wrapper for Boost's graph representation
 /// and algorithms.
@@ -53,25 +54,24 @@ class Graph {
   /// The constructor creates a Graph object given the number of vertices and
   /// the adjacency matrix.
   ///
-  /// @param[in] numberOfVertices The number of vertices in the graph.
-  /// @param[in] adjacencyMatrix The adjacency matrix of the graph.
+  /// @param[in] number_of_vertices The number of vertices in the graph.
+  /// @param[in] adjacency_matrix The adjacency matrix of the graph.
   /// @constructor
-  explicit Graph(int numberOfVertices,
-                 std::vector< std::vector<int> > adjacencyMatrix);
+  Graph(int number_of_vertices,
+        std::vector< std::vector<int> > adjacency_matrix);
 
   /// This function returns a greedy vertex coloring of the graph. Internally,
-  /// it uses sequential_vertex_coloring, an algorithm provided here as an
+  /// it uses SequentialVertexColoring, an algorithm provided here as an
   /// extension of Boost's graph algorithms.
   ///
-  /// @param[in] numberOfVertices The number of vertices in the graph.
-  /// @param[in] adjacencyMatrix The adjacency matrix of the graph.
   /// @return A vector containing a valid coloring of the graph.
-  std::vector<int> getColoring(void) const;
+  std::vector<int> GetColoring() const;
 
  private:
   int number_of_vertices_;
   std::vector< std::vector<int> > adjacency_matrix_;
 };
+
 }  // namespace graph
 
 #endif  // EXPERIMENTAL_WEBGTT_GRAPH_H_

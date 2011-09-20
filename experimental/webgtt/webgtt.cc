@@ -17,6 +17,7 @@
 #include "ppapi/cpp/var.h"
 
 namespace webgtt {
+
 /// The Instance class. One of these exists for each instance of the NaCl module
 /// on the web page. The browser will ask the Module object to create a new
 /// Instance for each occurence of the <embed> tag that has these attributes:
@@ -37,7 +38,7 @@ class WebgttInstance : public pp::Instance {
   /// This function handles messages coming in from the browser via
   /// postMessage().
   ///
-  /// The @a var_message can contain anything: a JSON string; a string that
+  /// The @a var_message can contain anything: a JSON string, a string that
   /// encodes method names and arguments, etc.
   ///
   /// @param[in] var_message The message posted by the browser.
@@ -47,10 +48,10 @@ class WebgttInstance : public pp::Instance {
     }
     std::string message = var_message.AsString();
 
-    Parser parseMessage(message);
+    Parser parse_message(message);
     pp::Var var_reply;
-    if (parseMessage.decodeMessage()) {
-      var_reply = pp::Var(parseMessage.getResponse());
+    if (parse_message.DecodeMessage()) {
+      var_reply = pp::Var(parse_message.GetResponse());
     } else {
       var_reply = pp::Var("Error encountered while parsing the message!");
     }
@@ -75,27 +76,30 @@ class WebgttModule : public pp::Module {
   }
 };
 
-std::string getColoring(const graph::Graph& inputGraph) {
-  std::vector<int> vertexColors = inputGraph.getColoring();
+std::string GetColoring(const graph::Graph& input_graph) {
+  std::vector<int> vertex_colors = input_graph.GetColoring();
   // Format the message to be sent back to the browser.
   std::ostringstream answer;
-  for (int i = 0; i < static_cast<int>(vertexColors.size()); ++i) {
-    answer << vertexColors[i];
-    if (i != static_cast<int>(vertexColors.size()) - 1) {
+  for (size_t i = 0; i < vertex_colors.size(); ++i) {
+    answer << vertex_colors[i];
+    if (i != vertex_colors.size() - 1) {
       answer << ',';
     }
   }
   return answer.str();
 }
+
 }  // namespace webgtt
 
 namespace pp {
-  /// This is the factory function called by the browser when the module is
-  /// first loaded. The browser keeps a singleton of this module. It calls the
-  /// CreateInstance() method on the object that is returned to make instances.
-  /// There is one instance per <embed> tag on the page. This is the main
-  /// binding point for the NaCl module with the browser.
-  Module* CreateModule() {
-    return new webgtt::WebgttModule();
-  }
+
+/// This is the factory function called by the browser when the module is
+/// first loaded. The browser keeps a singleton of this module. It calls the
+/// CreateInstance() method on the object that is returned to make instances.
+/// There is one instance per <embed> tag on the page. This is the main
+/// binding point for the NaCl module with the browser.
+Module* CreateModule() {
+  return new webgtt::WebgttModule();
+}
+
 }  // namespace pp

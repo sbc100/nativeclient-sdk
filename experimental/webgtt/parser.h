@@ -17,10 +17,14 @@
 #include <string>
 #include <vector>
 
-#include "webgtt/graph.h"
 #include "webgtt/taskmap.h"
 
+namespace graph {
+class Graph;
+}
+
 namespace webgtt {
+
 /// The sentinel/delimiter string that is used in the message format.
 const std::string kSentinel = "::";
 
@@ -28,9 +32,9 @@ const std::string kSentinel = "::";
 const int kInvalidValue = -1;
 
 /// The Parser class. This class provides an interface for validating a given
-/// message the provided message and parse it to decode the message into its
-/// constituent entities. In addition, it also provides a function that obtains
-/// the appropriate response to be sent back to the browser.
+/// message and parsing it to decode the message into its constituent entities.
+/// In addition, it also provides a function that obtains the appropriate
+/// response to be sent back to the browser.
 class Parser {
  public:
   /// The constructor takes in a message, and sets default values to its class
@@ -47,14 +51,14 @@ class Parser {
   /// set to true.
   ///
   /// @return false if an error was encountered, true otherwise.
-  bool decodeMessage(void);
+  bool DecodeMessage();
 
   /// This function returns the response string to be sent back to the browser.
   ///
   /// This function should be used only when is_valid_ is true.
   ///
   /// @return The response string to be sent back to the browser.
-  std::string getResponse(void);
+  std::string GetResponse() const;
 
  private:
   std::string message_;
@@ -73,33 +77,34 @@ class Parser {
 ///
 /// @param[in] message The input string in CSV format.
 /// @return The vector of integer equivalents of the component elements.
-std::vector<int> decodeCSV(const std::string& message);
+std::vector<int> DecodeCSV(const std::string& message);
 
 /// This helper function returns the next chunk of the message to be processed,
-/// starting from parsePosition, until the sentinel is encountered. It also
+/// starting from parse_position, until the sentinel is encountered. It also
 /// updates the position to continue parsing from.
 ///
 /// @param[in] message The message to take the next chunk out of.
-/// @param[in,out] parsePosition The starting position of the chunk.
-/// @return The substring of message starting at parsePosition, until the
+/// @param[in,out] parse_position The starting position of the chunk.
+/// @return The substring of message starting at parse_position, until the
 ///         sentinel is encountered. Returns the sentinel itself to indicate an
 ///         error if the sentinel is not encountered.
-std::string getNextChunk(const std::string& message, int* parsePosition);
+std::string GetNextChunk(const std::string& message, int* parse_position);
 
 /// This helper function returns the positions where a comma occurs in the given
 /// message.
 ///
 /// @param[in] message The message to look for commas.
 /// @return A vector of positions where a comma occurs in the message.
-std::vector<int> getCommaPositions(const std::string& message);
+std::vector<int> GetCommaPositions(const std::string& message);
 
 
 /// This helper function converts a string to an integer, internally using atoi.
 ///
 /// @param[in] message The string to be converted.
-/// @return -1 if the string is empty or doesn't begin with a digit. The integer
-///         value that would be returned by atoi otherwise.
-int strtoi(const std::string& message);
+/// @return kInvalidValue if the string is empty or doesn't begin with a digit.
+///     Otherwise, the integer value that would be returned by atoi.
+int StringToInteger(const std::string& message);
+
 }  // namespace webgtt
 
 #endif  // EXPERIMENTAL_WEBGTT_PARSER_H_

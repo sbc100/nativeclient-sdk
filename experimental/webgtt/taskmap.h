@@ -17,9 +17,12 @@
 #include <string>
 #include <vector>
 
-#include "webgtt/graph.h"
+namespace graph {
+class Graph;
+}
 
 namespace webgtt {
+
 /// This constant specifies the maximum number of arguments that a graph
 /// algorithm will ever need.
 const int kMaxArgs = 10;
@@ -28,35 +31,35 @@ const int kMaxArgs = 10;
 /// implements a particular graph algorithm.
 struct FunctionInfo {
   /// The number of arguments that the graph algorithm would need to work.
-  int numberOfArguments;
+  int number_of_arguments;
   /// The function that obtains the response string containing the formatted
   /// output of the graph algorithm.
-  boost::function<std::string(void)> functionToCall;
+  boost::function<std::string()> function_to_call;
 };
 
 /// The TaskMap class. This class initializes a vector of instances of the
-/// FunctionInfo structure - one instance per taskID. The function call for a
-/// particular taskID needs to be customized based on the input graph, and the
+/// FunctionInfo structure - one instance per task ID. The function call for a
+/// particular task ID needs to be customized based on the input graph, and the
 /// arguments, so the constructor takes these as parameters.
 class TaskMap {
  public:
   /// The constructor takes in an input graph and a vector of arguments, and
   /// initializes the lookup vector of FunctionInfo instances.
   ///
-  /// @param[in] inputGraph The input graph to be used in the function bindings.
+  /// @param[in] input_graph The input graph to be used in the function
+  ///     bindings.
   /// @param[in] args The vector of arguments from which the arguments to be
-  ///                 used in the function bindings are obtained.
+  ///     used in the function bindings are obtained.
   /// @constructor
-  explicit TaskMap(const graph::Graph& inputGraph,
-                   const std::vector<int>& args);
+  TaskMap(const graph::Graph& input_graph, const std::vector<int>& args);
 
-  /// This function returns the lookup vector to be used to decide which
-  /// function call to execute, and how many arguments are needed.
-  std::vector<FunctionInfo> getTaskMap(void);
+  /// Accessor function for task_map.
+  const std::vector<FunctionInfo>& task_map() const { return task_map_; }
 
  private:
   std::vector<FunctionInfo> task_map_;
 };
+
 }  // namespace webgtt
 
 #endif  // EXPERIMENTAL_WEBGTT_TASKMAP_H_
