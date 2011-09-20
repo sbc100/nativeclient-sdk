@@ -32,8 +32,8 @@ class WebgttInstance : public pp::Instance {
   ///
   /// @param[in] instance The handle to the browser-side plugin instance.
   /// @constructor
-  explicit WebgttInstance(PP_Instance instance) : pp::Instance(instance) { }
-  virtual ~WebgttInstance() { }
+  explicit WebgttInstance(PP_Instance instance) : pp::Instance(instance) {}
+  virtual ~WebgttInstance() {}
 
   /// This function handles messages coming in from the browser via
   /// postMessage().
@@ -57,6 +57,11 @@ class WebgttInstance : public pp::Instance {
     }
     PostMessage(var_reply);
   }
+
+ private:
+  /// This disallows usage of copy and assignment constructors.
+  WebgttInstance(const WebgttInstance&);
+  void operator=(const WebgttInstance&);
 };
 
 /// The Module class. The browser calls the CreateInstance() method to create
@@ -64,8 +69,8 @@ class WebgttInstance : public pp::Instance {
 /// instance for each <embed> tag with type="application/x-nacl".
 class WebgttModule : public pp::Module {
  public:
-  WebgttModule() : pp::Module() { }
-  virtual ~WebgttModule() { }
+  WebgttModule() : pp::Module() {}
+  virtual ~WebgttModule() {}
 
   /// This function creates and returns a WebgttInstance object.
   ///
@@ -74,6 +79,11 @@ class WebgttModule : public pp::Module {
   virtual pp::Instance* CreateInstance(PP_Instance instance) {
     return new WebgttInstance(instance);
   }
+
+ private:
+  /// This disallows usage of copy and assignment constructors.
+  WebgttModule(const WebgttModule&);
+  void operator=(const WebgttModule&);
 };
 
 std::string GetColoring(const graph::Graph& input_graph) {

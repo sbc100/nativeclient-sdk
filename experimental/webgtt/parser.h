@@ -11,9 +11,6 @@
 ///
 /// @author ragad@google.com (Raga Gopalakrishnan)
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-
 #include <string>
 #include <vector>
 
@@ -24,9 +21,6 @@ class Graph;
 }
 
 namespace webgtt {
-
-/// The sentinel/delimiter string that is used in the message format.
-const std::string kSentinel = "::";
 
 /// The integer value that represents an invalid value.
 const int kInvalidValue = -1;
@@ -70,6 +64,9 @@ class Parser {
   /// The information about the function to be called, corresponding to a given
   /// task ID.
   std::vector<FunctionInfo> task_map_;
+  /// This disallows usage of copy and assignment constructors.
+  Parser(const Parser&);
+  void operator=(const Parser&);
 };
 
 /// This helper function converts a string in CSV format into a vector of the

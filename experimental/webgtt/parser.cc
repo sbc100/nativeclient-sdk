@@ -10,6 +10,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -17,12 +18,15 @@
 #include "webgtt/taskmap.h"
 #include "webgtt/webgtt.h"
 
+/// The sentinel/delimiter string that is used in the message format.
+const char kSentinel[] = "::";
+
 namespace webgtt {
 
 Parser::Parser(const std::string& message)
     : message_(message),
       is_valid_(false),
-      task_ID_(kInvalidValue) { }
+      task_ID_(kInvalidValue) {}
 
 /// This function decodes the message. A valid message is of the form:
 /// "kSentinel<adjacency_matrix_>kSentinel<task_ID_>kSentinel<args_>kSentinel"
@@ -40,15 +44,15 @@ bool Parser::DecodeMessage() {
   // The shortest valid message is for a coloring request on a graph with
   // exactly one vertex, which would look like:
   // "<kSentinel>0<kSentinel>0<kSentinel>"
-  if (message_length < 2 + (3 * kSentinel.size())) {
+  if (message_length < 2 + (3 * strlen(kSentinel))) {
     return false;
   }
   // Look for the first sentinel.
-  if (message_.substr(0, kSentinel.size()).compare(kSentinel) != 0) {
+  if (message_.substr(0, strlen(kSentinel)).compare(kSentinel) != 0) {
     return false;
   }
   // Skip over the sentinel that we just found, and continue parsing.
-  parse_position += kSentinel.size();
+  parse_position += strlen(kSentinel);
 
   std::string adjacency_matrix = GetNextChunk(message_, &parse_position);
   if (adjacency_matrix.compare(kSentinel) == 0) {
@@ -97,7 +101,7 @@ bool Parser::DecodeMessage() {
       return false;
     }
   }
-  if (args.size() != 0) {
+    if (!args.empty()) {
     // args should be in CSV format; decode it.
     args_ = DecodeCSV(args);
     for (size_t i = 0; i < args_.size(); ++i) {
@@ -107,8 +111,8 @@ bool Parser::DecodeMessage() {
     }
   }
   int number_of_arguments = static_cast<int>(args_.size());
+  // Append enough dummy elements (zeros) to the end of args_, if necessary.
   if (number_of_arguments < kMaxArgs) {
-    // Append enough dummy elements (zeros) to the end of args_.
     args_.insert(args_.end(), kMaxArgs - number_of_arguments, 0);
   }
 
@@ -158,12 +162,13 @@ std::string GetNextChunk(const std::string& message, int* parse_position) {
   unsigned int next_sentinel_position = message.find(kSentinel,
                                                      *parse_position);
   if (next_sentinel_position == std::string::npos) {
-    return kSentinel;  // Return the sentinel string itself indicating error.
+    std::string ret_val(kSentinel);
+    return ret_val;  // Return the sentinel string itself indicating error.
   }
   std::string next_chunk = message.substr(*parse_position,
       next_sentinel_position - *parse_position);
   // Update the position to continue parsing from (skip over the sentinel).
-  *parse_position = next_sentinel_position + kSentinel.size();
+  *parse_position = next_sentinel_position + strlen(kSentinel);
   return next_chunk;
 }
 
@@ -177,7 +182,7 @@ std::vector<int> GetCommaPositions(const std::string& message) {
 }
 
 int StringToInteger(const std::string& message) {
-  if (message.size() == 0) {
+  if (message.empty()) {
     return kInvalidValue;
   }
   if (!isdigit(message[0])) {

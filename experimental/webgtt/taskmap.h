@@ -58,6 +58,9 @@ class TaskMap {
 
  private:
   std::vector<FunctionInfo> task_map_;
+  /// This disallows usage of copy and assignment constructors.
+  TaskMap(const TaskMap&);
+  void operator=(const TaskMap&);
 };
 
 }  // namespace webgtt

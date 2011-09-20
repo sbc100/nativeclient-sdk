@@ -22,7 +22,8 @@ namespace graph {
 template <class VertexListGraph, class Order, class Color>
 typename boost::graph_traits<VertexListGraph>::vertices_size_type
 SequentialVertexColoring(const VertexListGraph& graph,
-                         Order order, const Color& color) {
+                         Order order,
+                         const Color& color) {
   typedef boost::graph_traits<VertexListGraph> GraphTraits;
   typedef typename GraphTraits::vertex_descriptor vertex_descriptor;
   typedef typename GraphTraits::vertices_size_type size_type;
@@ -75,7 +76,7 @@ SequentialVertexColoring(const VertexListGraph& graph,
 Graph::Graph(int number_of_vertices,
              std::vector< std::vector<int> > adjacency_matrix)
     : number_of_vertices_(number_of_vertices),
-      adjacency_matrix_(adjacency_matrix) { }
+      adjacency_matrix_(adjacency_matrix) {}
 
 std::vector<int> Graph::GetColoring() const {
   // Construct the boost graph.

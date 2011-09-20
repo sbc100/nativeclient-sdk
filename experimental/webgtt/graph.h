@@ -45,7 +45,8 @@ namespace graph {
 template <class VertexListGraph, class Order, class Color>
 typename boost::graph_traits<VertexListGraph>::vertices_size_type
 SequentialVertexColoring(const VertexListGraph& graph,
-                         Order order, const Color& color);
+                         Order order,
+                         const Color& color);
 
 /// The Graph class. This class is a wrapper for Boost's graph representation
 /// and algorithms.
@@ -70,6 +71,8 @@ class Graph {
  private:
   int number_of_vertices_;
   std::vector< std::vector<int> > adjacency_matrix_;
+  /// This disallows usage of the assignment constructor.
+  void operator=(const Graph&);
 };
 
 }  // namespace graph
