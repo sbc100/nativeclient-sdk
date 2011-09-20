@@ -124,7 +124,7 @@ hooks = [
     "pattern": ".",
     "action": [
         "python",
-        "src/build_tools/install_third_party.py"
+        "src/build_tools/install_third_party.py", "--all-toolchains",
         ]
   }
 ]
