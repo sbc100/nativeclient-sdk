@@ -23,8 +23,8 @@ from nacl_sdk_scons import nacl_utils
 # Parameters
 
 # Revision numbers for the SDK
-MAJOR_REV = '0'
-MINOR_REV = '6'
+MAJOR_REV = '1'
+MINOR_REV = '0'
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
 
