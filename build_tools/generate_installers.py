@@ -66,14 +66,15 @@ def main(argv):
 
   # Decide environment to run in per platform.
   env = os.environ.copy()
+  # Set up the required env variables for the scons builders.
+  env['NACL_SDK_ROOT'] = parent_dir
+  env['NACL_TARGET_PLATFORM'] = '.'  # Use the repo's toolchain.
 
   # Build the examples.
   bot.BuildStep('build examples')
   bot.Print('generate_installers is building examples.')
   example_path = os.path.join(home_dir, 'src', 'examples')
   scons_path = os.path.join(example_path, 'scons')
-  # TODO(dspringer): Change --nacl-platform='.' to --nacl-platform='pepper_14'
-  # when supported.
   scons_cmd = scons_path + ' --nacl-platform="." install_prebuilt'
   subprocess.check_call(scons_cmd,
                         cwd=example_path,
@@ -85,8 +86,6 @@ def main(argv):
   bot.Print('generate_installers is building the experimental projects.')
   experimental_path = os.path.join(home_dir, 'src', 'experimental')
   scons_path = os.path.join(experimental_path, 'scons')
-  # TODO(dspringer): Change --nacl-platform='.' to --nacl-platform='pepper_14'
-  # when supported.
   scons_cmd = scons_path + ' --nacl-platform="."'
   subprocess.check_call(scons_cmd,
                         cwd=experimental_path,

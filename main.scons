@@ -602,8 +602,11 @@ def BuildExamples(env, target, source):
     target: The target that triggered this build.  Not used.
     source: The sources used for this build.  Not used.
   '''
+  os_env = os.environ.copy()
+  os_env['NACL_TARGET_PLATFORM'] = '.'
   subprocess.check_call(SconsBuildCommand(env),
                         cwd='examples',
+                        env=os_env,
                         shell=True)
 
 
@@ -615,8 +618,11 @@ def CleanExamples(env, target, source):
   Args:
     env: The construction Environment() that is building the examples.
   '''
+  os_env = os.environ.copy()
+  os_env['NACL_TARGET_PLATFORM'] = '.'
   subprocess.check_call('%s --clean' % SconsBuildCommand(env),
                         cwd='examples',
+                        env=os_env,
                         shell=True)
 
 

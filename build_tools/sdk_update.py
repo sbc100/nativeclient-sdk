@@ -789,8 +789,8 @@ def Update(options, argv):
     bundle_name = bundle['name']
     bundle_path = os.path.join(options.sdk_root_dir, bundle_name)
     if not update_options.force and os.path.exists(bundle_path):
-      InfoPrint('Skipping bundle %s because directory already exists.'
-                % bundle_name)
+      InfoPrint('Skipping bundle %s because directory already exists and is '
+                'up-to-date.' % bundle_name)
       InfoPrint('Use --force option to force overwriting existing directory')
       continue
     archive = bundle.GetArchive(GetHostOS())
@@ -805,8 +805,7 @@ def Update(options, argv):
     if size != archive['size']:
       raise Error("Size mismatch on Archive.  Expected %s but got %s bytes" %
                   (archive['size'], size))
-    InfoPrint('Extracting installer %s into %s' %
-              (dest_filename, bundle_name))
+    InfoPrint('Extracting %s' % bundle_name)
     ExtractInstaller(dest_filename, bundle_path)
     os.remove(dest_filename)
 

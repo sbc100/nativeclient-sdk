@@ -55,6 +55,10 @@ CC_SOURCE_FILES = ['build.scons', '%s.cc' % PROJECT_FILE_NAME]
 HTML_FILES = ['%s.html' % PROJECT_FILE_NAME]
 
 
+def Error(Exception):
+  pass
+
+
 def GetCamelCaseName(lower_case_name):
   """Converts an underscore name to a camel case name.
 
@@ -193,13 +197,11 @@ def ParseArguments(argv, script_dir):
       default=False,
       help=('Optional: If set, this will generate a C project.  Default '
             'is C++.'))
-  # TODO(gwink): Once we have the appropriate sdk folder structure in place,
-  #     replace the '.' below with 'pepper_14'.
   parser.add_option(
       '-p', '--nacl-platform', dest='nacl_platform',
-      default='.',
+      default='pepper_15',
       help=('Optional: if set, the new project will target the given nacl\n'
-            'platform. Default is the most current platform. e.g. pepper_14'))
+            'platform. Default is the most current platform. e.g. pepper_15'))
   result = parser.parse_args(argv)
   options = result[0]
   args = result[1]
@@ -265,8 +267,7 @@ class ProjectInitializer(object):
     self.__project_dir = self.os.path.join(self.__project_location,
                                            self.__project_name)
     if self.os.path.exists(self.__project_dir):
-      raise Exception("Error: directory '%s' already exists" %
-                      self.__project_dir)
+      raise Error("Error: directory '%s' already exists" % self.__project_dir)
     self.os.makedirs(self.__project_dir)
 
   def PrepareDirectoryContent(self):
@@ -298,10 +299,10 @@ class ProjectInitializer(object):
     contents as necessary.
     """
     camel_case_name = GetCamelCaseName(self.__project_name)
-    sdk_root_dir = self.os.path.abspath(
-        self.os.path.join(self.__project_templates_dir, '..'))
-    if sys.platform in WINDOWS_BUILD_PLATFORMS:
-      sdk_root_dir = sdk_root_dir.replace('\\', '/')
+    sdk_root_dir = os.getenv('NACL_SDK_ROOT', None)
+    if not sdk_root_dir:
+      raise Error("Error: NACL_SDK_ROOT is not set")
+    sdk_root_dir = self.os.path.abspath(sdk_root_dir)
     for project_file in self.__project_files:
       self.ReplaceInFile(project_file, PROJECT_NAME_TAG, self.__project_name)
       self.ReplaceInFile(project_file,

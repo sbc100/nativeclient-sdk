@@ -57,6 +57,21 @@ def TestingClosure(_outdir, _jobs):
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
 
+    def GetBotShellEnv(self):
+      '''Massage |env| so its env variables will work on the bots.'''
+      env = os.environ.copy()
+      env['NACL_TARGET_PLATFORM'] = '.'  # Use the repo's toolchain.
+      return env
+
+    def SconsCommand(self, scons_path=''):
+      '''Helper to cons up a scons command.  Sets nacl platform to '.' so that
+      SCons uses the repo's toolchain.
+      '''
+      return [os.path.join(scons_path, scons),
+              '-j', _jobs,
+              '--nacl-platform="."'
+             ]
+
     def testBuildExamplesVariant(self):
       '''Verify non-default toolchain SDK example build.'''
 
@@ -68,11 +83,17 @@ def TestingClosure(_outdir, _jobs):
               can be empty.
         '''
         path = os.path.join(_outdir, 'examples')
-        command = [os.path.join(path, scons), '-j', _jobs] + flags
-        annotator.Run(' '.join(command), cwd=path, shell=True)
+        command = self.SconsCommand(path) + flags
+        env = self.GetBotShellEnv()
+        annotator.Run(' '.join(command), cwd=path, env=env, shell=True)
 
-      buildExamplesWithFlags(['--architecture=x86', '--variant=newlib'])
-      buildExamplesWithFlags(['--architecture=x86', '--variant=glibc'])
+      # Note that --nacl-platform is set to ".".  This is done so that the bots
+      # will use the repo's toolchain, instead of a platform-specific one.
+      # There are no platform-specific toolchains in the repo.
+      buildExamplesWithFlags(['--architecture=x86',
+                              '--variant=newlib'])
+      buildExamplesWithFlags(['--architecture=x86',
+                              '--variant=glibc'])
       print "Test with bogus architectures, variants."
       print "We expect these tests to throw exceptions:"
       self.assertRaises(subprocess.CalledProcessError,
@@ -113,9 +134,9 @@ def TestingClosure(_outdir, _jobs):
         return
       print 'running targets: %s' % str(test_targets)
       path = os.path.join(_outdir, 'examples', 'hello_world')
-      command = [os.path.join(path, '..', scons), '-j', _jobs] + test_targets
-
-      annotator.Run(' '.join(command), cwd=path, shell=True)
+      command = self.SconsCommand(os.path.join(path, '..')) + test_targets
+      env = self.GetBotShellEnv()
+      annotator.Run(' '.join(command), cwd=path, env=env, shell=True)
 
     def testHttpd(self):
       '''Test the simple HTTP server.
@@ -250,13 +271,19 @@ def TestingClosure(_outdir, _jobs):
               can be empty.
         '''
         path = os.path.join(_outdir, 'project_templates')
-        scons_command = [os.path.join(path, project_name, scons), '-j', _jobs]
+        scons_command = self.SconsCommand(os.path.join(path, project_name))
         init_project_command = [sys.executable,
                                 'init_project.py',
-                                '--name=%s' % project_name] + flags
-        annotator.Run(' '.join(init_project_command), cwd=path, shell=True)
+                                '--name=%s' % project_name,
+                                '--nacl-platform="."'] + flags
+        env = self.GetBotShellEnv()
+        annotator.Run(' '.join(init_project_command),
+                      cwd=path,
+                      env=env,
+                      shell=True)
         annotator.Run(' '.join(scons_command),
                       cwd=os.path.join(path, project_name),
+                      env=env,
                       shell=True)
 
       initAndCompileProject('test_c_project', flags=['-c'])

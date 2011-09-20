@@ -8,19 +8,24 @@ setlocal
 
 set NACL_SDK_ROOT=<NACL_SDK_ROOT>
 :: NACL_TARGET_PLATFORM is really the name of a folder with the base dir -
-:: usually nacl-sdk-root - within which the toolchain for the target platform
+:: usually NACL_SDK_ROOT - within which the toolchain for the target platform
 :: are found.
+:: Replace the platform with the name of your target platform.  For example, to
+:: build applications that target the pepper_15 API, set
+::   NACL_TARGET_PLATFORM=pepper_15
 set NACL_TARGET_PLATFORM=<NACL_PLATFORM>
 
+set NACL_PLATFORM_DIR=%NACL_SDK_ROOT%\%NACL_TARGET_PLATFORM%
+
 :: Set the PYTHONPATH and SCONS_LIB_DIR so we can import SCons modules
-set SCONS_LIB_DIR=%~dp0third_party\scons-2.0.1\engine
-set PYTHONPATH=%NACL_SDK_ROOT%\third_party\scons-2.0.1\engine
+set SCONS_LIB_DIR=%NACL_PLATFORM_DIR%\third_party\scons-2.0.1\engine
+set PYTHONPATH=%NACL_PLATFORM_DIR%\third_party\scons-2.0.1\engine
 
 :: We have to do this because scons overrides PYTHONPATH and does not preserve
 :: what is provided by the OS.  The custom variable name won't be overwritten.
-set PYMOX=%NACL_SDK_ROOT%\third_party\pymox
+set PYMOX=%NACL_PLATFORM_DIR%\third_party\pymox
 
 :: Run the included copy of scons.
-python -O -OO "%NACL_SDK_ROOT%\third_party\scons-2.0.1\script\scons" ^
+python -O -OO "%NACL_PLATFORM_DIR%\third_party\scons-2.0.1\script\scons" ^
 --file=build.scons ^
---site-dir="%NACL_SDK_ROOT%\build_tools\nacl_sdk_scons" %*
+--site-dir="%NACL_PLATFORM_DIR%\build_tools\nacl_sdk_scons" %*

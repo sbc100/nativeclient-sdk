@@ -91,8 +91,7 @@ class TestProjectInitializer(unittest.TestCase):
 
   def setUp(self):
     self.script_dir = os.path.abspath(os.path.dirname(__file__))
-    self.nacl_src_dir = os.path.abspath(os.path.join(self.script_dir,
-                                                     '..'))
+    self.nacl_src_dir = os.getenv('NACL_SDK_ROOT', None)
     self.mock_factory = mox.Mox()
     # This mock is only valid for initialization and will be overwritten
     # after ward by self.os_mock.
@@ -161,8 +160,6 @@ class TestProjectInitializer(unittest.TestCase):
     path_mock = self.mock_factory.CreateMock(os.path)
     stdout_mock = self.mock_factory.CreateMock(sys.stdout)
     self.os_mock.path = path_mock
-    path_mock.join(self.script_dir,
-                   '..').AndReturn(self.nacl_src_dir)
     path_mock.abspath(self.nacl_src_dir).AndReturn(self.nacl_src_dir)
     self.fileinput_mock.input(
         'test/dir/test_project/normal_name.txt',
