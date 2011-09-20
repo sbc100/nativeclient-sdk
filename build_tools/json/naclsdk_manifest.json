@@ -2,14 +2,13 @@
   "bundles": [
     {
       "name": "pepper_14",
-      "desc_url": "http://code.google.com/chrome/nativeclient/docs/download.html",
       "description": "Chrome 14 bundle, revision 1052",
-      "stability": "dev",
-      "recommended": "no",
+      "stability": "stable",
+      "recommended": "yes",
       "version": 14,
       "archives": [
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/naclsdk_mac.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_14_1052/naclsdk_mac.tgz",
           "checksum": {
             "sha1": "e4b12fcb2dde33ff8b56e9ac3b83830a46205880"
           },
@@ -17,7 +16,7 @@
           "size": 51242839
         },
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/naclsdk_linux.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_14_1052/naclsdk_linux.tgz",
           "checksum": {
             "sha1": "52e6dd6efbd060956ac62b20dc3ba4bf0d34bcca"
           },
@@ -25,7 +24,7 @@
           "size": 55819823
         },
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/naclsdk_win.exe",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_14_1052/naclsdk_win.exe",
           "checksum": {
             "sha1": "9451dae079d19c7c5b270a4557aeec5d964858b7"
           },
@@ -34,6 +33,40 @@
         }
       ],
       "revision": 1052
+    },
+    {
+      "name": "pepper_15",
+      "description": "Chrome 15 bundle, revision 1180",
+      "stability": "dev",
+      "recommended": "no",
+      "version": 15,
+      "archives": [
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_15_1180/naclsdk_mac.tgz",
+          "checksum": {
+            "sha1": "6222e16a5dd2e292f606ca0ad759ec70695e900a"
+          },
+          "host_os": "mac",
+          "size": 161576433
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_15_1180/naclsdk_linux.tgz",
+          "checksum": {
+            "sha1": "57f00e5988b4e5846061896f9dcd51b720c0dbe5"
+          },
+          "host_os": "linux",
+          "size": 163579590
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_15_1180/naclsdk_win.exe",
+          "checksum": {
+            "sha1": "9c87fdf4c495aed7ee137f006d28d188e7ae317a"
+          },
+          "host_os": "win",
+          "size": 59971840
+        }
+      ],
+      "revision": 1180
     }
   ],
   "manifest_version": 1
