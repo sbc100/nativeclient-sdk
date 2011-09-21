@@ -33,6 +33,7 @@ INSTALLER_CONTENTS = [
     'examples/hello_world_c/',
     'examples/httpd.py',
     'examples/index.html',
+    'examples/input_events/',
     'examples/load_progress/',
     'examples/pi_generator/',
     'examples/pong/',
