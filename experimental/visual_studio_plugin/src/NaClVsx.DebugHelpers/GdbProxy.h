@@ -40,17 +40,17 @@ public ref class GdbProxy {
     void Open(System::String^ connectionString);
     void Close();
 
+    void WaitForReply();
+
     bool IsRunning();
     void SetOutputAsync(AsyncResponse^ reply);
     void SetStopAsync(AsyncResponse^ reply);
 
-    ResultCode GetPath(AsyncResponse^ reply);
     ResultCode GetArch(AsyncResponse^ reply);
     ResultCode GetThreads(AsyncResponse^ reply);
 
     ResultCode GetLastSig([System::Runtime::InteropServices::Out]int% sig);
 
-    ResultCode GetMemory(System::UInt64 offs, System::Object^ data);
     ResultCode GetMemory(
       System::UInt64 offs, System::Array^ data, System::UInt32 count);
     ResultCode SetMemory(
@@ -60,18 +60,12 @@ public ref class GdbProxy {
     ResultCode SetRegisters(void *data, System::UInt32 size);
 
     ResultCode RequestBreak();
-    ResultCode RequestContinueBackground();
     ResultCode RequestContinue();
     ResultCode RequestStep();
 
     bool HasBreakpoint(System::UInt64 offs);
     ResultCode AddBreakpoint(System::UInt64 offs);
     ResultCode RemoveBreakpoint(System::UInt64 offs);
-//    ResultCode EnableBreakpoint(System::UInt64 offs);
-//    ResultCode DisableBreakpoint(System::UInt64 offs);
-//    ResultCode SuspendBreakpoint(System::UInt64 offs);
-//    ResultCode ResumeBreakpoint(System::UInt64 offs);
-    bool       QueryBreakpoint(System::UInt64 offs);
 
   private:
     System::String^ connectionString_;

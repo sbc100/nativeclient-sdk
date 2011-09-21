@@ -22,7 +22,7 @@ namespace nacl_debug_conn {
 class DebugPipe;
 class DebugPacket;
 
-class DebugHost : public DebugFlags {
+class DebugHost {
  private:
   explicit DebugHost(DebugPipe *pipe);
 
@@ -41,28 +41,21 @@ class DebugHost : public DebugFlags {
   };
 
  public:
-   typedef void (__stdcall *DHAsync)(DHResult res, void *obj);
-   typedef void (__stdcall *DHAsyncStr)(DHResult res, void *obj, const char *str);
-   typedef void (__stdcall *DHAsyncMem)(DHResult res, void *obj, void* data, uint32_t len);
-
+  typedef void (__stdcall *DHAsync)(DHResult res, void *obj);
+  typedef void (__stdcall *DHAsyncStr)(DHResult res,
+                                       void* obj,
+                                       const char* str);
  public:
   ~DebugHost();
   static DebugHost *SocketConnect(const char *addr);
 
  public:
-  DHResult SendStringAsync(const char *str, DHAsyncStr reply, void *obj);  
-  DHResult SendString(const char *str, const char **ppReply);
-  void FreeString(const char *pstr);
-
-  bool IsRunning();
   void SetOutputAsync(DHAsyncStr reply, void *obj);
   void SetStopAsync(DHAsync reply, void *obj);
   
-  DHResult GetPathAsync(DHAsyncStr reply, void *obj);
   DHResult GetArchAsync(DHAsyncStr reply, void *obj);
   DHResult GetThreadsAsync(DHAsyncStr reply, void *obj);
   
-public:  
   DHResult GetLastSig(int *sig);
 
   DHResult GetMemory(uint64_t offs, void *buf, uint32_t max);
@@ -72,12 +65,22 @@ public:
   DHResult SetRegisters(void *data, uint32_t size);
 
   DHResult RequestBreak();    // Attempts to immediately break 
-  DHResult RequestContinue(); // Continues execution, blocking until next exception.
-  DHResult RequestStep();     // Continues exectuion for one step or until next exception.
+  DHResult RequestContinue();  // Continues execution, not blocking.
+  DHResult RequestStep();     // Continues exectuion for one step or
+                              // until next exception.
 
-  DHResult RequestContinueBackground(); // Continues execution, returns immediately
-  DHResult RequestStepBackground();     // Attempts to step but returns immediately
+  bool HasBreakpoint(uint64_t offs);
+  DHResult AddBreakpoint(uint64_t offs);
+  DHResult RemoveBreakpoint(uint64_t offs);
 
+  bool IsRunning();
+  DebugHost::DHResult WaitForReply();
+
+ protected:
+  DHResult SendStringAsync(const char *str, DHAsyncStr reply, void *obj);
+  DHResult SendString(const char *str, const char **ppReply);
+  DHResult RequestStepBackground();  // Attempts to step but returns
+                                     // immediately.
   struct BreakpointRecord {
     uint64_t offs;
     bool enabled;
@@ -85,16 +88,11 @@ public:
     char previousContents;
   };
 
-  bool HasBreakpoint(uint64_t offs);
-  DHResult AddBreakpoint(uint64_t offs);
-  DHResult RemoveBreakpoint(uint64_t offs);
   DHResult EnableBreakpoint(uint64_t offs);
   DHResult DisableBreakpoint(uint64_t offs);
   DHResult SuspendBreakpoint(uint64_t offs);
   DHResult ResumeBreakpoint(uint64_t offs);
-  DHResult QueryBreakpoint(uint64_t offs, BreakpointRecord* out_result);
 
-protected:
   DHResult FetchThreadInfo();
   DHResult Transact(DebugPacket *outPkt, DebugPacket *in);
   DHResult SendAndWaitForBreak(const char *str, bool wait);
@@ -107,7 +105,7 @@ private:
   void *outputObj_;
   DHAsync stopFunc_;
   void *stopObj_;
-
+  DebugFlags flags_;
 };
 
 
@@ -115,3 +113,4 @@ private:
 
 
 #endif
+

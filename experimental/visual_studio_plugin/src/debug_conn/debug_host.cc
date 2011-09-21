@@ -103,7 +103,7 @@ DebugHost::DHResult DebugHost::Transact(DebugPacket *outPkt, DebugPacket *inPkt)
             case 'W':
             case 'S':
             case 'T':
-              SetFlagsMasked(0, DHF_RUNNING);
+              flags_.SetFlagsMasked(0, DHF_RUNNING);
               stopPending = true;
               debug_log_info("DebugHost::Transact cmd=%c,"
                              " set flags to DHF_RUNNING\n",
@@ -209,15 +209,11 @@ DebugHost::DHResult DebugHost::SendStringAsync(const char *str, DHAsyncStr reply
     }
   }
 
+  // Note: it's NOT asynchronous!
+  // Danger: callback gets called only in some cases!
+
   return res;
 }
-
-
-void nacl_debug_conn::DebugHost::FreeString( const char* pstr )
-{
-  delete[] pstr;
-}
-
 
 typedef struct {
   DebugHost::DHAsyncStr func;
@@ -244,12 +240,6 @@ DebugHost::DHResult DebugHost::GetArchAsync(DHAsyncStr reply, void *obj) {
 
   return SendStringAsync("qXfer:features:read:target.xml:0,fff", StripResult, &sobj);
 }
-
-
-DebugHost::DHResult DebugHost::GetPathAsync(DHAsyncStr reply, void *obj) {
-  return SendStringAsync("qExecPath", reply, obj);
-}
-
 
 DebugHost::DHResult DebugHost::GetLastSig(int *sig) {
   DebugPacket outPkt, inPkt;
@@ -438,27 +428,10 @@ DebugHost::DHResult DebugHost::SetMemory(uint64_t offs, void *data, uint32_t max
   return res;
 }
 
-DebugHost::DHResult DebugHost::SendAndWaitForBreak(const char* str, bool w) {
-  DebugPipe::DPResult res;
-  DebugPacket outPkt, inPkt;
-
-  // Send CTRL-C for break signal
-  outPkt.Clear();
-  outPkt.AddString(str);
-
-  debug_log_info("DebugHost::SendAndWaitFor Break [%s] w=%d\n", str, w);
-  if (NULL == pipe_)
-    return DHR_LOST;
-
-  res = pipe_->SendPacket(&outPkt);
-  if (res == DebugPipe::DPR_ERROR)
-    return DHR_LOST;
-
-  if (res == DebugPipe::DPR_NO_DATA)
-    return DHR_TIMEOUT;
-
-  while (w) {
-    res = pipe_->GetPacket(&inPkt);
+DebugHost::DHResult DebugHost::WaitForReply() {
+  DebugPacket inPkt;
+  while (true) {
+    DebugPipe::DPResult res = pipe_->GetPacket(&inPkt);
     if (res == DebugPipe::DPR_NO_DATA)
       continue;
 
@@ -471,7 +444,7 @@ DebugHost::DHResult DebugHost::SendAndWaitForBreak(const char* str, bool w) {
         case 'W':
         case 'S':
         case 'T':
-          SetFlagsMasked(0, DHF_RUNNING);
+          flags_.ClearFlag(DHF_RUNNING);
           if (stopFunc_) {
             debug_log_info("Calling stopFunc @ %s:%d\n", __FILE__, __LINE__);
             stopFunc_(DHR_OK, stopObj_);
@@ -499,12 +472,37 @@ DebugHost::DHResult DebugHost::SendAndWaitForBreak(const char* str, bool w) {
   return DHR_OK;
 }
 
+DebugHost::DHResult DebugHost::SendAndWaitForBreak(const char* str, bool w) {
+  DebugPipe::DPResult res;
+  DebugPacket outPkt, inPkt;
+
+  // Send CTRL-C for break signal
+  outPkt.Clear();
+  outPkt.AddString(str);
+
+  debug_log_info("DebugHost::SendAndWaitFor Break [%s] w=%d\n", str, w);
+  if (NULL == pipe_)
+    return DHR_LOST;
+
+  res = pipe_->SendPacket(&outPkt);
+  if (res == DebugPipe::DPR_ERROR)
+    return DHR_LOST;
+
+  if (res == DebugPipe::DPR_NO_DATA)
+    return DHR_TIMEOUT;
+
+  if (w)
+    return WaitForReply();
+  return DHR_OK;
+}
+
 DebugHost::DHResult DebugHost::RequestContinue() {
   debug_log_info("DebugHost::RequestContinue\n");
 
-  // When we send 'c', there will be a reply (e.g. "S05"), so we need to
-  // wait for it or the debug client gets out of synch with the debug_server.
-  return SendAndWaitForBreak("c", true);
+  // When we send 'c', there will be a reply (e.g. "S05"), so
+  // we don't wait for it here, but wait in the worker thread.
+  flags_.SetFlag(DHF_RUNNING);
+  return SendAndWaitForBreak("c", false);
 }
 
 DebugHost::DHResult DebugHost::RequestStep() {
@@ -622,19 +620,6 @@ DebugHost::DHResult nacl_debug_conn::DebugHost::ResumeBreakpoint( uint64_t offs 
   return BreakpointStatusChanged(offs);
 }
 
-DebugHost::DHResult nacl_debug_conn::DebugHost::QueryBreakpoint( uint64_t offs, DebugHost::BreakpointRecord* out_result )
-{
-  if (breaks_.count(offs) == 0) {
-    debug_log_warning("DebugHost::QueryBreakpoint could not find 0x%x.\n",
-                      offs);
-    return DHR_FAILED;
-  }
-
-  debug_log_warning("DebugHost::QueryBreakpoint found 0x%x.\n", offs);
-  *out_result = breaks_[offs];
-  return DHR_OK;
-}
-
 nacl_debug_conn::DebugHost::DHResult nacl_debug_conn::DebugHost::BreakpointStatusChanged( uint64_t offs )
 {
   if (breaks_.count(offs) == 0) {
@@ -663,7 +648,7 @@ nacl_debug_conn::DebugHost::DHResult nacl_debug_conn::DebugHost::BreakpointStatu
 
 bool DebugHost::IsRunning() {
   debug_log_info("DebugHost::IsRunning");
-  return GetFlags() & DHF_RUNNING;
+  return flags_.GetFlags() & DHF_RUNNING;
 }
 
 void DebugHost::SetOutputAsync(DHAsyncStr reply, void *obj) {
@@ -675,30 +660,6 @@ void DebugHost::SetStopAsync(DHAsync reply, void *obj) {
   debug_log_info("DebugHost::SetStopAsync stopFunc=%p  obj=%p\n", reply, obj);
   stopFunc_ = reply;
   stopObj_  = obj;
-}
-
-DebugHost::DHResult DebugHost::RequestContinueBackground() {
-  DebugPipe::DPResult res;
-  DebugPacket outPkt;
-  debug_log_info("DebugHost::RequestContinueBackground");
-  if (NULL == pipe_)
-    return DHR_LOST;
-
-  outPkt.AddString("c");
-
-  // Turn off sequences for out of sequence requests
-  uint32_t flags = pipe_->GetFlagsMasked(DebugPipe::DPF_USE_SEQ);
-  pipe_->SetFlagsMasked(0, DebugPipe::DPF_USE_SEQ);
-  res = pipe_->SendPacket(&outPkt);
-  pipe_->SetFlagsMasked(flags, DebugPipe::DPF_USE_SEQ);
-
-  if (res == DebugPipe::DPR_ERROR)
-    return DHR_LOST;
-
-  if (res == DebugPipe::DPR_NO_DATA)
-    return DHR_TIMEOUT;
-
-  return DHR_OK;
 }
 
 DebugHost::DHResult DebugHost::RequestStepBackground() {
@@ -725,3 +686,4 @@ DebugHost::DHResult DebugHost::RequestStepBackground() {
 
   return DHR_OK;
 }
+

@@ -18,11 +18,10 @@
 namespace nacl_debug_conn {
 
 class DebugFlags {
-protected:
+ public:
   DebugFlags() : flags_(0) {}
   virtual ~DebugFlags() {}
 
-public:
   bool GetFlag(uint32_t flag) const {
     return ((flags_ & flag) != 0);
   }
@@ -59,3 +58,4 @@ private:
 } /* End of nacl_debug_conn Namespace */
 
 #endif
+

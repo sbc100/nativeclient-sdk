@@ -55,10 +55,6 @@ struct GdbProxyImpl {
   static void __stdcall DHAsyncStr(DebugHost::DHResult res,
       void *obj,
       const char *str);
-  static void __stdcall DHAsyncMem(DebugHost::DHResult res,
-      void *obj,
-      void* data,
-      uint32_t len);
 };
 
 void __stdcall GdbProxyImpl::DHAsync(DebugHost::DHResult res, void *obj) {
@@ -75,18 +71,6 @@ void __stdcall GdbProxyImpl::DHAsyncStr(
   GdbProxy::AsyncResponse^ closure =
     ClosureMap::GetClosure(reinterpret_cast<int>(obj));
   closure((GdbProxy::ResultCode) res, gcnew String(str), nullptr);
-}
-
-void __stdcall GdbProxyImpl::DHAsyncMem(
-    DebugHost::DHResult res,
-    void *obj,
-    void* data,
-    uint32_t len) {
-  GdbProxy::AsyncResponse^ closure =
-    ClosureMap::GetClosure(reinterpret_cast<int>(obj));
-  array<Byte>^ managedData = gcnew array<Byte>(len);
-  Marshal::Copy(IntPtr(data), managedData, 0, len);
-  closure((GdbProxy::ResultCode) res, nullptr, managedData);
 }
 
 GdbProxy::GdbProxy(void)
@@ -133,6 +117,10 @@ bool GdbProxy::IsRunning() {
   return pimpl_->pHost->IsRunning();
 }
 
+void GdbProxy::WaitForReply() {
+  pimpl_->pHost->WaitForReply();
+}
+
 void GdbProxy::SetOutputAsync(AsyncResponse^ reply) {
   pimpl_->pHost->SetOutputAsync(
     &GdbProxyImpl::DHAsyncStr,
@@ -143,14 +131,6 @@ void GdbProxy::SetStopAsync(AsyncResponse^ reply) {
   pimpl_->pHost->SetStopAsync(
     &GdbProxyImpl::DHAsync,
     reinterpret_cast<void*>(ClosureMap::AddClosure(reply, false)));
-}
-
-
-
-GdbProxy::ResultCode GdbProxy::GetPath(AsyncResponse^ reply) {
-  return static_cast<ResultCode>(pimpl_->pHost->GetPathAsync(
-      &GdbProxyImpl::DHAsyncStr,
-      reinterpret_cast<void*>(ClosureMap::AddClosure(reply, true))));
 }
 
 GdbProxy::ResultCode GdbProxy::GetArch(AsyncResponse^ reply) {
@@ -170,19 +150,6 @@ GdbProxy::ResultCode GdbProxy::GetLastSig([Out]int% sig) {
   ResultCode result = ResultCode::DHR_FAILED;
   result = static_cast<ResultCode>(pimpl_->pHost->GetLastSig(&lastSig));
   sig = lastSig;
-  return result;
-}
-
-GdbProxy::ResultCode GdbProxy::GetMemory(
-    System::UInt64 offs,
-    System::Object^ data) {
-  Int32 size = Marshal::SizeOf(data->GetType());
-  GCHandle^ hData = GCHandle::Alloc(data, GCHandleType::Pinned);
-  IntPtr pData = hData->AddrOfPinnedObject();
-  ResultCode result = static_cast<ResultCode>(
-    pimpl_->pHost->GetMemory(offs, pData.ToPointer(), size));
-  hData->Free();
-
   return result;
 }
 
@@ -237,10 +204,6 @@ GdbProxy::ResultCode GdbProxy::RequestBreak() {
   return static_cast<ResultCode>(pimpl_->pHost->RequestBreak());
 }
 
-GdbProxy::ResultCode GdbProxy::RequestContinueBackground() {
-  return static_cast<ResultCode>(pimpl_->pHost->RequestContinueBackground());
-}
-
 GdbProxy::ResultCode GdbProxy::RequestContinue() {
   return static_cast<ResultCode>(pimpl_->pHost->RequestContinue());
 }
@@ -259,11 +222,6 @@ GdbProxy::ResultCode GdbProxy::AddBreakpoint(System::UInt64 offs ) {
 
 GdbProxy::ResultCode GdbProxy::RemoveBreakpoint(System::UInt64 offs ) {
   return (GdbProxy::ResultCode)pimpl_->pHost->RemoveBreakpoint(offs);
-}
-
-bool GdbProxy::QueryBreakpoint(System::UInt64 offs ) {
-  DebugHost::BreakpointRecord dummy;
-  return (pimpl_->pHost->QueryBreakpoint(offs, &dummy) == DebugHost::DHR_OK);
 }
 
 }}  // namespace NaClVsx.DebugHelpers

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -48,15 +48,15 @@ namespace Google.NaClVsx.DebugSupport {
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void Open(string connectionString) {
       sendStopMessages_ = false;
-      gdb_.Open(connectionString);
+      gdb_proxy_.Open(connectionString);
 
       // Can't set these until after Open() returns
-      gdb_.SetStopAsync(OnGdbStop);
-      gdb_.SetOutputAsync(OnGdbOutput);
+      gdb_proxy_.SetStopAsync(OnGdbStop);
+      gdb_proxy_.SetOutputAsync(OnGdbOutput);
 
       var evt = new EventWaitHandle(false, EventResetMode.AutoReset);
       GdbProxy.ResultCode status;
-      gdb_.GetArch(
+      gdb_proxy_.GetArch(
           (r, s, d) => {
             status = r;
             if (status == GdbProxy.ResultCode.DHR_OK) {
@@ -69,7 +69,7 @@ namespace Google.NaClVsx.DebugSupport {
       }
 
       var regs = new RegsX86_64();
-      gdb_.GetRegisters(ref regs);
+      gdb_proxy_.GetRegisters(ref regs);
       nexeBaseOffset_ = regs.R15;
 
       var full_nexe_path = NaClProjectConfig.GetLastNexe();
@@ -82,7 +82,7 @@ namespace Google.NaClVsx.DebugSupport {
        * make sure we are running the nexe we built...esp
        * when we are launching through chrome and using a server
        * to run our app.
-        gdb_.GetPath(
+        gdb_proxy_.GetPath(
           (r, s, d) => {
             status = r;
             if (status == GdbProxy.ResultCode.DHR_OK && s!="") {
@@ -105,12 +105,18 @@ namespace Google.NaClVsx.DebugSupport {
       gdbWorkerThread_ = new System.Threading.Thread(GdbWorkerThreadProc);
       gdbWorkerThread_.Name = "GDB Proxy Background Worker";
       gdbWorkerThread_.Start();
+
+      // Debuggee is stopped at nexe entry point.
+      // Calling |GetLastSig| results in debugger getting notification about
+      // debuggee stopped status.
+      var lastSig = 0;
+      gdb_proxy_.GetLastSig(out lastSig);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void Close() {
       gdbTermEvent_.Set();
-      gdb_.Close();
+      gdb_proxy_.Close();
       gdbWorkerThread_.Join(gdbPingInterval_ * 8);
       if (gdbWorkerThread_.IsAlive) {
         gdbWorkerThread_.Abort();
@@ -140,14 +146,14 @@ namespace Google.NaClVsx.DebugSupport {
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void Break() {
-      var result = gdb_.RequestBreak();
+      var result = gdb_proxy_.RequestBreak();
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public object GetRegisters(uint id) {
       // FIXME -- |id| does NOT appear to be used by this function!!  
       var regs = new RegsX86_64();
-      gdb_.GetRegisters(ref regs);
+      gdb_proxy_.GetRegisters(ref regs);
       if (regs.Rip == 0) {
         Debug.WriteLine("ERROR: regs.RIPS is 0");
       } else {
@@ -179,7 +185,7 @@ namespace Google.NaClVsx.DebugSupport {
       // Check if we are starting on a breakpoint.  If so we need to 
       // temporarily remove it or we will immediately trigger a break
       // without moving.
-      var bp = gdb_.HasBreakpoint(rip);
+      var bp = gdb_proxy_.HasBreakpoint(rip);
       if (StepFinished != null) {
         StepFinished(
             this,
@@ -194,7 +200,7 @@ namespace Google.NaClVsx.DebugSupport {
           RemoveBreakpoint(rip);
           sendStopMessages_ = false;
         }
-        gdb_.RequestStep();
+        gdb_proxy_.RequestStep();
         if (bp) {
           AddBreakpoint(rip);
           sendStopMessages_ = true;
@@ -206,7 +212,7 @@ namespace Google.NaClVsx.DebugSupport {
         // If the signal is not a break trap, or if the thead changed
         // something else triggered the stop, so we are done.
         int sig;
-        gdb_.GetLastSig(out sig);
+        gdb_proxy_.GetLastSig(out sig);
         if (sig != 5) {
           break;
         }
@@ -226,7 +232,7 @@ namespace Google.NaClVsx.DebugSupport {
       var rip = regs.Rip;
 
       Debug.WriteLine("CONTINUE, rip=0x" + String.Format("{0,4:X}", rip));
-      if (gdb_.HasBreakpoint(rip)) {
+      if (gdb_proxy_.HasBreakpoint(rip)) {
         Debug.WriteLine(
             "NaClDebugger.cs, Continue()" +
             "-HasBreakpoint = true, rip=" +
@@ -236,14 +242,14 @@ namespace Google.NaClVsx.DebugSupport {
         // where the IP gets back to the current line before we have
         // a chance to re-enable the breakpoint
         sendStopMessages_ = false;
-        gdb_.RequestStep();
+        gdb_proxy_.RequestStep();
         sendStopMessages_ = true;
         AddBreakpoint(rip);
       } else {
         Debug.WriteLine("NaClDebugger.cs, Continue()-HasBreakpoint = false");
       }
 
-      var result = gdb_.RequestContinue();
+      var result = gdb_proxy_.RequestContinue();
       // Calling RequestContinueBackground causes trouble,
       // because the new sel_ldr sends a 'S05' in response
       // to the 'c', and RequestContinueBackground sends
@@ -255,17 +261,17 @@ namespace Google.NaClVsx.DebugSupport {
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public bool HasBreakpoint(ulong addr) {
-      return gdb_.HasBreakpoint(addr);
+      return gdb_proxy_.HasBreakpoint(addr);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void AddBreakpoint(ulong addr) {
-      gdb_.AddBreakpoint(addr);
+      gdb_proxy_.AddBreakpoint(addr);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RemoveBreakpoint(ulong addr) {
-      gdb_.RemoveBreakpoint(addr);
+      gdb_proxy_.RemoveBreakpoint(addr);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
@@ -274,14 +280,14 @@ namespace Google.NaClVsx.DebugSupport {
       if (HasBreakpoint(addr)) {
         return;
       }
-      gdb_.AddBreakpoint(addr);
+      gdb_proxy_.AddBreakpoint(addr);
       tempBreakpoints_.Add(addr);
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void RemoveTempBreakpoints() {
       foreach (var addr in tempBreakpoints_) {
-        gdb_.RemoveBreakpoint(addr);
+        gdb_proxy_.RemoveBreakpoint(addr);
       }
       tempBreakpoints_.Clear();
     }
@@ -292,7 +298,7 @@ namespace Google.NaClVsx.DebugSupport {
       var evt = new EventWaitHandle(false, EventResetMode.AutoReset);
       GdbProxy.ResultCode status;
       var tids = new List<uint>();
-      gdb_.GetThreads(
+      gdb_proxy_.GetThreads(
           (r, s, d) => {
             status = r;
             if (status == GdbProxy.ResultCode.DHR_OK) {
@@ -327,7 +333,7 @@ namespace Google.NaClVsx.DebugSupport {
         sourceAddress += baseAddress_;
       }
 
-      result = gdb_.GetMemory(sourceAddress, destination, countInBytes);
+      result = gdb_proxy_.GetMemory(sourceAddress, destination, countInBytes);
       if (result != GdbProxy.ResultCode.DHR_OK) {
         throw new ApplicationException("Failed GetMemory query");
       }
@@ -339,7 +345,7 @@ namespace Google.NaClVsx.DebugSupport {
 
       destAddress += baseAddress_;
 
-      result = gdb_.SetMemory(destAddress, src, count);
+      result = gdb_proxy_.SetMemory(destAddress, src, count);
       if (result != GdbProxy.ResultCode.DHR_OK) {
         throw new ApplicationException("Failed SetMemory query");
       }
@@ -368,13 +374,13 @@ namespace Google.NaClVsx.DebugSupport {
             false,
             EventResetMode.ManualReset);
 
-    private readonly GdbProxy gdb_ = new GdbProxy();
+    private readonly GdbProxy gdb_proxy_ = new GdbProxy();
     private readonly List<Closure> stoppingEventClosures_ = new List<Closure>();
     private readonly NaClSymbolProvider symbols_;
     private readonly List<ulong> tempBreakpoints_ = new List<ulong>();
 
     private string arch_;
-    private int gdbPingInterval_ = 2000; // in ms
+    private int gdbPingInterval_ = 1000; // in ms
     private int gdbTimeout_ = 1000; // in ms
     private System.Threading.Thread gdbWorkerThread_;
     private ulong nexeBaseOffset_;
@@ -383,21 +389,17 @@ namespace Google.NaClVsx.DebugSupport {
 
     #endregion
 
-//    private RegsX86_64 registers_ = new RegsX86_64();
-
-    //
-    // FIXME -- WHY?? do we keep pinging sel_ldr?  gdb does NOT do this!
-    //
-
     #region Private Implementation
 
     private void GdbWorkerThreadProc() {
       do {
         lock (this) {
-          var lastSig = 0;
-          /// FIXME -- why do we also ask for last signal?  Should we only
-          /// do this when needed, instead of ALWAYS?
-          gdb_.GetLastSig(out lastSig);
+          // gdb_proxy_::RequestContinue is not blocking anymore, so this worker thread
+          // has to poll RSP connection for reply (sent by debug server when debuggee
+          // stops for some reason).
+          // gdb_proxy_.WaitForReply will notify callback registered by gdb_proxy_.SetStopAsync.
+          if (gdb_proxy_.IsRunning())
+            gdb_proxy_.WaitForReply();
         }
       } while (gdbTermEvent_.WaitOne(gdbPingInterval_ * 1) == false);
     }
