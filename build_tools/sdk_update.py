@@ -15,6 +15,7 @@ import shutil
 import string
 import subprocess
 import sys
+import tarfile
 import tempfile
 import urllib2
 import urlparse
@@ -23,8 +24,9 @@ import urlparse
 #------------------------------------------------------------------------------
 # Constants
 
+# Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 0
+MINOR_REV = 1
 
 GLOBAL_HELP = '''Usage: %prog [options] command [command_options]
 
@@ -38,6 +40,7 @@ Commands:
   update - Updates the SDK to the latest recommended toolchains'''
 
 MANIFEST_FILENAME='naclsdk_manifest.json'
+USER_DATA_DIR='sdk_cache'
 
 # The following SSL certificates are used to validate the SSL connection
 # to https://commondatastorage.googleapis.com
@@ -205,16 +208,20 @@ def ExtractInstaller(installer, outdir):
   if os.path.exists(outdir):
     RemoveDir(outdir)
 
-  if GetHostOS() == 'win':
-    # Run the self-extracting installer in silent mode with a specified
-    # output directory
+  if os.path.splitext(installer)[1] == '.exe':
+    # If the installer has extension 'exe', assume it's a Windows NSIS-style
+    # installer that handles silent (/S) and relocated (/D) installs.
     command = [installer, '/S', '/D=%s' % outdir]
+    subprocess.check_call(command)
   else:
     os.mkdir(outdir)
-    command = ['tar', '-C', outdir, '--strip-components=1',
-               '-xvzf', installer]
-
-  subprocess.check_call(command)
+    tar_file = None
+    try:
+      tar_file = tarfile.open(installer)
+      tar_file.extractall(path=outdir)
+    finally:
+      if tar_file:
+        tar_file.close()
 
 
 def RemoveDir(outdir):
@@ -836,7 +843,8 @@ def main(argv):
       # TODO(mball): the default should probably be in something like
       # ~/.naclsdk (linux), or ~/Library/Application Support/NaClSDK (mac),
       # or %HOMEPATH%\Application Data\NaClSDK (i.e., %APPDATA% on windows)
-      default=os.path.dirname(os.path.abspath(__file__)),
+      default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           USER_DATA_DIR),
       help="specify location of NaCl SDK's data directory")
   parser.add_option(
       '-s', '--sdk-root-dir', dest='sdk_root_dir',

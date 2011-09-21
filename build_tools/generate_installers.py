@@ -142,15 +142,19 @@ def main(argv):
   # Now that the SDK directory is copied and cleaned out, tar it all up using
   # the native platform tar.
 
-  # Set the default shell command and output name.
-  ar_cmd = ('tar cvzf %(INSTALLER_NAME)s %(input)s && cp %(INSTALLER_NAME)s '
-            '%(output)s && chmod 644 %(output)s')
+  # Set the default shell command and output name.  Create a compressed tar
+  # archive from the contents of |input|.  The contents of the tar archive
+  # have to be relative to |input| without including |input| in the path.
+  # Then copy the resulting archive to the |output| directory and make it
+  # read-only to group and others.
+  ar_cmd = ('tar -cvzf %(INSTALLER_NAME)s -C %(input)s . && '
+            'cp %(INSTALLER_NAME)s %(output)s && chmod 644 %(output)s')
 
   archive = os.path.join(home_dir, INSTALLER_NAME)
   subprocess.check_call(
       ar_cmd % (
            {'INSTALLER_NAME':INSTALLER_NAME,
-            'input':version_dir,
+            'input':installer_dir,
             'output':archive}),
       cwd=temp_dir,
       env=env,
