@@ -70,15 +70,23 @@ bool Parser::DecodeMessage() {
   // Decode the adjacency matrix
   int adj_position = 0;
   for (int i = 1; i <= number_of_vertices; ++i) {
+    int next_comma_position;
+    // There is no comma at the end
+    if (i == number_of_vertices) {
+      next_comma_position = adjacency_matrix.size();
+    } else {
+      next_comma_position = comma_positions[(i * number_of_vertices) - 1];
+    }
+
     std::vector<int> row = DecodeCSV(adjacency_matrix.substr(adj_position,
-        comma_positions[(i * number_of_vertices) - 1] - adj_position));
+        next_comma_position - adj_position));
     for (size_t j = 0; j < row.size(); ++j) {
       if (row[j] == kInvalidValue) {
         return false;
       }
     }
     adjacency_matrix_.push_back(row);
-    adj_position = comma_positions[(i * number_of_vertices) - 1] + 1;
+    adj_position = next_comma_position + 1;
   }
   comma_positions.clear();
   // Construct the graph
