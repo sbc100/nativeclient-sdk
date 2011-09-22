@@ -320,12 +320,67 @@ def GetArchFromSpec(arch_spec):
   return (arch, subarch)
 
 
+def GetArchName(arch_spec):
+  ''' Return a name of the form arch_subarch for the given arch spec.
+
+  Args:
+    arch_spec: An object containing 'arch' and 'subarch' keys that describe
+        the instruction set architecture of the output program.  See
+        |ARCH_SPECS| in nacl_utils.py for valid examples.
+
+  Returns:
+    A string with the arch name.
+  '''
+  return '%s_%s' % GetArchFromSpec(arch_spec)
+
+
+def MakeNaClCommonEnvironment(nacl_env,
+                              arch_spec=ARCH_SPECS['x86-32'],
+                              is_debug=False):
+  '''Make a clone of nacl_env that is suitable for building prohrams or
+  libraries for a specific build variant.
+
+  Make a cloned NaCl Environment and setup variables for options like optimized
+  versus debug CCFLAGS.
+
+  Args:
+    nacl_env: A SCons construction environment.  This is typically the return
+        value of NaClEnvironment() (see above).
+    arch_spec: An object containing 'arch' and 'subarch' keys that describe
+        the instruction set architecture of the output program.  See
+        |ARCH_SPECS| in nacl_utils.py for valid examples.
+    is_debug: Indicates whether this program should be built for debugging or
+        optimized.
+
+  Returns:
+    A SCons Environment setup with options for the specified variant of a NaCl
+    module or library.
+  '''
+  arch_name = GetArchName(arch_spec)
+  env = nacl_env.Clone()
+  env.AppendOptCCFlags(is_debug)
+  env.AppendArchFlags(arch_spec)
+  if not is_debug:
+    # Strip the resulting executable if non-debug.
+    env.Append(LINKFLAGS=['--strip-all'])
+
+  # Wrap linker command with TEMPFILE so that if lines are longer than
+  # MAXLINELENGTH, the tools will be run with @tmpfile. This isn't needed
+  # for any of the sdk examples, but if people cargo cult them for other
+  # purposes, they can end up hitting command line limits on Windows where
+  # MAXLINELENGTH can be as low as 2048.
+  env['LINKCOM'] = '${TEMPFILE("' + env['LINKCOM'] + '")}'
+  env['SHLINKCOM'] = '${TEMPFILE ' + env['SHLINKCOM'] + '")}'
+
+  return env
+
+
 def MakeNaClModuleEnvironment(nacl_env,
                               sources,
                               module_name='nacl',
                               arch_spec=ARCH_SPECS['x86-32'],
                               is_debug=False,
-                              dir_prefix=''):
+                              build_dir_prefix=''):
   '''Make a NaClProgram Node for a specific build variant.
 
   Make a NaClProgram Node in a cloned Environment.  Set the environment
@@ -349,31 +404,75 @@ def MakeNaClModuleEnvironment(nacl_env,
         |ARCH_SPECS| in nacl_utils.py for valid examples.
     is_debug: Indicates whether this program should be built for debugging or
         optimized.
-    dir_prefix: Allows user to prefix the directory with an additional string.
+    build_dir_prefix: Allows user to prefix the build directory with an
+        additional string.
+
   Returns:
     A SCons Environment that builds the specified variant of a NaCl module.
   '''
   debug_name = 'dbg' if is_debug else 'opt'
-  arch_name = '%s_%s' % GetArchFromSpec(arch_spec)
-  env = nacl_env.Clone()
-  env.AppendOptCCFlags(is_debug)
-  env.AppendArchFlags(arch_spec)
-  if not is_debug:
-    # Strip the resulting executable if non-debug.
-    env.Append(LINKFLAGS=['--strip-all'])
-
-  # Wrap linker command with TEMPFILE so that if lines are longer than
-  # MAXLINELENGTH, the tools will be run with @tmpfile. This isn't needed
-  # for any of the sdk examples, but if people cargo cult them for other
-  # purposes, they can end up hitting command line limits on Windows where
-  # MAXLINELENGTH can be as low as 2048.
-  env['LINKCOM'] = '${TEMPFILE("' + env['LINKCOM'] + '")}'
-  env['SHLINKCOM'] = '${TEMPFILE ' + env['SHLINKCOM'] + '")}'
-
+  arch_name = GetArchName(arch_spec)
+  env = MakeNaClCommonEnvironment(nacl_env, arch_spec, is_debug)
   return env.NaClProgram('%s_%s%s' % (module_name,
                                       arch_name,
                                       '_dbg' if is_debug else ''),
                          sources,
                          variant_dir='%s%s_%s' %
-                             (dir_prefix, debug_name, arch_name))
+                             (build_dir_prefix, debug_name, arch_name))
 
+
+def MakeNaClStaticLibEnvironment(nacl_env,
+                                 sources,
+                                 lib_name='nacl',
+                                 arch_spec=ARCH_SPECS['x86-32'],
+                                 is_debug=False,
+                                 build_dir_prefix='',
+                                 lib_dir=''):
+  '''Make a NaClStaticLib Node for a specific build variant.
+
+  Make a NaClStaticLib Node in a cloned Environment.  Set the environment
+  in the cloned Environment variables for things like optimized versus debug
+  CCFLAGS, and also adds a Program builder that makes a NaCl static library.
+  The name of the library is derived from |lib_name|, |arch_spec| and
+  |is_debug|; for example:
+    MakeNaClStaticLibEnvironment(nacl_env, sources, lib_name='c_salt',
+        arch_spec=nacl_utils.ARCH_SPECS['x86-64'], is_debug=True)
+  will produce a NaCl static library named
+    libc_salt_x86_64_dbg.a
+
+  Args:
+    nacl_env: A SCons construction environment.  This is typically the return
+        value of NaClEnvironment() (see above).
+    sources: A list of source Nodes used to build the NaCl library.
+    lib_name: The name of the library.
+    arch_spec: An object containing 'arch' and 'subarch' keys that describe
+        the instruction set architecture of the output program.  See
+        |ARCH_SPECS| in nacl_utils.py for valid examples.
+    is_debug: Indicates whether this program should be built for debugging or
+        optimized.
+    build_dir_prefix: Allows user to prefix the build directory with an
+        additional string.
+    lib_dir: Where to output the final library file. Lib files are placed in
+        directories within lib_dir, based on the arch type and build type.
+        E.g. Specifying lib_dir = 'dest' for lib name 'c_salt' on x86-32 debug
+        creates the library file 'dest/lib-x86-32/dbg/libc_salt.a'
+
+  Returns:
+    A SCons Environment that builds the specified variant of a NaCl module.
+  '''
+  env = MakeNaClCommonEnvironment(nacl_env, arch_spec, is_debug)
+  debug_name = 'dbg' if is_debug else 'opt'
+  arch_name = GetArchName(arch_spec)
+  target_name = '%s_%s%s' % (lib_name, arch_name, debug_name)
+  variant_dir = '%s%s_%s' % (build_dir_prefix, debug_name, arch_name)
+
+  arch, subarch = GetArchFromSpec(arch_spec)
+  lib_subdir = 'lib-' + arch
+  if subarch: lib_subdir = lib_subdir + '-' + subarch
+  lib_dir = os.path.join(lib_dir, lib_subdir, debug_name)
+
+  return env.NaClStaticLib(target_name,
+                           sources,
+                           variant_dir,
+                           lib_name,
+                           lib_dir)
