@@ -8,8 +8,8 @@
 
 #include <vector>
 
+#include "webgtt/algorithms.h"
 #include "webgtt/graph.h"
-#include "webgtt/webgtt.h"
 
 namespace webgtt {
 

@@ -2,15 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file.
 
-#include "webgtt/webgtt.h"
+/// @fileoverview This file contains code for a simple prototype of the webgtt
+/// project. it demonstrates loading, running and scripting a simple nacl
+/// module, which, when given the adjacency matrix of a graph by the browser,
+/// returns a valid vertex coloring of the graph. to load the nacl module, the
+/// browser first looks for the createmodule() factory method. it calls
+/// createmodule() once to load the module code from the .nexe. after the .nexe
+/// code is loaded, createmodule() is not called again. once the .nexe code is
+/// loaded, the browser then calls the createinstance() method on the object
+/// returned by createmodule(). it calls createinstance() each time it
+/// encounters an <embed> tag that references the nacl module.
+///
+/// @author ragad@google.com (Raga Gopalakrishnan)
 
 #include <cmath>
-#include <sstream>
 #include <string>
-#include <utility>
-#include <vector>
 
-#include "webgtt/graph.h"
 #include "webgtt/parser.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
@@ -85,19 +92,6 @@ class WebgttModule : public pp::Module {
   WebgttModule(const WebgttModule&);
   void operator=(const WebgttModule&);
 };
-
-std::string GetColoring(const graph::Graph& input_graph) {
-  std::vector<int> vertex_colors = input_graph.GetColoring();
-  // Format the message to be sent back to the browser.
-  std::ostringstream answer;
-  for (size_t i = 0; i < vertex_colors.size(); ++i) {
-    answer << vertex_colors[i];
-    if (i != vertex_colors.size() - 1) {
-      answer << ',';
-    }
-  }
-  return answer.str();
-}
 
 }  // namespace webgtt
 

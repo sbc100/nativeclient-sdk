@@ -21,6 +21,7 @@ nacl_env.Append(
    )
 
 sources = [
+    'algorithms.cc',
     'graph.cc',
     'parser.cc',
     'taskmap.cc',

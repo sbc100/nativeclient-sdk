@@ -16,7 +16,6 @@
 
 #include "webgtt/graph.h"
 #include "webgtt/taskmap.h"
-#include "webgtt/webgtt.h"
 
 /// The sentinel/delimiter string that is used in the message format.
 const char kSentinel[] = "::";
