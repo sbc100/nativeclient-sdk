@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Google.MsAd7.BaseImpl;
+using Google.NaClVsx.ProjectSupport;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
 
@@ -37,14 +38,7 @@ namespace Google.NaClVsx.DebugSupport
       }
 
       int port = Convert.ToInt32(addressComponents[1]);
-
-      var dbg = new NaClDebugger(0);
-      dbg.Open(connectionString_);
-      string imagePath = dbg.Path;
-      dbg.Close();
-
-
-
+      var imagePath = NaClProjectConfig.GetLastNexe();
       processes_.Add(new NaClDebugProcess(this, connectionString_, port, imagePath));
     }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2011 The Native Client Authors. All rights reserved.
+// Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -344,7 +344,7 @@ namespace Google.NaClVsx.DebugSupport {
 
     #region Private Implementation
 
-    private readonly INaClDebugger dbg_ = new NaClDebugger(0x0000000c00000000);
+    private readonly INaClDebugger dbg_ = new NaClDebugger();
 
     private readonly Module mainModule_ = new Module();
     private readonly Thread mainThread_;
@@ -370,31 +370,6 @@ namespace Google.NaClVsx.DebugSupport {
     #endregion
 
     #region Private Implementation
-
-    private void LoadModuleWithPath(string msg) {
-      Debug.WriteLine(msg);
-      mainModule_.Url = msg;
-      mainModule_.Name = Path.GetFileName(msg);
-      mainModule_.UrlSymbolLocation = msg;
-
-      SendEvent(
-          null,
-          new Ad7Events.DebugModuleLoadEvent(
-              mainModule_,
-              "Loading module",
-              true));
-
-      string symbolStatus;
-      dbg_.Symbols.LoadModule(msg, 0x0000000c00000000, out symbolStatus);
-      mainModule_.DebugMessage = symbolStatus;
-      SendEvent(
-          null,
-          new Ad7Events.DebugSymbolSearchEvent(
-              mainModule_,
-              "DWARF symbols loaded",
-              enum_MODULE_INFO_FLAGS.
-                  MIF_SYMBOLS_LOADED));
-    }
 
     private void OnBreak(GdbProxy.ResultCode status, string msg, byte[] data) {
       SendEvent(mainThread_, new Ad7Events.DebugBreakEvent());
