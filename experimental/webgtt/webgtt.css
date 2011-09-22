@@ -1,0 +1,61 @@
+/*
+ * Copyright 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/*
+ * Rudimentary CSS for WebGTT
+ */
+
+body {
+  background-color:#CED8F6;
+  color:black;
+}
+
+h1, p, .pane, .tile {
+  text-align:center;
+}
+
+canvas
+{
+  border:3px solid red;
+  background-color:#CEECF5;
+}
+
+.pane, .tile {
+  padding:10px;
+}
+
+.pane
+{
+  border:2px solid purple;
+  margin:5px;
+}
+
+.tile
+{
+  border:1px solid green;
+  margin:0px;
+}
+
+#intro.pane
+{
+  width:1663px;
+}
+
+#control p
+{
+  width:800px;
+}
+
+#control.pane, #canvas.pane {
+  float:left;
+}
+
+/*
+ * This functionality is not yet implemented, so hide these elements for now.
+ */
+#settings, #shortestPathTile {
+  display:none;
+}
