@@ -7,14 +7,17 @@
 import make_nacl_env
 import os
 
+EXPERIMENTAL_DIR = os.path.dirname(os.getcwd())
+
 nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 nacl_env.Append(
     # Add a CPPPATH that enables the full-path #include directives, such as
     # #include "examples/sine_synth/sine_synth.h"
     CPPPATH=[
-        os.path.dirname(os.path.dirname(os.getcwd())),
-        os.path.join(os.getcwd(), '..'),
+        EXPERIMENTAL_DIR,
+        os.path.dirname(EXPERIMENTAL_DIR),
+        os.path.join(os.path.dirname(EXPERIMENTAL_DIR), 'third_party'),
         ],
     # Strict ANSI compliance.
     EXTRA_CCFLAGS=['-pedantic'],

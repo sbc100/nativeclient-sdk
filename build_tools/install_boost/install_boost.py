@@ -54,24 +54,19 @@ def InstallBoost(options):
   except:
     print "Error in download"
     return 1
-  for toolchain in options.toolchains:
-    # Make sure the target directories exist.
-    # TODO(dspringer): This needs to handle different ISAs within toolchains.
-    nacl_include = os.path.abspath(os.path.join(toolchain,
-                                                'x86_64-nacl',
-                                                'include'))
-    build_utils.ForceMakeDirs(nacl_include)
-    boost_path = os.path.abspath(os.path.join(working_dir, BOOST_PATH))
-    # Copy the headers.
-    print 'Installing boost headers into %s...' % nacl_include
-    dst_include_dir = os.path.join(nacl_include, 'boost')
-    shutil.rmtree(dst_include_dir, ignore_errors=True)
-    shutil.copytree(os.path.join(boost_path, 'boost'),
-                    dst_include_dir,
-                    symlinks=True)
-    # Copy the license file.
-    print 'Installing boost license...'
-    shutil.copy(os.path.join(boost_path, 'LICENSE_1_0.txt'), dst_include_dir)
+  boost_include = options.third_party_dir
+  build_utils.ForceMakeDirs(boost_include)
+  boost_path = os.path.abspath(os.path.join(working_dir, BOOST_PATH))
+  # Copy the headers.
+  print 'Installing boost headers into %s...' % boost_include
+  dst_include_dir = os.path.join(boost_include, 'boost')
+  shutil.rmtree(dst_include_dir, ignore_errors=True)
+  shutil.copytree(os.path.join(boost_path, 'boost'),
+                  dst_include_dir,
+                  symlinks=True)
+  # Copy the license file.
+  print 'Installing boost license...'
+  shutil.copy(os.path.join(boost_path, 'LICENSE_1_0.txt'), dst_include_dir)
 
   # Clean up.
   shutil.rmtree(working_dir, ignore_errors=True)
@@ -91,19 +86,23 @@ def main(argv):
       '-t', '--toolchain', dest='toolchains',
       action='append',
       type='string',
-      help='where to install boost')
+      help='NaCl toolchain directory')
+  parser.add_option(
+      '--third-party', dest='third_party_dir',
+      type='string',
+      default='third_party',
+      help='location of third_party directory')
   (options, args) = parser.parse_args(argv)
   if args:
-    print 'ERROR: invalid argument: %s' % str(args)
+    print 'WARNING: unrecognized argument: %s' % str(args)
     parser.print_help()
-    sys.exit(1)
 
   if not options.toolchains:
     options.toolchains = [build_utils.TOOLCHAIN_AUTODETECT]
   options.toolchains = [build_utils.NormalizeToolchain(tc)
                         for tc in options.toolchains]
 
-  print "Installing boost into toolchains %s" % str(options.toolchains)
+  print "Installing boost into %s" % str(options.third_party_dir)
   return InstallBoost(options)
 
 

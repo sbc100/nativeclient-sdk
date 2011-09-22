@@ -20,7 +20,8 @@ nacl_env.Append(
     # #include "examples/sine_synth/sine_synth.h"
     CPPPATH=[
         os.path.dirname(os.path.dirname(os.getcwd())),
-        os.path.join(os.getcwd(), '..', '..', '..'),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd()))),
+        os.path.join(ROOT_DIR, 'third_party'),
         build_utils.JoinPathToNaClRepo(root_dir=ROOT_DIR),
         ROOT_DIR,
         ],

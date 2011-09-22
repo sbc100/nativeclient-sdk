@@ -20,10 +20,8 @@ from optparse import OptionParser
 # Append to PYTHONPATH in this very non-compliant way so that this script can be
 # run from a DEPS hook, where the normal path rules don't apply.
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-SCONS_DIR = os.path.join(os.path.dirname(SCRIPT_DIR),
-                         'third_party',
-                         'scons-2.0.1',
-                         'engine')
+THIRD_PARTY_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'third_party')
+SCONS_DIR = os.path.join(THIRD_PARTY_DIR, 'scons-2.0.1', 'engine')
 sys.path.append(SCRIPT_DIR)
 sys.path.append(SCONS_DIR)
 
@@ -67,6 +65,7 @@ def main(argv):
           build_utils.NormalizeToolchain(base_dir=nacl_sdk_root,
                                          arch='x86',
                                          variant='newlib')),
+      '--third-party=%s' % THIRD_PARTY_DIR,
     ]
 
   for script in THIRD_PARTY_SCRIPTS:
