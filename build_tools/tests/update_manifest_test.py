@@ -57,7 +57,7 @@ class TestUpdateManifest(unittest.TestCase):
       os.remove(file_path)
     # Create a basic manifest file
     manifest_file = sdk_update.SDKManifestFile(file_path)
-    manifest_file._WriteFile();
+    manifest_file.WriteFile();
     self.assertTrue(os.path.exists(file_path))
     # Test re-loading the file
     manifest_file._manifest._manifest_data['manifest_version'] = 0
@@ -100,6 +100,7 @@ class TestUpdateManifest(unittest.TestCase):
     bundle = sdk_update.Bundle('test')
     options = FakeOptions()
     options.bundle_revision = 1
+    options.bundle_version = 2
     options.desc = 'What a hoot'
     options.stability = 'dev'
     options.recommended = 'yes'
@@ -121,11 +122,12 @@ class TestUpdateManifest(unittest.TestCase):
     options.manifest_version = 1
     options.bundle_name = 'test'
     options.bundle_revision = 2
+    options.bundle_version = 3
     options.desc = 'nice bundle'
     options.stability = 'canary'
     options.recommended = 'yes'
     self._manifest.UpdateManifest(options)
-    bundle = self._manifest._GetBundle('test')
+    bundle = self._manifest.GetBundle('test')
     self.assertNotEqual(bundle, None)
     # Modify the same bundle
     options = FakeOptions()
@@ -133,7 +135,7 @@ class TestUpdateManifest(unittest.TestCase):
     options.bundle_name = 'test'
     options.desc = 'changed'
     self._manifest.UpdateManifest(options)
-    bundle = self._manifest._GetBundle('test')
+    bundle = self._manifest.GetBundle('test')
     self.assertEqual(bundle['description'], 'changed')
 
   def testUpdateManifestBadBundle1(self):

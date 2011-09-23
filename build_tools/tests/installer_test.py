@@ -351,6 +351,7 @@ def ExtractInstaller(installer, outdir, bundle_name):
                                    'test_manifest.json')
   update_manifest_options = [
        '--bundle-revision=1',
+       '--bundle-version=2',
        '--description=installer_test bundle',
        '--%s-archive=file://%s' % (
            sdk_update.GetHostOS(),

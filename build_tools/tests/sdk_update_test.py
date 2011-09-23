@@ -53,11 +53,10 @@ def CallSDKUpdate(args):
 class TestSDKUpdate(unittest.TestCase):
   ''' Test basic functionality of the sdk_update package '''
   def setUp(self):
-    _options = FakeOptions()
-    _options.url = 'file://%s' % os.path.join(SCRIPT_DIR,
-                                              'naclsdk_manifest_test.json')
-    # TODO(mball) Use a proper temporary directory instead of the test
-    _options.user_data_dir = SCRIPT_DIR
+    self._options = FakeOptions()
+    self._options.manifest_url = 'file://%s' % urllib.pathname2url(
+        os.path.join(SCRIPT_DIR, 'naclsdk_manifest_test.json'))
+    self._options.user_data_dir = os.path.join(SCRIPT_DIR, 'sdk_test_cache')
 
   def testBadArg(self):
     '''Test that using a bad argument results in an error'''
@@ -74,20 +73,96 @@ class TestSDKUpdate(unittest.TestCase):
 
   def testList(self):
     '''Test the List function'''
-    command = ['--manifest-url=file://%s' %
-               urllib.pathname2url(os.path.join(
-                   SCRIPT_DIR, 'naclsdk_manifest_test.json')),
+    command = ['--user-data-dir=%s' %
+                  os.path.join(SCRIPT_DIR, 'sdk_test_cache'),
+               '--manifest-url=file://%s' %
+                   urllib.pathname2url(os.path.join(
+                       SCRIPT_DIR, 'naclsdk_manifest_test.json')),
                'list']
     bundle_list = CallSDKUpdate(command)
     # Just do some simple sanity checks on the resulting string
-    self.assertEqual(bundle_list.count('sdk_tools'), 1)
-    self.assertEqual(bundle_list.count('test_1'), 1)
-    self.assertEqual(bundle_list.count('description:'), 2)
+    self.assertEqual(bundle_list.count('sdk_tools'), 2)
+    self.assertEqual(bundle_list.count('test_1'), 2)
+    self.assertEqual(bundle_list.count('test_2'), 1)
+    self.assertEqual(bundle_list.count('description:'), 5)
 
   def testUpdateHelp(self):
     '''Test the help for the update command'''
     self.assertRaises(exceptions.SystemExit,
                       sdk_update.main, ['help', 'update'])
+
+  def testSDKManifestFile(self):
+    '''Test SDKManifestFile'''
+    manifest_file = sdk_update.SDKManifestFile(
+        os.path.join(self._options.user_data_dir,
+                     sdk_update.MANIFEST_FILENAME))
+    self.assertNotEqual(None, manifest_file)
+    bundles = manifest_file.GetBundles()
+    self.assertEqual(2, len(bundles))
+    test_bundle = manifest_file.GetBundleNamed('test_1')
+    self.assertNotEqual(None, test_bundle)
+    self.assertTrue('revision' in test_bundle)
+    self.assertEqual(1, test_bundle['revision'])
+
+  def testNeedsUpdate(self):
+    '''Test that the test_1 bundle needs updating'''
+    tools = sdk_update.ManifestTools(self._options)
+    tools.LoadManifest()
+    bundles = tools.GetBundles()
+    self.assertEqual(3, len(bundles))
+    local_manifest = sdk_update.SDKManifestFile(
+        os.path.join(self._options.user_data_dir,
+                     sdk_update.MANIFEST_FILENAME))
+    self.assertNotEqual(None, local_manifest)
+    for bundle in bundles:
+      bundle_name = bundle['name']
+      self.assertTrue('revision' in bundle)
+      if bundle_name == 'test_1':
+        self.assertTrue(local_manifest.BundleNeedsUpdate(bundle))
+      elif bundle_name == 'test_2':
+        self.assertTrue(local_manifest.BundleNeedsUpdate(bundle))
+      else:
+        self.assertFalse(local_manifest.BundleNeedsUpdate(bundle))
+
+  def testMergeManifests(self):
+    '''Test merging a Bundle into a manifest file'''
+    tools = sdk_update.ManifestTools(self._options)
+    tools.LoadManifest()
+    bundles = tools.GetBundles()
+    self.assertEqual(3, len(bundles))
+    local_manifest = sdk_update.SDKManifestFile(
+        os.path.join(self._options.user_data_dir,
+                     sdk_update.MANIFEST_FILENAME))
+    self.assertEqual(None, local_manifest.GetBundleNamed('test_2'))
+    for bundle in bundles:
+      local_manifest.MergeBundle(bundle)
+    self.assertNotEqual(None, local_manifest.GetBundleNamed('test_2'))
+    for bundle in bundles:
+      self.assertFalse(local_manifest.BundleNeedsUpdate(bundle))
+
+  def testMergeBundle(self):
+    '''Test MergeWithBundle'''
+    tools = sdk_update.ManifestTools(self._options)
+    tools.LoadManifest()
+    bundles = tools.GetBundles()
+    self.assertEqual(3, len(bundles))
+    local_manifest = sdk_update.SDKManifestFile(
+        os.path.join(self._options.user_data_dir,
+                     sdk_update.MANIFEST_FILENAME))
+    self.assertNotEqual(None, local_manifest)
+    # Test the | operator.
+    for bundle in bundles:
+      bundle_name = bundle['name']
+      if bundle_name == 'test_2':
+        continue
+      local_test_bundle = local_manifest.GetBundleNamed(bundle_name)
+      merged_bundle = local_test_bundle.MergeWithBundle(bundle)
+      self.assertTrue('revision' in merged_bundle)
+      if bundle_name == 'test_1':
+        self.assertEqual(2, merged_bundle['revision'])
+      else:
+        self.assertEqual(1, merged_bundle['revision'])
+      merged_bundle.Validate()
 
   def testVersion(self):
     '''Test that showing the version works'''
