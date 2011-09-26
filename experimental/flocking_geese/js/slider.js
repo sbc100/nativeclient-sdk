@@ -19,10 +19,7 @@ goog.require('goog.events.EventType');
 goog.require('goog.style');
 
 /**
- * The slider control.  Wire up the slider events.
- * @param {!Element} container The DOM element containing the entire slider.
- * @param {!Element} ruler The DOM element containing the slider's ruler.
- * @param {!Element} thumb The DOM elelemnt representing the slider's thumb.
+ * The slider control.
  * @param {!Array} stepObjects An array of objects, each object is associated
  *     with the step at the object's index in the array.  The object is
  *     returned by objectAtStepValue().
@@ -30,7 +27,7 @@ goog.require('goog.style');
  * @constructor
  * @extends {goog.EventTarget}
  */
-Slider = function(container, ruler, thumb, stepObjects, opt_orientation) {
+Slider = function(stepObjects, opt_orientation) {
   goog.events.EventTarget.call(this);
 
   /**
@@ -38,9 +35,9 @@ Slider = function(container, ruler, thumb, stepObjects, opt_orientation) {
    * @type {Element}
    * @private
    */
-  this.container_ = container;  // The slider's outer container.
-  this.ruler_ = ruler;  // The slider's ruler element.
-  this.thumb_ = thumb;  // The slider's thumb.
+  this.container_ = null;  // The slider's outer container.
+  this.ruler_ = null;  // The slider's ruler element.
+  this.thumb_ = null;  // The slider's thumb.
 
   /**
    * The current value.  In a discreet slider, this has to be an even multiple
@@ -64,14 +61,6 @@ Slider = function(container, ruler, thumb, stepObjects, opt_orientation) {
   this.stepObjects_ = stepObjects;
 
   /**
-   * The step size.  In a discreet slider, the thumb can only be an even
-   * multiple of this value.  Measured in pixels.
-   * @type {number}
-   * @private
-   */
-  this.stepSize_ = 1;
-
-  /**
    * The orientation.  'h' means horizontal (the default); 'v' means vertical.
    * @type {string}
    * @private
@@ -86,12 +75,67 @@ Slider = function(container, ruler, thumb, stepObjects, opt_orientation) {
   this.isDragging_ = false;
 
   /**
-   * The length of the ruler.  This is sized to fit within the slider's
-   * container.  Measured in pixels.
+   * Event handlers.  These are the keys returned by goog.events.listen().
    * @type {number}
    * @private
    */
-  this.rulerLength_ = 0;
+  this.rulerClickListener_ = null;
+  this.thumbMouseDownListener_ = null;
+  this.thumbClickListener_ = null;
+  this.thumbMouseMoveListener_ = null;
+  this.thumbMouseUpListener_ = null;
+
+  /**
+   * The offset and length of the ruler.  Measured in pixels.
+   * @type {number}
+   */
+  this.rulerLength = 0;
+  this.rulerOffset = 0;
+}
+goog.inherits(Slider, goog.events.EventTarget);
+
+/**
+ * The slider's orientation: vertical or hoirizontal.
+ * @enum {string}
+ */
+Slider.Orientation = {
+  HORIZONTAL: 'h',
+  VERTICAL: 'v'
+}
+
+/**
+ * Override of disposeInternal() to dispose of retained objects and unhook all
+ * events.
+ * @override
+ */
+Slider.prototype.disposeInternal = function() {
+  this.unlisten_();
+  this.container_ = null;
+  this.ruler_ = null;
+  this.thumb_ = null;
+  Slider.superClass_.disposeInternal.call(this);
+}
+
+/**
+ * Attach the DOM elements that make up the slider.  Wires up all the event
+ * listeners.
+ * @param {!Element} container The DOM element containing the entire slider.
+ * @param {!Element} ruler The DOM element containing the slider's ruler.
+ * @param {!Element} thumb The DOM elelemnt representing the slider's thumb.
+ */
+Slider.prototype.decorate = function(container, ruler, thumb) {
+  this.unlisten_();
+  this.container_ = container;  // The slider's outer container.
+  this.ruler_ = ruler;  // The slider's ruler element.
+  this.thumb_ = thumb;  // The slider's thumb.
+
+  // Establish a default ruler length from the |ruler| element.
+  var rulerSize = goog.style.getSize(this.ruler_)
+  if (this.isHorizontal()) {
+    this.rulerLength = rulerSize.width;
+  } else {
+    this.rulerLength = rulerSize.height;
+  }
 
   // Wire up the mouse event handlers.
   this.rulerClickListener_ = goog.events.listen(
@@ -112,33 +156,7 @@ Slider = function(container, ruler, thumb, stepObjects, opt_orientation) {
   this.thumbMouseUpListener_ = null;
 
   // Complete initialization.
-  this.updateSize_();
   this.slideToValue(this.currentValue_);
-}
-goog.inherits(Slider, goog.events.EventTarget);
-
-/**
- * The slider's orientation: vertical or hoirizontal.
- * @enum {string}
- */
-Slider.Orientation = {
-  HORIZONTAL: 'h',
-  VERTICAL: 'v'
-}
-
-/**
- * Override of disposeInternal() to dispose of retained objects and unhook all
- * events.
- * @override
- */
-Slider.prototype.disposeInternal = function() {
-  goog.events.removeAll(this.container_);
-  goog.events.removeAll(this.ruler_);
-  goog.events.removeAll(this.thumb_);
-  this.container_ = null;
-  this.ruler_ = null;
-  this.thumb_ = null;
-  Slider.superClass_.disposeInternal.call(this);
 }
 
 /**
@@ -154,7 +172,7 @@ Slider.prototype.value = function() {
  * @return {number} the value.
  */
 Slider.prototype.stepValue = function() {
-  return Math.round(this.currentValue_ / this.stepSize_);
+  return Math.round(this.currentValue_ / this.stepSize_());
 }
 
 /**
@@ -191,17 +209,60 @@ Slider.prototype.slideToValue = function(value) {
   if (value < 0) {
     value = 0;
   }
-  if (value >= this.rulerLength_) {
-    value = this.rulerLength_;
+  if (value >= this.rulerLength) {
+    value = this.rulerLength;
   }
-  var stepValue = Math.round(value / this.stepSize_);
-  value = stepValue * this.stepSize_;
+  var stepSize = this.stepSize_();
+  var stepValue = Math.round(value / stepSize);
+  value = stepValue * stepSize;
   if (this.isHorizontal()) {
-    this.thumb_.style.left = value + 'px';
+    this.thumb_.style.left = value + this.rulerOffset + 'px';
   } else {
-    this.thumb_.style.top = value + 'px';
+    this.thumb_.style.top = value + this.rulerOffset + 'px';
   }
   this.currentValue_ = value;
+}
+
+/**
+ * Slide to a step value.  The step value is a 0-based index into the discreet
+ * steps.
+ * @param {number} step The step value.
+ */
+Slider.prototype.slideToStep = function(step) {
+  this.slideToValue(step * this.stepSize_());
+}
+
+/**
+ * The step size.  In a discreet slider, the thumb can only be an even
+ * multiple of this value.  Measured in pixels.  Never returns 0.
+ * @return {number}
+ * @private
+ */
+Slider.prototype.stepSize_ = function() {
+  if (this.stepCount_ > 1) {
+    return this.rulerLength / (this.stepCount_ - 1);
+  }
+  return 1;
+}
+
+/**
+ * Remove all event listenetrs from any cached DOM elements.
+ * @private
+ */
+Slider.prototype.unlisten_ = function() {
+  function removeAllEvents(element) {
+    if (element) {
+      goog.events.removeAll(this.container_);
+    }
+  }
+  removeAllEvents(this.container_);
+  removeAllEvents(this.ruler_);
+  removeAllEvents(this.thumb_);
+  this.rulerClickListener_ = null;
+  this.thumbMouseDownListener_ = null;
+  this.thumbClickListener_ = null;
+  this.thumbMouseMoveListener_ = null;
+  this.thumbMouseUpListener_ = null;
 }
 
 /**
@@ -224,6 +285,8 @@ Slider.prototype.thumbMouseDown_ = function(mouseEvent) {
   if (this.isDragging_) {
     return;
   }
+  mouseEvent.preventDefault();
+  mouseEvent.stopPropagation();
   this.isDragging_ = true;
   // Listen for mouse-move and mouse-up events.  Dragging stops when the
   // mouse-up event arrives.
@@ -280,22 +343,6 @@ Slider.prototype.rulerOffsetFromEvent_ = function(event) {
     var rulerOrigin = goog.style.getPageOffsetTop(this.ruler_);
     rulerOffset = event.clientY - rulerOrigin;
   }
-  return rulerOffset;
+  return rulerOffset - this.rulerOffset;
 }
-
-/**
- * Update the size of the slider so that it fits within the container.
- */
-Slider.prototype.updateSize_ = function() {
-  var rulerSize = goog.style.getSize(this.ruler_)
-  if (this.isHorizontal()) {
-    this.rulerLength_ = rulerSize.width;
-  } else {
-    this.rulerLength_ = rulerSize.height;
-  }
-  if (this.stepCount_ != 0) {
-    this.stepSize_ = this.rulerLength_ / (this.stepCount_ - 1);
-  }
-  this.slideToValue(this.currentValue_);
-};
 

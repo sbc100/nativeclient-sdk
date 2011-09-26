@@ -12,19 +12,35 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 300px;
+  width: 250px;
   height: 100%;
-  background-color: white;
+  background-color: black;
   border-top-style: none;
   border-right-style: none;
   border-bottom-style: none;
   border-left-style: solid;
   border-color: black;
   border-width: 2px;
+  background-image: url('../images/DialBackground.png');
+  background-repeat: no-repeat;
+  background-position: left top;
 }
 
 #info_panel p,h1,h2,h3 {
   margin-left: 16px;
+  color: #949596;
+}
+
+#sim_mode_select {
+  position: absolute;
+  top: 281px;
+  left: 58px;
+}
+
+#flock_size_slider {
+  position: absolute;
+  top: 328px;
+  left: 38px;
 }
 
 .info-notice {

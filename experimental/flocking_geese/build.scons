@@ -90,14 +90,19 @@ install_css = nacl_env.Install(
     source=css_files)
 
 image_files = [os.path.join('images', img_file) for img_file in [
+    'DialBackground.png',
+    'DialFace.png',
     'Flock32_Green.png',
     'Flock32_red.png',
-    'GreenPointer.png',
-    'GreyPointer.png',
-    'Dial_background.png',
-    'Numbers_Light.png',
-    'Numbers_Red.png',
-    'RedPointer.png',
+    'flock_size_ruler.png',
+    'numbers_grey.png',
+    'numbers_red.png',
+    'odometer.png',
+    'pointer_green.png',
+    'pointer_grey.png',
+    'pointer_red.png',
+    'sim_select_ruler.png',
+    'slider_thumb.png',
 ]]
 
 install_images = nacl_env.Install(

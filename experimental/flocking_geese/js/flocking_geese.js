@@ -70,6 +70,13 @@ FlockingGeese = function() {
   this.speedometer_ = new Speedometer();
 
   /**
+   * The simluation mode slider.  This becomes a Slider object.
+   * @type {Slider}
+   * @private
+   */
+  this.simModeSlider_ = null;
+
+  /**
    * The flock size slider.  This becomes a Slider object.
    * @type {Slider}
    * @private
@@ -125,9 +132,11 @@ FlockingGeese.DomIds = {
   // The <DIV> containing the simulation drawing area (either the NaCl module
   // or the <CANVAS>.
   NACL_VIEW: 'nacl_flocking_geese',
-  // The radio buttons used to select sim type (NaCL vs. JavaScript).
+  // The slider buttons used to select sim type (NaCL vs. JavaScript).
   // Contained in the info panel.
   SIM_MODE_SELECT: 'sim_mode_select',
+  SIM_SELECT_RULER: 'sim_select_ruler',
+  SIM_SELECT_THUMB: 'sim_select_thumb',
   // The text that displays the speed difference.
   SPEED_DIFFERENCE_LABEL: 'speed_difference',
   // The speedometer <CANVAS> element.  Contained in the info panel.
@@ -170,14 +179,14 @@ FlockingGeese.prototype.initializeApplication = function() {
   goog.events.listen(window, goog.events.EventType.UNLOAD, this.terminate);
   var naclMeterAttribs = {};
   naclMeterAttribs[Speedometer.Attributes.THEME] = Speedometer.Themes.GREEN;
-  naclMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
-  naclMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 160;
+  naclMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 84;
+  naclMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 156;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.NACL,
                                      naclMeterAttribs);
   var jsMeterAttribs = {};
   jsMeterAttribs[Speedometer.Attributes.THEME] = Speedometer.Themes.RED;
-  jsMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 74;
-  jsMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 193;
+  jsMeterAttribs[Speedometer.Attributes.ODOMETER_LEFT] = 84;
+  jsMeterAttribs[Speedometer.Attributes.ODOMETER_TOP] = 192;
   this.speedometer_.addMeterWithName(FlockingGeese.MeterNames.JAVASCRIPT,
                                      jsMeterAttribs);
   this.speedometer_.setMaximumSpeed(10000.0);  // Measured in frames per second.
@@ -189,36 +198,41 @@ FlockingGeese.prototype.initializeApplication = function() {
   this.speedometer_.render(this.speedometerCanvas_);
 
   // Wire up the various controls.
+  var simSelectSlider =
+      document.getElementById(FlockingGeese.DomIds.SIM_MODE_SELECT);
+  var simSelectRuler =
+      document.getElementById(FlockingGeese.DomIds.SIM_SELECT_RULER);
+  var simSelectThumb =
+      document.getElementById(FlockingGeese.DomIds.SIM_SELECT_THUMB);
+  this.simModeSlider_ = new Slider(
+    [{simMode: FlockingGeese.SimulationMode.NACL},
+     {simMode: FlockingGeese.SimulationMode.JAVASCRIPT}
+    ]);
+  this.simModeSlider_.decorate(simSelectSlider, simSelectRuler, simSelectThumb);
+  this.simModeSlider_.rulerLength = 80;
+  this.simModeSlider_.rulerOffset = 12;
+  this.simModeSlider_.slideToStep(1);
+  goog.events.listen(this.simModeSlider_, SliderEvent.EventType.CHANGE,
+      this.toggleSimMode, false, this);
+
   var flockSizeSlider =
       document.getElementById(FlockingGeese.DomIds.FLOCK_SIZE_SLIDER);
   var sliderRuler = document.getElementById(
       FlockingGeese.DomIds.FLOCK_SIZE_SLIDER_RULER);
   var sliderThumb = document.getElementById(
       FlockingGeese.DomIds.FLOCK_SIZE_SLIDER_THUMB);
-  if (flockSizeSlider) {
-    this.flockSizeSlider_ = new Slider(
-        flockSizeSlider, sliderRuler, sliderThumb,
-        [{gooseCount: 50, meterLimit: 30000.0},
-         {gooseCount: 100, meterLimit: 8000.0},
-         {gooseCount: 500, meterLimit: 400.0},
-         {gooseCount: 1000, meterLimit: 100.0}
-        ]);
-    goog.events.listen(this.flockSizeSlider_, SliderEvent.EventType.CHANGE,
-        this.selectFlockSize, false, this);
-  }
-
-  var controlsForm =
-      document.getElementById(FlockingGeese.DomIds.CONTROLS_FORM);
-  var simModeRadios = controlsForm[FlockingGeese.DomIds.SIM_MODE_SELECT];
-  if (simModeRadios) {
-    for (var radioButton = 0;
-         radioButton < simModeRadios.length;
-         radioButton++) {
-      goog.events.listen(
-          simModeRadios[radioButton], goog.events.EventType.CLICK,
-          this.toggleSimMode, false, this);
-    }
-  }
+  this.flockSizeSlider_ = new Slider(
+      [{gooseCount: 50, meterLimit: 30000.0},
+       {gooseCount: 100, meterLimit: 8000.0},
+       {gooseCount: 500, meterLimit: 400.0},
+       {gooseCount: 1000, meterLimit: 100.0}
+      ]);
+  this.flockSizeSlider_.decorate(flockSizeSlider, sliderRuler, sliderThumb);
+  this.flockSizeSlider_.rulerLength = 110;
+  this.flockSizeSlider_.rulerOffset = 18;
+  this.flockSizeSlider_.slideToStep(0);
+  goog.events.listen(this.flockSizeSlider_, SliderEvent.EventType.CHANGE,
+      this.selectFlockSize, false, this);
 
   // Populate the JavaScript verison of the simulation.
   var flockSize = 0;
@@ -289,12 +303,14 @@ FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
 
 /**
  * Toggle the simulation mode.
- * @param {!goog.events.Event} clickEvent The CLICK event that triggered this
+ * @param {!goog.events.Event} changeEvent The CHANGE event that triggered this
  *     handler.
  */
-FlockingGeese.prototype.toggleSimMode = function(clickEvent) {
-  clickEvent.stopPropagation();
-  var simMode = clickEvent.target.value;
+FlockingGeese.prototype.toggleSimMode = function(changeEvent) {
+  changeEvent.stopPropagation();
+  var simModeObject =
+      this.simModeSlider_.objectAtStepValue(changeEvent.stepValue);
+  var simMode = simModeObject.simMode;
   if (simMode == this.simulationMode_)
     return;
   this.simulationMode_ = simMode;

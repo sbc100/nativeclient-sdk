@@ -105,8 +105,10 @@ Speedometer.Themes = {
  * @private
  */
 Speedometer.prototype.OdometerDims_ = {
-  DIGIT_WIDTH: 12,
-  DIGIT_HEIGHT: 14,
+  COLUMN_HEIGHT: 16,
+  COLUMN_WIDTH: 12,
+  DIGIT_HEIGHT: 12,
+  DIGIT_WIDTH: 8
 };
 
 /**
@@ -365,7 +367,7 @@ Speedometer.prototype.drawBackground_ = function(context2d, width, height) {
   if (this.images_.background.complete) {
     context2d.drawImage(this.images_.background, 0, 0);
   } else {
-    context2d.fillStyle = 'white';
+    context2d.fillStyle = 'black';
     context2d.fillRect(0, 0, width, height);
   }
 }
@@ -425,8 +427,14 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
   }
   context2d.save();
   context2d.translate(meter.odometerLeft, meter.odometerTop);
+  context2d.drawImage(this.images_.odometer, 0, 0);
   var odometerValue = Math.min(meter.odometerDisplayValue.toFixed(2),
                                this.MAX_ODOMETER_VALUE_);
+  // Center the odometer digits in the odometer cells.
+  context2d.save();
+  context2d.translate(
+      (this.OdometerDims_.COLUMN_WIDTH - this.OdometerDims_.DIGIT_WIDTH) / 2,
+      (this.OdometerDims_.COLUMN_HEIGHT - this.OdometerDims_.DIGIT_HEIGHT) / 2);
   // Draw the tenths digit.
   var tenths = (odometerValue - Math.floor(odometerValue)) * 10;
   this.drawOdometerDigit_(context2d, tenths, 6, this.images_.odometerTenths);
@@ -439,6 +447,7 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
                             column, this.images_.odometerDigits);
     odometerValue = odometerValue / 10;
   }
+  context2d.restore();
   context2d.restore();
 }
 
@@ -465,13 +474,13 @@ Speedometer.prototype.drawOdometerDigit_ = function(
   context2d.drawImage(digits,
                       0, digitOffset,
                       this.OdometerDims_.DIGIT_WIDTH, digitHeight,
-                      column * this.OdometerDims_.DIGIT_WIDTH, 0,
+                      column * this.OdometerDims_.COLUMN_WIDTH, 0,
                       this.OdometerDims_.DIGIT_WIDTH, digitHeight);
   if (digitWrapHeight > 0) {
     context2d.drawImage(digits,
                         0, 0,
                         this.OdometerDims_.DIGIT_WIDTH, digitWrapHeight,
-                        column * this.OdometerDims_.DIGIT_WIDTH,
+                        column * this.OdometerDims_.COLUMN_WIDTH,
                         this.OdometerDims_.DIGIT_HEIGHT - digitWrapHeight,
                         this.OdometerDims_.DIGIT_WIDTH, digitWrapHeight);
   }
@@ -483,16 +492,18 @@ Speedometer.prototype.drawOdometerDigit_ = function(
  */
 Speedometer.prototype.loadImages_ = function() {
   this.images_.background = new Image();
-  this.images_.background.src = 'images/Dial_background.png';
+  this.images_.background.src = 'images/DialFace.png';
+  this.images_.odometer = new Image();
+  this.images_.odometer.src = 'images/odometer.png';
   this.images_.odometerDigits = new Image();
-  this.images_.odometerDigits.src = 'images/Numbers_Light.png';
+  this.images_.odometerDigits.src = 'images/numbers_grey.png';
   this.images_.odometerTenths = new Image();
-  this.images_.odometerTenths.src = 'images/Numbers_Red.png';
+  this.images_.odometerTenths.src = 'images/numbers_red.png';
   this.images_.stoppedNeedle = new Image();
-  this.images_.stoppedNeedle.src = 'images/GreyPointer.png'
+  this.images_.stoppedNeedle.src = 'images/pointer_grey.png'
   this.images_.greenNeedle = new Image();
-  this.images_.greenNeedle.src = 'images/GreenPointer.png'
+  this.images_.greenNeedle.src = 'images/pointer_green.png'
   this.images_.redNeedle = new Image();
-  this.images_.redNeedle.src = 'images/RedPointer.png'
+  this.images_.redNeedle.src = 'images/pointer_red.png'
 }
 

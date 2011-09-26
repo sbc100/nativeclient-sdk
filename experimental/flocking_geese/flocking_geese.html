@@ -98,41 +98,32 @@
       <h2 style="width: 100%;">Info Panel</h2>
       <canvas id="speedometer_canvas"
               class="horizontal-align-center"
-              width=230
-              height=230></canvas><br />
+              width=250 height=225></canvas>
+      <div id="sim_mode_select" class="slider">
+        <img id="sim_select_ruler"
+             src="images/sim_select_ruler.png"
+             class="slider-ruler"
+             width=116 height=24 />
+        <img id="sim_select_thumb"
+             src="images/slider_thumb.png"
+             class="slider-thumb"
+             width=9 height=23 />
+      </div>
+      <div id="flock_size_slider" class="slider">
+        <img id="flock_size_slider_ruler"
+             src="images/flock_size_ruler.png"
+             class="slider-ruler"
+             width=156 height=28 />
+        <img id="flock_size_slider_thumb"
+             src="images/slider_thumb.png"
+             class="slider-thumb"
+             width=9 height=23 />
+      </div>
       <!-- Show the speed difference. -->
-      <p>Speed difference:
+      <p style="position: absolute; top:368px;">Speed difference:
         <span id="speed_difference"
               style="font-style: italic">Computing&hellip;</span>
       </p>
-      <form id="game_controls_form"
-            action=""
-            method="get">
-        <p style="margin-bottom: 0px">Simulation Mode</p>
-        <p style="margin-left: 32px;">
-          <input type="radio"
-                 name="sim_mode_select"
-                 value="JavaScript" checked></input>
-          <span>JavaScript</span><br />
-          <input id="nacl_radio_button"
-                 type="radio"
-                 name="sim_mode_select"
-                 value="NaCl"></input>
-          <span id="nacl_radio_label">Native Client</span>
-        </p>
-      </form>
-      <p style="margin-bottom: 0px;">Flock Size</p>
-      <div id="flock_size_slider" class="kd-slider kd-slider-discrete">
-        <ol id="flock_size_slider_ruler" class="kd-sliderruler">
-          <li class="kd-sliderstep">50</li>
-          <li class="kd-sliderstep">100</li>
-          <li class="kd-sliderstep">500</li>
-          <li class="kd-sliderstep">1000</li>
-        </ol>
-        <div id="flock_size_slider_thumb" class="kd-sliderhandle">
-          <span class="kd-sliderhandle-inner">V</span>
-        </div>
-      </div>
       <p id="browser_status"></p>
       <div style="position: absolute; bottom: 16px;">
         <p style="margin-bottom: 0px;"><a href="about.html"

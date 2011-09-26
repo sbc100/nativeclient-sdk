@@ -4,12 +4,13 @@
  */
 
 /**
- * The speedometer canvas.  Drawn with an inset of 25 pixels and
- * a fixed height of 120 pixels.  Auto-adjusts width to match its
- * parent container.
+ * The speedometer canvas.
  */
 #speedometer_canvas {
   border: 0;
-  display: block;
+  display: inline;
+  position: absolute;
+  top: 30px;
+  left: 0px;
 }
 
