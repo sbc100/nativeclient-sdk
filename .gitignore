@@ -21,4 +21,5 @@ toolchain/
 
 # Ignore these particular directories (relative to src directory)
 /build_tools/packages/
+/build_tools/toolchain_archives/
 /site_scons/
