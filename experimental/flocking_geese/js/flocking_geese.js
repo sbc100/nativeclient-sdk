@@ -524,7 +524,7 @@ FlockingGeese.prototype.updateSpeedDifference_ = function() {
   if (naclSpeed == 0 || jsSpeed == 0) {
     speedDifferenceLabel.innerHTML = 'Not available&hellip;';
     speedDifferenceLabel.style.fontStyle = 'italic';
-    speedDifferenceLabel.style.color = '#222';
+    speedDifferenceLabel.style.color = '#949596';
   } else {
     var diff = naclSpeed / jsSpeed;
     speedDifferenceLabel.innerHTML = diff.toFixed(1) + 'X';
