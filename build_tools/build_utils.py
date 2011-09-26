@@ -25,6 +25,7 @@ from nacl_sdk_scons import nacl_utils
 # Revision numbers for the SDK
 MAJOR_REV = '1'
 MINOR_REV = '0'
+PLATFORM_VERSION = 'pepper_15'
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
 
@@ -265,7 +266,8 @@ def UpdateReadMe(filename):
   '''Updates the README file in the SDK with the current date and version'''
 
   for line in fileinput.input(filename, inplace=1):
-    sys.stdout.write(line.replace('${VERSION}', RawVersion())
+    sys.stdout.write(line.replace('${VERSION}', PLATFORM_VERSION)
+                     .replace('${REVISION}', str(SVNRevision()))
                      .replace('${DATE}', str(datetime.date.today())))
 
 def CleanDirectory(dir):

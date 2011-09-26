@@ -110,10 +110,14 @@ def TestingClosure(_outdir, _jobs):
       filename = 'README.txt' if sys.platform == 'win32' else 'README'
       with open(os.path.join(_outdir, filename), 'r') as file:
         contents = file.read()
-      version = build_utils.RawVersion()
+      version = 'Version: %s' % build_utils.PLATFORM_VERSION
       annotator.Print('Checking that SDK version = %s' % version)
       self.assertTrue(contents.count(version) == 1,
                       'Version mismatch in %s' % filename)
+      revision = 'Revision: %s' % str(build_utils.SVNRevision())
+      annotator.Print('Checking that SDK revision = %s' % revision)
+      self.assertTrue(contents.count(revision) == 1,
+                      'Revision mismatch in %s' % filename)
 
       # Check that the README contains either the current date or yesterday's
       # date (which happens when building over midnight)
