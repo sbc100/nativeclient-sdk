@@ -16,7 +16,7 @@ import tempfile
 import unittest
 import urlparse
 
-from build_tools import sdk_update
+from build_tools.sdk_tools import sdk_update
 
 
 class FakeOptions(object):

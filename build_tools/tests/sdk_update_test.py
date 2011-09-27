@@ -15,7 +15,7 @@ import tempfile
 import unittest
 import urllib
 
-from build_tools import sdk_update
+from build_tools.sdk_tools import sdk_update
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +38,8 @@ def CallSDKUpdate(args):
 
   Raises:
     subprocess.CalledProcessError: non-zero return code from sdk_update'''
-  command = ['python', os.path.join(PARENT_DIR, 'sdk_update.py')] + args
+  command = ['python', os.path.join(PARENT_DIR, 'sdk_tools',
+                                    'sdk_update.py')] + args
   process = subprocess.Popen(stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              args=command)

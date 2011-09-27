@@ -30,8 +30,8 @@ import unittest
 import urllib
 
 from build_tools import build_utils
-from build_tools import sdk_update
-from build_tools import update_manifest
+from build_tools.sdk_tools import sdk_update
+from build_tools.sdk_tools import update_manifest
 
 annotator = build_utils.BotAnnotator()
 
