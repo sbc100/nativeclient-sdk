@@ -95,6 +95,7 @@ image_files = [os.path.join('images', img_file) for img_file in [
     'Flock32_Green.png',
     'Flock32_red.png',
     'flock_size_ruler.png',
+    'hub.png',
     'numbers_grey.png',
     'numbers_red.png',
     'odometer.png',

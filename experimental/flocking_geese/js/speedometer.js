@@ -395,6 +395,12 @@ Speedometer.prototype.render = function() {
     this.drawOdometer_(context2d, meter);
     this.drawNeedle_(context2d, meter);
   }
+  // Draw the hub over the needles.
+  var canvasCenterX = context2d.canvas.width / 2;
+  var canvasCenterY = context2d.canvas.height / 2;
+  var hubRadius = this.images_.hub.width / 2;
+  context2d.translate(canvasCenterX - hubRadius, canvasCenterY - hubRadius);
+  context2d.drawImage(this.images_.hub, 0, 0);
   context2d.restore();
   this.flushDrawing_();
 }
@@ -435,8 +441,8 @@ Speedometer.prototype.drawBackground_ = function(context2d, width, height) {
  * @private
  */
 Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
-  var canvasCenterX = this.offscreenCanvas_.width / 2;
-  var canvasCenterY = this.offscreenCanvas_.height / 2;
+  var canvasCenterX = context2d.canvas.width / 2;
+  var canvasCenterY = context2d.canvas.height / 2;
   var meterAngle = (meter.displayValue / this.maxSpeed_) *
                    this.METER_ANGLE_RANGE_;
   meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
@@ -572,6 +578,8 @@ Speedometer.prototype.drawOdometerDigit_ = function(
 Speedometer.prototype.loadImages_ = function() {
   this.images_.background = new Image();
   this.images_.background.src = 'images/DialFace.png';
+  this.images_.hub = new Image();
+  this.images_.hub.src = 'images/hub.png';
   this.images_.odometer = new Image();
   this.images_.odometer.src = 'images/odometer.png';
   this.images_.odometerDigits = new Image();
