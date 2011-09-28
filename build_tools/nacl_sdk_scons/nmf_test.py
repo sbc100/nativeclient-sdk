@@ -15,7 +15,6 @@ import tempfile
 import unittest
 
 from build_tools import build_utils
-from build_tools import sdk_update
 from build_tools.nacl_sdk_scons import nmf
 
 
