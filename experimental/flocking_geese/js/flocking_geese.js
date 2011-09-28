@@ -194,7 +194,7 @@ FlockingGeese.prototype.initializeApplication = function() {
   var speedometerCanvas =
       document.getElementById(FlockingGeese.DomIds.SPEEDOMETER);
   this.speedometer_.setCanvas(speedometerCanvas);
-  this.speedometer_.start();
+  this.speedometer_.reset();
   this.speedometer_.render(this.speedometerCanvas_);
 
   // Wire up the various controls.
@@ -296,6 +296,7 @@ FlockingGeese.prototype.selectFlockSize = function(changeEvent) {
   // Reset the speedometers to 0.
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.NACL, 0);
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT, 0);
+  this.speedometer_.reset();
   this.flock_.resetFlock(newFlockSize, initialLocation);
   this.invokeNaClMethod('resetFlock', {'size' : newFlockSize});
   this.updateSpeedDifference_();

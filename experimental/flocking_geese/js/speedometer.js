@@ -359,19 +359,24 @@ Speedometer.prototype.updateOdometers = function() {
 }
 
 /**
- * Start the display timers and perform any other display initialization.
+ * Start the display timers if needed and perform any other display
+ * initialization.
  */
-Speedometer.prototype.start = function() {
+Speedometer.prototype.reset = function() {
   this.loadImages_();
   for (meterName in this.meters_) {
     var meter = this.meters_[meterName];
     meter.displayValue = meter.value;
     meter.odometerDisplayValue = meter.maxValue;
   }
-  this.needleUpdateTimer_ = setTimeout(goog.bind(this.updateNeedles, this),
-                                       this.NEEDLE_UPDATE_INTERVAL_);
-  this.odometerUpdateTimer_ = setTimeout(goog.bind(this.updateOdometers, this),
-                                         this.ODOMETER_UPDATE_INTERVAL_);
+  if (!this.needleUpdateTimer_) {
+    this.needleUpdateTimer_ = setTimeout(goog.bind(this.updateNeedles, this),
+                                         this.NEEDLE_UPDATE_INTERVAL_);
+  }
+  if (!this.odometerUpdateTimer_) {
+    this.odometerUpdateTimer_ = setTimeout(
+        goog.bind(this.updateOdometers, this), this.ODOMETER_UPDATE_INTERVAL_);
+  }
 }
 
 /**
