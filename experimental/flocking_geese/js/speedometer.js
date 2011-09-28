@@ -471,7 +471,7 @@ Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
     context2d.drawImage(
         needleImage,
         0, 0, needleImage.width, needleImage.height,
-        -12, -12, needleImage.width, needleImage.height);
+        -5, -5, needleImage.width, needleImage.height);
   }
   context2d.restore();
 }
