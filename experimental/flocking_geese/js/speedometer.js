@@ -28,11 +28,14 @@ Speedometer = function(opt_canvas) {
   goog.events.EventTarget.call(this);
 
   /**
-   * The canvas.
+   * Speedometer has two canvases, one is the "offscreen" canvas used to
+   * assemble the final speedometer image and the other is the "onscreen"
+   * canvas in the DOM which renders the final image.
    * @type {Canvas}
    * @private
    */
-  this.canvas_ = opt_canvas || null;
+  this.domCanvas_ = opt_canvas || null;
+  this.offscreenCanvas_ = null;
 
   /**
    * The dictionary of individual meters.
@@ -107,23 +110,16 @@ Speedometer.Themes = {
 Speedometer.prototype.OdometerDims_ = {
   COLUMN_HEIGHT: 16,
   COLUMN_WIDTH: 12,
-  DIGIT_HEIGHT: 12,
+  DIGIT_HEIGHT: 14,
   DIGIT_WIDTH: 8
 };
-
-/**
- * The render animation interval time.  Measured in milliseconds.
- * @type {number}
- * @private
- */
-Speedometer.prototype.RENDER_INTERVAL_ = 83.0;  // About 12 frames/sec.
 
 /**
  * The needle update interval time.  Measured in milliseconds.
  * @type {number}
  * @private
  */
-Speedometer.prototype.NEEDLE_UPDATE_INTERVAL_ = 218.0;
+Speedometer.prototype.NEEDLE_UPDATE_INTERVAL_ = 83.0;  // About 12 frames/sec.
 
 /**
  * Beginning and ending angles for the meter.  |METER_ANGLE_START_| represents
@@ -156,14 +152,23 @@ Speedometer.prototype.MAX_ODOMETER_VALUE_ = 999999.99;
  * @type {number}
  * @private
  */
-Speedometer.prototype.ODOMETER_UPDATE_INTERVAL_ = 1000.0;
+Speedometer.prototype.ODOMETER_UPDATE_INTERVAL_ = 2000.0;
 
 /**
- * The transition time for odometer digits.  Measured in milliseconds.
+ * The amount of time to roll a digit.  Measured in number of needle update
+ * intervals.  So, if NEEDLE_UPDATE_INTERVAL_ is 12 fps (83 msec), then a roll
+ * time of 6 means each digit takes about 1/2 sec to roll.
  * @type {number}
  * @private
  */
-Speedometer.prototype.ODOMETER_TRANSITION_TIME_ = 218.0;
+Speedometer.prototype.ODOMETER_ROLL_TIME_ = 6;
+
+/**
+ * The number of odometer digits.
+ * @type {number}
+ * @private
+ */
+Speedometer.prototype.ODOMETER_DIGIT_COUNT_ = 7;
 
 /**
  * Override of disposeInternal() to dispose of retained objects and unhook all
@@ -185,7 +190,9 @@ Speedometer.prototype.disposeInternal = function() {
     delete this.images_[image];
     this.images_[image] = null;
   }
-  this.canvas_ = null;
+  this.domCanvas_ = null;
+  delete this.offscreenCanvas_;
+  this.offscreenCanvas_ = null;
   Speedometer.superClass_.disposeInternal.call(this);
 }
 
@@ -194,7 +201,17 @@ Speedometer.prototype.disposeInternal = function() {
  * @param !{Canvas} canvas The <CANVAS> element for drawing.
  */
 Speedometer.prototype.setCanvas = function(canvas) {
-  this.canvas_ = canvas;
+  this.domCanvas_ = canvas;
+  if (this.offscreenCanvas_) {
+    delete this.offscreenCanvas_;
+    this.offscreenCanvas_ = null;
+  }
+  if (!canvas) {
+    return;
+  }
+  this.offscreenCanvas_ = document.createElement('canvas');
+  this.offscreenCanvas_.width = canvas.width;
+  this.offscreenCanvas_.height = canvas.height;
 }
 
 /**
@@ -237,19 +254,26 @@ Speedometer.prototype.addMeterWithName = function(meterName, opt_attributes) {
   var meter = {
     name: meterName,
     value: 0.0,
-    displayValue: 0.0,  // Updated every NEEDLE_UPDATE_INTERVAL_
+    displayValue: 0.0,  // Updated every NEEDLE_UPDATE_INTERVAL_.
     maxValue: 0.0,
     theme: Speedometer.Themes.DEFAULT,
     odometerLeft: 0,
     odometerTop: 0,
-    odometerDisplayValue: 0.0,  // Updated every ODOMETER_UPDATE_INTERVAL_
     previousAngle: 0.0,
+    odometerDisplayValue: 0.0  // Updated every ODOMETER_UPDATE_INTERVAL_.
   };
   for (attrib in attributes) {
     // Overwrite meter defaults with passed-in values if present.  Otherwise,
     // add the passed-in element.
     meter[attrib] = attributes[attrib];
   }
+  // Each digit has its current display offset and a delta value used to
+  // compute its next display offset when rolling the digit.
+  meter.odometerDigits_ = new Array(this.ODOMETER_DIGIT_COUNT_);
+  for (var i = 0; i < this.ODOMETER_DIGIT_COUNT_; i++) {
+    meter.odometerDigits_[i] = this.createOdometerDigitDict_();
+  }
+
   this.meters_[meterName] = meter;
 }
 
@@ -308,16 +332,30 @@ Speedometer.prototype.updateNeedles = function() {
 
 /**
  * Update the odometers to their new values, and restart the odometer update
- * timer.
+ * timer.  Recomputes all the animation parameters for rolling the digits to
+ * their new values.
  */
 Speedometer.prototype.updateOdometers = function() {
   for (meterName in this.meters_) {
     var meter = this.meters_[meterName];
     meter.odometerDisplayValue = meter.value;
+    var odometerValue = Math.min(meter.odometerDisplayValue.toFixed(2),
+                                 this.MAX_ODOMETER_VALUE_);
+    for (var digit = this.ODOMETER_DIGIT_COUNT_ - 1; digit >= 0; digit--) {
+      var digitDict = this.createOdometerDigitDict_();
+      var digitValue = (odometerValue - Math.floor(odometerValue)) * 10;
+      var prevOffset = meter.odometerDigits_[digit].previousOffset;
+      digitDict.offset = Math.floor(digitValue) *
+                         this.OdometerDims_.DIGIT_HEIGHT;
+      digitDict.rollDelta = (digitDict.offset - prevOffset) /
+                            this.ODOMETER_ROLL_TIME_;
+      digitDict.previousOffset = prevOffset;
+      meter.odometerDigits_[digit] = digitDict;
+      odometerValue /= 10;
+    }
   }
-  this.render();
-  this.needleUpdateTimer_ = setTimeout(goog.bind(this.updateOdometers, this),
-                                       this.ODOMETER_UPDATE_INTERVAL_);
+  this.odometerUpdateTimer_ = setTimeout(goog.bind(this.updateOdometers, this),
+                                         this.ODOMETER_UPDATE_INTERVAL_);
 }
 
 /**
@@ -340,19 +378,37 @@ Speedometer.prototype.start = function() {
  * Render the speedometer.
  */
 Speedometer.prototype.render = function() {
-  if (!this.canvas_) {
-    return;
+  if (!this.offscreenCanvas_) {
+    this.setCanvas(this.domCanvas_);
+    if (!this.offscreenCanvas_) {
+      return;
+    }
   }
-  var context2d = this.canvas_.getContext('2d');
+  var context2d = this.offscreenCanvas_.getContext('2d');
   context2d.save();
-  this.drawBackground_(context2d, this.canvas_.width, this.canvas_.height);
+  this.drawBackground_(context2d,
+                       this.offscreenCanvas_.width,
+                       this.offscreenCanvas_.height);
   // Paint the meters.
   for (meterName in this.meters_) {
     var meter = this.meters_[meterName];
-    this.drawNeedle_(context2d, meter);
     this.drawOdometer_(context2d, meter);
+    this.drawNeedle_(context2d, meter);
   }
   context2d.restore();
+  this.flushDrawing_();
+}
+
+/**
+ * Flush the contents of the offscreen canvas to the onscreen one.
+ * @private
+ */
+Speedometer.prototype.flushDrawing_ = function() {
+  if (!this.domCanvas_ || !this.offscreenCanvas_) {
+    return;
+  }
+  var context2d = this.domCanvas_.getContext('2d');
+  context2d.drawImage(this.offscreenCanvas_, 0, 0);
 }
 
 /**
@@ -379,8 +435,8 @@ Speedometer.prototype.drawBackground_ = function(context2d, width, height) {
  * @private
  */
 Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
-  var canvasCenterX = this.canvas_.width / 2;
-  var canvasCenterY = this.canvas_.height / 2;
+  var canvasCenterX = this.offscreenCanvas_.width / 2;
+  var canvasCenterY = this.offscreenCanvas_.height / 2;
   var meterAngle = (meter.displayValue / this.maxSpeed_) *
                    this.METER_ANGLE_RANGE_;
   meterAngle = Math.min(meterAngle, this.METER_ANGLE_RANGE_);
@@ -415,6 +471,20 @@ Speedometer.prototype.drawNeedle_ = function(context2d, meter) {
 }
 
 /**
+ * Create an odometer digit dictionary.
+ * @return {Object} a newly-created digit dictionary.
+ * @private
+ */
+Speedometer.prototype.createOdometerDigitDict_ = function() {
+  var digitDict = {
+      rollDelta: 0,
+      previousOffset: 0,
+      offset: 0
+  };
+  return digitDict;
+}
+
+/**
  * Draw the odometer for a given meter.
  * @param {Graphics2d} context2d The 2D canvas context.
  * @param {Object} meter The meter.
@@ -428,26 +498,17 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
   context2d.save();
   context2d.translate(meter.odometerLeft, meter.odometerTop);
   context2d.drawImage(this.images_.odometer, 0, 0);
-  var odometerValue = Math.min(meter.odometerDisplayValue.toFixed(2),
-                               this.MAX_ODOMETER_VALUE_);
   // Center the odometer digits in the odometer cells.
-  context2d.save();
   context2d.translate(
       (this.OdometerDims_.COLUMN_WIDTH - this.OdometerDims_.DIGIT_WIDTH) / 2,
       (this.OdometerDims_.COLUMN_HEIGHT - this.OdometerDims_.DIGIT_HEIGHT) / 2);
   // Draw the tenths digit.
-  var tenths = (odometerValue - Math.floor(odometerValue)) * 10;
-  this.drawOdometerDigit_(context2d, tenths, 6, this.images_.odometerTenths);
+  this.drawOdometerDigit_(context2d, meter, 6, this.images_.odometerTenths);
   // Draw the integer part, up to 5 digits (max value is 999,999.9).
   for (var column = 5; column >= 0; column--) {
-    var digitValue = odometerValue / 10;
-    digitValue = digitValue - Math.floor(digitValue);
-    digitValue *= 10;
-    this.drawOdometerDigit_(context2d, digitValue,
-                            column, this.images_.odometerDigits);
-    odometerValue = odometerValue / 10;
+    this.drawOdometerDigit_(context2d, meter, column,
+        this.images_.odometerDigits);
   }
-  context2d.restore();
   context2d.restore();
 }
 
@@ -457,8 +518,7 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
  * source is wrapped back to the beginning of the strip.  In this way, drawing
  * a partial '9' will also draw part of the '0'.
  * @param {Graphics2d} context2d The drawing context.
- * @param {number} value The value, must be in range [0..10).  The fractional
- *     part is used to 'roll' the digit image.
+ * @param {Object} meter The meter related to this odometer.
  * @param {number} column The odometer column index, 0-based numbered from the
  *     left-most (most significant) digit.  For example, column 0 is the
  *     100,000's place, column 6 is the 1/10's place.
@@ -466,13 +526,14 @@ Speedometer.prototype.drawOdometer_ = function(context2d, meter) {
  * @private
  */
 Speedometer.prototype.drawOdometerDigit_ = function(
-    context2d, value, column, digits) {
-  var digitOffset = Math.floor(value) * this.OdometerDims_.DIGIT_HEIGHT;
-  var digitHeight = Math.min(digits.height - digitOffset,
+    context2d, meter, column, digits) {
+  var digitDict = meter.odometerDigits_[column];
+  var offset = digitDict.previousOffset;
+  var digitHeight = Math.min(digits.height - offset,
                              this.OdometerDims_.DIGIT_HEIGHT);
   var digitWrapHeight = this.OdometerDims_.DIGIT_HEIGHT - digitHeight;
   context2d.drawImage(digits,
-                      0, digitOffset,
+                      0, offset,
                       this.OdometerDims_.DIGIT_WIDTH, digitHeight,
                       column * this.OdometerDims_.COLUMN_WIDTH, 0,
                       this.OdometerDims_.DIGIT_WIDTH, digitHeight);
@@ -483,6 +544,24 @@ Speedometer.prototype.drawOdometerDigit_ = function(
                         column * this.OdometerDims_.COLUMN_WIDTH,
                         this.OdometerDims_.DIGIT_HEIGHT - digitWrapHeight,
                         this.OdometerDims_.DIGIT_WIDTH, digitWrapHeight);
+  }
+  if (digitDict.rollDelta == 0) {
+    return;
+  }
+  if ((digitDict.rollDelta > 0 && offset >= digitDict.offset) ||
+      (digitDict.rollDelta < 0 && offset <= digitDict.offset)) {
+    digitDict.previousOffset = digitDict.offset;
+    digitDict.rollDelta = 0;
+    return;
+  }
+  digitDict.previousOffset += digitDict.rollDelta;
+  if (digitDict.previousOffset < 0) {
+    // Wrap the offset around to the end of the digits image.
+    digitDict.previousOffset += digits.height;
+  }
+  if (digitDict.previousOffset > digits.height) {
+    // Wrap the offset around to the top of the digits image.
+    digitDict.previousOffset = digitDict.previousOffset - digits.height;
   }
 }
 
