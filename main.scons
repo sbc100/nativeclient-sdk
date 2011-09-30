@@ -262,8 +262,8 @@ def AddNodeAliases(env, node, suite_names, node_name):
 base_env.AddMethod(AddNodeAliases)
 
 
-def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
-                         params=[], buffered=True, banner=None):
+def CreatePythonUnitTest(env, filename, dependencies=None, disabled=False,
+                         params=None, buffered=True, banner=None):
   """Returns a new build command that will run a unit test with a given file.
 
   Args:
@@ -279,6 +279,8 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
   Returns:
     A SCons command node
   """
+  dependencies = dependencies or []
+  params = params or []
 
   basename = os.path.splitext(os.path.basename(filename))[0]
   outfilename = "%s_output.txt" % basename
@@ -312,7 +314,10 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
 
     import subprocess
 
-    app = [str(env['PYTHON']), str(source[0].abspath)] + params
+    app = [str(env['PYTHON']), str(source[0].abspath)] + map(
+        lambda param: param if type(param) is str else str(param.abspath),
+        params)
+    bot.Print('Running: %s' % app)
     app_env = os.environ.copy()
     # We have to do this because scons overrides PYTHONPATH and does
     # not preserve what is provided by the OS.
@@ -350,6 +355,10 @@ def CreatePythonUnitTest(env, filename, dependencies=[], disabled=False,
 
   cmd = env.Command(outfilename, filename, RunPythonUnitTest)
   env.Depends(cmd, dependencies)
+  # Create dependencies for all the env.File parameters and other scons nodes
+  for param in params:
+    if type(param) is not str:
+      env.Depends(cmd, param)
 
   return cmd
 

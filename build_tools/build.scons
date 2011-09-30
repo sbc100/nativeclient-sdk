@@ -14,6 +14,7 @@ __author__ = 'mball@google.com (Matt Ball)'
 
 from build_tools import build_utils
 from build_tools import make_nacl_tools
+from build_tools import make_sdk_tools
 import os
 import sys
 
@@ -51,18 +52,31 @@ env.AddNodeAliases(installer_node, ['bot'], 'installer')
 install_file = 'nacl-sdk.exe' if sys.platform == 'win32' else 'nacl-sdk.tgz'
 installer = os.path.join(os.path.dirname(env['ROOT_DIR']), install_file)
 
+def BuildSdkTools(env, target, source):
+  print str(target[0].abspath)
+  make_sdk_tools.MakeSdkTools(str(target[0].abspath), str(target[1].abspath))
+
+sdk_tools_node = env.Command(
+    target=['nacl_sdk.tgz', 'sdk_tools.tgz'],
+    source=[os.path.join('sdk_tools', 'sdk_update.py'),
+            'make_sdk_tools.py'],
+    action=BuildSdkTools)
+
+env.AddNodeAliases(sdk_tools_node, ['bot'], 'sdk_tools')
+
 installer_test_node = env.CreatePythonUnitTest(
     'tests/installer_test.py',
     [installer_node if not env['USE_EXISTING_INSTALLER'] else installer],
     buffered=False,
     params=['--jobs=%s' % env['JOB_COUNT'],
             '--outdir=%s' % os.path.join('scons-out', 'sdk_installer'),
+            '--nacl-sdk', env.File('nacl_sdk.tgz'),
+            '--sdk-tools', env.File('sdk_tools.tgz'),
             installer],
-    banner='test installer')
+    banner='test installer',)
 
 env.AddNodeToTestSuite(installer_test_node, ['bot'],
                        'run_installer_test', 'large')
-
 
 #------------------------------------------------------------------------------
 # Add build_tools unit tests

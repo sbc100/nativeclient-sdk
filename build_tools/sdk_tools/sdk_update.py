@@ -26,7 +26,7 @@ import urlparse
 
 # Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 4
+MINOR_REV = 5
 
 GLOBAL_HELP = '''Usage: %prog [options] command [command_options]
 
@@ -40,6 +40,7 @@ Commands:
   update - Updates the SDK to the latest recommended toolchains'''
 
 MANIFEST_FILENAME='naclsdk_manifest.json'
+SDK_TOOLS='sdk_tools'  # the name for this tools directory
 USER_DATA_DIR='sdk_cache'
 
 # The following SSL certificates are used to validate the SSL connection
@@ -258,7 +259,7 @@ def RemoveDir(outdir):
     OSError - if the delete operation fails on Linux
   '''
 
-  InfoPrint('Removing %s' % outdir)
+  DebugPrint('Removing %s' % outdir)
   if sys.platform == 'win32':
     subprocess.check_call(['rmdir /S /Q', outdir], shell=True)
   else:
@@ -899,9 +900,12 @@ def Update(options, argv):
           InfoPrint('bundle is up-to-date')
 
   Targets:
-    recommended: (default) Install/Update all recommended components
-    all:         Install/Update all available components'''
+    'recommended': (default) Install/Update all recommended components
+    'all':         Install/Update all available components
+    bundle_name:   Install/Update only the given bundle'''
   DebugPrint("Running Update command with: %s, %s" % (options, argv))
+  ALL='all'  # Update all bundles
+  RECOMMENDED='recommended'  # Only update the bundles with recommended=yes
 
   parser = optparse.OptionParser(usage=Update.__doc__)
   parser.add_option(
@@ -909,12 +913,21 @@ def Update(options, argv):
       default=False, action='store_true',
       help='Force updating existing components that already exist')
   (update_options, args) = parser.parse_args(argv)
+  if len(args) == 0:
+    args = ['recommended']
   tools = ManifestTools(options)
   tools.LoadManifest()
   bundles = tools.GetBundles()
   local_manifest = SDKManifestFile(os.path.join(options.user_data_dir,
                                                 options.manifest_filename))
   for bundle in bundles:
+    bundle_name = bundle[NAME_KEY]
+    bundle_path = os.path.join(options.sdk_root_dir, bundle_name)
+    bundle_update_path = '%s_update' % bundle_path
+    if not (bundle_name in args or
+            'all' in args or (RECOMMENDED in args and
+                              bundle[RECOMMENDED] == 'yes')):
+      continue
     def UpdateBundle():
       '''Helper to install a bundle'''
       archive = bundle.GetArchive(GetHostOS())
@@ -923,33 +936,37 @@ def Update(options, argv):
       sha1, size = archive.DownloadToFile(os.path.join(options.user_data_dir,
                                                        dest_filename))
       if sha1 != archive['checksum']['sha1']:
-        raise Error("SHA1 checksum mismatch.  Expected %s but got %s" %
-                    (archive['checksum']['sha1'], sha1))
+        raise Error("SHA1 checksum mismatch on '%s'.  Expected %s but got %s" %
+                    (bundle_name, archive['checksum']['sha1'], sha1))
       if size != archive['size']:
         raise Error("Size mismatch on Archive.  Expected %s but got %s bytes" %
                     (archive['size'], size))
       InfoPrint('Updating bundle %s to version %s, revision %s' % (
                 (bundle_name, bundle[VERSION_KEY], bundle[REVISION_KEY])))
-      ExtractInstaller(dest_filename, bundle_path)
+      ExtractInstaller(dest_filename, bundle_update_path)
+      if bundle_name != SDK_TOOLS:
+        if os.path.exists(bundle_path):
+          RemoveDir(bundle_path)
+        os.rename(bundle_update_path, bundle_path)
       os.remove(dest_filename)
-
-    bundle_name = bundle[NAME_KEY]
-    bundle_path = os.path.join(options.sdk_root_dir, bundle_name)
-    if update_options.force:
-      UpdateBundle()
-    else:
-      # Test revision numbers, update the bundle accordingly.
-      # TODO(dspringer): The local file should be refreshed from disk each
-      # iteration thought this loop so that multiple sdk_updates can run at the
-      # same time.
-      if local_manifest.BundleNeedsUpdate(bundle):
-        UpdateBundle()
-        local_manifest.MergeBundle(bundle)
-        local_manifest.WriteFile()
+      local_manifest.MergeBundle(bundle)
+      local_manifest.WriteFile()
+    # Test revision numbers, update the bundle accordingly.
+    # TODO(dspringer): The local file should be refreshed from disk each
+    # iteration thought this loop so that multiple sdk_updates can run at the
+    # same time.
+    if local_manifest.BundleNeedsUpdate(bundle):
+      if (not update_options.force and os.path.exists(bundle_path) and
+          bundle_name != SDK_TOOLS):
+        WarningPrint('%s already exists, but has an update available.\n'
+                     'Run update with the --force option to overwrite the '
+                     'existing directory.\nWarning: This will overwrite any '
+                     'modifications you have made within this directory.'
+                     % bundle_name)
       else:
-        InfoPrint('Skipping bundle %s because directory already exists and is '
-                  'up-to-date.' % bundle_name)
-        InfoPrint('Use --force option to force overwriting existing directory')
+        UpdateBundle()
+    else:
+      InfoPrint('%s is already up-to-date.' % bundle_name)
 
 
 #------------------------------------------------------------------------------
@@ -959,6 +976,7 @@ def Update(options, argv):
 def main(argv):
   '''Main entry for the sdk_update utility'''
   parser = optparse.OptionParser(usage=GLOBAL_HELP)
+  DEFAULT_SDK_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
   parser.add_option(
       '-U', '--manifest-url', dest='manifest_url',
@@ -978,12 +996,11 @@ def main(argv):
       # TODO(mball): the default should probably be in something like
       # ~/.naclsdk (linux), or ~/Library/Application Support/NaClSDK (mac),
       # or %HOMEPATH%\Application Data\NaClSDK (i.e., %APPDATA% on windows)
-      default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           USER_DATA_DIR),
+      default=os.path.join(DEFAULT_SDK_ROOT, USER_DATA_DIR),
       help="specify location of NaCl SDK's data directory")
   parser.add_option(
       '-s', '--sdk-root-dir', dest='sdk_root_dir',
-      default=os.path.dirname(os.path.abspath(__file__)),
+      default=DEFAULT_SDK_ROOT,
       help="location where the SDK bundles are installed")
   parser.add_option(
       '-v', '--version', dest='show_version',
@@ -992,7 +1009,7 @@ def main(argv):
   parser.add_option(
       '-m', '--manifest', dest='manifest_filename',
       default=MANIFEST_FILENAME,
-      help="the manifest file")
+      help="name of local manifest file relative to user-data-dir")
 
   COMMANDS = {
       'list': List,

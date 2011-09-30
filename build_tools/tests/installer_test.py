@@ -25,6 +25,7 @@ import socket
 import string
 import subprocess
 import sys
+import tarfile
 import time
 import unittest
 import urllib
@@ -329,7 +330,7 @@ def TestingClosure(_outdir, _jobs):
   return TestSDK
 
 
-def ExtractInstaller(installer, outdir, bundle_name):
+def ExtractInstaller(installer, outdir, bundle_name, nacl_sdk):
   '''Extract the SDK installer into a given directory
 
   If the outdir already exists, then this function deletes it
@@ -338,6 +339,7 @@ def ExtractInstaller(installer, outdir, bundle_name):
     installer: full path of the SDK installer
     outdir: output directory where to extract the installer
     bundle_name: name of sdk bundle within outdir
+    nacl_sdk: filename of nacl_sdk tarball
 
   Raises:
     OSError - if the outdir already exists
@@ -350,9 +352,17 @@ def ExtractInstaller(installer, outdir, bundle_name):
     RemoveDir(outdir)
 
   os.mkdir(outdir)
+  tar_file = None
+  try:
+    tar_file = tarfile.open(nacl_sdk, 'r:gz')
+    tar_file.extractall(path=outdir)
+  finally:
+    if tar_file:
+      tar_file.close()
 
-  manifest_filename = os.path.join(os.path.abspath(outdir),
-                                   'test_manifest.json')
+  outdir = os.path.join(outdir, 'nacl_sdk')
+
+  manifest_filename = os.path.join(outdir, 'test_manifest.json')
   update_manifest_options = [
        '--bundle-revision=1',
        '--bundle-version=2',
@@ -370,13 +380,14 @@ def ExtractInstaller(installer, outdir, bundle_name):
     raise Exception('update_manifest terminated abnormally.')
 
   sdk_update_options = [
+       os.path.join(outdir,
+                    'nacl.bat' if sys.platform == 'win32' else 'nacl'),
       '--manifest-url=file://%s' % urllib.pathname2url(manifest_filename),
       '--sdk-root-dir=%s' % outdir,
       '--user-data-dir=%s' % outdir,
       'update']
   annotator.Print('Running sdk_update with %s' % sdk_update_options)
-  if 0 != sdk_update.main(sdk_update_options):
-    raise Exception('sdk_update terminated abnormally.')
+  subprocess.check_call(sdk_update_options)
 
 
 def RemoveDir(outdir):
@@ -421,6 +432,12 @@ def main():
   parser.add_option(
       '-j', '--jobs', dest='jobs', default=1,
       help='number of parallel jobs to run')
+  parser.add_option(
+      '-n', '--nacl-sdk', dest='nacl_sdk', default='nacl_sdk.tgz',
+      help='location of the nacl_sdk tarball')
+  parser.add_option(
+      '-s', '--sdk-tools', dest='sdk_tools', default='sdk_tools.tgz',
+      help='location of the sdk_tools tarball')
 
   options, args = parser.parse_args()
 
@@ -435,13 +452,14 @@ def main():
 
   annotator.Print("Running with installer = %s, outdir = %s, jobs = %s" % (
                   installer, outdir, options.jobs))
-  ExtractInstaller(installer, outdir, BUNDLE_NAME)
+  ExtractInstaller(installer, outdir, BUNDLE_NAME, options.nacl_sdk)
 
   suite = unittest.TestLoader().loadTestsFromTestCase(
-      TestingClosure(os.path.join(outdir, BUNDLE_NAME), options.jobs))
+      TestingClosure(os.path.join(outdir, 'nacl_sdk', BUNDLE_NAME),
+                     options.jobs))
   result = unittest.TextTestRunner(verbosity=2).run(suite)
 
-  RemoveDir(outdir)
+  #RemoveDir(outdir)
 
   return int(not result.wasSuccessful())
 
