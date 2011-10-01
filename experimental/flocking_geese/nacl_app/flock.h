@@ -66,6 +66,10 @@ class Flock {
   // paused mode.  Returns the new run mode.
   SimulationMode WaitForRunMode();
 
+  // Set the location of the attractor at the specified index.  The array of
+  // attractors is expanded to include |index|.
+  void SetAttractorAtIndex(const Vector2& attractor, size_t index);
+
   SimulationMode simulation_mode() const {
     return static_cast<SimulationMode>(simulation_mode_.condition_value());
   }
@@ -138,6 +142,7 @@ class Flock {
   pp::Rect flockBounds_;
   threading::ConditionLock simulation_mode_;
   std::vector<Goose> geese_;
+  std::vector<Vector2> attractors_;
   FrameCounter frame_counter_;
   int32_t tick_counter_;  // Number of sim ticks between Render() calls.
 

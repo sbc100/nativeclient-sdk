@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <string>
 
 #include "nacl_app/scoped_pixel_lock.h"
@@ -56,6 +57,13 @@ Flock::SimulationMode Flock::WaitForRunMode() {
   return simulation_mode();
 }
 
+void Flock::SetAttractorAtIndex(const Vector2& attractor, size_t index) {
+  if (index >= attractors_.size()) {
+    attractors_.resize(index + 1, Vector2());
+  }
+  attractors_[index] = attractor;
+}
+
 void Flock::Resize(const pp::Size& size) {
   flockBounds_.SetRect(0, 0,
                        std::max(size.width(), 0),
@@ -66,10 +74,8 @@ void Flock::ResetFlock(size_t size, const Vector2& initialLocation) {
   threading::ScopedMutexLock scoped_mutex(simulation_mutex());
   if (!scoped_mutex.is_valid())
     return;
-  geese_.clear();
-  while (--size) {
-    geese_.push_back(Goose(initialLocation));
-  }
+  geese_.resize(size + 1);
+  geese_.assign(size, Goose(initialLocation));
   frame_counter_.Reset();
 }
 
@@ -78,7 +84,7 @@ void Flock::SimulationTick() {
   for (std::vector<Goose>::iterator goose = geese_.begin();
        goose < geese_.end();
        ++goose) {
-    goose->SimulationTick(geese_, flockBounds_);
+    goose->SimulationTick(geese_, attractors_, flockBounds_);
   }
   frame_counter_.EndFrame();
 }
@@ -120,6 +126,29 @@ void Flock::Render() {
         sprite_src_rect,
         pixel_buffer, canvas_size, 0,
         dest_point);
+  }
+
+  // Hack: draw a blue rectangle at each attractor.
+  // TODO(dspringer): This is ridiculous.  Fix this when a proper graphics lib
+  // available.
+  for (std::vector<Vector2>::const_iterator attractor = attractors_.begin();
+       attractor < attractors_.end();
+       ++attractor) {
+    int32_t x = std::max(static_cast<int32_t>(attractor->x()) - 2, 0);
+    int32_t y = std::max(static_cast<int32_t>(attractor->y()) - 2, 0);
+    int32_t w = 4, h = 4;
+    int32_t rw = canvas_size.width();
+    if (x + w >= rw) { x = rw - 1 - w; }
+    if (y + h >= canvas_size.height()) { y = canvas_size.height() - 1 - h; }
+    uint32_t* rect = pixel_buffer + y * rw + x;
+    for (int32_t row = 0; row < h; ++row) {
+      uint32_t* scanline = rect;
+      rect += rw;
+      *scanline++ = 0xFF0000FF;
+      *scanline++ = 0xFF0000FF;
+      *scanline++ = 0xFF0000FF;
+      *scanline++ = 0xFF0000FF;
+    }
   }
 
   if (simulation_mode() == kRenderThrottle) {

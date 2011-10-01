@@ -21,6 +21,9 @@ const double kNeighbourRadius = 64.0;
 // move the geese apart.  Measured in pixels.
 const double kPersonalSpace = 32.0;
 
+// The distance at which attractors have effect on a goose's direction.
+const double kAttractorRadius = 320.0;
+
 // The goose will try to turn towards geese within this distance (computed
 // during the cohesion phase).  Measured in pixels.
 const double kMaxTurningDistance = 100.0;
@@ -44,8 +47,9 @@ Goose::Goose(const Vector2& location) : location_(location) {
 }
 
 void Goose::SimulationTick(const std::vector<Goose>& geese,
+                           const std::vector<Vector2>& attractors,
                            const pp::Rect& flockBox) {
-  Vector2 acceleration = Flock(geese);
+  Vector2 acceleration = Flock(geese, attractors);
   velocity_.Add(acceleration);
   // Limit the velocity to a maximum speed.
   velocity_.Clamp(kMaxSpeed);
@@ -67,7 +71,8 @@ void Goose::SimulationTick(const std::vector<Goose>& geese,
   }
 }
 
-Vector2 Goose::Flock(const std::vector<Goose>& geese) {
+Vector2 Goose::Flock(const std::vector<Goose>& geese,
+                     const std::vector<Vector2>& attractors) {
   // Loop over all the neighbouring geese in the flock, accumulating
   // the separation mean, the alignment mean and the cohesion mean.
   int32_t separationCount = 0;
@@ -104,6 +109,21 @@ Vector2 Goose::Flock(const std::vector<Goose>& geese) {
     // difference between this goose's velocity and its neighbours'.
     alignment.Clamp(kMaxTurningForce);
   }
+
+  // Compute the effect of the attractors and blend this in with the flock
+  // cohesion component.  An attractor has to be within kAttractorRadius to
+  // effect the heading of a goose.
+  for (size_t i = 0; i < attractors.size(); ++i) {
+    Vector2 attractorDirection = Vector2::Difference(
+        attractors[i], location_);
+    double distance = attractorDirection.Magnitude();
+    if (distance < kAttractorRadius) {
+      attractorDirection.Scale(1000);  // Each attractor acts like 1000 geese.
+      cohesion.Add(attractorDirection);
+      cohesionCount++;
+    }
+  }
+
   // If there is a non-0 cohesion component, steer the goose so that it tries
   // to follow the flock.
   if (cohesionCount > 0) {

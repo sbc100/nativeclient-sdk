@@ -59,6 +59,10 @@ class FlockingGeeseApp : public pp::Instance {
   void PauseSimulation(const scripting::ScriptingBridge& bridge,
                        const scripting::MethodParameter& parameters);
 
+  // Set the attractor location.
+  void SetAttractorLocation(const scripting::ScriptingBridge& bridge,
+                            const scripting::MethodParameter& parameters);
+
   // Package up the current stats about the simulation (tick duration, etc.)
   // and post it as a formatted string back to the browser.  The string
   // starts with the method name "setSimulationInfo" followed and a list of

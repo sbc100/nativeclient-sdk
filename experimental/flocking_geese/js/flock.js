@@ -31,6 +31,13 @@ Flock = function() {
   this.geese_ = [];
 
   /**
+   * An array of attractors.  The flock has affinity for these points, and
+   * will head toward them when close enough.
+   * @type {Array.<goog.Math.Vec2>}
+   */
+  this.attractors = [];
+
+  /**
    * The framerate meter.
    * type {FrameCounter}
    * @private
@@ -91,7 +98,7 @@ Flock.prototype.flock = function(opt_flockBox) {
   var flockBox = opt_flockBox || new goog.math.Rect(0, 0, 200, 200);
   this.frameCounter_.beginFrame();
   for (var goose = 0; goose < this.geese_.length; goose++) {
-    this.geese_[goose].simulationTick(this.geese_, flockBox);
+    this.geese_[goose].simulationTick(this.geese_, this.attractors, flockBox);
   }
   this.frameCounter_.endFrame();
   return this.frameCounter_.framesPerSecond();
@@ -108,8 +115,6 @@ Flock.prototype.render = function(canvas) {
   var context2d = canvas.getContext('2d');
   for (var g = 0; g < this.geese_.length; g++) {
     var goose = this.geese_[g];
-    context2d.save();
-    context2d.translate(goose.location().x, goose.location().y);
     var heading = goose.velocity().heading();
     if (heading < 0.0) {
       heading = Math.PI * 2.0 + heading;
@@ -117,11 +122,15 @@ Flock.prototype.render = function(canvas) {
     // The goose points down the positive x-axis when its heading is 0.
     //context2d.rotate(heading);
     var spriteWidth = this.gooseImage_.height;
-    var spriteIndex = Math.floor(heading / this.GOOSE_HEADING_INCREMENT_) *
+    var spriteOffset = Math.floor(heading / this.GOOSE_HEADING_INCREMENT_) *
                       spriteWidth;
     context2d.drawImage(this.gooseImage_,
-                        spriteIndex, 0, spriteWidth, this.gooseImage_.height,
-                        0, 0, spriteWidth, this.gooseImage_.height);
-    context2d.restore();
+                        spriteOffset, 0, spriteWidth, this.gooseImage_.height,
+                        goose.location().x, goose.location().y,
+                        spriteWidth, this.gooseImage_.height);
+  }
+  context2d.fillStyle = 'blue';
+  for (var a = 0; a < this.attractors.length; a++) {
+    context2d.fillRect(this.attractors[a].x - 2, this.attractors[a].y - 2, 4, 4);
   }
 }

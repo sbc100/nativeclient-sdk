@@ -27,24 +27,32 @@ class Goose {
   // flocking algorithm (see Goose.flock()) and update the goose's location
   // by integrating acceleration and velocity.
   // @param geese The list of all the geese in the flock.
+  // @param  attractors The list of attractors.  Geese have affinity for these
+  //     points.
   // @param flockBox The geese will stay inside of this box.  If the parameter
   //     is not given, the geese don't have boundaries.
   void SimulationTick(const std::vector<Goose>& geese,
+                      const std::vector<Vector2>& attractors,
                       const pp::Rect& flockBox);
 
-  // Implement the flocking algorithm in four steps:
+  // Implement the flocking algorithm in five steps:
   //  1. Compute the separation component,
   //  2. Compute the alignment component,
   //  3. Compute the cohesion component.
-  //  4. Create a weighted sum of the three components and use this as the
+  //  4. Compute the effect of the attractors and blend this in with the
+  //     cohesion component.
+  //  5. Create a weighted sum of the three components and use this as the
   //     new acceleration for the goose.
   // This is an O(n^2) version of the algorithm.  There are ways to speed this
   // up using spatial coherence techniques, but this version is much simpler.
   // @param geese The list of all the neighbouring geese (in this
   //     implementation, this is all the geese in the flock).
+  // @param  attractors The list of attractors.  Geese have affinity for these
+  //     points.
   // @return The acceleration vector for this goose based on the flocking
   //     algorithm.
-  Vector2 Flock(const std::vector<Goose>& geese);
+  Vector2 Flock(const std::vector<Goose>& geese,
+                const std::vector<Vector2>& attractors);
 
   // Turn the goose towards a target.  The amount of turning force is clamped
   // to |kMaxTurningForce|.

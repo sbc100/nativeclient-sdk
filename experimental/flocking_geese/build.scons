@@ -13,10 +13,17 @@ import make_nacl_env
 import nacl_utils
 import os
 
+EXPERIMENTAL_DIR = os.path.dirname(os.getcwd())
+
 nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 nacl_env.Append(
-    CPPPATH=[os.getcwd()],
+    CPPPATH=[
+        os.getcwd(),
+        EXPERIMENTAL_DIR,
+        os.path.dirname(EXPERIMENTAL_DIR),
+        os.path.join(os.path.dirname(EXPERIMENTAL_DIR), 'third_party'),
+        ],
     OPT_CCFLAGS=['-ffast-math',
                  '-mfpmath=sse',
                  '-msse2'],

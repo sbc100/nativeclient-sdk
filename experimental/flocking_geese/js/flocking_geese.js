@@ -22,16 +22,25 @@ goog.require('goog.Disposable');
 goog.require('goog.array');
 goog.require('goog.dom');
 goog.require('goog.events.EventType');
+goog.require('goog.math.Vec2');
 goog.require('goog.style');
 
 /**
  * Constructor for the FlockingGeese class.  Use the run() method to populate
  * the object with controllers and wire up the events.
+ * @param {string} containerId The DOM id of the application's container.
  * @constructor
  * @extends {goog.Disposable}
  */
-FlockingGeese = function() {
+FlockingGeese = function(containerId) {
   goog.Disposable.call(this);
+
+  /**
+   * The DOM element that contains the application.
+   * @type {Element}
+   * @private
+   */
+  this.container_ = document.getElementById(containerId);
 
   /**
    * The flock of geese as implemented in JavaScript.
@@ -84,11 +93,17 @@ FlockingGeese = function() {
   this.flockSizeSlider_ = null;
 
   /**
-   * THe current simulation mode.  Starts in 'JavaScript'.
+   * The current simulation mode.  Starts in 'JavaScript'.
    * @type {string}
    * @private
    */
   this.simulationMode_ = FlockingGeese.SimulationMode.JAVASCRIPT;
+
+  /**
+   * Event handling.
+   */
+  this.mouseMoveListener_ = null;
+  this.mouseUpListener_ = null;
 }
 goog.inherits(FlockingGeese, goog.Disposable);
 
@@ -198,6 +213,9 @@ FlockingGeese.prototype.initializeApplication = function() {
   this.speedometer_.render(this.speedometerCanvas_);
 
   // Wire up the various controls.
+  goog.events.listen(this.container_, goog.events.EventType.MOUSEDOWN,
+    this.mouseDown_, true, this);
+
   var simSelectSlider =
       document.getElementById(FlockingGeese.DomIds.SIM_MODE_SELECT);
   var simSelectRuler =
@@ -482,6 +500,69 @@ FlockingGeese.prototype.simulationTick = function() {
 FlockingGeese.prototype.terminate = function() {
   goog.events.removeAll();
   this.stopJavaScriptSimulation_();
+}
+
+/**
+ * Handle a mousedown on the application view.
+ * @param {Event} mouseEvent The event that triggered this handler.
+ */
+FlockingGeese.prototype.mouseDown_ = function(mouseEvent) {
+  mouseEvent.preventDefault();
+  mouseEvent.stopPropagation();
+  // Listen for mouse-move and mouse-up events.  Dragging stops when the
+  // mouse-up event arrives.
+  if (this.mouseMoveListener_ == null) {
+    this.mouseMoveListener_ = goog.events.listen(
+        this.container_,
+        goog.events.EventType.MOUSEMOVE,
+        this.mouseMove_, true, this);
+  }
+  if (this.mouseUpListener_ == null) {
+    this.mouseUpListener_ = goog.events.listen(
+        window,
+        goog.events.EventType.MOUSEUP,
+        this.mouseUp_, true, this);
+  }
+  this.setAttractorFromEvent_(mouseEvent);
+}
+
+/**
+ * Handle a mousemove on the application view.
+ * @param {Event} mouseEvent The event that triggered this handler.
+ */
+FlockingGeese.prototype.mouseMove_ = function(mouseEvent) {
+  this.setAttractorFromEvent_(mouseEvent);
+}
+
+/**
+ * Handle a mouseup on the application view.
+ * @param {Event} mouseEvent The event that triggered this handler.
+ */
+FlockingGeese.prototype.mouseUp_ = function(mouseEvent) {
+  if (this.mouseMoveListener_ != null) {
+    goog.events.unlistenByKey(this.mouseMoveListener_);
+    this.mouseMoveListener_ = null;
+  }
+  if (this.mouseUpListener_ != null) {
+    goog.events.unlistenByKey(this.mouseUpListener_);
+    this.mouseUpListener_ = null;
+  }
+}
+
+/**
+ * Set the attractor position from the coordinates in a browser event.
+ * @param {Event} event The event.
+ */
+FlockingGeese.prototype.setAttractorFromEvent_ = function(event) {
+  var origin = goog.style.getPageOffset(this.container_);
+  var attractor = new goog.math.Vec2(event.clientX - origin.x,
+      event.clientY - origin.y);
+  if (this.flock_.attractors.length == 0) {
+    this.flock_.attractors.push(attractor);
+  }
+  this.flock_.attractors[0] = attractor;
+  this.invokeNaClMethod('setAttractorLocation x:' + attractor.x +
+                        ' y:' + attractor.y);
 }
 
 /**

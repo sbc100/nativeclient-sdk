@@ -20,6 +20,7 @@ namespace {
 const char* const kResetFlockMethodId = "resetFlock";
 const char* const kRunSimulationMethodId = "runSimulation";
 const char* const kPauseSimulationMethodId = "pauseSimulation";
+const char* const kSetAttractorLocMethodId = "setAttractorLocation";
 
 // Output method and parameter Ids.  These correspond to methods in the
 // browser.
@@ -111,6 +112,12 @@ bool FlockingGeeseApp::Init(uint32_t /* argc */,
           this, &FlockingGeeseApp::PauseSimulation));
   scripting_bridge_.AddMethodNamed(kPauseSimulationMethodId, pause_sim_method);
 
+  ScriptingBridge::SharedMethodCallbackExecutor
+      set_attractor_method(new scripting::MethodCallback<FlockingGeeseApp>(
+          this, &FlockingGeeseApp::SetAttractorLocation));
+  scripting_bridge_.AddMethodNamed(kSetAttractorLocMethodId,
+                                   set_attractor_method);
+
   // Load the goose sprite.  |sprite_loader| is deleted by its delegate when
   // the download is complete (or gets an error).  The PNG data is checked for
   // validity at each Update(); when the PNG data has all arrived, the sprite
@@ -173,8 +180,18 @@ void FlockingGeeseApp::RunSimulation(
 void FlockingGeeseApp::PauseSimulation(
     const scripting::ScriptingBridge& bridge,
     const scripting::MethodParameter& parameters) {
-  // This will pause the simulation on the next tick.
   flock_simulation_.set_simulation_mode(flocking_geese::Flock::kPaused);
+}
+
+void FlockingGeeseApp::SetAttractorLocation(
+    const scripting::ScriptingBridge& bridge,
+    const scripting::MethodParameter& parameters) {
+  std::string loc_x_str = GetParameterNamed("x", parameters);
+  std::string loc_y_str = GetParameterNamed("y", parameters);
+  if (loc_x_str.length() && loc_y_str.length()) {
+    Vector2 attractor_loc(StringAsInt32(loc_x_str), StringAsInt32(loc_y_str));
+    flock_simulation_.SetAttractorAtIndex(attractor_loc, 0);
+  }
 }
 
 void FlockingGeeseApp::PostSimulationInfo() {

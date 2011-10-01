@@ -79,7 +79,8 @@
               ' width=' + viewSize.width +
               ' height=' + viewSize.height +
               '></canvas>' +
-          // The C++ Native Client-based version.
+          // The C++ Native Client-based version.  This element has the 'table'
+          // display style in order to center the load progress bar in it.
           '<div id="nacl_flocking_geese"' +
               ' class="autosize-view"' +
               ' style="display: table; visibility: hidden;"></div>';
@@ -176,7 +177,7 @@
             'support.';
         break;
       }
-      var application = new FlockingGeese();
+      var application = new FlockingGeese('flocking_geese');
       application.run('nacl_flocking_geese');
     </script>
   </div>

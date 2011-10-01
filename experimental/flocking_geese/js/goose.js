@@ -80,6 +80,12 @@ Goose.prototype.NEIGHBOUR_RADIUS = 64.0;
 Goose.prototype.PERSONAL_SPACE = 32.0;
 
 /**
+ * The distance at which attractors have effect on a goose's direction.
+ * @type {number}
+ */
+Goose.prototype.ATTRACTOR_RADIUS = 320.0;
+
+/**
  * The goose will try to turn towards geese within this distance (computed
  * during the cohesion phase).  Measured in pixels.
  * @type {number}
@@ -126,11 +132,13 @@ Goose.prototype.velocity = function() {
  * flocking algorithm (see Goose.flock()) and update the goose's location
  * by integrating acceleration and velocity.
  * @param {!Array.<Goose>} geese The list of all the geese in the flock.
+ * @param {!Array.<goog.math.Vec2>} attractors The list of attractors.
+ *     Geese have affinity for these points.
  * @param {?goog.math.Rect} opt_flockBox The geese will stay inside of this
  *     box.  If the parameter is not given, the geese don't have boundaries.
  */
-Goose.prototype.simulationTick = function(geese, opt_flockBox) {
-  var acceleration = this.flock(geese);
+Goose.prototype.simulationTick = function(geese, attractors, opt_flockBox) {
+  var acceleration = this.flock(geese, attractors);
   this.velocity_.add(acceleration);
   // Limit the velocity to a maximum speed.
   this.velocity_.clamp(this.MAX_SPEED);
@@ -153,20 +161,24 @@ Goose.prototype.simulationTick = function(geese, opt_flockBox) {
 }
 
 /**
- * Implement the flocking algorithm in four steps:
+ * Implement the flocking algorithm in five steps:
  *   1. Compute the separation component,
  *   2. Compute the alignment component,
- *   3. Compute the cohesion component.
- *   4. Create a weighted sum of the three components and use this as the
+ *   3. Compute the flock cohesion component.
+ *   4. Compute the effect of the attractors and blend this in with the
+ *      cohesion component.
+ *   5. Create a weighted sum of the three components and use this as the
  *      new acceleration for the goose.
  * This is an O(n^2) version of the algorithm.  There are ways to speed this
  * up using spatial coherence techniques, but this version is much simpler.
  * @param {!Array.<Goose>} geese The list of all the neighbouring geese (in
  *     this implementation, this is all the geese in the flock).
+ * @param {!Array.<goog.math.Vec2>} attractors The list of attractors.
+ *     Geese have affinity for these points.
  * @return {goog.math.Vec2} The acceleration vector for this goose based on the
  *     flocking algorithm.
  */
-Goose.prototype.flock = function(geese) {
+Goose.prototype.flock = function(geese, attractors) {
   // Loop over all the neighbouring geese in the flock, accumulating
   // the separation mean, the alignment mean and the cohesion mean.
   var separationCount = 0;
@@ -178,7 +190,7 @@ Goose.prototype.flock = function(geese) {
   for (var i = 0; i < geese.length; i++) {
     var goose = geese[i];
     // Compute the distance from this goose to its neighbour.
-    var gooseDirection =  goog.math.Vec2.difference(
+    var gooseDirection = goog.math.Vec2.difference(
         this.location_, goose.location());
     var distance = gooseDirection.magnitude();
     separationCount = this.accumulateSeparation_(
@@ -200,12 +212,28 @@ Goose.prototype.flock = function(geese) {
     // difference between this goose's velocity and its neighbours'.
     alignment.clamp(this.MAX_TURNING_FORCE);
   }
+
+  // Compute the effect of the attractors and blend this in with the flock
+  // cohesion component.  An attractor has to be within ATTRACTOR_RADIUS to
+  // effect the heading of a goose.
+  for (var i = 0; i < attractors.length; i++) {
+    var attractorDirection = goog.math.Vec2.difference(
+        attractors[i], this.location_);
+    var distance = attractorDirection.magnitude();
+    if (distance < this.ATTRACTOR_RADIUS) {
+      attractorDirection.scale(1000);  // Each attractor acts like 1000 geese.
+      cohesion.add(attractorDirection);
+      cohesionCount += 1;
+    }
+  }
+
   // If there is a non-0 cohesion component, steer the goose so that it tries
   // to follow the flock.
   if (cohesionCount > 0) {
     cohesion.scale(1.0 / cohesionCount);
     cohesion = this.turnTowardsTarget(cohesion);
   }
+
   // Compute the weighted sum.
   separation.scale(this.SEPARATION_WEIGHT);
   alignment.scale(this.ALIGNMENT_WEIGHT);
