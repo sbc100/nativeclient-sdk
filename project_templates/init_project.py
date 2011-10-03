@@ -173,12 +173,6 @@ def GetDefaultProjectDir():
   The default directory root for new projects is called 'nacl_projects' under
   the user's home directory.  There are two ways to override this: you can set
   the NACL_PROJECT_ROOT environment variable, or use the --directory option.
-  Note that it's possible to find an alternative user data location on Windows,
-  by using the APPDATA environment variable, see the recipe here:
-    http://stackoverflow.com/questions/626796/how-do-i-find-the-windows-\
-        common-application-data-folder-using-python
-  Additionally, there is this package:
-    http://ginstrom.com/code/winpaths.html
 
   Returns:
     An os-specific path to the default project directory, which is called
