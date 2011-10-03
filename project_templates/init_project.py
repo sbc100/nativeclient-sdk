@@ -167,7 +167,28 @@ def GetTargetFileName(source_file_name, project_name):
   return target_file_name
 
 
-def ParseArguments(argv, script_dir):
+def GetDefaultProjectDir():
+  """Determines the default project directory.
+
+  The default directory root for new projects is called 'nacl_projects' under
+  the user's home directory.  There are two ways to override this: you can set
+  the NACL_PROJECT_ROOT environment variable, or use the --directory option.
+  Note that it's possible to find an alternative user data location on Windows,
+  by using the APPDATA environment variable, see the recipe here:
+    http://stackoverflow.com/questions/626796/how-do-i-find-the-windows-\
+        common-application-data-folder-using-python
+  Additionally, there is this package:
+    http://ginstrom.com/code/winpaths.html
+
+  Returns:
+    An os-specific path to the default project directory, which is called
+    'nacl_projects' under the user's home directory.
+  """
+  return os.getenv('NACL_PROJECT_ROOT',
+                   os.path.join(os.path.expanduser('~'), 'nacl_projects'))
+
+
+def ParseArguments(argv):
   """Parses the arguments provided by the user.
 
   Parses the command line options and makes sure the script errors when it is
@@ -175,7 +196,6 @@ def ParseArguments(argv, script_dir):
 
   Args:
     argv: The argument array.
-    script_dir: The location of this script on disk.
 
   Returns:
     The options structure that represents the arguments after they have been
@@ -189,7 +209,7 @@ def ParseArguments(argv, script_dir):
             'Please use lower case names with underscore, i.e. hello_world.'))
   parser.add_option(
       '-d', '--directory', dest='project_directory',
-      default=script_dir,
+      default=GetDefaultProjectDir(),
       help=('Optional: If set, the new project will be created under this '
             'directory and the directory created if necessary.'))
   parser.add_option(
@@ -411,8 +431,17 @@ def main(argv):
   """
   print 'init_project parsing its arguments.'
   script_dir = os.path.abspath(os.path.dirname(__file__))
-  options = ParseArguments(argv, script_dir)
+  options = ParseArguments(argv)
   print 'init_project is preparing your project.'
+  # Check to see if the project is going into the SDK bundle.  If so, issue a
+  # warning.
+  sdk_root_dir = os.getenv('NACL_SDK_ROOT', None)
+  if sdk_root_dir:
+    if os.path.normpath(options.project_directory).count(
+        os.path.normpath(sdk_root_dir)) > 0:
+      print('WARNING: It looks like you are creating projects in the NaCl SDK '
+            'directory %s.\nThese might be removed at the next update.' %
+            sdk_root_dir)
   project_initializer = ProjectInitializer(options.is_c_project,
                                            options.project_name,
                                            options.project_directory,

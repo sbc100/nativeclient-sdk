@@ -74,16 +74,15 @@ class TestGlobalFunctions(unittest.TestCase):
     self.assertEqual(output, 'constant.html')
 
   def testParseArguments(self):
-    output = init_project.ParseArguments(['-n', 'test_name', '-d', 'test/dir'],
-                                         'default/directory')
+    output = init_project.ParseArguments(['-n', 'test_name', '-d', 'test/dir'])
     self.assertEqual(output.is_c_project, False)
     self.assertEqual(output.project_name, 'test_name')
     self.assertEqual(output.project_directory, 'test/dir')
-    output = init_project.ParseArguments(['-n', 'test_name_2', '-c'],
-                                         'default/directory')
+    output = init_project.ParseArguments(['-n', 'test_name_2', '-c'])
     self.assertEqual(output.is_c_project, True)
     self.assertEqual(output.project_name, 'test_name_2')
-    self.assertEqual(output.project_directory, 'default/directory')
+    self.assertEqual(output.project_directory,
+                     init_project.GetDefaultProjectDir())
 
 
 class TestProjectInitializer(unittest.TestCase):

@@ -62,6 +62,7 @@ def TestingClosure(_outdir, _jobs):
       '''Massage |env| so its env variables will work on the bots.'''
       env = os.environ.copy()
       env['NACL_TARGET_PLATFORM'] = '.'  # Use the repo's toolchain.
+      env['NACL_PROJECT_ROOT'] = _outdir  # Put project templates here.
       return env
 
     def SconsCommand(self, scons_path=''):
@@ -70,7 +71,7 @@ def TestingClosure(_outdir, _jobs):
       '''
       return [os.path.join(scons_path, scons),
               '-j', _jobs,
-              '--nacl-platform="."'
+              '--nacl-platform=.'
              ]
 
     def testBuildExamplesVariant(self):
@@ -86,7 +87,7 @@ def TestingClosure(_outdir, _jobs):
         path = os.path.join(_outdir, 'examples')
         command = self.SconsCommand(path) + flags
         env = self.GetBotShellEnv()
-        annotator.Run(' '.join(command), cwd=path, env=env, shell=True)
+        annotator.Run(command, cwd=path, env=env)
 
       # Note that --nacl-platform is set to ".".  This is done so that the bots
       # will use the repo's toolchain, instead of a platform-specific one.
@@ -141,7 +142,7 @@ def TestingClosure(_outdir, _jobs):
       path = os.path.join(_outdir, 'examples', 'hello_world')
       command = self.SconsCommand(os.path.join(path, '..')) + test_targets
       env = self.GetBotShellEnv()
-      annotator.Run(' '.join(command), cwd=path, env=env, shell=True)
+      annotator.Run(command, cwd=path, env=env)
 
     def testHttpd(self):
       '''Test the simple HTTP server.
@@ -276,20 +277,15 @@ def TestingClosure(_outdir, _jobs):
               can be empty.
         '''
         path = os.path.join(_outdir, 'project_templates')
-        scons_command = self.SconsCommand(os.path.join(path, project_name))
+        project_path = os.path.join(_outdir, project_name)
+        scons_command = self.SconsCommand(project_path)
         init_project_command = [sys.executable,
                                 'init_project.py',
                                 '--name=%s' % project_name,
-                                '--nacl-platform="."'] + flags
+                                '--nacl-platform=.'] + flags
         env = self.GetBotShellEnv()
-        annotator.Run(' '.join(init_project_command),
-                      cwd=path,
-                      env=env,
-                      shell=True)
-        annotator.Run(' '.join(scons_command),
-                      cwd=os.path.join(path, project_name),
-                      env=env,
-                      shell=True)
+        annotator.Run(init_project_command, cwd=path, env=env)
+        annotator.Run(scons_command, cwd=project_path, env=env)
 
       initAndCompileProject('test_c_project', flags=['-c'])
       initAndCompileProject('test_cc_project')
@@ -459,7 +455,7 @@ def main():
                      options.jobs))
   result = unittest.TextTestRunner(verbosity=2).run(suite)
 
-  #RemoveDir(outdir)
+  RemoveDir(outdir)
 
   return int(not result.wasSuccessful())
 
