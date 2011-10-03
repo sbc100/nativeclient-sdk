@@ -11,11 +11,53 @@ import os
 import shutil
 import sys
 import tarfile
+import zipfile
 
 from build_tools.sdk_tools import update_manifest
 from build_tools.sdk_tools import sdk_update
 
 NACL_SDK = 'nacl_sdk'
+
+
+def ZipDirectory(dirpath, zippath):
+  '''Create a zipfile from the contents of a given directory.
+
+  The path of the resulting contents in the zipfile will match that of the
+  last directory name in dirpath.
+
+  Args:
+    dirpath: Path to directory to add to zipfile
+    zippath: filename of resulting zipfile
+  '''
+  zip = None
+  try:
+    zip = zipfile.ZipFile(zippath, 'w', zipfile.ZIP_DEFLATED)
+    basedir = '%s%s' % (os.path.dirname(dirpath), os.sep)
+    for root, dirs, files in os.walk(dirpath):
+      if os.path.basename(root)[0] == '.':
+        continue # skip hidden directories
+      dirname = root.replace(basedir, '')
+      for file in files:
+        zip.write(os.path.join(root, file), os.path.join(dirname, file))
+  finally:
+    if zip:
+      zip.close()
+
+
+def WriteTarFile(outname, in_dir, tar_dir=''):
+  '''Create a new compressed tarball from a given directory
+
+  Args:
+    outname: path and filename of the gzipped tar file
+    in_dir: source directory that will be tar'd and gzipped
+    tar_dir: root directory within the tarball'''
+  tar_file = None
+  try:
+    tar_file = tarfile.open(outname, 'w:gz')
+    tar_file.add(in_dir, tar_dir)
+  finally:
+    if tar_file:
+      tar_file.close()
 
 
 def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
@@ -34,7 +76,7 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
       naclsdk_manifest.json  - manifest file with information about sdk_tools
 
   Args:
-    nacl_sdk_filename: name of tarball that the user directly downloads
+    nacl_sdk_filename: name of zipfile that the user directly downloads
     sdk_tools_filename: name of tarball that has the sdk_tools directory
   '''
   base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -61,15 +103,7 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
        os.path.join(temp_dir, 'sdk_cache', 'naclsdk_manifest.json')]
   if 0 != update_manifest.main(update_manifest_options):
     raise Exception('update_manifest terminated abnormally.')
-  def WriteTarFile(outname, in_dir, tar_dir):
-    tar_file = None
-    try:
-      tar_file = tarfile.open(outname, 'w:gz')
-      tar_file.add(in_dir, tar_dir)
-    finally:
-      if tar_file:
-        tar_file.close()
-  WriteTarFile(nacl_sdk_filename, temp_dir, NACL_SDK)
+  ZipDirectory(temp_dir, nacl_sdk_filename)
   WriteTarFile(sdk_tools_filename, os.path.join(temp_dir, 'sdk_tools'), '')
   shutil.rmtree(temp_dir)
 
@@ -77,11 +111,11 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
 def main(argv):
   parser = optparse.OptionParser()
   parser.add_option(
-      '-n', '--nacl-sdk', dest='nacl_sdk', default='nacl_sdk.tgz',
-      help='name of the nacl_sdk tarball')
+      '-n', '--nacl-sdk', dest='nacl_sdk', default='nacl_sdk.zip',
+      help='name of the resulting nacl_sdk zipfile')
   parser.add_option(
       '-s', '--sdk-tools', dest='sdk_tools', default='sdk_tools.tgz',
-      help='name of the sdk_tools tarball')
+      help='name of the resulting sdk_tools tarball')
   (options, args) = parser.parse_args(argv)
   MakeSdkTools(options.nacl_sdk, options.sdk_tools)
   return 0

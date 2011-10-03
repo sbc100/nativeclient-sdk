@@ -25,10 +25,10 @@ import socket
 import string
 import subprocess
 import sys
-import tarfile
 import time
 import unittest
 import urllib
+import zipfile
 
 from build_tools import build_utils
 from build_tools.sdk_tools import sdk_update
@@ -348,13 +348,20 @@ def ExtractInstaller(installer, outdir, bundle_name, nacl_sdk):
     RemoveDir(outdir)
 
   os.mkdir(outdir)
-  tar_file = None
-  try:
-    tar_file = tarfile.open(nacl_sdk, 'r:gz')
-    tar_file.extractall(path=outdir)
-  finally:
-    if tar_file:
-      tar_file.close()
+
+  if sys.platform == 'win32':
+    zip_file = None
+    try:
+      zip_file = zipfile.ZipFile(nacl_sdk)
+      zip_file.extractall(path=outdir)
+    finally:
+      if zip_file:
+        zip_file.close()
+  else:
+    # Unfortunately, the zipfile module does not retain file permissions
+    # when extracting executable scripts.  For now, just use the unzip
+    # that comes with Linux and Mac.
+    subprocess.check_call(['unzip', nacl_sdk], cwd=outdir)
 
   outdir = os.path.join(outdir, 'nacl_sdk')
 
@@ -429,7 +436,7 @@ def main():
       '-j', '--jobs', dest='jobs', default=1,
       help='number of parallel jobs to run')
   parser.add_option(
-      '-n', '--nacl-sdk', dest='nacl_sdk', default='nacl_sdk.tgz',
+      '-n', '--nacl-sdk', dest='nacl_sdk', default='nacl_sdk.zip',
       help='location of the nacl_sdk tarball')
   parser.add_option(
       '-s', '--sdk-tools', dest='sdk_tools', default='sdk_tools.tgz',

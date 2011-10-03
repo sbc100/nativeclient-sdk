@@ -57,7 +57,7 @@ def BuildSdkTools(env, target, source):
   make_sdk_tools.MakeSdkTools(str(target[0].abspath), str(target[1].abspath))
 
 sdk_tools_node = env.Command(
-    target=['nacl_sdk.tgz', 'sdk_tools.tgz'],
+    target=['nacl_sdk.zip', 'sdk_tools.tgz'],
     source=[os.path.join('sdk_tools', 'sdk_update.py'),
             'make_sdk_tools.py'],
     action=BuildSdkTools)
@@ -70,7 +70,7 @@ installer_test_node = env.CreatePythonUnitTest(
     buffered=False,
     params=['--jobs=%s' % env['JOB_COUNT'],
             '--outdir=%s' % os.path.join('scons-out', 'sdk_installer'),
-            '--nacl-sdk', env.File('nacl_sdk.tgz'),
+            '--nacl-sdk', env.File('nacl_sdk.zip'),
             '--sdk-tools', env.File('sdk_tools.tgz'),
             installer],
     banner='test installer',)
