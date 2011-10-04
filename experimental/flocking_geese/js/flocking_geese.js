@@ -50,11 +50,11 @@ FlockingGeese = function(containerId) {
   this.flock_ = new Flock();
 
   /**
-   * The timer.
-   * @type {Timer}
+   * Bit that tells whether the JS simulation is running or not.
+   * @type {bool}
    * @private
    */
-  this.flockingSimTimer_ = null;
+  this.javascriptSimRunning_ = false;
 
   /**
    * The NaCl module.  This is an <EMBED> element that contains the NaCl
@@ -106,13 +106,6 @@ FlockingGeese = function(containerId) {
   this.mouseUpListener_ = null;
 }
 goog.inherits(FlockingGeese, goog.Disposable);
-
-/**
- * The simulation tick time.  A full simulation step runs in at least this
- * amount of time.  Measured in milliseconds.
- * @type {number}
- */
-FlockingGeese.prototype.SIMULATION_TICK = 10;
 
 /**
  * Method signatures that are sent from the NaCl module.  A signature is really
@@ -490,7 +483,13 @@ FlockingGeese.prototype.simulationTick = function() {
   this.speedometer_.updateMeterNamed(FlockingGeese.MeterNames.JAVASCRIPT,
                                      frameRate);
   this.updateSpeedDifference_();
-  this.startJavaScriptSimulation_();
+
+  if (this.javascriptSimRunning_) {
+    var self = this;
+    window.webkitRequestAnimationFrame(function() {
+      self.simulationTick();
+    });
+  }
 }
 
 /**
@@ -572,8 +571,10 @@ FlockingGeese.prototype.setAttractorFromEvent_ = function(event) {
  */
 FlockingGeese.prototype.startJavaScriptSimulation_ = function() {
   // Start up the JavaScript implementation of the simulation.
-  this.flockingSimTimer_ = setTimeout(goog.bind(this.simulationTick, this),
-                                      this.SIMULATION_TICK);
+  if (this.javascriptSimRunning_)
+    return;  // Don't run a tick if the sim is already running.
+  this.javascriptSimRunning_ = true;
+  this.simulationTick();
 }
 
 /**
@@ -583,10 +584,7 @@ FlockingGeese.prototype.startJavaScriptSimulation_ = function() {
  */
 FlockingGeese.prototype.stopJavaScriptSimulation_ = function() {
   // Stop the JavaScript implementation of the simulation.
-  if (this.flockingSimTimer_) {
-    clearTimeout(this.flockingSimTimer_);
-    this.flockingSimTimer_ = null;
-  }
+  this.javascriptSimRunning_ = false;
 }
 
 /**
