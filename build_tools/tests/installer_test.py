@@ -382,15 +382,15 @@ def ExtractInstaller(installer, outdir, bundle_name, nacl_sdk):
   if 0 != update_manifest.main(update_manifest_options):
     raise Exception('update_manifest terminated abnormally.')
 
-  sdk_update_options = [
+  naclsdk_options = [
        os.path.join(outdir,
-                    'nacl.bat' if sys.platform == 'win32' else 'nacl'),
+                    'naclsdk.bat' if sys.platform == 'win32' else 'naclsdk'),
       '--manifest-url=file://%s' % urllib.pathname2url(manifest_filename),
       '--sdk-root-dir=%s' % outdir,
       '--user-data-dir=%s' % outdir,
       'update']
-  annotator.Print('Running sdk_update with %s' % sdk_update_options)
-  subprocess.check_call(sdk_update_options)
+  annotator.Print('Running naclsdk with %s' % naclsdk_options)
+  subprocess.check_call(naclsdk_options)
 
 
 def RemoveDir(outdir):

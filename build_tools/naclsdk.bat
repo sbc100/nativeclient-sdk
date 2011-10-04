@@ -21,10 +21,4 @@ if exist %SDK_TOOLS_UPDATE% (
 
 set PYTHONPATH=%SCRIPT_DIR%
 
-if exist %PYTHON_DIR% (
-  set PYTHON_EXE=%PYTHON_DIR%\python
-) else (
-  set PYTHON_EXE=python
-)
-
-%PYTHON_EXE% %SDK_TOOLS%\sdk_update.py %*
+python %SDK_TOOLS%\sdk_update.py %*

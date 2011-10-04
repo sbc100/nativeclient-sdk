@@ -66,7 +66,7 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
   The nacl_sdk package contains these things:
 
   nacl_sdk/
-    nacl(.bat)  - The main entry point for updating the SDK
+    naclsdk(.bat)  - The main entry point for updating the SDK
     sdk_tools/
       sdk_update.py  - Performs the work in checking for updates
     python/
@@ -86,8 +86,8 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
   os.mkdir(temp_dir)
   for dir in ['sdk_tools', 'sdk_cache']:
     os.mkdir(os.path.join(temp_dir, dir))
-  nacl_frontend = 'nacl.bat' if sys.platform in ['cygwin', 'win32'] else 'nacl'
-  shutil.copy2(os.path.join(base_dir, nacl_frontend), temp_dir)
+  shutil.copy2(os.path.join(base_dir, 'naclsdk'), temp_dir)
+  shutil.copy2(os.path.join(base_dir, 'naclsdk.bat'), temp_dir)
   shutil.copy2(os.path.join(base_dir, 'sdk_tools', 'sdk_update.py'),
                os.path.join(temp_dir, 'sdk_tools'))
   py_compile.compile(os.path.join(temp_dir, 'sdk_tools', 'sdk_update.py'))
