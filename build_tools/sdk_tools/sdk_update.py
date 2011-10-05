@@ -6,6 +6,7 @@
 '''A simple tool to update the Native Client SDK to the latest version'''
 
 import cStringIO
+import errno
 import exceptions
 import hashlib
 import json
@@ -17,6 +18,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import urllib2
 import urlparse
 
@@ -263,6 +265,33 @@ def RemoveDir(outdir):
     subprocess.check_call(['rmdir /S /Q', outdir], shell=True)
   else:
     shutil.rmtree(outdir)
+
+
+class Error(Exception):
+  '''Base class for exceptions in this module.'''
+  pass
+
+
+def RenameDir(srcdir, destdir):
+  '''Renames srcdir to destdir
+  '''
+
+  max_tries = 100
+
+  for num_tries in xrange(max_tries):
+    try:
+      os.rename(srcdir, destdir)
+      return
+    except OSError as err:
+      if err.errno != errno.EACCES:
+        raise err
+      # If we are here, we didn't exit due to raised exception, so we are
+      # handling a Windows flaky access error.  Sleep one second and try
+      # again.
+      time.sleep(1)
+  # end of while loop -- could not RenameDir
+  raise Error('Could not RenameDir %s => %s after %d tries.' %
+                  (srcdir, destdir, num_tries))
 
 
 def ShowProgress(progress):
@@ -946,7 +975,7 @@ def Update(options, argv):
       if bundle_name != SDK_TOOLS:
         if os.path.exists(bundle_path):
           RemoveDir(bundle_path)
-        os.rename(bundle_update_path, bundle_path)
+        RenameDir(bundle_update_path, bundle_path)
       os.remove(dest_filename)
       local_manifest.MergeBundle(bundle)
       local_manifest.WriteFile()
