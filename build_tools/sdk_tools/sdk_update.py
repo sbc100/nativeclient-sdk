@@ -26,16 +26,15 @@ import urlparse
 
 # Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 5
+MINOR_REV = 6
 
-GLOBAL_HELP = '''Usage: %prog [options] command [command_options]
+GLOBAL_HELP = '''Usage: naclsdk [options] command [command_options]
 
-sdk_update is a simple utility that updates the Native Client (NaCl)
+naclsdk is a simple utility that updates the Native Client (NaCl)
 Software Developer's Kit (SDK).
 
 Commands:
   help [command] - Get either general or command-specific help
-  delete - Deletes a given bundle (not implemented yet)
   list - Lists the available bundles
   update - Updates the SDK to the latest recommended toolchains'''
 
