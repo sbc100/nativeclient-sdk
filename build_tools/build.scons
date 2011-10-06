@@ -53,13 +53,13 @@ install_file = 'nacl-sdk.exe' if sys.platform == 'win32' else 'nacl-sdk.tgz'
 installer = os.path.join(os.path.dirname(env['ROOT_DIR']), install_file)
 
 def BuildSdkTools(env, target, source):
-  print str(target[0].abspath)
   make_sdk_tools.MakeSdkTools(str(target[0].abspath), str(target[1].abspath))
 
 sdk_tools_node = env.Command(
     target=['nacl_sdk.zip', 'sdk_tools.tgz'],
     source=[os.path.join('sdk_tools', 'sdk_update.py'),
-            'make_sdk_tools.py'],
+            'make_sdk_tools.py',
+            os.path.join(env['ROOT_DIR'], 'LICENSE')],
     action=BuildSdkTools)
 
 env.AddNodeAliases(sdk_tools_node, ['bot'], 'sdk_tools')

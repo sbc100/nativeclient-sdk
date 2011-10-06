@@ -41,6 +41,7 @@ Supported targets:
   * examples          Build the examples.
   * experimental      Build the experimental projects.
   * installer         Build the SDK installer.
+  * sdk_tools         Build nacl_sdk.zip and sdk_tools.tgz
   * toolchain         Update the toolchain's headers and libraries.
   * vsx_build         Build the Visual Studio Plugin.
 

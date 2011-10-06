@@ -80,6 +80,7 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
     sdk_tools_filename: name of tarball that has the sdk_tools directory
   '''
   base_dir = os.path.abspath(os.path.dirname(__file__))
+  base_dir_parent = os.path.dirname(base_dir)
   temp_dir = os.path.join(base_dir, NACL_SDK)
   if os.path.exists(temp_dir):
     shutil.rmtree(temp_dir)
@@ -88,6 +89,10 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
     os.mkdir(os.path.join(temp_dir, dir))
   shutil.copy2(os.path.join(base_dir, 'naclsdk'), temp_dir)
   shutil.copy2(os.path.join(base_dir, 'naclsdk.bat'), temp_dir)
+  with open(os.path.join(base_dir_parent, 'LICENSE'), "U") as source_file:
+    text = source_file.read().replace("\n", "\r\n")
+  with open(os.path.join(temp_dir, 'sdk_tools', 'LICENSE'), "wb") as dest_file:
+    dest_file.write(text)
   shutil.copy2(os.path.join(base_dir, 'sdk_tools', 'sdk_update.py'),
                os.path.join(temp_dir, 'sdk_tools'))
   py_compile.compile(os.path.join(temp_dir, 'sdk_tools', 'sdk_update.py'))
