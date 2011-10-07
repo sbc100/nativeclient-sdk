@@ -18,15 +18,15 @@ def main(argv):
 
   # Setup options
   parser.add_option(
+      '-b', '--bundle-version', dest='bundle_version',
+      type='int',
+      default=None,
+      help='Required: Version number for the bundle.')
+  parser.add_option(
       '-B', '--bundle-revision', dest='bundle_revision',
       type='int',
       default=None,
       help='Required: Revision number for the bundle.')
-  parser.add_option(
-      '-b', '--bundle-version', dest='bundle_version',
-      type='int',
-      default=None,
-      help='Optional: Version number for the bundle.')
   parser.add_option(
       '-d', '--description', dest='desc',
       default=None,

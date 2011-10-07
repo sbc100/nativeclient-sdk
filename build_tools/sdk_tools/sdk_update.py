@@ -28,7 +28,7 @@ import urlparse
 
 # Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 6
+MINOR_REV = 7
 
 GLOBAL_HELP = '''Usage: naclsdk [options] command [command_options]
 
@@ -497,9 +497,9 @@ class Bundle(dict):
     # Check required fields.
     if not self.get(NAME_KEY, None):
       raise Error('Bundle has no name')
-    if not self.get(REVISION_KEY, None):
+    if self.get(REVISION_KEY, None) == None:
       raise Error('Bundle "%s" is missing a revision number' % self[NAME_KEY])
-    if not self.get(VERSION_KEY, None):
+    if self.get(VERSION_KEY, None) == None:
       raise Error('Bundle "%s" is missing a version number' % self[NAME_KEY])
     if not self.get('description', None):
       raise Error('Bundle "%s" is missing a description' % self[NAME_KEY])
@@ -560,7 +560,7 @@ class Bundle(dict):
     # Check, set and consume individual bundle options.
     for option_key, attribute_key in OPTION_KEY_MAP.iteritems():
       option_val = getattr(options, option_key, None)
-      if option_val:
+      if option_val is not None:
         self[attribute_key] = option_val
         delattr(options, option_key);
     # Validate what we have so far; we may just avoid going through a lengthy
@@ -569,7 +569,7 @@ class Bundle(dict):
     # Check and consume archive-url options.
     for option_key, host_os in OPTION_KEY_TO_PLATFORM_MAP.iteritems():
       platform_url = getattr(options, option_key, None)
-      if platform_url:
+      if platform_url is not None:
         self.UpdateArchive(host_os, platform_url)
         delattr(options, option_key);
 

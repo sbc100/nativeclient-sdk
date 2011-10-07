@@ -17,6 +17,7 @@ import unittest
 import urlparse
 
 from build_tools.sdk_tools import sdk_update
+from build_tools.sdk_tools import update_manifest
 
 
 class FakeOptions(object):
@@ -65,7 +66,6 @@ class TestUpdateManifest(unittest.TestCase):
     self.assertEqual(manifest_file._manifest.GetManifestString(),
                      self._json_boilerplate)
     os.remove(file_path)
-
 
   def testValidateBundleName(self):
     ''' Test validating good and bad bundle names '''
@@ -193,6 +193,16 @@ class TestUpdateManifest(unittest.TestCase):
     # Test invalid key name
     archive['guess'] = 'who'
     self.assertRaises(sdk_update.Error, archive.Validate)
+
+  def testUpdateManifestMain(self):
+    ''' test the main function from update_manifest '''
+    argv = ['--bundle-version', '0',
+            '--bundle-revision', '0',
+            '--description', 'test bundle for update_manifest unit tests',
+            '--bundle-name', 'test_bundle',
+            '--stability', 'dev',
+            '--recommended', 'no']
+    update_manifest.main(argv)
 
 
 def main():
