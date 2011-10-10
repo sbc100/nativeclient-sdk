@@ -119,6 +119,40 @@
         }
       ],
       "revision": 1239
+    },
+    {
+      "name": "pepper_16",
+      "description": "Chrome 16 bundle, revision 1246",
+      "stability": "dev",
+      "recommended": "no",
+      "version": 16,
+      "archives": [
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1246/naclsdk_mac.tgz",
+          "checksum": {
+            "sha1": "e345aeb75367cb74f93023b81b945f16e1a0de8d"
+          },
+          "host_os": "mac",
+          "size": 149217780
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1246/naclsdk_linux.tgz",
+          "checksum": {
+            "sha1": "ece942875ee9b725e732dbaca0b8c2b2eaa515ea"
+          },
+          "host_os": "linux",
+          "size": 151298798
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1246/naclsdk_win.exe",
+          "checksum": {
+            "sha1": "27389ab13405b9832403d36ca7be601d8e50c925"
+          },
+          "host_os": "win",
+          "size": 56408549
+        }
+      ],
+      "revision": 1246
     }
   ],
   "manifest_version": 1
