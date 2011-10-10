@@ -393,7 +393,7 @@ class Archive(dict):
     try:
       url_stream = urllib2.urlopen(self['url'])
     except urllib2.URLError:
-      raise Error('"%s" is not a valid URL for archive %s' %
+      raise Error('Cannot open "%s" for archive %s' %
           (self['url'], self['host_os']))
 
     return url_stream
@@ -429,6 +429,7 @@ class Archive(dict):
     sha1 = None
     size = 0
     with open(dest_path, 'wb') as to_stream:
+      from_stream = None
       try:
         from_stream = self._OpenURLStream()
         sha1, size = DownloadAndComputeHash(from_stream, to_stream)
@@ -710,7 +711,11 @@ class SDKManifest(object):
         for b in value:
           new_bundle = Bundle(b[NAME_KEY])
           new_bundle.CopyFrom(b)
-          bundles.append(new_bundle)
+          # Only add this archive if it's supported on this platform.
+          # However, the sdk_tools bundle might not have an archive entry,
+          # but is still always valid.
+          if new_bundle.GetArchive(GetHostOS()) or b[NAME_KEY] == 'sdk_tools':
+            bundles.append(new_bundle)
         self._manifest_data[key] = bundles
       else:
         self._manifest_data[key] = value

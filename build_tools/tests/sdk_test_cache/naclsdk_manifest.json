@@ -56,6 +56,15 @@
           "url": "nacl_win_pepper_14_1.tgz"
         }
       ]
+    },
+    {
+      "name": "empty_bundle",
+      "version": 0,
+      "revision": 0,
+      "description": "Empty Test Bundle, Version 0",
+      "stability": "dev",
+      "recommended": "no",
+      "archives": []
     }
   ]
 }
