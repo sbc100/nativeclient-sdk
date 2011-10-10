@@ -213,9 +213,9 @@ def ParseArguments(argv):
             'is C++.'))
   parser.add_option(
       '-p', '--nacl-platform', dest='nacl_platform',
-      default='pepper_15',
+      default='pepper_16',
       help=('Optional: if set, the new project will target the given nacl\n'
-            'platform. Default is the most current platform. e.g. pepper_15'))
+            'platform. Default is the most current platform. e.g. pepper_16'))
   result = parser.parse_args(argv)
   options = result[0]
   args = result[1]

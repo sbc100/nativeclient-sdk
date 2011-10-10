@@ -23,9 +23,7 @@ from nacl_sdk_scons import nacl_utils
 # Parameters
 
 # Revision numbers for the SDK
-MAJOR_REV = '1'
-MINOR_REV = '0'
-PLATFORM_VERSION = 'pepper_15'
+PLATFORM_VERSION = 'pepper_16'
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
 
@@ -152,7 +150,7 @@ def RawVersion():
 def GetVersionNumbers():
   '''Returns a list of 3 strings containing the version identifier'''
   rev = str(SVNRevision())
-  return [MAJOR_REV, MINOR_REV, rev]
+  return [PLATFORM_VERSION, rev]
 
 
 def SVNRevision():
