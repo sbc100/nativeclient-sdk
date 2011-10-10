@@ -2,37 +2,37 @@
   "bundles": [
     {
       "name": "sdk_tools",
-      "description": "Native Client SDK Tools, revision 1.6",
+      "description": "Native Client SDK Tools, revision 1.8",
       "stability": "stable",
       "recommended": "yes",
       "version": 1,
       "archives": [
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/1.6/sdk_tools.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/1.8/sdk_tools.tgz",
           "checksum": {
-            "sha1": "3d91b96245ef0f73c6c0b58f3068465cc16cab36"
+            "sha1": "511f23dfe886c3121359804dd5163c2113f9b8e8"
           },
           "host_os": "mac",
-          "size": 29366
+          "size": 30869
         },
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/1.6/sdk_tools.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/1.8/sdk_tools.tgz",
           "checksum": {
-            "sha1": "3d91b96245ef0f73c6c0b58f3068465cc16cab36"
+            "sha1": "511f23dfe886c3121359804dd5163c2113f9b8e8"
           },
           "host_os": "linux",
-          "size": 29366
+          "size": 30869
         },
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/1.6/sdk_tools.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/1.8/sdk_tools.tgz",
           "checksum": {
-            "sha1": "3d91b96245ef0f73c6c0b58f3068465cc16cab36"
+            "sha1": "511f23dfe886c3121359804dd5163c2113f9b8e8"
           },
           "host_os": "win",
-          "size": 29366
+          "size": 30869
         }
       ],
-      "revision": 6
+      "revision": 8
     },
     {
       "name": "gdb_builds",
