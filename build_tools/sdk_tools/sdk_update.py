@@ -267,11 +267,6 @@ def RemoveDir(outdir):
     shutil.rmtree(outdir)
 
 
-class Error(Exception):
-  '''Base class for exceptions in this module.'''
-  pass
-
-
 def RenameDir(srcdir, destdir):
   '''Renames srcdir to destdir
   '''
@@ -311,6 +306,33 @@ def ShowProgress(progress):
       count = 0
 
 
+class ProgressFunction(object):
+  '''Create a progress function for a file with a given size'''
+
+  def __init__(self, file_size=0):
+    '''Constructor
+
+    Args:
+      file_size: number of bytes in file.  0 indicates unknown'''
+    self.dots = 0
+    self.file_size = int(file_size)
+
+  def GetProgressFunction(self):
+    '''Returns a progress function based on a known file size'''
+    def ShowKnownProgress(progress):
+      if progress == 0:
+        sys.stdout.write('|%s|\n' % ('=' * 48))
+      else:
+        new_dots = progress * 50 / self.file_size - self.dots
+        sys.stdout.write('.' * new_dots)
+        self.dots += new_dots
+        if progress == self.file_size:
+          sys.stdout.write('\n')
+      sys.stdout.flush()
+
+    return ShowKnownProgress
+
+
 def DownloadAndComputeHash(from_stream, to_stream=None, progress_func=None):
   ''' Download the archive data from from-stream and generate sha1 and
       size info.
@@ -344,7 +366,7 @@ def DownloadAndComputeHash(from_stream, to_stream=None, progress_func=None):
     size += len(data)
     if to_stream:
       to_stream.write(data)
-    progress_func(progress=1)
+    progress_func(size)
 
   progress_func(progress=100)
   return sha1_hash.hexdigest(), size
@@ -432,7 +454,13 @@ class Archive(dict):
       from_stream = None
       try:
         from_stream = self._OpenURLStream()
-        sha1, size = DownloadAndComputeHash(from_stream, to_stream)
+        progress_function = ProgressFunction(
+            from_stream.info()['Content-Length']).GetProgressFunction()
+        InfoPrint('Downloading %s' % self['url'])
+        sha1, size = DownloadAndComputeHash(
+            from_stream,
+            to_stream=to_stream,
+            progress_func=progress_function)
       finally:
         if from_stream: from_stream.close()
     return sha1, size
