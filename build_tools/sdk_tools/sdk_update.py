@@ -268,13 +268,15 @@ def RemoveDir(outdir):
 
 
 def RenameDir(srcdir, destdir):
-  '''Renames srcdir to destdir
-  '''
+  '''Renames srcdir to destdir. Removes destdir before doing the
+     rename if it already exists.'''
 
   max_tries = 100
 
   for num_tries in xrange(max_tries):
     try:
+      if os.path.exists(destdir):
+        RemoveDir(destdir)
       os.rename(srcdir, destdir)
       return
     except OSError as err:
@@ -285,8 +287,10 @@ def RenameDir(srcdir, destdir):
       # again.
       time.sleep(1)
   # end of while loop -- could not RenameDir
-  raise Error('Could not RenameDir %s => %s after %d tries.' %
-                  (srcdir, destdir, num_tries))
+  raise Error('Could not RenameDir %s => %s after %d tries.\n' %
+              'Please check that no shells or applications '
+              'are accessing files in %s.'
+              % (srcdir, destdir, num_tries, destdir))
 
 
 def ShowProgress(progress):
@@ -1007,8 +1011,6 @@ def Update(options, argv):
                 (bundle_name, bundle[VERSION_KEY], bundle[REVISION_KEY])))
       ExtractInstaller(dest_filename, bundle_update_path)
       if bundle_name != SDK_TOOLS:
-        if os.path.exists(bundle_path):
-          RemoveDir(bundle_path)
         RenameDir(bundle_update_path, bundle_path)
       os.remove(dest_filename)
       local_manifest.MergeBundle(bundle)
