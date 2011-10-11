@@ -34,7 +34,7 @@ def CallSDKUpdate(args):
     args: command-line arguments as a list (not including program name)
 
   Returns:
-    string containing stdout
+    string tuple containing (stdout, stderr)
 
   Raises:
     subprocess.CalledProcessError: non-zero return code from sdk_update'''
@@ -48,7 +48,7 @@ def CallSDKUpdate(args):
   retcode = process.poll() # Note - calling wait() can cause a deadlock
   if retcode != 0:
     raise subprocess.CalledProcessError(retcode, command)
-  return output
+  return output, error_output
 
 
 class TestSDKUpdate(unittest.TestCase):
@@ -80,7 +80,7 @@ class TestSDKUpdate(unittest.TestCase):
                    urllib.pathname2url(os.path.join(
                        SCRIPT_DIR, 'naclsdk_manifest_test.json')),
                'list']
-    bundle_list = CallSDKUpdate(command)
+    bundle_list = CallSDKUpdate(command)[0]
     # Just do some simple sanity checks on the resulting string
     self.assertEqual(bundle_list.count('sdk_tools'), 2)
     self.assertEqual(bundle_list.count('test_1'), 2)
@@ -91,6 +91,12 @@ class TestSDKUpdate(unittest.TestCase):
     '''Test the help for the update command'''
     self.assertRaises(exceptions.SystemExit,
                       sdk_update.main, ['help', 'update'])
+
+  def testUpdateBogusBundle(self):
+    '''Test running update with a bogus bundle'''
+    self.assertRaises(sdk_update.Error,
+                      sdk_update.main,
+                      ['update', 'bogusbundle'])
 
   def testSDKManifestFile(self):
     '''Test SDKManifestFile'''

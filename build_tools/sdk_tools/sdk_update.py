@@ -28,7 +28,7 @@ import urlparse
 
 # Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 8
+MINOR_REV = 9
 
 GLOBAL_HELP = '''Usage: naclsdk [options] command [command_options]
 
@@ -961,9 +961,10 @@ def Update(options, argv):
           InfoPrint('bundle is up-to-date')
 
   Targets:
-    'recommended': (default) Install/Update all recommended components
-    'all':         Install/Update all available components
-    bundle_name:   Install/Update only the given bundle'''
+    recommended: (default) Install/Update all recommended components
+    all:         Install/Update all available components
+    bundle_name: Install/Update only the given bundle
+  '''
   DebugPrint("Running Update command with: %s, %s" % (options, argv))
   ALL='all'  # Update all bundles
   RECOMMENDED='recommended'  # Only update the bundles with recommended=yes
@@ -975,7 +976,7 @@ def Update(options, argv):
       help='Force updating existing components that already exist')
   (update_options, args) = parser.parse_args(argv)
   if len(args) == 0:
-    args = ['recommended']
+    args = [RECOMMENDED]
   tools = ManifestTools(options)
   tools.LoadManifest()
   bundles = tools.GetBundles()
@@ -986,7 +987,7 @@ def Update(options, argv):
     bundle_path = os.path.join(options.sdk_root_dir, bundle_name)
     bundle_update_path = '%s_update' % bundle_path
     if not (bundle_name in args or
-            'all' in args or (RECOMMENDED in args and
+            ALL in args or (RECOMMENDED in args and
                               bundle[RECOMMENDED] == 'yes')):
       continue
     def UpdateBundle():
@@ -1028,6 +1029,15 @@ def Update(options, argv):
         UpdateBundle()
     else:
       InfoPrint('%s is already up-to-date.' % bundle_name)
+
+  # Validate the arg list against the available bundle names.  Raises an
+  # error if any invalid bundle names or args are detected.
+  valid_args = set([ALL, RECOMMENDED] +
+                   [bundle[NAME_KEY] for bundle in bundles])
+  bad_args = set(args) - valid_args
+  if len(bad_args) > 0:
+    raise Error("Unrecognized bundle name or argument: '%s'" %
+                ', '.join(bad_args))
 
 
 #------------------------------------------------------------------------------
