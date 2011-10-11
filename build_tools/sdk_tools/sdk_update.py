@@ -28,7 +28,7 @@ import urlparse
 
 # Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 9
+MINOR_REV = 10
 
 GLOBAL_HELP = '''Usage: naclsdk [options] command [command_options]
 
