@@ -42,7 +42,7 @@ class Sprite : public boost::noncopyable {
   // operation, and all necessary clipping.  Assumes pre-mulitplied alpha.
   void CompositeFromRectToPoint(const pp::Rect& src_rect,
                                 uint32_t* dest_pixel_buffer,
-                                const pp::Size& dest_size,
+                                const pp::Rect& dest_bounds,
                                 int32_t dest_row_bytes,
                                 const pp::Point& dest_point) const;
 

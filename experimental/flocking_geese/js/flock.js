@@ -126,7 +126,8 @@ Flock.prototype.render = function(canvas) {
                       spriteWidth;
     context2d.drawImage(this.gooseImage_,
                         spriteOffset, 0, spriteWidth, this.gooseImage_.height,
-                        goose.location().x, goose.location().y,
+                        goose.location().x - spriteWidth / 2,
+                        goose.location().y - spriteWidth / 2,
                         spriteWidth, this.gooseImage_.height);
   }
   context2d.fillStyle = 'blue';

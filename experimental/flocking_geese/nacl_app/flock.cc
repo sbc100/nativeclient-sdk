@@ -101,8 +101,10 @@ void Flock::Render() {
     return;
   }
   // Clear out the pixel buffer, then render all the geese.
-  pp::Size canvas_size = shared_pixel_buffer_->size();
-  const size_t pixel_count = canvas_size.width() * canvas_size.height();
+  pp::Rect canvas_bounds(pp::Point(), shared_pixel_buffer_->size());
+  int32_t canvas_width = canvas_bounds.size().width();
+  int32_t canvas_height = canvas_bounds.size().height();
+  const size_t pixel_count = canvas_width * canvas_height;
   std::fill(pixel_buffer, pixel_buffer + pixel_count, kBackgroundColor);
   threading::ScopedMutexLock scoped_mutex(simulation_mutex());
   if (!scoped_mutex.is_valid())
@@ -114,7 +116,8 @@ void Flock::Render() {
   for (std::vector<Goose>::const_iterator goose = geese_.begin();
        goose < geese_.end();
        ++goose) {
-    pp::Point dest_point(goose->location().x(), goose->location().y());
+    pp::Point dest_point(goose->location().x() - sprite_stamp_width / 2,
+                         goose->location().y() - sprite_stamp_width / 2);
     double heading = goose->velocity().Heading();
     if (heading < 0.0)
       heading = M_PI * 2.0 + heading;
@@ -124,7 +127,7 @@ void Flock::Render() {
     sprite_src_rect.set_x(sprite_index);
     goose_sprite_->CompositeFromRectToPoint(
         sprite_src_rect,
-        pixel_buffer, canvas_size, 0,
+        pixel_buffer, canvas_bounds, 0,
         dest_point);
   }
 
@@ -137,9 +140,9 @@ void Flock::Render() {
     int32_t x = std::max(static_cast<int32_t>(attractor->x()) - 2, 0);
     int32_t y = std::max(static_cast<int32_t>(attractor->y()) - 2, 0);
     int32_t w = 4, h = 4;
-    int32_t rw = canvas_size.width();
+    int32_t rw = canvas_width;
     if (x + w >= rw) { x = rw - 1 - w; }
-    if (y + h >= canvas_size.height()) { y = canvas_size.height() - 1 - h; }
+    if (y + h >= canvas_height) { y = canvas_height - 1 - h; }
     uint32_t* rect = pixel_buffer + y * rw + x;
     for (int32_t row = 0; row < h; ++row) {
       uint32_t* scanline = rect;
