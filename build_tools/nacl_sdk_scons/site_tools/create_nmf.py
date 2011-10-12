@@ -28,12 +28,18 @@ FormatArchMap = {
     }
 
 
+class Error(Exception):
+  '''Local Error class for this file.'''
+  pass
+
+
 def GleanFromObjdump(files, objdump='objdump'):
   proc = subprocess.Popen([objdump, '-p'] + files,
-                          stdout=subprocess.PIPE, bufsize=-1, close_fds=True)
+                          stdout=subprocess.PIPE, bufsize=-1)
   format = None
   needed = set()
-  for line in proc.stdout:
+  output, _ = proc.communicate()
+  for line in output.splitlines(True):
     matched = NeededMatcher.match(line)
     if matched is not None:
       needed.add(matched.group(1))
@@ -41,13 +47,13 @@ def GleanFromObjdump(files, objdump='objdump'):
       matched = FormatMatcher.match(line)
       if matched is not None:
         format = matched.group(1)
-  status = proc.wait()
+  status = proc.poll()
   if status != 0:
     raise RuntimeError('objdump failed: %d' % status)
   try:
     arch = FormatArchMap[format]
   except KeyError:
-    raise RuntimeError('objdump found unrecognized format: ' + format)
+    raise RuntimeError('objdump found unrecognized format: %s' % format)
   return arch, needed
 
 
@@ -56,7 +62,7 @@ def FindLibInPath(name, path):
     file = os.path.join(dir, name)
     if os.path.exists(file):
       return file
-  raise RuntimeError('cannot find library ' + name)
+  raise RuntimeError('cannot find library %s' % name)
 
 
 def CollectNeeded(file, lib_path, objdump='objdump'):
@@ -167,7 +173,7 @@ def Main(argv):
 
   def arch_name(arch, file):
     if options.add_arch_prefix:
-      return arch + '/' + file
+      return os.path.join(arch, file)
     else:
       return file
 

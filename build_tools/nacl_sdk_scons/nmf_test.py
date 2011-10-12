@@ -147,7 +147,7 @@ def main(argv):
   temp_files = {32: [], 64: []}
   try:
     temp_files = GlobalInit(options)
-    for bits in build_utils.SupportedNexeBitWidths():
+    for bits in [32, 64]:
       nexe_files = [name for name in temp_files[bits]
                     if os.path.splitext(name)[1] == '.nexe']
       suite = unittest.TestLoader().loadTestsFromTestCase(
