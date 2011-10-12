@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-#include <stdio.h>
-
-
 #include "nacl_app/sprite.h"
 
 #include <algorithm>
@@ -14,9 +10,20 @@ namespace {
 const uint32_t kRedBlueMask = 0x00FF00FF;
 const uint32_t kGreenMask = 0x0000FF00;
 const uint32_t kAlphaMask = 0xFF000000;
-const uint32_t k8BitMultiplyMask = 0xFF00FF00;
+const uint32_t k8x2Scale = 0x800080;
 const uint32_t kPixelOne = 0xFF;
 const uint32_t kAlphaShift = 24;
+
+// Use Blinn & Smith's method of scaling by 256, instead of 255.  Blends two
+// colour channels simultaneously: the R and B of an ARGB pixel.
+// This code expects rb as a packed 16:16 fixed point number, and a as an 8-bit
+// value in [0..255].
+inline uint32_t Blend8x2(uint32_t rb, uint32_t a) {
+  rb &= kRedBlueMask;
+  uint32_t blend = a * rb + k8x2Scale;  // Scale by 256.
+  return (blend + ((blend >> 8) & kRedBlueMask)) >> 8 & kRedBlueMask;
+}
+
 }  // namespace
 
 namespace flocking_geese {
@@ -84,16 +91,9 @@ void Sprite::CompositeFromRectToPoint(const pp::Rect& src_rect,
       // Compute RB and G separately: this allows for SIMD-like behaviour
       // when multiplying the channels by alpha.  Note that over-saturated
       // pixels will wrap to 0 and not clamp.
-      uint32_t src_rb = src & kRedBlueMask;
-      uint32_t src_g = src & kGreenMask;
-      uint32_t dst_rb = (((dst & kRedBlueMask) * one_minus_alpha) >> 8) &
-                        kRedBlueMask;
-      uint32_t dst_g = (((dst & kGreenMask) * one_minus_alpha) >> 8) &
-                       kGreenMask;
-      uint32_t rb = src_rb | dst_rb;
-      uint32_t g = src_g | dst_g;
-
-      *dest_scanline++ = (dst & kAlphaMask) | (rb | g);
+      uint32_t dst_rb = Blend8x2(dst, one_minus_alpha);
+      uint32_t dst_ga = Blend8x2(dst >> 8, one_minus_alpha) << 8;
+      *dest_scanline++ = src + dst_rb + dst_ga;
     }
     src_pixels += row_bytes_;
     dest_pixels += dest_row_bytes;

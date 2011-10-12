@@ -190,7 +190,7 @@ void PngLoader::PreMultiplyAlpha(uint32_t* scanline, int32_t line_width) {
     g *= alpha;
     rb = (rb >> 8) & kRedBlueMask;
     g = (g >> 8) & kGreenMask;
-    *scanline++ = (rb | g | (alpha << kAlphaShift));
+    *scanline++ = (rb | g | (src & kAlphaMask));
   }
 }
 
