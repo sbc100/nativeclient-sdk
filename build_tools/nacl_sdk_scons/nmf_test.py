@@ -7,6 +7,7 @@
 """Unit tests for nmf.py."""
 
 import exceptions
+import json
 import optparse
 import os
 import subprocess
@@ -15,11 +16,13 @@ import tempfile
 import unittest
 
 from build_tools import build_utils
-from build_tools.nacl_sdk_scons import nmf
+from build_tools.nacl_sdk_scons.site_tools import create_nmf
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def CallNmf(args):
-  '''Calls the sdk_update.py utility and returns stdout as a string
+def CallGenerateManifest(args):
+  '''Calls the create_nmf.py utility and returns stdout as a string
 
   Args:
     args: command-line arguments as a list (not including program name)
@@ -29,7 +32,8 @@ def CallNmf(args):
 
   Raises:
     subprocess.CalledProcessError: non-zero return code from sdk_update'''
-  command = ['python', os.path.join(PARENT_DIR, 'nmf.py')] + args
+  command = ['python', os.path.join(SCRIPT_DIR, 'site_tools',
+                                    'create_nmf.py')] + args
   process = subprocess.Popen(stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              args=command)
@@ -37,6 +41,7 @@ def CallNmf(args):
 
   retcode = process.poll() # Note - calling wait() can cause a deadlock
   if retcode != 0:
+    print "stdout=%s\nstderr=%s" % (output, error_output)
     raise subprocess.CalledProcessError(retcode, command)
   return output
 
@@ -91,15 +96,25 @@ def TestingClosure(toolchain_dir, bits, files):
     ''' Test basic functionality of the sdk_update package '''
 
     def setUp(self):
-      self.nmf = {}
-      for file in files:
-        self.nmf[file] = nmf.Nmf(toolchain_dir, file, bits)
+      self.objdump = (os.path.join(toolchain_dir,
+                                   'bin',
+                                   'x86_64-nacl-objdump'))
+      self.library_path = os.path.join(toolchain_dir,
+                                       'x86_64-nacl',
+                                       'lib32' if bits == 32 else 'lib')
 
-    def testPrintDependencies(self):
-      '''Print the library dependencies for each supported nexe type'''
-      for file, nmf in self.nmf.iteritems():
-        print nmf.GetLibraryDependencies()
-        sys.stdout.flush()
+    def testRunGenerateManifest(self):
+      for file in files:
+        json_text = CallGenerateManifest(
+            ['--library-path', self.library_path,
+             '--objdump', self.objdump,
+             file])
+        obj = json.loads(json_text)
+        # For now, just do a simple sanity check that there is a file
+        # and program section.
+        # TODO(mball) Add more tests
+        self.assertTrue(obj.get('files'))
+        self.assertTrue(obj.get('program'))
 
   return TestNmf
 
@@ -125,6 +140,8 @@ def main(argv):
 
   options.gcc = os.path.join(options.toolchain_dir, 'bin', 'x86_64-nacl-gcc')
   options.gpp = os.path.join(options.toolchain_dir, 'bin', 'x86_64-nacl-g++')
+  options.objdump = os.path.join(options.toolchain_dir, 'bin',
+                                 'x86_64-nacl-objdump')
 
   success = True
   temp_files = {32: [], 64: []}
