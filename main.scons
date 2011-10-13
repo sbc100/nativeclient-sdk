@@ -913,6 +913,7 @@ def AutoDepsCommand(env, name, command):
 
 build_env.AddMethod(AutoDepsCommand)
 
+
 def BuildVSSolution(env, target_name, solution):
   """BuildVSSolution() Builds a Visual Studio solution.
 
@@ -935,6 +936,7 @@ def BuildVSSolution(env, target_name, solution):
   return build_command
 
 build_env.AddMethod(BuildVSSolution)
+
 
 def CleanVSSolution(env, target_name, solution_dir):
   """CleanVSSolution() Cleans up a Visual Studio solution's build results.
@@ -963,6 +965,7 @@ def CleanVSSolution(env, target_name, solution_dir):
                        target_name)
 
 build_env.AddMethod(CleanVSSolution)
+
 
 def TestVSSolution(env, target_name, test_container, type, size, build_cmd):
   """Defines a set of tests to be added to the scons test set.
