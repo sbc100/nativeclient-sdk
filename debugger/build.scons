@@ -29,44 +29,13 @@ for shell_var in os.environ:
     env['ENV'][shell_var] = os.environ[shell_var]
 
 debugger_dir = os.path.join(env['ROOT_DIR'], 'debugger')
+
 unit_tests_dir = os.path.join(debugger_dir, 'unit_tests')
-
-# The action to build visual studio solutions.
-vs_build_action = ['vcvarsall',
-                   '&&',
-                   'devenv',
-                   '${SOURCE}',
-                   '/build']
-
-debugger_tests_solution = os.path.join(unit_tests_dir, 'unit_tests.sln')
-
-# Builds the debugger unit_tests solution.
-debugger_tests_build_command = env.Command(
-    target='debugger_tests_build_output.txt',
-    source=debugger_tests_solution,
-    action=' '.join(vs_build_action))
-
-env.AddNodeAliases(debugger_tests_build_command, ['bot'], 'debugger')
+unit_tests_solution = os.path.join(unit_tests_dir, 'unit_tests.sln')
+unit_tests_build_command = env.BuildVSSolution('debugger', unit_tests_solution)
 
 # Target to clean up the debugger build
-debugger_clean_targets = [os.path.join(unit_tests_dir, 'Debug'),
-                          os.path.join(unit_tests_dir, 'Release'),
-                          os.path.join(unit_tests_dir, 'x64')]
-
-# This function is here because we can't pass the whole list of
-# directories to rmdir (windows complains if only some of them exist.)
-def SpecifyDebuggerCleanActions(targets):
-  for target in targets:
-    debugger_clean_action = ['rmdir',
-                             '/Q',
-                             '/S',
-                             target]
-    env.AddCleanAction([target],
-                       Action(' '.join(debugger_clean_action)),
-                       ['bot'],
-                       'debugger')
-
-SpecifyDebuggerCleanActions(debugger_clean_targets)
+env.CleanVSSolution('debugger', unit_tests_dir)
 
 # Target to run the tests
 unit_tests_exe = os.path.join(unit_tests_dir, 'Debug', 'unit_tests.exe')
@@ -75,9 +44,8 @@ debugger_test_command = env.Command(target='debugger_test_results.trx',
                                     source='',
                                     action=unit_tests_exe,)
 
-env.Depends(debugger_test_command, [debugger_tests_build_command])
-env.AddNodeToTestSuite(
-    debugger_test_command,
-    ['bot'],
-    'run_debugger_tests',
-    'small')
+env.TestVSSolution('debugger',
+                   unit_tests_exe,
+                   'exe',
+                   'small',
+                   unit_tests_build_command)
