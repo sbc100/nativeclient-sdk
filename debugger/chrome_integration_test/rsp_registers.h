@@ -42,6 +42,8 @@ class RegistersSet {
 
   bool HasRegister(const std::string& name);
 
+  void PrintRegisters(const debug::Blob& blob);
+
  protected:
   void AddReg(int gdb_number,
               std::string gdb_name,

@@ -2,137 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "debugger/chrome_integration_test/rsp_registers.h"
-#include <windows.h>
-#include <winnt.h>
 #include "debugger/base/debug_blob.h"
-
-namespace {
-/// Copies CONTEXT struct from winnt.h are needed so that program
-/// has definitions of both 32-bit and 64-bit CONTEXTs no matter
-/// how it compiled.
-struct MyCONTEXT_x86 {
-    DWORD ContextFlags;
-    DWORD   Dr0;
-    DWORD   Dr1;
-    DWORD   Dr2;
-    DWORD   Dr3;
-    DWORD   Dr6;
-    DWORD   Dr7;
-    FLOATING_SAVE_AREA FloatSave;
-    DWORD   SegGs;
-    DWORD   SegFs;
-    DWORD   SegEs;
-    DWORD   SegDs;
-    DWORD   Edi;
-    DWORD   Esi;
-    DWORD   Ebx;
-    DWORD   Edx;
-    DWORD   Ecx;
-    DWORD   Eax;
-    DWORD   Ebp;
-    DWORD   Eip;
-    DWORD   SegCs;
-    DWORD   EFlags;
-    DWORD   Esp;
-    DWORD   SegSs;
-    BYTE    ExtendedRegisters[MAXIMUM_SUPPORTED_EXTENSION];
-};
-
-struct DECLSPEC_ALIGN(16) MyM128A {
-    ULONGLONG Low;
-    LONGLONG High;
-};
-
-struct DECLSPEC_ALIGN(16) MyXSAVE_FORMAT {
-    WORD   ControlWord;
-    WORD   StatusWord;
-    BYTE  TagWord;
-    BYTE  Reserved1;
-    WORD   ErrorOpcode;
-    DWORD ErrorOffset;
-    WORD   ErrorSelector;
-    WORD   Reserved2;
-    DWORD DataOffset;
-    WORD   DataSelector;
-    WORD   Reserved3;
-    DWORD MxCsr;
-    DWORD MxCsr_Mask;
-    MyM128A FloatRegisters[8];
-    MyM128A XmmRegisters[16];
-    BYTE  Reserved4[96];
-};
-
-struct DECLSPEC_ALIGN(16) MyCONTEXT_x86_64 {
-    DWORD64 P1Home;
-    DWORD64 P2Home;
-    DWORD64 P3Home;
-    DWORD64 P4Home;
-    DWORD64 P5Home;
-    DWORD64 P6Home;
-    DWORD ContextFlags;
-    DWORD MxCsr;
-    WORD   SegCs;
-    WORD   SegDs;
-    WORD   SegEs;
-    WORD   SegFs;
-    WORD   SegGs;
-    WORD   SegSs;
-    DWORD EFlags;
-    DWORD64 Dr0;
-    DWORD64 Dr1;
-    DWORD64 Dr2;
-    DWORD64 Dr3;
-    DWORD64 Dr6;
-    DWORD64 Dr7;
-    DWORD64 Rax;
-    DWORD64 Rcx;
-    DWORD64 Rdx;
-    DWORD64 Rbx;
-    DWORD64 Rsp;
-    DWORD64 Rbp;
-    DWORD64 Rsi;
-    DWORD64 Rdi;
-    DWORD64 R8;
-    DWORD64 R9;
-    DWORD64 R10;
-    DWORD64 R11;
-    DWORD64 R12;
-    DWORD64 R13;
-    DWORD64 R14;
-    DWORD64 R15;
-    DWORD64 Rip;
-    union {
-        MyXSAVE_FORMAT FltSave;
-        struct {
-            MyM128A Header[2];
-            MyM128A Legacy[8];
-            MyM128A Xmm0;
-            MyM128A Xmm1;
-            MyM128A Xmm2;
-            MyM128A Xmm3;
-            MyM128A Xmm4;
-            MyM128A Xmm5;
-            MyM128A Xmm6;
-            MyM128A Xmm7;
-            MyM128A Xmm8;
-            MyM128A Xmm9;
-            MyM128A Xmm10;
-            MyM128A Xmm11;
-            MyM128A Xmm12;
-            MyM128A Xmm13;
-            MyM128A Xmm14;
-            MyM128A Xmm15;
-        } DUMMYSTRUCTNAME;
-    } DUMMYUNIONNAME;
-    MyM128A VectorRegister[26];
-    DWORD64 VectorControl;
-    DWORD64 DebugControl;
-    DWORD64 LastBranchToRip;
-    DWORD64 LastBranchFromRip;
-    DWORD64 LastExceptionToRip;
-    DWORD64 LastExceptionFromRip;
-};
-}  // namespace
+#include "debugger/chrome_integration_test/windows_thread_context.h"
 
 namespace debug {
 #define REG(sz, name) uint##sz##_t name
@@ -206,10 +77,10 @@ void RegistersSet::InitializeForWin64() {
          #gdb_name, \
          offsetof(GdbRegisters64, gdb_name), \
          sizeof(gdb_regs.##gdb_name), \
-         offsetof(MyCONTEXT_x86_64, win_name), \
+         offsetof(win64::CONTEXT, win_name), \
          sizeof(ct.##win_name))
 
-  MyCONTEXT_x86_64 ct;
+  win64::CONTEXT ct;
   GdbRegisters64 gdb_regs;
   int number = 1;
 
@@ -246,10 +117,10 @@ void RegistersSet::InitializeForWin32() {
          #gdb_name, \
          offsetof(GdbRegisters32, gdb_name), \
          sizeof(gdb_regs.##gdb_name), \
-         offsetof(MyCONTEXT_x86, win_name), \
+         offsetof(win32::CONTEXT, win_name), \
          sizeof(ct.##win_name))
 
-  MyCONTEXT_x86 ct;
+  win32::CONTEXT ct;
   GdbRegisters32 gdb_regs;
   int number = 1;
 
@@ -270,6 +141,15 @@ void RegistersSet::InitializeForWin32() {
   MAP_REG(fs, SegFs);
   MAP_REG(gs, SegGs);
 #undef MAP_REG
+}
+
+void RegistersSet::PrintRegisters(const debug::Blob& blob) {
+  for (size_t i = 0; i < regs_.size(); i++) {
+    uint64_t reg_value = 0;
+    std::string reg_name = regs_[i].gdb_name_;
+    if (ReadRegisterFromGdbBlob(blob, reg_name, &reg_value))
+      printf("%s = 0x%I64x\n", reg_name.c_str(), reg_value);
+  }
 }
 
 bool RegistersSet::ReadRegisterFromGdbBlob(

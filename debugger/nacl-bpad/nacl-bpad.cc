@@ -5,10 +5,12 @@
 #include <string>
 #include "debugger/base/debug_blob.h"
 #include "debugger/base/debug_command_line.h"
+#include "debugger/chrome_integration_test/rsp_registers.h"
 #include "debugger/core/debug_api.h"
 #include "debugger/core/debug_execution_engine.h"
 #include "debugger/core/debuggee_process.h"
 #include "debugger/core/debuggee_thread.h"
+#include "debugger/nacl-gdb_server/gdb_registers.h"
 
 #pragma warning(disable : 4996)  // Disable getenv warning.
 
@@ -25,6 +27,14 @@ const char* kUsage =
     "Note: set NEXE_PATH to full path to nexe.\n"
     "Note: make sure you are loading nexe with debug symbols.";
 
+#ifdef _WIN64
+const char* kAddressSize = "64";
+const char* kAddToLinePrefix = "64";
+#else
+const char* kAddressSize = "32";
+const char* kAddToLinePrefix = "";
+#endif
+
 void MakeContinueDecision(const debug::DebugEvent& debug_event,
                           bool is_nacl_app_thread,
                           bool* halt,
@@ -34,7 +44,7 @@ void PrintEventDetails(DEBUG_EVENT de, debug::DebuggeeThread* halted_thread);
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  printf("nacl-bpad 64-bit version 0.2\n");
+  printf("nacl-bpad %s-bit version 0.4\n", kAddressSize);
 
   debug::CommandLine cmd_line(argc, argv);
   std::string debuggee_cmd_line = cmd_line.GetStringSwitch("-cmd", "");
@@ -75,9 +85,14 @@ int main(int argc, char* argv[]) {
 
         if (debug::DebugEvent::kThreadIsAboutToStart ==
             de.nacl_debug_event_code()) {
-          printf("NaCl thread started pid=%d tid=%d\n",
+          printf("NaCl thread started pid=%d tid=%d",
                  wde.dwProcessId,
                  wde.dwThreadId);
+          if (NULL != halted_thread)
+            printf(" mem_base=0x%p\n",
+                   halted_thread->parent_process().nexe_mem_base());
+          else
+            printf("\n");
         }
 
         bool halt_debuggee = false;
@@ -149,9 +164,10 @@ bool GetCodeLine(int addr, std::string* src_file, int* src_line) {
   char addr_str[200];
   _snprintf(addr_str, sizeof(addr_str), "0x%x", addr);
   std::string cmd = sdk_root +
-      "\\toolchain\\win_x86\\bin\\nacl64-addr2line  --exe=" + nexe_path +
-      " " + addr_str + " > " + kLineFileName;
+      "\\toolchain\\win_x86\\bin\\nacl" + kAddToLinePrefix + "-addr2line "
+      "--exe=" + nexe_path + " " + addr_str + " > " + kLineFileName;
 
+  printf("\n-----calling-----\n%s\n----------\n\n", cmd.c_str());
   system(cmd.c_str());
   int scanned_items = 0;
 
@@ -177,8 +193,18 @@ void PrintEventDetails(DEBUG_EVENT de, debug::DebuggeeThread* halted_thread) {
   int exc_no = de.u.Exception.ExceptionRecord.ExceptionCode;
   const char* exc_name = GetExceptionName(exc_no);
   void* addr = de.u.Exception.ExceptionRecord.ExceptionAddress;
+
+#ifdef _WIN64
+  // On a 64-bit Windows, instruction pointer is absolute, flat address,
+  // so we have to translate it to the address relative to the memory base
+  // of the loaded nexe.
   addr = static_cast<char*>(addr) -
     reinterpret_cast<size_t>(halted_thread->parent_process().nexe_mem_base());
+
+  // On a 32-bit Windows, instruction pointer is relative to the
+  // nexe memory base, so we don't have to adjust it.
+#endif
+
   printf("\nException %s(%d) in nexe at 0x%p\n\n", exc_name, exc_no, addr);
   fflush(stdout);
 
@@ -193,32 +219,16 @@ void PrintEventDetails(DEBUG_EVENT de, debug::DebuggeeThread* halted_thread) {
 
   CONTEXT context;
   if (halted_thread->GetContext(&context)) {
-    #define PRINT_REG(name) printf("%s = 0x%I64x\n", #name, context.##name)
-    PRINT_REG(Rax);
-    PRINT_REG(Rbx);
-    PRINT_REG(Rcx);
-    PRINT_REG(Rdx);
-    PRINT_REG(Rsi);
-    PRINT_REG(Rdi);
-    PRINT_REG(Rbp);
-    PRINT_REG(Rsp);
-    PRINT_REG(R8);
-    PRINT_REG(R9);
-    PRINT_REG(R10);
-    PRINT_REG(R11);
-    PRINT_REG(R12);
-    PRINT_REG(R13);
-    PRINT_REG(R14);
-    PRINT_REG(R15);
-    PRINT_REG(Rip);
-    PRINT_REG(EFlags);
-    PRINT_REG(SegCs);
-    PRINT_REG(SegSs);
-    PRINT_REG(SegDs);
-    PRINT_REG(SegEs);
-    PRINT_REG(SegFs);
-    PRINT_REG(SegGs);
-    #undef PRINT_REG
+    debug::Blob gdb_regs;
+    rsp::CONTEXTToGdbRegisters(context, &gdb_regs);
+
+    debug::RegistersSet regs;
+#ifdef _WIN64
+    regs.InitializeForWin64();
+#else
+    regs.InitializeForWin32();
+#endif
+    regs.PrintRegisters(gdb_regs);
   }
 }
 
@@ -259,7 +269,7 @@ void MakeContinueDecision(const debug::DebugEvent& debug_event,
   if (EXCEPTION_DEBUG_EVENT == wde.dwDebugEventCode) {
     int exception_code = wde.u.Exception.ExceptionRecord.ExceptionCode;
     if (kVS2008_THREAD_INFO != exception_code) {
-      if (EXCEPTION_BREAKPOINT == exception_code)
+     if (EXCEPTION_BREAKPOINT == exception_code)
         *pass_exception = false;
       *halt = false;
     }
