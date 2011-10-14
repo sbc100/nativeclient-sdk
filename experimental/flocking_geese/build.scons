@@ -58,9 +58,18 @@ install_dir = os.getenv('INSTALL_ROOT',
                                      'Sites',
                                      'flocking_geese'))
 
+cws_files = ['manifest.json',
+             os.path.join('images', 'flocking_geese_icon.png'),
+             os.path.join('images', 'flocking_geese_icon16.png'),
+           ]
+
+install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
+                               source=cws_files)
+
 app_files = ['about.html',
-             'flocking_geese.html',
              'flocking_geese.nmf',
+             'google0bfe793046475826.html',
+             'index.html',
             ]
 
 install_app = nacl_env.Install(dir=install_dir,
@@ -118,7 +127,8 @@ install_images = nacl_env.Install(
     source=image_files)
 
 nacl_env.Alias('install',
-               source=[install_app,
+               source=[install_cws,
+                       install_app,
                        install_css,
                        install_js,
                        install_images])
