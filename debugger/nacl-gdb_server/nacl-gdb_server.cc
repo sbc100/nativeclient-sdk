@@ -16,7 +16,7 @@ const int kDefaultPort = 4014;
 const int kErrorBuffSize = 2000;
 const int kWaitForDebugEventMilliseconds = 20;
 
-const char* kVersionString = "nacl-gdb_server v0.003";
+const char* kVersionString = "nacl-gdb_server v0.5";
 #ifdef _WIN64
 const char* kBitsString = "64-bits";
 #else
@@ -48,7 +48,16 @@ std::string GetLastErrorDescription(int error_code = 0) {
 }  // namespace
 
 int main(int argc, char **argv) {
+  debug::TextFileLogger log;
+  log.Open("debug_log.txt");
+  debug::Logger::SetGlobalLogger(&log);
+
   printf("%s %s\n\n", kVersionString, kBitsString);
+  DBG_LOG("TR101.08", "Starting %s %s", kVersionString, kBitsString);
+  for (int i = 0; i < argc; i++) {
+    DBG_LOG("TR101.07", "Arg #%d: [%s]", i, argv[i]);
+    printf("Arg #%d: [%s]\n", i, argv[i]);
+  }
 
   debug::CommandLine command_line(argc, argv);
   if ((0 == command_line.GetParametersNum()) || command_line.HasSwitch("-h")) {
@@ -64,9 +73,6 @@ int main(int argc, char **argv) {
   int port = command_line.GetIntSwitch("-port", kDefaultPort);
   bool compatibility_mode = command_line.HasSwitch("-cm");
 
-  debug::TextFileLogger log;
-  log.Open("debug_log.txt");
-  debug::Logger::SetGlobalLogger(&log);
 
   debug::DebugAPI debug_api;
   debug::DebugServer debug_server(&debug_api, port);

@@ -61,7 +61,7 @@ const char* kNexePath =
 const char* kNexe2Path =
     "\\src\\examples\\pi_generator\\pi_generator_x86_%d_dbg.nexe";
 
-const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\nacl%s-objdump";
+const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\%s-nacl-objdump";
 const char* kNaclDebuggerPath = "%sDebug\\nacl-gdb_server.exe";
 const char* kWebServerPath = "\\src\\examples\\httpd.cmd";
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
   glb_objdump_path = rsp::Format(
       &debug::Blob(),
       kObjdumpPath,
-      (glb_arch_size == 64 ? "64" : "")).ToString();
+      (glb_arch_size == 64 ? "x86_64" : "i686")).ToString();
   glb_nacl_debugger_path =
       rsp::Format(&debug::Blob(),
                   kNaclDebuggerPath,
@@ -500,8 +500,9 @@ bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
   char addr_str[200];
   _snprintf(addr_str, sizeof(addr_str), "0x%I64x", ip);
   std::string nexe_path = glb_sdk_root + glb_nexe_path;
-  std::string cmd = glb_sdk_root + "\\src\\toolchain\\win_x86\\bin\\nacl" +
-      (glb_arch_size == 64 ? "64" : "") + "-addr2line  --exe=" + nexe_path +
+  std::string cmd = glb_sdk_root + "\\src\\toolchain\\win_x86\\bin\\" +
+      (glb_arch_size == 64 ? "x86_64" : "i686") +
+      "-nacl-addr2line  --exe=" + nexe_path +
       " " + addr_str + " > " + kLineFileName;
 
   system(cmd.c_str());
@@ -842,6 +843,8 @@ TEST_F(NaclGdbServerTest, Multithreading) {
   EXPECT_EQ(0, InitAndWaitForNexeStart());
   int main_tid = 0;
   EXPECT_TRUE(GetCurrThread(&main_tid));
+  printf("main_tid = %d\n", main_tid);
+
   std::deque<int> tids;
   EXPECT_TRUE(GetThreadsList(&tids));
   ASSERT_EQ(1, tids.size());
@@ -863,11 +866,16 @@ TEST_F(NaclGdbServerTest, Multithreading) {
   EXPECT_TRUE(DeleteBreakpoint());
   int background_tid = 0;
   EXPECT_TRUE(GetCurrThread(&background_tid));
+  printf("background_tid = %d\n", background_tid);
+
   EXPECT_NE(main_tid, background_tid);
   EXPECT_TRUE(GetThreadsList(&tids));
   ASSERT_EQ(2, tids.size());
   EXPECT_EQ(main_tid, tids[0]);
   EXPECT_EQ(background_tid, tids[1]);
+
+  printf("tids[0] = %d\n", tids[0]);
+  printf("tids[1] = %d\n", tids[1]);
 
   // Set breakpoint at PiGenerator::Paint, wait for nexe to stop,
   // check thread list and current thread (should be main thread).
