@@ -56,14 +56,15 @@ const int kDefaultOpTimeoutInSecs = 10;
 const int kWaitForNexeSleepMs = 500;
 
 const char* kNexePath =
-    "\\src\\examples\\hello_world_c\\hello_world_x86_%d_dbg.nexe";
+    "\\examples\\hello_world_c\\hello_world_x86_%d_dbg.nexe";
 
 const char* kNexe2Path =
-    "\\src\\examples\\pi_generator\\pi_generator_x86_%d_dbg.nexe";
+    "\\examples\\pi_generator\\pi_generator_x86_%d_dbg.nexe";
 
-const char* kObjdumpPath = "\\src\\toolchain\\win_x86\\bin\\%s-nacl-objdump";
-const char* kNaclDebuggerPath = "%sDebug\\nacl-gdb_server.exe";
-const char* kWebServerPath = "\\src\\examples\\httpd.cmd";
+const char* kObjdumpPath = "\\toolchain\\win_x86\\bin\\%s-nacl-objdump";
+const char* kIntegrationTestRelPath = "\\debugger\\chrome_integration_test";
+const char* kNaclDebuggerPath = "Debug\\nacl-gdb_server.exe";
+const char* kWebServerPath = "\\examples\\httpd.cmd";
 
 std::string GetStringEnvVar(const std::string& name,
                             const std::string& default_value);
@@ -73,12 +74,22 @@ std::string DirFromPath(const std::string& command_line);
 
 int main(int argc, char* argv[]) {
   glb_sdk_root = GetStringEnvVar("NACL_SDK_ROOT", "");
+  if (glb_sdk_root.empty()) {
+    printf("NACL_SDK_ROOT not found. Set it to your SDK/src directory\n");
+    exit(1);
+  }
   glb_target_host = GetStringEnvVar("TARGET_HOST", kDefaultTargetHost);
   glb_target_port = GetIntEnvVar("TARGET_PORT", kDefaultTargetPort);
   glb_arch_size = GetIntEnvVar("ARCH_SIZE", kDefaultArchSize);
   glb_wait_secs = GetIntEnvVar("ONE_OP_TIMEOUT", kDefaultOpTimeoutInSecs);
-  glb_browser_cmd = GetStringEnvVar("BROWSER", "") +
-      "hello_world_c/hello_world.html";
+  std::string browser_env_var = GetStringEnvVar("BROWSER", "");
+  if (browser_env_var.empty()) {
+    printf("BROWSER not found. Please set to the location of your chrome.exe "
+           "or native_client compatible browser.\n");
+    exit(1);
+  }
+
+  glb_browser_cmd = browser_env_var + "hello_world_c/hello_world_dbg.html";
   glb_web_server_port = GetIntEnvVar("WEB_PORT", kDefaultWebServerPort);
 
   glb_nexe_path = rsp::Format(
@@ -87,10 +98,11 @@ int main(int argc, char* argv[]) {
       &debug::Blob(),
       kObjdumpPath,
       (glb_arch_size == 64 ? "x86_64" : "i686")).ToString();
-  glb_nacl_debugger_path =
-      rsp::Format(&debug::Blob(),
-                  kNaclDebuggerPath,
-                  (glb_arch_size == 64 ? "x64\\" : "")).ToString();
+  glb_nacl_debugger_path = glb_sdk_root + kIntegrationTestRelPath;
+  if (glb_arch_size == 64) {
+    glb_nacl_debugger_path += "\\x64\\";
+  }
+  glb_nacl_debugger_path += kNaclDebuggerPath;
 
   // This function shall be called before we create any new process
   // or process_utils::KillProcessTree could kill innocent bystanders.
@@ -227,14 +239,14 @@ int NaclGdbServerTest::InitAndWaitForNexeStart() {
 
 int NaclGdbServerTest::StartWebServer() {
   std::string web_server = glb_sdk_root + kWebServerPath;
-  if (0 == web_server.size()) {
-    return 1;
-  }
+  printf("Attempting to launch web server at: %s\n", web_server.c_str());
   // start web server
   std::string path = DirFromPath(web_server);
   h_web_server_proc_ = process_utils::StartProcess(web_server, path.c_str());
-  if (NULL == h_web_server_proc_)
+  if (NULL == h_web_server_proc_) {
+    printf("Could not start web server process.\n");
     return 2;
+  }
   // wait for it to start up
   time_t end_ts = time(0) + glb_wait_secs;
   debug::Socket sock;
@@ -251,32 +263,46 @@ int NaclGdbServerTest::StartDebugger(bool compatibility_mode) {
   std::string cmd = glb_nacl_debugger_path +
       (compatibility_mode ? " --cm" : "") +
       " --program \"" + glb_browser_cmd + "\"";
+  printf("Attempting to start debugger with: %s\n", cmd.c_str());
   h_debugger_proc_ = process_utils::StartProcess(cmd);
-  if (NULL == h_debugger_proc_)
+  if (NULL == h_debugger_proc_) {
+    printf("Could not launch debugger.\n");
     return 12;
+  }
+  printf("Debugger started.\n");
   return 0;
 }
 
 int NaclGdbServerTest::ConnectToDebugger() {
   time_t end_ts = time(0) + glb_wait_secs;
+  printf("Attempting to connect to host %s at port %d\n",
+         glb_target_host.c_str(), glb_target_port);
   do {
     if (nacl_gdb_server_conn_.ConnectTo(glb_target_host, glb_target_port))
       break;
   } while (time(0) < end_ts);
   if (!nacl_gdb_server_conn_.IsConnected()) {
+    printf("Could not connect to debugger.\n");
     return 21;
   }
+  printf("Connected to debugger.\n");
   return 0;
 }
 
 int NaclGdbServerTest::WaitForNexeStart() {
   time_t end_ts = time(0) + glb_wait_secs;
   do {
+    printf("Checking for reply.\n");
     std::string reply = RPC("?");
-    if ("S13" == reply)
+    printf("Got reply: %s\n", reply.c_str());
+    if ("S13" == reply) {
+      printf("nexe started.\n");
       return 0;
+    }
     Sleep(kWaitForNexeSleepMs);
   } while (time(0) < end_ts);
+  printf("nexe did not start.\n");
+  exit(0);
   return 35;
 }
 
@@ -500,9 +526,9 @@ bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
   char addr_str[200];
   _snprintf(addr_str, sizeof(addr_str), "0x%I64x", ip);
   std::string nexe_path = glb_sdk_root + glb_nexe_path;
-  std::string cmd = glb_sdk_root + "\\src\\toolchain\\win_x86\\bin\\" +
+  std::string cmd = glb_sdk_root + "\\toolchain\\win_x86\\bin\\" +
       (glb_arch_size == 64 ? "x86_64" : "i686") +
-      "-nacl-addr2line  --exe=" + nexe_path +
+      "-nacl-addr2line --exe=" + nexe_path +
       " " + addr_str + " > " + kLineFileName;
 
   system(cmd.c_str());
@@ -836,7 +862,7 @@ TEST_F(NaclGdbServerTest, ReadStackFrames) {
 
 TEST_F(NaclGdbServerTest, Multithreading) {
   glb_browser_cmd = GetStringEnvVar("BROWSER", "") +
-      "pi_generator/pi_generator.html";
+      "pi_generator/pi_generator_dbg.html";
   glb_nexe_path = rsp::Format(
       &debug::Blob(), kNexe2Path, glb_arch_size).ToString();
 

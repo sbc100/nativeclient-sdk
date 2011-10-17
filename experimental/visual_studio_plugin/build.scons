@@ -6,8 +6,6 @@
 
 '''Build file for building the VSX plugin and running its test projects.'''
 
-__author__ = 'mlinck@google.com (Michael Linck)'
-
 import os
 import sys
 
@@ -57,13 +55,20 @@ def DefineVSTestSet(package_name, type, size):
   test_container = os.path.join(vsx_root_path, 'src', package_name,
                                 unit_test_name, 'bin', 'Debug',
                                 '%s.%s' % (unit_test_name, type))
-  env.TestVSSolution(package_name,
-                     test_container,
-                     type,
-                     size,
-                     vsx_build_all_command)
+  test_command = env.TestVSSolution(target_name=package_name,
+                                    test_container=test_container,
+                                    type=type,
+                                    size=size,
+                                    build_cmd=vsx_build_all_command)
+  return test_command
 
 
-DefineVSTestSet('NaClVsx.Package', 'dll', 'small')
+package_tests = DefineVSTestSet('NaClVsx.Package', 'dll', 'small')
+# Without this dep, there is a chance of both test suites trying to open the
+# same port at the same time.  Note that the other test has a similar optional
+# dependency.  Which one is triggered depends on the include order of
+# build.scons files, but this ensures that either order works.
+if hasattr(env, 'run_debugger_integration_tests'):
+  env.AddDependency(package_tests, 'run_debugger_integration_tests')
 DefineVSTestSet('MsAd7.BaseImpl', 'dll', 'small')
 DefineVSTestSet('dwarf_reader', 'exe', 'small')
