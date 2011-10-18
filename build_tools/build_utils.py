@@ -217,7 +217,11 @@ class BotAnnotator:
     self._stream.flush()
 
   def BuildStep(self, name):
-    self.Print("@@@BUILD_STEP %s@@@" % name)
+    self.Print("BUILD_STEP %s" % name)
+    # mball: Disabling buildbot annotations because it's more confusing than
+    #   useful when running multiple jobs simultaneously.  To re-enable
+    #   annotations, using the following line instead of the previous:
+    # self.Print("@@@BUILD_STEP %s@@@" % name)
 
   def BuildStepFailure(self):
     '''Signal a failure in the current build step to the annotator'''
