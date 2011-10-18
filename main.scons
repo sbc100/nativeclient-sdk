@@ -948,9 +948,6 @@ def BuildVSSolution(env, target_name, solution, project_config=None):
   build_command = env.Command(target='%s_build_output.txt' % target_name,
                               source=solution,
                               action=' '.join(vs_build_action))
-  # Add a uniquely named attribute so that other targets can be made dependent
-  # on this build command.
-  setattr(build_env, target_name, build_command)
   env.AddNodeAliases(build_command, ['bot'], target_name)
   return build_command
 
@@ -1019,9 +1016,6 @@ def TestVSSolution(env, target_name, test_container, type, size, build_cmd):
       target='%s_test_results.trx' % target_name,
       source='',
       action=test_action)
-  # Add a uniquely named attribute so that other targets can be made dependent
-  # on this test command.
-  setattr(build_env, 'run_%s_tests' % target_name, test_command)
 
   env.Depends(test_command, build_cmd)
   env.AddNodeToTestSuite(test_command,
@@ -1031,29 +1025,6 @@ def TestVSSolution(env, target_name, test_container, type, size, build_cmd):
   return test_command
 
 build_env.AddMethod(TestVSSolution)
-
-
-def AddDependency(env, dependent_target, prerequisite_name):
-  """Make dependent_target depend on a target with prerequisite_name.
-
-  Notes: Only use this function when you cannot get the build command and call
-  Depends() yourself.  This function is not safe because it takes the
-  prerequisite target by name.  Be careful.
-  This function will only work for dependencies that are created by some build
-  functions.
-  Compatible Builders:
-    - BuildVSSolution
-    - TestVSSolution
-
-  Args:
-    env: The construction Environment() that runs the command (usually bound)
-    dependent_target: The target that is to depend on a new prerequisite.
-    prerequisite_name: The prerequisite on which the target should depend.
-  """
-  if hasattr(build_env, prerequisite_name):
-    build_env.Depends(dependent_target, getattr(build_env, prerequisite_name))
-
-build_env.AddMethod(AddDependency)
 
 
 # ----------------------------------------------------------------------------

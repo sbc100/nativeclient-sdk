@@ -64,11 +64,5 @@ def DefineVSTestSet(package_name, type, size):
 
 
 package_tests = DefineVSTestSet('NaClVsx.Package', 'dll', 'small')
-# Without this dep, there is a chance of both test suites trying to open the
-# same port at the same time.  Note that the other test has a similar optional
-# dependency.  Which one is triggered depends on the include order of
-# build.scons files, but this ensures that either order works.
-if hasattr(env, 'run_debugger_integration_tests'):
-  env.AddDependency(package_tests, 'run_debugger_integration_tests')
 DefineVSTestSet('MsAd7.BaseImpl', 'dll', 'small')
 DefineVSTestSet('dwarf_reader', 'exe', 'small')
