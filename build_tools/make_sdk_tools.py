@@ -110,7 +110,7 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
     raise Exception('update_manifest terminated abnormally.')
   ZipDirectory(temp_dir, nacl_sdk_filename)
   WriteTarFile(sdk_tools_filename, os.path.join(temp_dir, 'sdk_tools'), '')
-  shutil.rmtree(temp_dir)
+  shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def main(argv):
