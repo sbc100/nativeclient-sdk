@@ -53,10 +53,9 @@ sources = app_sources + scripting_sources + url_io_sources
 
 opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'flocking_geese')
 
-install_dir = os.getenv('INSTALL_ROOT',
-                        os.path.join(os.path.expanduser('~'),
-                                     'Sites',
-                                     'flocking_geese'))
+nacl_install_root = os.getenv(
+    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
+install_dir = os.path.join(nacl_install_root, 'flocking_geese')
 
 cws_files = ['manifest.json',
              os.path.join('images', 'flocking_geese_icon.png'),
