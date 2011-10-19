@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# Copyright (c) 2010 The Native Client Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that be
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """Install GTest and GMock that can be linked to a NaCl module.  By default
@@ -41,7 +41,9 @@ GMOCK_PATCH_FILE = "nacl-gmock-1.5.0.patch"
 # and where the packages get built prior to installation in the toolchain.
 def MakeWorkingDir(options):
   # Pick work directory.
-  options.working_dir = tempfile.mkdtemp(prefix='gtest')
+  if not options.working_dir:
+    options.working_dir = tempfile.mkdtemp(prefix='gtest')
+    options.must_clean_up = True
   # Go into working area.
   options.old_cwd = os.getcwd()
   os.chdir(options.working_dir)
@@ -110,9 +112,11 @@ def BuildAndInstallAll(options):
 
   # Build and install for each bit-spec.
   for bit_spec in options.bit_spec.split(','):
-    # 32-bits is treated specially, due to being the empty string in legacy
-    # code.
-    nacl_spec = bit_spec == '32' and 'nacl' or ('nacl%s' % bit_spec)
+    if bit_spec == '64':
+      nacl_spec = 'x86_64-nacl'
+    else:
+      nacl_spec = 'i686-nacl'
+
     print 'Building gtest and gmock for NaCl spec: %s.' % nacl_spec
     # Make sure the target directories exist.
     nacl_usr_include = os.path.join(options.toolchain,
@@ -129,24 +133,12 @@ def BuildAndInstallAll(options):
     # Set up the nacl-specific environment variables used by make.
     build_env = options.shell_env.copy()
     toolchain_bin = os.path.join(options.toolchain, 'bin')
-    build_env['CC'] = build_utils.HermeticBuildPath(
-        os.path.join(toolchain_bin, '%s-gcc' % nacl_spec),
-        options.shell_env)
-    build_env['CXX'] = build_utils.HermeticBuildPath(
-        os.path.join(toolchain_bin, '%s-g++' % nacl_spec),
-        options.shell_env)
-    build_env['AR'] = build_utils.HermeticBuildPath(
-        os.path.join(toolchain_bin, '%s-ar' % nacl_spec),
-        options.shell_env)
-    build_env['RANLIB'] = build_utils.HermeticBuildPath(
-        os.path.join(toolchain_bin, '%s-ranlib' % nacl_spec),
-        options.shell_env)
-    build_env['LD'] = build_utils.HermeticBuildPath(
-        os.path.join(toolchain_bin, '%s-ld' % nacl_spec),
-        options.shell_env)
-    build_env['NACL_TOOLCHAIN_ROOT'] = build_utils.HermeticBuildPath(
-        options.toolchain,
-        options.shell_env)
+    build_env['CC'] = os.path.join(toolchain_bin, '%s-gcc' % nacl_spec)
+    build_env['CXX'] = os.path.join(toolchain_bin, '%s-g++' % nacl_spec)
+    build_env['AR'] = os.path.join(toolchain_bin, '%s-ar' % nacl_spec)
+    build_env['RANLIB'] = os.path.join(toolchain_bin, '%s-ranlib' % nacl_spec)
+    build_env['LD'] = os.path.join(toolchain_bin, '%s-ld' % nacl_spec)
+    build_env['NACL_TOOLCHAIN_ROOT'] = options.toolchain
 
     # GTest has to be built & installed before GMock can be built.
     gtest_path = os.path.join(options.working_dir, GTEST_PATH)
@@ -195,7 +187,8 @@ def InstallTestingLibs(options):
 
   BuildAndInstallAll(options)
   # Clean up.
-  shutil.rmtree(options.working_dir, ignore_errors=True)
+  if options.must_clean_up:
+    shutil.rmtree(options.working_dir, ignore_errors=True)
   return 0
 
 
@@ -210,7 +203,7 @@ def InstallTestingLibs(options):
 #              default is "32,64" which means build 32- and 64-bit versions
 #              of the libraries.
 def main(argv):
-  shell_env = build_utils.GetShellEnvironment();
+  shell_env = os.environ;
   if not build_utils.CheckPatchVersion(shell_env):
     sys.exit(0)
 
@@ -223,12 +216,17 @@ def main(argv):
       '-b', '--bit-spec', dest='bit_spec',
       default=BIT_SPEC_DEFAULT,
       help='comma separated list of instruction set bit-widths')
+  parser.add_option(
+      '-w', '--working_dir', dest='working_dir',
+      default=None,
+      help='where to untar and build the test libs.')
   (options, args) = parser.parse_args(argv)
   if args:
     print 'ERROR: invalid argument: %s' % str(args)
     parser.print_help()
     sys.exit(1)
 
+  options.must_clean_up = False
   options.shell_env = shell_env
   options.script_dir = os.path.abspath(os.path.dirname(__file__))
   options.toolchain = build_utils.NormalizeToolchain(options.toolchain)
