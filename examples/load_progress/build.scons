@@ -19,8 +19,26 @@ nacl_env.Append(
 
 sources = ['load_progress.cc']
 
-nacl_env.AllNaClModules(sources, 'load_progress')
+opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'load_progress')
 
 # This target is used by the SDK build system to provide a prebuilt version
 # of the example in the SDK installer.
 nacl_env.InstallPrebuilt('load_progress')
+
+# Install this web site in a staging area.  The staging area is determined by
+# the NACL_INSTALL_ROOT environment variable.  By default, the staging area is
+# C:\inetpub\wwwroot\load_progress
+nacl_install_root = os.getenv(
+    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
+install_dir = os.path.join(nacl_install_root, 'load_progress')
+
+app_files = [
+    'check_browser.js',
+    'load_progress.html',
+    'load_progress.nmf',
+    ]
+
+install_app = nacl_env.Install(dir=install_dir,
+                               source=opt_nexes + app_files)
+
+nacl_env.Alias('install', source=[install_app])

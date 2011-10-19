@@ -19,14 +19,15 @@ nacl_env.Append(
     LIBS=['ppapi_gles2'],
    )
 
-sources = ['cube.cc',
-           'opengl_context.cc',
-           'scripting_bridge.cc',
-           'shader_util.cc',
-           'transforms.cc',
-           'tumbler.cc',
-           'tumbler_module.cc',
-          ]
+sources = [
+    'cube.cc',
+    'opengl_context.cc',
+    'scripting_bridge.cc',
+    'shader_util.cc',
+    'transforms.cc',
+    'tumbler.cc',
+    'tumbler_module.cc',
+    ]
 
 opt_tumbler, dbg_tumbler = nacl_env.AllNaClModules(sources, 'tumbler')
 
@@ -34,22 +35,25 @@ opt_tumbler, dbg_tumbler = nacl_env.AllNaClModules(sources, 'tumbler')
 # of the example in the SDK installer.
 nacl_env.InstallPrebuilt('tumbler')
 
-install_dir = os.getenv('INSTALL_ROOT',
-                        os.path.join(os.getenv('HOME', ''),
-                                     'Sites',
-                                     'tumbler'))
+# Install this web site in a staging area.  The staging area is determined by
+# the NACL_INSTALL_ROOT environment variable.  By default, the staging area is
+# C:\inetpub\wwwroot\tumbler
+nacl_install_root = os.getenv(
+    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
+install_dir = os.path.join(nacl_install_root, 'tumbler')
 
-app_files = ['tumbler.html',
-             'tumbler.nmf',
-             'bind.js',
-             'dragger.js',
-             'trackball.js',
-             'tumbler.js',
-             'vector3.js',
-            ]
+app_files = [
+    'tumbler.html',
+    'tumbler.nmf',
+    'bind.js',
+    'dragger.js',
+    'trackball.js',
+    'tumbler.js',
+    'vector3.js',
+    ]
 
 install_app = nacl_env.Install(dir=install_dir,
                                source=opt_tumbler + app_files)
 
-nacl_env.Alias('install', [install_app])
+nacl_env.Alias('install', source=[install_app])
 
