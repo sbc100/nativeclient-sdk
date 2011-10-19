@@ -134,6 +134,14 @@ KNOWN_SUITES = frozenset([
     ])
 
 
+def HasBotTarget(env):
+  if 'bot' in COMMAND_LINE_TARGETS:
+    return True
+  return False
+
+base_env.AddMethod(HasBotTarget)
+
+
 def CheckSuiteName(suite, node_name):
   '''Check whether a given test suite or alias name is a known name.
 
