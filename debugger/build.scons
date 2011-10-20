@@ -32,14 +32,6 @@ unit_tests_dir = os.path.join(debugger_dir, 'unit_tests')
 unit_tests_solution = os.path.join(unit_tests_dir, 'unit_tests.sln')
 unit_tests_build_command = env.BuildVSSolution('debugger', unit_tests_solution)
 
-if env.HasBotTarget():
-  # The target we're depending on is not directly visible from this scope.  If
-  # a second instance of this style of dependency was ever needed, it would be
-  # worth providing more framework, but for now we have to rely on a string
-  # constant.
-  env.Requires(unit_tests_build_command, 'run_installer_test')
-
-
 # Target to clean up the debugger build
 env.CleanVSSolution('debugger', unit_tests_dir)
 
@@ -52,49 +44,27 @@ unit_test_command = env.TestVSSolution(target_name='debugger',
                                        size='small',
                                        build_cmd=unit_tests_build_command)
 
-integration_tests_dir = os.path.join(debugger_dir, 'chrome_integration_test')
-integration_tests_solution = os.path.join(integration_tests_dir,
-                                          'chrome_integration_test.sln')
-integration_tests_target = 'debugger_integration'
-integration_tests_build_command = env.BuildVSSolution(
-    integration_tests_target, integration_tests_solution, '"Debug|x64"')
-env.DependsOnChrome(integration_tests_build_command)
-env.CleanVSSolution(integration_tests_target, integration_tests_dir)
-integration_tests_exe = os.path.join(integration_tests_dir,
-                                     'Debug',
-                                     'chrome_integration_test.exe')
+#integration_tests_dir = os.path.join(debugger_dir, 'chrome_integration_test')
+#integration_tests_solution = os.path.join(integration_tests_dir,
+#                                          'chrome_integration_test.sln')
+#integration_tests_target = 'debugger_integration'
+#integration_tests_build_command = env.BuildVSSolution(
+#    integration_tests_target, integration_tests_solution, '"Debug|x64"')
+#env.CleanVSSolution(integration_tests_target, integration_tests_dir)
+#env.DependsOnChrome(integration_tests_build_command)
+#env.DependsOnExamples(integration_tests_build_command)
+#integration_tests_exe = os.path.join(integration_tests_dir,
+#                                     'Debug',
+#                                     'chrome_integration_test.exe')
 
-chrome_args = [str(env.GetChromeBinary()),
-               '--enable-file-cookies',
-               '--dom-automation',
-               '--disable-web-resources',
-               '--disable-preconnect',
-               '--no-first-run',
-               '--no-default-browser-check',
-               '--enable-logging',
-               '--safebrowsing-disable-auto-update',
-               '--no-default-browser-check',
-               '--noerrdialogs',
-               '--metrics-recording-only',
-               '--allow-file-access-from-files',
-               '--disable-tab-closeable-state-watcher',
-               '--allow-file-access',
-               '--unlimited-quota-for-files',
-               '--enable-nacl',
-               '--log-level=3',
-               '--incognito',
-               'http://localhost:5103/']
+#env['ENV']['BROWSER'] = '%s --no-default-browser-check --enable-logging --noerrdialogs --enable-nacl --incognito http://localhost:5103/' % env.GetChromeBinary()
+#env['ENV']['NACL_SDK_ROOT'] = env['ROOT_DIR']
 
-env['ENV']['BROWSER'] = ' '.join(chrome_args)
-env['ENV']['NACL_SDK_ROOT'] = env['ROOT_DIR']
+#integration_test_command = env.TestVSSolution('debugger_integration',
+#                                              integration_tests_exe,
+#                                              'exe',
+#                                              'large',
+#                                              integration_tests_build_command)
 
-integration_test_command = env.TestVSSolution('debugger_integration',
-                                              integration_tests_exe,
-                                              'exe',
-                                              'large',
-                                              integration_tests_build_command)
-# The visual studio solutions define their own hard dependencies on each other
-# so we don't need one here.
-env.Requires(integration_test_command, unit_test_command)
-# But we do need a hard dependency on the examples build.
-env.DependsOnExamples(integration_test_command)
+#env.Depends(integration_test_command, unit_test_command)
+
