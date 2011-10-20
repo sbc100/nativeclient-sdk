@@ -15,15 +15,20 @@ import os
 import sys
 
 from SCons import Script
+from site_tools import create_nmf
 
 #------------------------------------------------------------------------------
 # Parameters
+
+# The newlib toolchain variant.  .nexes built with this variant require a
+# different manifest file format than those built with glibc.
+NEWLIB_TOOLCHAIN_VARIANT = 'newlib'
 
 # The default toolchain architecture.
 DEFAULT_TOOLCHAIN_ARCH = 'x86'
 
 # The default toolchain variant.
-DEFAULT_TOOLCHAIN_VARIANT = 'newlib'
+DEFAULT_TOOLCHAIN_VARIANT = NEWLIB_TOOLCHAIN_VARIANT
 
 # Map the string stored in |sys.platform| into a toolchain host specifier.
 # @private
@@ -295,9 +300,22 @@ def GenerateNmf(target, source, env):
     # exception bubble up to the calling context.  This will produce the
     # correct SCons error.
     target_path = target_file.get_abspath()
-    nmf_json = GetJSONFromNexeSpec(nexes)
+    if env['NACL_TOOLCHAIN_VARIANT'] == NEWLIB_TOOLCHAIN_VARIANT:
+      nmf_json = GetJSONFromNexeSpec(nexes)
+    else:
+      print "GenerateNmf: Creating a glibc-compatible nmf file"
+      nmf = create_nmf.NmfUtils(
+          objdump=os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'bin',
+                               'x86_64-nacl-objdump'),
+          main_files=[str(file) for file in source],
+          lib_path=[os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'x86_64-nacl', dir)
+                    for dir in ['lib', 'lib32']])
+      nmf_json = nmf.GetManifest()
     with open(target_path, 'w') as nmf_file:
-      nmf_file.write(nmf_json)
+      if env['NACL_TOOLCHAIN_VARIANT'] == NEWLIB_TOOLCHAIN_VARIANT:
+        nmf_file.write(nmf_json)
+      else:
+        nmf.WriteJson(nmf_json, nmf_file)
 
   # Return None to indicate success.
   return None

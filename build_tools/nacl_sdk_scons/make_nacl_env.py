@@ -166,7 +166,8 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
               PROGSUFFIX='.nexe',
               # Target NaCl platform info.
               TARGET_NACL_PLATFORM=nacl_platform_to_use,
-              NACL_TOOLCHAIN_VARIANT=toolchain_variant
+              NACL_TOOLCHAIN_VARIANT=toolchain_variant,
+              NACL_TOOLCHAIN_ROOT=toolchain
              )
   # This supresses the "MS_DOS style path" warnings on Windows.  It's benign on
   # all other platforms.

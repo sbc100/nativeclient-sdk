@@ -37,8 +37,6 @@ def CallCreateNmf(args):
     subprocess.CalledProcessError: non-zero return code from sdk_update'''
   command = [sys.executable, os.path.join(SCRIPT_DIR, 'site_tools',
                                           'create_nmf.py')] + args
-  print "\nCallCreateNmf(%s)" % command
-  sys.stdout.flush()
   process = subprocess.Popen(stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              args=command)
@@ -48,7 +46,9 @@ def CallCreateNmf(args):
   sys.stdout.flush()
   retcode = process.poll() # Note - calling wait() can cause a deadlock
   if retcode != 0:
+    print "\nCallCreateNmf(%s)" % command
     print "stdout=%s\nstderr=%s" % (output, error_output)
+    sys.stdout.flush()
     raise subprocess.CalledProcessError(retcode, command)
   return output
 
@@ -122,9 +122,35 @@ def TestingClosure(toolchain_dir, file_map):
       obj = json.loads(json_text)
       # For now, just do a simple sanity check that there is a file
       # and program section.
-      # TODO(mball) Add more tests
       self.assertTrue(obj.get('files'))
       self.assertTrue(obj.get('program'))
+      for arch in ['x86-32', 'x86-64']:
+        self.assertEqual(obj['program'][arch]['url'],
+                         '%s/runnable-ld.so' % arch)
+        self.assertEqual(obj['files']['main.nexe'][arch]['url'],
+                         os.path.basename(file_map[arch]))
+        for filename, rest in obj['files'].items():
+          if filename == 'main.nexe':
+            continue
+          self.assertEqual('/'.join([arch, filename]),
+                           rest[arch]['url'])
+
+    def testGenerateManifest(self):
+      nmf = create_nmf.NmfUtils(
+          objdump=self.objdump,
+          main_files=file_map.values(),
+          lib_path=self.library_paths)
+      nmf_json = nmf.GetManifest()
+      for arch in ['x86-32', 'x86-64']:
+        self.assertEqual(nmf_json['program'][arch]['url'],
+                         '%s/runnable-ld.so' % arch)
+        self.assertEqual(nmf_json['files']['main.nexe'][arch]['url'],
+                         os.path.basename(file_map[arch]))
+        for filename, rest in nmf_json['files'].items():
+          if filename == 'main.nexe':
+            continue
+          self.assertEqual('/'.join([arch, filename]),
+                           rest[arch]['url'])
 
   return TestNmf
 

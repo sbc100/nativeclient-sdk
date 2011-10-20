@@ -28,6 +28,14 @@ FormatArchMap = {
     # 'elf32-little': 'arm-32',
     }
 
+DEBUG_MODE = False
+
+
+def DebugPrint(message):
+  if DEBUG_MODE:
+    sys.stdout.write('%s\n' % message)
+    sys.stdout.flush()
+
 
 class Error(Exception):
   '''Local Error class for this file.'''
@@ -88,6 +96,7 @@ class NmfUtils(object):
       needed: A set of strings formatted as "arch/name".  Example:
           set(['x86-32/libc.so', 'x86-64/libgcc.so'])
     '''
+    DebugPrint("GleanFromObjdump(%s)" % ([self.objdump, '-p'] + files.keys()))
     proc = subprocess.Popen([self.objdump, '-p'] + files.keys(),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, bufsize=-1)
@@ -143,6 +152,7 @@ class NmfUtils(object):
           Includes the input files as well, with arch filled in if absent.
           Example: { '/path/to/my.nexe': ArchFile(my.nexe),
                      '/path/to/libfoo.so': ArchFile(libfoo.so) }'''
+    DebugPrint('CollectNeeded(%s)' % files)
     examined = set()
     all_files, needed = self.GleanFromObjdump(
         dict([(file, None) for file in files]))
@@ -213,7 +223,7 @@ class NmfUtils(object):
     manifest = {'program': {}, 'files': {'main.nexe': {}}}
     for arch in programs:
       manifest['program'][arch] = arch_name(arch, 'runnable-ld.so')
-      manifest['files']['main.nexe'][arch] = arch_name(arch, programs[arch])
+      manifest['files']['main.nexe'][arch] = {'url': programs[arch]}
 
     for file in filemap:
       manifest['files'][file] = dict([(arch, arch_name(arch, file))
