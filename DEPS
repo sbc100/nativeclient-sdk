@@ -1,11 +1,13 @@
 vars = {
+  "chrome_rev": "106500",
+  "chromium_trunk": "http://src.chromium.org/svn/trunk",
   # Get PPAPI directly from Chrome, not via the NaCl repo.
   "gmock_trunk": "http://googlemock.googlecode.com/svn/trunk/",
   "gmock_version": "382",
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "6810",
+  "native_client_version": "6965",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
@@ -32,20 +34,22 @@ deps = {
   "src/third_party/gtest":
     Var("gtest_trunk") + "@" + Var("gtest_version"),
   "src/third_party/native_client/base":
-    From("nacl_deps", "base"),
+    Var("chromium_trunk") + "/src/base@" + Var("chrome_rev"),
   "src/third_party/native_client/build":
-    From("nacl_deps", "build"),
+    Var("chromium_trunk") + "/src/build@" + Var("chrome_rev"),
   "src/third_party/native_client/gpu/command_buffer":
-    From("nacl_deps", "gpu/command_buffer"),
+    Var("chromium_trunk") + "/src/gpu/command_buffer@" + Var("chrome_rev"),
+  "src/third_party/native_client/gpu/common":
+    Var("chromium_trunk") + "/src/gpu/common@" + Var("chrome_rev"),
   "src/third_party/native_client/gpu/GLES2":
-    From("nacl_deps", "gpu/GLES2"),
+    Var("chromium_trunk") + "/src/gpu/GLES2@" + Var("chrome_rev"),
   "src/third_party/native_client/gpu/KHR":
-    From("nacl_deps", "gpu/KHR"),
+    Var("chromium_trunk") + "/src/gpu/KHR@" + Var("chrome_rev"),
   "src/third_party/native_client/native_client":
     Var("native_client_trunk") + "/src/native_client@" +
     Var("native_client_version"),
   "src/third_party/native_client/ppapi":
-    From("nacl_deps", "ppapi"),
+    Var("chromium_trunk") + "/src/ppapi@" + Var("chrome_rev"),
   "src/third_party/native_client/third_party/scons-2.0.1":
     From("nacl_deps", "third_party/scons-2.0.1"),
   "src/third_party/pymox":
