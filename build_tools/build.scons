@@ -47,6 +47,7 @@ installer_node = env.Command(
     action=run_generate_installer)
 
 env.Depends(installer_node, env.GetToolchainNode())
+env.Depends(installer_node, env.GetInstallerPrereqsNode())
 env.AddNodeAliases(installer_node, ['bot'], 'installer')
 
 install_file = 'nacl-sdk.exe' if sys.platform == 'win32' else 'nacl-sdk.tgz'
@@ -77,6 +78,8 @@ installer_test_node = env.CreatePythonUnitTest(
 
 env.AddNodeToTestSuite(installer_test_node, ['bot'],
                        'run_installer_test', 'large')
+
+env.Depends(env.GetInstallerTestNode(), installer_test_node)
 
 #------------------------------------------------------------------------------
 # Add build_tools unit tests

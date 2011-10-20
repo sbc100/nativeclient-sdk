@@ -55,14 +55,12 @@ def DefineVSTestSet(package_name, type, size):
   test_container = os.path.join(vsx_root_path, 'src', package_name,
                                 unit_test_name, 'bin', 'Debug',
                                 '%s.%s' % (unit_test_name, type))
-  test_command = env.TestVSSolution(target_name=package_name,
-                                    test_container=test_container,
-                                    type=type,
-                                    size=size,
-                                    build_cmd=vsx_build_all_command)
-  return test_command
+  env.TestVSSolution(target_name=('run_%s_tests' % package_name),
+                                  test_container=test_container,
+                                  type=type,
+                                  size=size,
+                                  build_cmd=vsx_build_all_command)
 
-
-package_tests = DefineVSTestSet('NaClVsx.Package', 'dll', 'small')
+DefineVSTestSet('NaClVsx.Package', 'dll', 'small')
 DefineVSTestSet('MsAd7.BaseImpl', 'dll', 'small')
 DefineVSTestSet('dwarf_reader', 'exe', 'small')

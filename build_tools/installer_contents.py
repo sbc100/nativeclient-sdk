@@ -73,6 +73,7 @@ WINDOWS_ONLY_CONTENTS = [
     'examples/httpd.cmd',
     'examples/scons.bat',
     'project_templates/scons.bat',
+    'debugger/nacl-gdb_server/x64/Debug/'
 ]
 
 # These files are user-readable documentation files, and as such get some

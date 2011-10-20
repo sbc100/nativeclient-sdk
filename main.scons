@@ -36,7 +36,7 @@ Help for NaCl SDK
 
 Supported targets:
   * bot               Runs everything that the build and try bots run.
-  * debugger          Build the debugging library code and tests.
+  * debug_server      Build the out-of-process debug_server.
   * docs              Build all of the Doxygen documentation.
   * examples          Build the examples.
   * experimental      Build the experimental projects.
@@ -132,6 +132,14 @@ base_env.Help(HELP_STRING)
 KNOWN_SUITES = frozenset([
     'bot',
     ])
+
+
+def HasBotTarget(env):
+  if 'bot' in COMMAND_LINE_TARGETS:
+    return True
+  return False
+
+base_env.AddMethod(HasBotTarget)
 
 
 def CheckSuiteName(suite, node_name):
@@ -496,6 +504,9 @@ base_env.Alias('extra_sdk_update', [libs, libs_platform])
 
 AlwaysBuild(sdk_headers)
 
+# ----------------------------------------------------------------------------
+# The following section contains proxy nodes which can be used to create
+# dependencies between targets that are not in the same scope or environment.
 toolchain_node = base_env.Alias('toolchain', [])
 
 
@@ -510,6 +521,22 @@ def GetHeadersNode(env):
   return sdk_headers
 
 base_env.AddMethod(GetHeadersNode)
+
+installer_prereqs_node = base_env.Alias('installer_prereqs', [])
+
+
+def GetInstallerPrereqsNode(env):
+  return installer_prereqs_node
+
+base_env.AddMethod(GetInstallerPrereqsNode)
+
+installer_test_node = base_env.Alias('installer_test_node', [])
+
+
+def GetInstallerTestNode(env):
+  return installer_test_node
+
+base_env.AddMethod(GetInstallerTestNode)
 
 
 def AddHeaderToSdk(env, nodes, subdir = 'nacl/', base_dirs = None):
@@ -992,6 +1019,7 @@ def TestVSSolution(env, target_name, test_container, type, size, build_cmd):
   Args:
     env: The construction Environment() that runs the command.
     target_name: The name of the target which resulted in the test container.
+      A name that clearly marks the target as a test is recommended here.
     test_container: The fully qualified path to the dll or exe that contains
       the tests.
     type: The type test package to expect as a string.  This can be 'dll' or
@@ -1020,7 +1048,7 @@ def TestVSSolution(env, target_name, test_container, type, size, build_cmd):
   env.Depends(test_command, build_cmd)
   env.AddNodeToTestSuite(test_command,
                          ['bot'],
-                         'run_%s_tests' % target_name,
+                         target_name,
                          size)
   return test_command
 
