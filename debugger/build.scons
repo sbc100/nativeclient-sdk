@@ -39,6 +39,10 @@ env.CleanVSSolution(DEBUG_SERVER_TARGET, debug_server_dir)
 env.AlwaysBuild(debug_server_build_command)
 # The installer needs to become dependent on the result of this build step.
 env.Depends(env.GetInstallerPrereqsNode(), debug_server_build_command)
+# If this build runs alongside the examples build, it makes the examples build
+# flaky, so this step needs to happen after the examples build and before
+# generate_windows_installers.
+env.DependsOnExamples(debug_server_build_command)
 
 # The following section specifies build, clean, and run targets for the
 # debug_server unit tests.
@@ -109,5 +113,3 @@ integration_test_command = env.TestVSSolution(
     type='exe',
     size='large',
     build_cmd=integration_test_build_command)
-# But we do need a hard dependency on the examples build.
-env.DependsOnExamples(integration_test_command)
