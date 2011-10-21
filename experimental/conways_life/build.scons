@@ -35,11 +35,14 @@ cws_files = [os.path.join('cws', src_file) for src_file in [
     'manifest.json',
     'conways_life_icon.png',
     'conways_life_icon16.png',
+    'screenshot.jpg',
+    'screenshot_small.jpg',
 ]]
 install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
                                source=cws_files)
 
 app_sources = [
+    'about.html',
     'index.html',
     'life.nmf',
     'closure.js',
@@ -99,9 +102,11 @@ install_sounds = nacl_env.Install(
     dir=os.path.join(install_dir, 'sounds'),
     source=sound_sources)
 
-install_life = nacl_env.Alias('install', [install_app,
-                                          install_controllers,
-                                          install_events,
-                                          install_css,
-                                          install_imgs,
-                                          install_sounds])
+install_life = nacl_env.Alias('install', [
+    install_cws,
+    install_app,
+    install_controllers,
+    install_events,
+    install_css,
+    install_imgs,
+    install_sounds])
