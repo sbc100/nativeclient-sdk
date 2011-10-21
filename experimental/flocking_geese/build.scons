@@ -68,6 +68,7 @@ install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
 app_files = ['about.html',
              'flocking_geese.nmf',
              'google0bfe793046475826.html',
+             'googlee7137647d2344460.html',
              'index.html',
             ]
 
