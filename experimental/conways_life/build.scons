@@ -8,7 +8,8 @@ import make_nacl_env
 import nacl_utils
 import os
 
-nacl_env = make_nacl_env.NaClEnvironment(use_c_plus_plus_libs=True)
+nacl_env = make_nacl_env.NaClEnvironment(
+    use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 nacl_env.Append(
     # Add a CPPPATH that enables the full-path #include directives, such as
     # #include "examples/sine_synth/sine_synth.h"
@@ -26,58 +27,77 @@ sources = ['life.cc',
 
 opt_life, dbg_life = nacl_env.AllNaClModules(sources, 'life')
 
-install_dir = os.getenv('INSTALL_ROOT',
-                        os.path.join(os.getenv('HOME'),
-                                     'Sites',
-                                     'conways_life'))
+nacl_install_root = os.getenv(
+    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
+install_dir = os.path.join(nacl_install_root, 'conways_life')
 
+cws_files = [os.path.join('cws', src_file) for src_file in [
+    'manifest.json',
+    'conways_life_icon.png',
+    'conways_life_icon16.png',
+]]
+install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
+                               source=cws_files)
+
+app_sources = [
+    'index.html',
+    'life.nmf',
+    'closure.js',
+    'life.js',
+]
 install_app = nacl_env.Install(dir=install_dir,
-                               source=opt_life + ['life.html',
-                                                  'life.nmf',
-                                                  'closure.js',
-                                                  'life.js',
-                                                 ])
+                               source=opt_life + app_sources)
 
+controller_sources = [os.path.join('controllers', src_file) for src_file in [
+    'stamp_editor.js',
+    'stamp_panel.js',
+    'viewcontroller.js',
+]]
 install_controllers = nacl_env.Install(
     dir=os.path.join(install_dir, 'controllers'),
-    source=[os.path.join('controllers', 'stamp_editor.js'),
-            os.path.join('controllers', 'stamp_panel.js'),
-            os.path.join('controllers', 'viewcontroller.js'),
-           ])
+    source=controller_sources)
 
+events_sources = [os.path.join('events', src_file) for src_file in [
+    'dragger.js',
+    'event.js',
+]]
 install_events = nacl_env.Install(
     dir=os.path.join(install_dir, 'events'),
-    source=[os.path.join('events', 'dragger.js'),
-            os.path.join('events', 'event.js'),
-           ])
+    source=events_sources)
 
+css_sources = [os.path.join('css', src_file) for src_file in [
+    'life.css',
+    'stamp_editor.css',
+    'toolbar.css',
+]]
 install_css = nacl_env.Install(
     dir=os.path.join(install_dir, 'css'),
-    source=[os.path.join('css', 'life.css'),
-            os.path.join('css', 'stamp_editor.css'),
-            os.path.join('css', 'toolbar.css'),
-           ])
+    source=css_sources)
 
+img_sources = [os.path.join('img', src_file) for src_file in [
+    'dead_cell.png',
+    'live_cell.png',
+    'minus_button.png',
+    'pause_button.png',
+    'play_button.png',
+    'plus_button.png',
+    'toolbar-bg.png',
+]]
 install_imgs = nacl_env.Install(
     dir=os.path.join(install_dir, 'img'),
-    source=[os.path.join('img', 'dead_cell.png'),
-            os.path.join('img', 'live_cell.png'),
-            os.path.join('img', 'minus_button.png'),
-            os.path.join('img', 'pause_button.png'),
-            os.path.join('img', 'play_button.png'),
-            os.path.join('img', 'plus_button.png'),
-            os.path.join('img', 'toolbar-bg.png'),
-           ])
+    source=img_sources)
 
 # Doorbell sound by Mike Koenig: http://soundbible.com/165-Door-Bell.html
 # All other sounds from WavSource: http://www.wavsource.com/sfx/sfx.htm
+sound_sources = [os.path.join('sounds', src_file) for src_file in [
+    'ahem_x.wav',
+    'bicycle_bell.wav',
+    'boing_x.wav',
+    'doorbell.wav',
+]]
 install_sounds = nacl_env.Install(
     dir=os.path.join(install_dir, 'sounds'),
-    source=[os.path.join('sounds', 'ahem_x.wav'),
-            os.path.join('sounds', 'bicycle_bell.wav'),
-            os.path.join('sounds', 'boing_x.wav'),
-            os.path.join('sounds', 'doorbell.wav'),
-           ])
+    source=sound_sources)
 
 install_life = nacl_env.Alias('install', [install_app,
                                           install_controllers,
@@ -85,19 +105,3 @@ install_life = nacl_env.Alias('install', [install_app,
                                           install_css,
                                           install_imgs,
                                           install_sounds])
-
-# Install the app and all the tests.  Do not use this for publishing the web
-# site.
-test_install_runner = nacl_env.Install(dir=install_dir,
-                                       source=['test_runner.html', 'testing'])
-test_install_controllers = nacl_env.Install(
-    dir=os.path.join(install_dir, 'controllers'),
-    source=[os.path.join('controllers', 'viewcontroller_test.js'),
-           ])
-nacl_env.Alias('install_tests', [install_life,
-                                 test_install_runner,
-                                 test_install_controllers])
-
-# This target is used by the SDK build system to provide a prebuilt version
-# of the example in the SDK installer.
-nacl_env.InstallPrebuilt('conways_life')

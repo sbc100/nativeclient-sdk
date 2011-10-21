@@ -1,0 +1,14 @@
+{
+  "name": "Conways Life",
+  "description": "Version of Conway's Life algorithm implemented in C++ using Native Client",
+  "version": "1.0.1",
+  "icons": {
+    "128": "conways_life_icon.png",
+    "16": "conways_life_icon16.png"
+  },
+  "app": {
+    "launch": {
+      "web_url": "http://www.gonacl.com/dev/demos/conways_life/"
+    }
+  }
+}

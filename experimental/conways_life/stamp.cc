@@ -105,47 +105,40 @@ void Stamp::StampAtPointInBuffers(const pp::Point& point,
                                   uint32_t* dest_pixel_buffer,
                                   uint8_t* dest_cell_buffer,
                                   const pp::Size& buffer_size) const {
-  // Do a simple COPY composite operation into the pixel and cell buffers.
-  int copy_width = size().width();
-  int copy_height = size().height();
-  // Apply the stamp offset and crop the destination pixel coordinates.
-  int src_x = 0;
-  int src_y = 0;
-  int dst_x = point.x() - stamp_offset().x();
-  int dst_y = point.y() - stamp_offset().y();
-  if (dst_x < 0) {
-    src_x -= dst_x;
-    copy_width += dst_x;
-    dst_x = 0;
-  }
-  if (dst_y < 0) {
-    src_y -= dst_y;
-    copy_height += dst_y;
-    dst_y = 0;
-  }
-  if (dst_x + copy_width > buffer_size.width()) {
-    copy_width = buffer_size.width() - dst_x;
-  }
-  if (dst_y + copy_height > buffer_size.height()) {
-    copy_height = buffer_size.height() - dst_y;
-  }
-  pp::Rect src_rect(src_x, src_y, copy_width, copy_height);
-  pp::Point dst_loc(dst_x, dst_y);
+  pp::Rect src_rect_clipped(pp::Point(), size());
+  if (src_rect_clipped.IsEmpty())
+    return;
+
+  pp::Point dest_point(point);
+  dest_point -= stamp_offset();
+  // Create a clipped rect in the destination coordinate space that contains the
+  // final image.
+  pp::Rect dest_bounds(pp::Point(), buffer_size);
+  pp::Rect draw_rect(dest_point, src_rect_clipped.size());
+  pp::Rect draw_rect_clipped(dest_bounds.Intersect(draw_rect));
+  if (draw_rect_clipped.IsEmpty())
+    return;
+  // Transform the destination rectangle back to the source image coordinate
+  // system: Translate(-dest_point) . Translate(src_rect_clipped.origin).
+  pp::Point src_offset(draw_rect_clipped.point());
+  src_offset -= dest_point;
+  src_rect_clipped.Offset(src_offset);
+  src_rect_clipped.set_size(draw_rect_clipped.size());
   if (dest_pixel_buffer) {
     CopyCompositeToPoint(&pixel_buffer_[0],
                          size().width(),
-                         src_rect,
+                         src_rect_clipped,
                          dest_pixel_buffer,
                          buffer_size.width(),
-                         dst_loc);
+                         dest_point);
   }
   if (dest_cell_buffer) {
     CopyCompositeToPoint(&cell_buffer_[0],
                          size().width(),
-                         src_rect,
+                         src_rect_clipped,
                          dest_cell_buffer,
                          buffer_size.width(),
-                         dst_loc);
+                         dest_point);
   }
 }
 }  // namespace life
