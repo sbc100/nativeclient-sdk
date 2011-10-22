@@ -1,5 +1,5 @@
 application: nacl-gallery
-version: 5
+version: 7
 runtime: python
 api_version: 1
 
@@ -21,9 +21,6 @@ handlers:
 - url: /
   static_files: static/index.html
   upload: static/index.html
-- url: /games/*
-  static_files: static/games/index.html
-  upload: static/games/index.html
 - url: /(.+\.(nmf|nexe))
   static_files: static/\1
   upload: static/(.+\.(nmf|nexe))
