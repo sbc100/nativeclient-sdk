@@ -107,6 +107,7 @@ AddPythonUnitTest('run_installer_contents_test',
                   'tests/installer_contents_test.py')
 AddPythonUnitTest('run_nacl_utils_test', 'nacl_sdk_scons/nacl_utils_test.py')
 AddPythonUnitTest('run_path_set_test', 'tests/path_set_test.py')
+AddPythonUnitTest('run_apply_patch_test', 'tests/apply_patch_test.py')
 AddPythonUnitTest('run_nmf_test',
                   'nacl_sdk_scons/nmf_test.py',
                   size='medium',
