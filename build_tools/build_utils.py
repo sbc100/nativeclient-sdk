@@ -23,7 +23,7 @@ from nacl_sdk_scons import nacl_utils
 # Parameters
 
 # Revision numbers for the SDK
-PLATFORM_VERSION = 'pepper_16'
+PLATFORM_VERSION = 'pepper_17'
 
 TOOLCHAIN_AUTODETECT = "AUTODETECT"
 

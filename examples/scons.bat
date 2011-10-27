@@ -19,10 +19,10 @@ if not defined NACL_SDK_ROOT (
 :: usually NACL_SDK_ROOT - within which the toolchain for the target platform
 :: are found.
 :: Replace the platform with the name of your target platform.  For example, to
-:: build applications that target the pepper_16 API, set
-::   NACL_TARGET_PLATFORM=pepper_16
+:: build applications that target the pepper_17 API, set
+::   NACL_TARGET_PLATFORM=pepper_17
 if not defined NACL_TARGET_PLATFORM (
-  set NACL_TARGET_PLATFORM=pepper_16
+  set NACL_TARGET_PLATFORM=pepper_17
 )
 
 set NACL_PLATFORM_DIR=%NACL_SDK_ROOT%\%NACL_TARGET_PLATFORM%
