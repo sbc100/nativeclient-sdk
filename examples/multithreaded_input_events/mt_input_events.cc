@@ -83,7 +83,7 @@ class EventInstance : public pp::Instance {
   // Not guaranteed to be called in Pepper, but a good idea to cancel the
   // queue and signal to workers to die if it is called.
   virtual ~EventInstance() {
-    event_queue_.CancelQueue();
+    CancelQueueAndWaitForWorker();
   }
 
   // Create the 'worker thread'.
@@ -127,7 +127,7 @@ class EventInstance : public pp::Instance {
           "displayed. Worker thread for mouse/wheel/keyboard will exit.";
       PostMessage(pp::Var(reply));
       printf("Calling cancel queue\n");
-      event_queue_.CancelQueue();
+      CancelQueueAndWaitForWorker();
     }
   }
 
@@ -281,6 +281,16 @@ class EventInstance : public pp::Instance {
   }
 
   private:
+    // Cancels the queue (which will cause the thread to exit).
+    // Wait for the thread.  Set |event_thread_| to NULL so we only
+    // execute the body once.
+    void CancelQueueAndWaitForWorker() {
+      if (event_thread_) {
+        event_queue_.CancelQueue();
+        pthread_join(event_thread_, NULL);
+        event_thread_ = NULL;
+      }
+    }
     pthread_t event_thread_;
     LockingQueue<Event*> event_queue_;
     pp::CompletionCallbackFactory<EventInstance, ThreadSafeRefCount>
