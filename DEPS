@@ -1,5 +1,5 @@
 vars = {
-  "chrome_rev": "106500",
+  "chrome_rev": "107538",
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   # Get PPAPI directly from Chrome, not via the NaCl repo.
   "gmock_trunk": "http://googlemock.googlecode.com/svn/trunk/",
@@ -7,12 +7,12 @@ vars = {
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "6965",
+  "native_client_version": "7030",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "pnacl_toolchain_version": "6808",
-  "x86_toolchain_version": "6808",
+  "pnacl_toolchain_version": "7005",
+  "x86_toolchain_version": "6988",
   # ARM is not supported, this number can stay pinned at 6645.
   "arm_trusted_toolchain_version": "6645",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
