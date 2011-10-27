@@ -5,8 +5,8 @@
 #ifndef CUSTOM_EVENTS_H
 #define CUSTOM_EVENTS_H
 
+#include <stdint.h>
 #include <string>
-
 namespace event_queue {
 
 // These functions and classes are used to define a non-Pepper set of

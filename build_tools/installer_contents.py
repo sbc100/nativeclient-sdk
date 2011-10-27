@@ -35,6 +35,7 @@ INSTALLER_CONTENTS = [
     'examples/index.html',
     'examples/input_events/',
     'examples/load_progress/',
+    'examples/multithreaded_input_events/',
     'examples/pi_generator/',
     'examples/pong/',
     'examples/scons',
