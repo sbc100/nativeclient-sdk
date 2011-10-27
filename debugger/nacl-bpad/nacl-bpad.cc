@@ -164,7 +164,7 @@ bool GetCodeLine(int addr, std::string* src_file, int* src_line) {
   char addr_str[200];
   _snprintf(addr_str, sizeof(addr_str), "0x%x", addr);
   std::string cmd = sdk_root +
-      "\\toolchain\\win_x86\\bin\\nacl" + kAddToLinePrefix + "-addr2line "
+      "\\toolchain\\win_x86\\bin\\x86_" + kAddToLinePrefix + "-nacl-addr2line "
       "--exe=" + nexe_path + " " + addr_str + " > " + kLineFileName;
 
   printf("\n-----calling-----\n%s\n----------\n\n", cmd.c_str());
