@@ -25,71 +25,65 @@ dd {
 </head>
 <body>
 <h2>Native Client Examples</h2>
-<p>This page has quick links to the SDK examples.  Click on the sample names
-to run them.</p>
+<p>This page lists all of the examples available in the most recent Native Client SDK bundle. Each example is designed to teach a few specific Native Client programming concepts.</p>
 <dl>
   <dt><a href="hello_world_c/hello_world.html">Hello World in C</a></dt>
-  <dd>The Hello World example combines HTML, JavaScript, and
-    C code (the C is compiled to create a .nexe file). The .nexe code responds
-    to button click events and calls the browser to show alert panels.
+  <dd>The Hello World In C example demonstrates the basic structure of all Native Client applications. This example loads a Native Client module and responds to button click events by showing alert panels.
+	
+    <p>Teaching focus: Basic HTML, JavaScript, and module architecture; Messaging API.</p>
   </dd>
   <dt><a href="hello_world/hello_world.html">Hello World in C++</a></dt>
-  <dd>The Hello World example combines HTML, JavaScript, and
-    C++ (the C++ is compiled to create a .nexe file). The .nexe code responds
-    to button click events and calls the browser to show alert panels.
+  <dd>The Hello World C++ example demonstrates the basic structure of all Native Client applications. This example loads a Native Client module and responds to button click events by showing alert panels.
+
+		<p>Teaching focus: Basic HTML, JavaScript, and module architecture; Messaging API.</p>
+  </dd>
+<dt><a href="load_progress/load_progress.html">Load Progress</a></dt>
+  <dd>	The Load Progress example demonstrates how to listen for and handle events that occur while a
+		NaCl module loads.  This example listens for different load event types and dispatches different events to their respective handler. This example also checks for valid browser 
+		version and shows how to calculate and display loading progress.
+      
+		<p>Teaching focus: Progress event handling.</p>
+  </dd>
+ <dt><a href="pi_generator/pi_generator.html">Pi Generator</a></dt>
+  <dd>	The Pi Generator example demonstrates creating a helper thread that estimate pi using the Monte Carlo
+      method while randomly putting 1,000,000,000 points inside a 2D square that shares two
+      sides with a quarter circle.
+
+		<p>Teaching focus: Thread creation, 2D graphics, view change events.</p>
+  </dd>
+<dt><a href="input_events/input_events.html">Input Events</a></dt>
+  <dd>	The Input Events example demonstrates how to handle events triggered by the user. This example allows a user
+		to interact with a square representing a module instance. Events are displayed on the screen as the user clicks, scrolls, types, inside or outside 
+		of the square.
+		
+		<p>Teaching focus: Keyboard and mouse input, view change, and focus events.</p>
+  </dd>
+<dt><a href="sine_synth/sine_synth.html">Sine Wave Synthesizer</a></dt>
+  <dd>	The Sine Wave Synthesizer example demonstrates playing sound (a sine wave).
+		
+		<p>Teaching focus: Audio.</p>
+  </dd>
+<dt><a href="pong/pong.html">Pong</a></dt>
+  <dd>	The Pong example demonstrates how to create a basic 2D video game and how to store application
+		information in a local persistent file. This game uses up and 
+    down arrow keyboard input events to move the paddle.
+    
+		<p>Teaching focus: File I/O, 2D graphics, input events.</p>
   </dd>
   <dt><a href="geturl/geturl.html">Get URL</a></dt>
-  <dd>The Get URL example combines HTML, JavaScript,
-    and C++ (the C++ is compiled to create a .nexe file). The .nexe code
-    uses the Pepper API to fetch an URL and then display its contents.
-  </dd>
-  <dt><a href="pi_generator/pi_generator.html">Pi Generator</a></dt>
-  <dd>The Pi Generator example combines HTML, JavaScript,
-    and C++ (the C++ is compiled to create a .nexe file). The .nexe code
-    creates a thread that estimate pi using the Monte Carlo method while
-    randomly putting 1,000,000,000 points inside a 2D square that shares two
-    sides with a quarter circle. The 2D square is generated using the Pepper 2D
-    API.
-  </dd>
-  <dt><a href="pong/pong.html">Pong</a></dt>
-  <dd>The Pong example combines HTML, JavaScript,
-    and C++ (the C++ is compiled to create a .nexe file). The .nexe code
-    handles up and down arrow keyboard input events, and maintains the game
-    score in a file in the local persistent file system.  Javascript is used to
-    request file quota.  The game display uses Pepper 2D API.
-  </dd>
-  <dt><a href="sine_synth/sine_synth.html">Sine Wave Synthesizer</a></dt>
-  <dd>The Sine Wave Synthesizer example combines HTML,
-    JavaScript, and C++ (the C++ is compiled to create a .nexe file). It
-    synthesizes and plays a sine wave.  You can enter the frequency of the
-    sine wave.  It uses Pepper Audio API to play the tone.
-  </dd>
-  <dt><a href="load_progress/load_progress.html">Load Progress</a></dt>
-  <dd>The Load Progress example combines HTML,
-    JavaScript, and C++ (the C++ is compiled to create a .nexe file). The HTML
-    and embedded JavaScript show how to listen for and handle events sent
-    while the NaCl module loads.  In particular, the &lsquo;progress&rsquo;
-    outputs loading progress.  This example also includes some code that
-    checks for valid browser versions and offers some troubleshooting hints if
-    the NaCl module fails to load.
-  </dd>
-  <dt><a href="input_events/input_events.html">Input Events</a></dt>
-  <dd>The Input Events example combines HTML, Javascript,
-    and C++ (the C++ is compiled to create a .nexe file).
-    The C++ shows how to listen for and handle input events such
-    as mouse events, keyboard events, losing focus, and gaining focus.
-    The C++ then uses postMessage to send the a text description back
-    to Javascript, which displays the last twenty events on
-    the page and also prints them to the JavaScript Console.
+  <dd>	The Get URL example demonstrates fetching an URL and then displaying its contents.
+		
+		<p>Teaching focus: URL loading.</p>
   </dd>
   <dt><a href="tumbler/tumbler.html">Tumbler</a></dt>
-  <dd>The Tumbler example combines HTML, Javascript,
-    and C++ (the C++ is compiled to create a .nexe file).
-    The C++ shows how to create a Pepper 3D context and draw to it using
-    OpenGL ES.  The JavaScript implements a virtual trackball interface to
-    map mouse movements into 3D rotations using simple 3D vector math and
-    quaternions.  The JavaScript uses postMessage() to tell
-    the C++ code to update its camera position and re-render the cube.
+  <dd>	The Tumbler example demonstrates how to create a 3D cube that you can rotate with your mouse while pressing the
+ 		left mouse button. This example creates a 3D context and draws to it using
+      OpenGL ES. The JavaScript implements a virtual trackball interface to
+      map mouse movements into 3D rotations using simple 3D vector math and
+      quaternions.
+		
+		<p>Teaching focus: 3D graphics</p>
+      <p>
   </dd>
 </dl>
 </body>
