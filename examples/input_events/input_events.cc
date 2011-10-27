@@ -206,6 +206,20 @@ class EventInstance : public pp::Instance {
       case PP_INPUTEVENT_TYPE_CONTEXTMENU:
         GotKeyEvent(pp::KeyboardInputEvent(event), "Context");
         break;
+      // Note that if we receive an IME event we just send a message back
+      // to the browser to indicate we have received it.
+      case PP_INPUTEVENT_TYPE_IME_COMPOSITION_START:
+        PostMessage(pp::Var("PP_INPUTEVENT_TYPE_IME_COMPOSITION_START"));
+        break;
+      case PP_INPUTEVENT_TYPE_IME_COMPOSITION_UPDATE:
+        PostMessage(pp::Var("PP_INPUTEVENT_TYPE_IME_COMPOSITION_UPDATE"));
+        break;
+      case PP_INPUTEVENT_TYPE_IME_COMPOSITION_END:
+        PostMessage(pp::Var("PP_INPUTEVENT_TYPE_IME_COMPOSITION_END"));
+        break;
+      case PP_INPUTEVENT_TYPE_IME_TEXT:
+        PostMessage(pp::Var("PP_INPUTEVENT_TYPE_IME_COMPOSITION_TEXT"));
+        break;
       default:
         assert(false);
         return false;
