@@ -153,7 +153,41 @@
         }
       ],
       "revision": 1294
-    }
+    },
+    {
+      "name": "pepper_17",
+      "description": "Chrome 17 bundle, revision 1305",
+      "stability": "dev",
+      "recommended": "no",
+      "version": 17,
+      "archives": [
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_17_1305/naclsdk_mac.tgz",
+          "checksum": {
+            "sha1": "cdb216f3c6f013744cd8da1d8393cac0f6b98665"
+          },
+          "host_os": "mac",
+          "size": 151251891
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_17_1305/naclsdk_linux.tgz",
+          "checksum": {
+            "sha1": "44cb018090f20cb1df75a9450c5213e180eaa325"
+          },
+          "host_os": "linux",
+          "size": 152503415
+        },
+        {
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_17_1305/naclsdk_win.exe",
+          "checksum": {
+            "sha1": "ab60c78f448d51a4c6760a0d830d929e5f4fa83b"
+          },
+          "host_os": "win",
+          "size": 67444465
+        }
+      ],
+      "revision": 1305
+    }    
   ],
   "manifest_version": 1
 }
