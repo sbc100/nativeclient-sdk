@@ -56,7 +56,7 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
           None.
 
     Returns:
-      The value of the command-line option, accroding to the override rules
+      The value of the command-line option, according to the override rules
           described above.
     '''
     cmd_line_value = Script.GetOption(option_name)
@@ -96,6 +96,9 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
 
   tool_bin_path = os.path.join(toolchain, 'bin')
   tool_runtime_path = os.path.join(toolchain, 'runtime')
+  staging_dir = os.path.abspath(os.getenv(
+      'NACL_INSTALL_ROOT', os.path.join(os.getenv('NACL_SDK_ROOT', '.'),
+                                        'staging')))
 
   # Invoke the various *nix tools that the NativeClient SDK resembles.  This
   # is done so that SCons doesn't try to invoke cl.exe on Windows in the
@@ -160,14 +163,15 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
               CPPPATH=[],
               LINKFLAGS=['${EXTRA_LINKFLAGS}',
                         ],
-              # The NaCl envorinment makes '.nexe' executables.  If this is
+              # The NaCl environment makes '.nexe' executables.  If this is
               # not explicitly set, then SCons on Windows doesn't understand
               # how to construct a Program builder properly.
               PROGSUFFIX='.nexe',
               # Target NaCl platform info.
               TARGET_NACL_PLATFORM=nacl_platform_to_use,
               NACL_TOOLCHAIN_VARIANT=toolchain_variant,
-              NACL_TOOLCHAIN_ROOT=toolchain
+              NACL_TOOLCHAIN_ROOT=toolchain,
+              NACL_INSTALL_ROOT=staging_dir,
              )
   # This supresses the "MS_DOS style path" warnings on Windows.  It's benign on
   # all other platforms.

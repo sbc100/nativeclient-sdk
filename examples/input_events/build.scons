@@ -26,19 +26,12 @@ opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'input_events')
 # of the example in the SDK installer.
 nacl_env.InstallPrebuilt('input_events')
 
-# Install this web site in a staging area.  The staging area is determined by
-# the NACL_INSTALL_ROOT environment variable.  By default, the staging area is
-# C:\inetpub\wwwroot\input_events
-nacl_install_root = os.getenv(
-    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
-install_dir = os.path.join(nacl_install_root, 'input_events')
-
 app_files = [
     'input_events.html',
     'input_events.nmf',
     ]
 
-install_app = nacl_env.Install(dir=install_dir,
+install_app = nacl_env.Install(dir=nacl_env['NACL_INSTALL_ROOT'],
                                source=opt_nexes + app_files)
 
 nacl_env.Alias('install', source=[install_app])

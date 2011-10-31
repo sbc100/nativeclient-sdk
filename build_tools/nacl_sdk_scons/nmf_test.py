@@ -42,8 +42,6 @@ def CallCreateNmf(args):
                              args=command)
   output, error_output = process.communicate()
 
-  print "\noutput=%s\n" % output
-  sys.stdout.flush()
   retcode = process.poll() # Note - calling wait() can cause a deadlock
   if retcode != 0:
     print "\nCallCreateNmf(%s)" % command

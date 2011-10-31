@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (c) 2011, The Native Client Authors.  All rights reserved.
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 #
@@ -27,21 +27,20 @@ logging.getLogger().setLevel(logging.INFO)
 SERVER_PORT = 5103
 SERVER_HOST = ''
 
-# We only run from the examples directory (the one that contains scons-out), so
+# We only run from the examples or staging directory so
 # that not too much is exposed via this HTTP server.  Everything in the
 # directory is served, so there should never be anything potentially sensitive
 # in the serving directory, especially if the machine might be a
 # multi-user machine and not all users are trusted.  We only serve via
 # the loopback interface.
 
-SAFE_DIR_COMPONENTS = ['examples']
-SAFE_DIR_SUFFIX = apply(os.path.join, SAFE_DIR_COMPONENTS)
+SAFE_DIR_COMPONENTS = ['staging', 'examples']
 
 def SanityCheckDirectory():
-  if os.getcwd().endswith(SAFE_DIR_SUFFIX):
+  if os.path.basename(os.getcwd()) in SAFE_DIR_COMPONENTS:
     return
-  logging.error('httpd.py should only be run from the %s', SAFE_DIR_SUFFIX)
-  logging.error('directory for testing purposes.')
+  logging.error('For security, httpd.py should only be run from one of the')
+  logging.error('following directories: %s' % SAFE_DIR_COMPONENTS)
   logging.error('We are currently in %s', os.getcwd())
   sys.exit(1)
 

@@ -17,27 +17,20 @@ nacl_env.Append(
     EXTRA_CCFLAGS=['-pedantic'],
    )
 
-sources = ['hello_world.c']
+sources = ['hello_world_c.c']
 
-opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'hello_world')
+opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'hello_world_c')
 
 # This target is used by the SDK build system to provide a prebuilt version
 # of the example in the SDK installer.
-nacl_env.InstallPrebuilt('hello_world')
-
-# Install this web site in a staging area.  The staging area is determined by
-# the NACL_INSTALL_ROOT environment variable.  By default, the staging area is
-# C:\inetpub\wwwroot\hello_world_c
-nacl_install_root = os.getenv(
-    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
-install_dir = os.path.join(nacl_install_root, 'hello_world_c')
+nacl_env.InstallPrebuilt('hello_world_c')
 
 app_files = [
-    'hello_world.html',
-    'hello_world.nmf',
+    'hello_world_c.html',
+    'hello_world_c.nmf',
     ]
 
-install_app = nacl_env.Install(dir=install_dir,
+install_app = nacl_env.Install(dir=nacl_env['NACL_INSTALL_ROOT'],
                                source=opt_nexes + app_files)
 
 nacl_env.Alias('install', source=[install_app])

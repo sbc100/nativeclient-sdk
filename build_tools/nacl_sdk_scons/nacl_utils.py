@@ -303,19 +303,17 @@ def GenerateNmf(target, source, env):
     if env['NACL_TOOLCHAIN_VARIANT'] == NEWLIB_TOOLCHAIN_VARIANT:
       nmf_json = GetJSONFromNexeSpec(nexes)
     else:
-      print "GenerateNmf: Creating a glibc-compatible nmf file"
       nmf = create_nmf.NmfUtils(
           objdump=os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'bin',
                                'x86_64-nacl-objdump'),
           main_files=[str(file) for file in source],
           lib_path=[os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'x86_64-nacl', dir)
                     for dir in ['lib', 'lib32']])
-      nmf_json = nmf.GetManifest()
+      nmf_json = nmf.GetJson()
+      if env.get('NACL_INSTALL_ROOT', None):
+        nmf.StageDependencies(env['NACL_INSTALL_ROOT'])
     with open(target_path, 'w') as nmf_file:
-      if env['NACL_TOOLCHAIN_VARIANT'] == NEWLIB_TOOLCHAIN_VARIANT:
-        nmf_file.write(nmf_json)
-      else:
-        nmf.WriteJson(nmf_json, nmf_file)
+      nmf_file.write(nmf_json)
 
   # Return None to indicate success.
   return None

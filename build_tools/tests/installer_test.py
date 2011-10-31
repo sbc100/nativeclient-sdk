@@ -63,6 +63,7 @@ def TestingClosure(_outdir, _jobs):
       env = os.environ.copy()
       env['NACL_TARGET_PLATFORM'] = '.'  # Use the repo's toolchain.
       env['NACL_PROJECT_ROOT'] = _outdir  # Put project templates here.
+      env['NACL_SDK_ROOT'] = _outdir
       return env
 
     def SconsCommand(self, scons_path=''):
@@ -173,7 +174,7 @@ def TestingClosure(_outdir, _jobs):
         Args:
           port: The port to use, defaults to 5103.
         '''
-        path = os.path.join(_outdir, 'examples')
+        path = os.path.join(_outdir, 'staging')
         command = [sys.executable, os.path.join(path, 'httpd.py')]
         # Add the port only if it's not the default.
         if port != DEFAULT_SERVER_PORT:
@@ -188,7 +189,8 @@ def TestingClosure(_outdir, _jobs):
         process = subprocess.Popen(command,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT,
-                                   cwd=current_working_dir)
+                                   cwd=current_working_dir,
+                                   env=self.GetBotShellEnv())
         self.assertNotEqual(None, process)
         # Wait until the process starts by trying to send it a GET request until
         # the server responds, or until the timeout expires.  If the timeout

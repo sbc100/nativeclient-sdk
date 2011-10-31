@@ -52,14 +52,6 @@ def main(argv):
   env['NACL_SDK_ROOT'] = parent_dir
   env['NACL_TARGET_PLATFORM'] = '.'  # Use the repo's toolchain.
 
-  # Build the examples.
-  bot.BuildStep('build examples')
-  bot.Print('generate_windows_installer is building examples.')
-  example_path = os.path.join(home_dir, 'src', 'examples')
-  scons_path = os.path.join(example_path, 'scons.bat')
-  scons_cmd = scons_path + ' --nacl-platform="." install_prebuilt'
-  subprocess.check_call(scons_cmd, cwd=example_path, env=env)
-
   # Build the experimental projects.
   bot.BuildStep('build experimental')
   bot.Print('generate_windows_installer is building the experimental projects.')

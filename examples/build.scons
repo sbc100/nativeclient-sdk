@@ -4,6 +4,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+import sys
+
 """
 Build file for the NaCl SDK Examples
 
@@ -55,4 +58,17 @@ example_sconscripts = ['geturl/build.scons',
 
 Help(HELP_STRING)
 
+staging_dir = os.path.abspath(os.getenv(
+    'NACL_INSTALL_ROOT', os.path.join(os.getenv('NACL_SDK_ROOT', '.'),
+                                      'staging')))
+general_files = Install(staging_dir, ['httpd.py'])
+general_files.append(InstallAs(os.path.join(staging_dir, 'index.html'),
+                               'index_staging.html'))
+
+if sys.platform in ['win32', 'cygwin']:
+  general_files.append(Install(staging_dir, 'httpd.cmd'))
+
 SConscript(example_sconscripts)
+
+if not GetOption('clean'):
+  Default(['install', general_files])
