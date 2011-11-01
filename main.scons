@@ -41,6 +41,7 @@ Supported targets:
   * examples          Build the examples.
   * experimental      Build the experimental projects.
   * installer         Build the SDK installer.
+  * nacl-bpad         Build the native client crash reporting tool.
   * sdk_tools         Build nacl_sdk.zip and sdk_tools.tgz
   * toolchain         Update the toolchain's headers and libraries.
   * vsx               Build the Visual Studio Plugin.
