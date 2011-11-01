@@ -7,10 +7,12 @@
 #include <string>
 #include "debugger/base/debug_command_line.h"
 #include "debugger/base/debug_socket.h"
-#include "debugger/chrome_integration_test/process_utils.h"
 #include "debugger/chrome_integration_test/rsp_registers.h"
 #include "debugger/rsp/rsp_blob_utils.h"
 #include "debugger/rsp/rsp_packet_utils.h"
+#include "debugger/test_utils/nacl_sdk_utils.h"
+#include "debugger/test_utils/process_utils.h"
+#include "debugger/test_utils/sys_utils.h"
 #include "gtest/gtest.h"
 
 #pragma warning(disable : 4996)  // Disable fopen warning.
@@ -22,9 +24,6 @@ std::string glb_target_host;
 
 // Fills from TARGET_PORT environment variable
 int glb_target_port = 0;
-
-// Fills from NACL_SDK_ROOT environment variable
-std::string glb_sdk_root;
 
 // Fills from WEB_PORT environment variable
 int glb_web_server_port = 0;
@@ -44,7 +43,6 @@ std::string glb_browser_cmd;
 
 // Automatically formed based on NACL_SDK_ROOT and ARCH_SIZE
 std::string glb_nexe_path;
-std::string glb_objdump_path;
 std::string glb_nacl_debugger_path;
 
 const char* kSymbolsFileName = "symbols.txt";
@@ -61,28 +59,27 @@ const char* kNexePath =
 const char* kNexe2Path =
     "\\examples\\pi_generator\\pi_generator_x86_%d_dbg.nexe";
 
-const char* kObjdumpPath = "\\toolchain\\win_x86\\bin\\%s-nacl-objdump";
 const char* kIntegrationTestRelPath = "\\debugger\\chrome_integration_test";
+#ifdef _DEBUG
 const char* kNaclDebuggerPath = "Debug\\nacl-gdb_server.exe";
-const char* kWebServerPath = "\\examples\\httpd.cmd";
-
-std::string GetStringEnvVar(const std::string& name,
-                            const std::string& default_value);
-int GetIntEnvVar(const std::string& name, int default_value);
-std::string DirFromPath(const std::string& command_line);
+#else
+const char* kNaclDebuggerPath = "Release\\nacl-gdb_server.exe";
+#endif
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  glb_sdk_root = GetStringEnvVar("NACL_SDK_ROOT", "");
-  if (glb_sdk_root.empty()) {
+  nacl_sdk_utils::Paths sdk_paths;
+  if (sdk_paths.sdk_root().empty()) {
     printf("NACL_SDK_ROOT not found. Set it to your SDK/src directory\n");
     exit(1);
   }
-  glb_target_host = GetStringEnvVar("TARGET_HOST", kDefaultTargetHost);
-  glb_target_port = GetIntEnvVar("TARGET_PORT", kDefaultTargetPort);
-  glb_arch_size = GetIntEnvVar("ARCH_SIZE", kDefaultArchSize);
-  glb_wait_secs = GetIntEnvVar("ONE_OP_TIMEOUT", kDefaultOpTimeoutInSecs);
-  std::string browser_env_var = GetStringEnvVar("BROWSER", "");
+  glb_target_host =
+      sys_utils::GetStringEnvVar("TARGET_HOST", kDefaultTargetHost);
+  glb_target_port = sys_utils::GetIntEnvVar("TARGET_PORT", kDefaultTargetPort);
+  glb_arch_size = sys_utils::GetIntEnvVar("ARCH_SIZE", kDefaultArchSize);
+  glb_wait_secs =
+      sys_utils::GetIntEnvVar("ONE_OP_TIMEOUT", kDefaultOpTimeoutInSecs);
+  std::string browser_env_var = sys_utils::GetStringEnvVar("BROWSER", "");
   if (browser_env_var.empty()) {
     printf("BROWSER not found. Please set to the location of your chrome.exe "
            "or native_client compatible browser.\n");
@@ -90,23 +87,16 @@ int main(int argc, char* argv[]) {
   }
 
   glb_browser_cmd = browser_env_var + "hello_world_c/hello_world_dbg.html";
-  glb_web_server_port = GetIntEnvVar("WEB_PORT", kDefaultWebServerPort);
-
+  glb_web_server_port =
+      sys_utils::GetIntEnvVar("WEB_PORT", kDefaultWebServerPort);
   glb_nexe_path = rsp::Format(
       &debug::Blob(), kNexePath, glb_arch_size).ToString();
-  glb_objdump_path = rsp::Format(
-      &debug::Blob(),
-      kObjdumpPath,
-      (glb_arch_size == 64 ? "x86_64" : "i686")).ToString();
-  glb_nacl_debugger_path = glb_sdk_root + kIntegrationTestRelPath;
+
+  glb_nacl_debugger_path = sdk_paths.sdk_root() + kIntegrationTestRelPath;
   if (glb_arch_size == 64) {
     glb_nacl_debugger_path += "\\x64\\";
   }
   glb_nacl_debugger_path += kNaclDebuggerPath;
-
-  // This function shall be called before we create any new process
-  // or process_utils::KillProcessTree could kill innocent bystanders.
-  process_utils::CreateListOfPreexistingProcesses();
 
   debug::CommandLine command_line;
   command_line = debug::CommandLine(argc, argv);
@@ -189,7 +179,9 @@ class NaclGdbServerTest : public ::testing::Test {
  protected:
   bool RunObjdump(const std::string& nexe_path);
 
-  HANDLE h_web_server_proc_;
+  nacl_sdk_utils::WebServer web_server_;
+  nacl_sdk_utils::Paths sdk_paths_;
+  process_utils::ProcessTree proc_tree_;
   HANDLE h_debugger_proc_;
   debug::Socket nacl_gdb_server_conn_;
   uint8_t code_at_breakpoint_;
@@ -201,8 +193,7 @@ class NaclGdbServerTest : public ::testing::Test {
 };
 
 NaclGdbServerTest::NaclGdbServerTest()
-    : h_web_server_proc_(NULL),
-      h_debugger_proc_(NULL),
+    : h_debugger_proc_(NULL),
       code_at_breakpoint_(0),
       breakpoint_addr_(0),
       mem_base_(0),
@@ -215,10 +206,9 @@ NaclGdbServerTest::NaclGdbServerTest()
 }
 
 NaclGdbServerTest::~NaclGdbServerTest() {
-  if (NULL != h_web_server_proc_)
-    process_utils::KillProcessTree(h_web_server_proc_);
+  web_server_.Stop();
   if (NULL != h_debugger_proc_)
-    process_utils::KillProcessTree(h_debugger_proc_);
+    proc_tree_.KillProcessTree(h_debugger_proc_);
 }
 
 int NaclGdbServerTest::InitAndWaitForNexeStart() {
@@ -238,12 +228,10 @@ int NaclGdbServerTest::InitAndWaitForNexeStart() {
 }
 
 int NaclGdbServerTest::StartWebServer() {
-  std::string web_server = glb_sdk_root + kWebServerPath;
-  printf("Attempting to launch web server at: %s\n", web_server.c_str());
+  printf("Attempting to launch web server at: %s\n",
+      sdk_paths_.GetWebServerPath().c_str());
   // start web server
-  std::string path = DirFromPath(web_server);
-  h_web_server_proc_ = process_utils::StartProcess(web_server, path.c_str());
-  if (NULL == h_web_server_proc_) {
+  if (!web_server_.Start()) {
     printf("Could not start web server process.\n");
     return 2;
   }
@@ -264,7 +252,7 @@ int NaclGdbServerTest::StartDebugger(bool compatibility_mode) {
       (compatibility_mode ? " --cm" : "") +
       " --program \"" + glb_browser_cmd + "\"";
   printf("Attempting to start debugger with: %s\n", cmd.c_str());
-  h_debugger_proc_ = process_utils::StartProcess(cmd);
+  h_debugger_proc_ = proc_tree_.StartProcess(cmd);
   if (NULL == h_debugger_proc_) {
     printf("Could not launch debugger.\n");
     return 12;
@@ -423,7 +411,7 @@ bool NaclGdbServerTest::WriteIP(uint64_t ip) {
 
 bool NaclGdbServerTest::ReadInt32(uint64_t addr, uint32_t* dest) {
   debug::Blob data;
-  if (!ReadMemory(addr, sizeof(dest), &data))
+  if (!ReadMemory(addr, sizeof(*dest), &data))
     return false;
 
   data.Reverse();  // Integers are little-endian on x86.
@@ -434,7 +422,7 @@ bool NaclGdbServerTest::ReadInt32(uint64_t addr, uint32_t* dest) {
 
 bool NaclGdbServerTest::ReadInt64(uint64_t addr, uint64_t* dest) {
   debug::Blob data;
-  if (!ReadMemory(addr, sizeof(dest), &data))
+  if (!ReadMemory(addr, sizeof(*dest), &data))
     return false;
 
   data.Reverse();  // Integers are little-endian on x86.
@@ -474,7 +462,7 @@ bool NaclGdbServerTest::RunObjdump(const std::string& nexe_path) {
   // Command line for this operation is something like this:
   // nacl64-objdump -t nacl_app.nexe > symbols.txt
   ::DeleteFile(kSymbolsFileName);
-  std::string cmd = glb_sdk_root + glb_objdump_path + " -t " + nexe_path +
+  std::string cmd = sdk_paths_.GetObjdumpPath() + " -t " + nexe_path +
       " > " + kSymbolsFileName;
   int res = system(cmd.c_str());
   int attr = ::GetFileAttributes(kSymbolsFileName);
@@ -484,7 +472,7 @@ bool NaclGdbServerTest::RunObjdump(const std::string& nexe_path) {
 bool NaclGdbServerTest::GetSymbolAddr(const std::string& name,
                                       uint64_t* addr) {
   if (!objdump_runned_) {
-    if (!RunObjdump(glb_sdk_root + glb_nexe_path))
+    if (!RunObjdump(sdk_paths_.sdk_root() + glb_nexe_path))
       return false;
     objdump_runned_ = true;
   }
@@ -525,10 +513,9 @@ bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
   const char* kLineFileName = "line.txt";
   char addr_str[200];
   _snprintf(addr_str, sizeof(addr_str), "0x%I64x", ip);
-  std::string nexe_path = glb_sdk_root + glb_nexe_path;
-  std::string cmd = glb_sdk_root + "\\toolchain\\win_x86\\bin\\" +
-      (glb_arch_size == 64 ? "x86_64" : "i686") +
-      "-nacl-addr2line --exe=" + nexe_path +
+
+  std::string nexe_path = sdk_paths_.sdk_root() + glb_nexe_path;
+  std::string cmd = sdk_paths_.GetAddrToLinePath() + " --exe=" + nexe_path +
       " " + addr_str + " > " + kLineFileName;
 
   system(cmd.c_str());
@@ -781,11 +768,15 @@ TEST_F(NaclGdbServerTest, ReadStaticString) {
   uint64_t str_ptr_addr = 0;
   EXPECT_TRUE(GetSymbolAddr("kReverseTextMethodId", &str_ptr_addr));
   str_ptr_addr = TranslateDataAddr(str_ptr_addr);
+  printf("%s -> %I64x\n", kReverseTextMethodId, str_ptr_addr);
 
   // Pointer in nexe is 4 bytes long.
   uint32_t str_addr = 0;
   ASSERT_TRUE(ReadInt32(str_ptr_addr, &str_addr));
+  printf("ReadInt32 -> 0x%x\n", str_addr);
+
   uint64_t tr_str_addr = TranslateDataAddr(str_addr);
+  printf("TranslateDataAddr -> %I64x\n", tr_str_addr);
 
   size_t len = strlen(kReverseTextMethodId) + 1;
   debug::Blob str_data;
@@ -861,7 +852,7 @@ TEST_F(NaclGdbServerTest, ReadStackFrames) {
 }
 
 TEST_F(NaclGdbServerTest, Multithreading) {
-  glb_browser_cmd = GetStringEnvVar("BROWSER", "") +
+  glb_browser_cmd = sys_utils::GetStringEnvVar("BROWSER", "") +
       "pi_generator/pi_generator_dbg.html";
   glb_nexe_path = rsp::Format(
       &debug::Blob(), kNexe2Path, glb_arch_size).ToString();
@@ -918,32 +909,4 @@ TEST_F(NaclGdbServerTest, Multithreading) {
   EXPECT_TRUE(GetCurrThread(&curr_tid));
   EXPECT_EQ(main_tid, curr_tid);
 }
-
-namespace {
-std::string GetStringEnvVar(const std::string& name,
-                            const std::string& default_value) {
-  char* value = getenv(name.c_str());
-  if (NULL != value)
-    return value;
-  return default_value;
-}
-
-int GetIntEnvVar(const std::string& name,
-                 int default_value) {
-  char* value = getenv(name.c_str());
-  if (NULL != value)
-    return atoi(value);
-  return default_value;
-}
-
-std::string DirFromPath(const std::string& command_line) {
-  int last_dash_pos = 0;
-  for (size_t i = 0; i < command_line.size(); i++)
-    if (command_line[i] == '\\')
-      last_dash_pos = i;
-
-  std::string dir = command_line.substr(0, last_dash_pos);
-  return dir;
-}
-}  // namespace
 

@@ -1,16 +1,19 @@
 // Copyright (c) 2011 The Native Client Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#ifndef DEBUGGER_CHROME_INTEGRATION_TEST_PROCESS_UTILS_H_
-#define DEBUGGER_CHROME_INTEGRATION_TEST_PROCESS_UTILS_H_
+#ifndef DEBUGGER_TEST_UTILS_PROCESS_UTILS_H_
+#define DEBUGGER_TEST_UTILS_PROCESS_UTILS_H_
 
 #include <windows.h>
 #include <deque>
 #include <string>
 #include <utility>
 
-class process_utils {
+namespace process_utils {
+class ProcessTree {
  public:
+  ProcessTree();
+
   /// Starts new process in the |dir|. Id |dir| is empty string,
   /// it starts new process in the current working directory.
   /// @param[in] command_line command line of the new process
@@ -18,14 +21,14 @@ class process_utils {
   /// @return handle for the new process. Caller should call
   /// ::CloseHandle on the returned handle when it is no longer needed.
   /// If the function fails, it returns zero.
-  static HANDLE StartProcess(const std::string& command_line,
-                             const std::string& dir="");
+  HANDLE StartProcess(const std::string& command_line,
+                      const std::string& dir="");
 
-  /// Creates list of children process ids.
-  /// @param[in] h_proc handle of the parent process
-  /// @param[out] pids destination for children pids
-  static void GetChildrenPIDs(HANDLE h_proc, std::deque<int>* pids);
+  /// Kills specified process and all it's childer, grandchildren ...
+  /// @param[in] h_proc handle of the root process.
+  void KillProcessTree(HANDLE h_proc);
 
+ protected:
   /// Creates internal list of process ids.
   /// This function shall be called before we create any new process,
   /// or process_utils::KillProcessTree could kill innocent bystanders.
@@ -38,16 +41,21 @@ class process_utils {
   /// 4. this program calls KillProcessTree, it kills pricess 1
   ///
   /// http://www.sapphiresteel.com/Blog/Killing-Trees-the-Windows-way
-  static void CreateListOfPreexistingProcesses();
+  void CreateListOfPreexistingProcesses();
 
-  /// Kills specified process and all it's childer, grandchildren ...
-  /// @param[in] h_proc handle of the root process.
-  static void KillProcessTree(HANDLE h_proc);
+  /// Creates list of children process ids.
+  /// @param[in] h_proc handle of the parent process
+  /// @param[out] pids destination for children pids
+  void GetChildrenPIDs(HANDLE h_proc, std::deque<int>* pids);
 
-  /// Creates list of all processes on this machine.
-  /// @param[out] list of process id - parent process id pairs.
-  static void GetProcessList(std::deque<std::pair<int, int> >* procs);
+  /// @return true if process with |pid| id was created before call to
+  /// constructor.
+  bool IsPreexistingProcess(int pid);
+
+ private:
+  std::deque<int> preexisting_pids_;
 };
+}  // namespace process_utils
 
-#endif  // DEBUGGER_CHROME_INTEGRATION_TEST_PROCESS_UTILS_H_
+#endif  // DEBUGGER_TEST_UTILS_PROCESS_UTILS_H_
 
