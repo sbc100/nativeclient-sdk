@@ -35,7 +35,7 @@ debug_server_solution = os.path.join(debug_server_dir, 'nacl-gdb_server.sln')
 DEBUG_SERVER_TARGET = 'debug_server'
 debug_server_build_command = env.BuildVSSolution(DEBUG_SERVER_TARGET,
                                                  debug_server_solution,
-                                                 '"Debug|x64"')
+                                                 '"Release|x64"')
 env.CleanVSSolution(DEBUG_SERVER_TARGET, debug_server_dir)
 env.AlwaysBuild(debug_server_build_command)
 # The installer needs to become dependent on the result of this build step.
@@ -78,12 +78,13 @@ integration_test_solution = os.path.join(integration_test_dir,
                                          'chrome_integration_test.sln')
 INTEGRATION_TEST_TARGET = 'debug_server_integration_test'
 integration_test_build_command = env.BuildVSSolution(
-    INTEGRATION_TEST_TARGET, integration_test_solution, '"Debug|x64"')
+    INTEGRATION_TEST_TARGET, integration_test_solution, '"Release|x64"')
 env.DependsOnChrome(integration_test_build_command)
 env.Depends(integration_test_build_command, unit_test_command)
 env.CleanVSSolution(INTEGRATION_TEST_TARGET, integration_test_dir)
 integration_test_exe = os.path.join(integration_test_dir,
-                                    'Debug',
+                                    'x64',
+                                    'Release',
                                     'chrome_integration_test.exe')
 
 chrome_args = [str(env.GetChromeBinary()),

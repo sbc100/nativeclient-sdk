@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  glb_browser_cmd = browser_env_var + "hello_world_c/hello_world_dbg.html";
+  glb_browser_cmd = browser_env_var + "hello_world_c/hello_world_c_dbg.html";
   glb_web_server_port =
       sys_utils::GetIntEnvVar("WEB_PORT", kDefaultWebServerPort);
   glb_nexe_path = rsp::Format(

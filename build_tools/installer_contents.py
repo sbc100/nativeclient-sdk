@@ -75,7 +75,7 @@ WINDOWS_ONLY_CONTENTS = [
     'examples/httpd.cmd',
     'examples/scons.bat',
     'project_templates/scons.bat',
-    'debugger/nacl-gdb_server/x64/Debug/',
+    'debugger/nacl-gdb_server/x64/Release/',
     'debugger/nacl-bpad/x64/Release/'
 ]
 
