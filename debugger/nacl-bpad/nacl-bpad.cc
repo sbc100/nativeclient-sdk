@@ -16,7 +16,8 @@
 
 namespace {
 const char* kUsage =
-    "usage: nacl-bpad -cmd \"<app_path-and_name> <arg0> <arg1> ...\"\n"
+    "usage: nacl-bpad -cmd \"<app_path-and_name> <arg0> <arg1> ...\""
+    " -nexe <path to nexe>\n"
     "example: nacl-bpad -cmd \"c:\\chrome.exe --incognito "
     "http://localhost:5103/hello_world_c/hello_world.html\"\n\n"
     "Runs process tree, waiting for nexe to crash.\n"
@@ -24,7 +25,6 @@ const char* kUsage =
     "and source file name and line corresponding"
     " to instruction pointer.\n\n"
     "Note: you should have set NACL_SDK_ROOT environment variable.\n"
-    "Note: set NEXE_PATH to full path to nexe.\n"
     "Note: make sure you are loading nexe with debug symbols.";
 
 #ifdef _WIN64
@@ -41,14 +41,16 @@ void MakeContinueDecision(const debug::DebugEvent& debug_event,
                           bool* pass_exception);
 std::string GetLastErrorDescription();
 void PrintEventDetails(DEBUG_EVENT de, debug::DebuggeeThread* halted_thread);
+std::string glb_nexe_path;
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  printf("nacl-bpad %s-bit version 0.4\n", kAddressSize);
+  printf("nacl-bpad %s-bit version 0.5\n", kAddressSize);
 
   debug::CommandLine cmd_line(argc, argv);
   std::string debuggee_cmd_line = cmd_line.GetStringSwitch("-cmd", "");
-  if (debuggee_cmd_line.size() <= 0) {
+  glb_nexe_path = cmd_line.GetStringSwitch("-nexe", "");
+  if ((debuggee_cmd_line.size() == 0) || (glb_nexe_path.size() == 0)) {
     printf("%s", kUsage);
     return 1;
   }
@@ -158,14 +160,13 @@ std::string GetStringEnvVar(const std::string& name,
 bool GetCodeLine(int addr, std::string* src_file, int* src_line) {
   const char* kLineFileName = "line.txt";
   std::string sdk_root = GetStringEnvVar("NACL_SDK_ROOT", "");
-  std::string nexe_path = GetStringEnvVar("NEXE_PATH", "");
 
   *src_line = 0;
   char addr_str[200];
   _snprintf(addr_str, sizeof(addr_str), "0x%x", addr);
   std::string cmd = sdk_root +
       "\\toolchain\\win_x86\\bin\\x86_" + kAddToLinePrefix + "-nacl-addr2line "
-      "--exe=" + nexe_path + " " + addr_str + " > " + kLineFileName;
+      "--exe=" + glb_nexe_path + " " + addr_str + " > " + kLineFileName;
 
   printf("\n-----calling-----\n%s\n----------\n\n", cmd.c_str());
   system(cmd.c_str());
