@@ -12,7 +12,7 @@ vars = {
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
   "pnacl_toolchain_version": "7005",
-  "x86_toolchain_version": "6988",
+  "x86_toolchain_version": "7030",
   # ARM is not supported, this number can stay pinned at 6645.
   "arm_trusted_toolchain_version": "6645",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
