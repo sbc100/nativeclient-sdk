@@ -119,7 +119,7 @@ integration_test_command = env.TestVSSolution(
     build_cmd=integration_test_build_command)
 
 #------------------------------------------------------------------------------
-# The following section specifies build and cleantargets for the nacl-bpad.
+# The following section specifies build and clean targets for the nacl-bpad.
 nacl_bpad_dir = os.path.join(debugger_dir, 'nacl-bpad')
 nacl_bpad_solution = os.path.join(nacl_bpad_dir, 'nacl-bpad.sln')
 NACL_BPAD_BUILD_TARGET = 'nacl-bpad'
