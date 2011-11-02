@@ -18,7 +18,9 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
                     nacl_platform=None,
                     toolchain_arch=None,
                     toolchain_variant=None,
-                    use_ppapi=True):
+                    use_ppapi=True,
+                    install_subdir=None,
+                    lib_prefix=None):
   '''Make an Environment that uses the NaCl toolchain to build sources.
 
   This modifies a default construction Environment to point the compilers and
@@ -34,6 +36,10 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
     toolchain_arch: The target architecture of the toolchain (e.g., x86, pnacl)
     toolchain_variant: The libc of the toolchain (e.g., newlib, glibc)
     use_ppapi: flag indicating whether to compile again ppapi libraries
+    install_subdir: subdirectory within the NACL_INSTALL_ROOT for this project.
+    lib_prefix: an optional list of path components to prepend to the library
+        path.  These components are joined with appropriate path separators
+        Examples: ['..', '..'], ['..', 'peer_directory'].
   Returns:
     A SCons Environment with all the various Tool and keywords set to build
     NaCl modules.
@@ -99,6 +105,12 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
   staging_dir = os.path.abspath(os.getenv(
       'NACL_INSTALL_ROOT', os.path.join(os.getenv('NACL_SDK_ROOT', '.'),
                                         'staging')))
+  if install_subdir:
+    staging_dir = os.path.join(staging_dir, install_subdir)
+  lib_prefix = lib_prefix or []
+  if type(lib_prefix) is not list:
+    # Break path down into list of directory components
+    lib_prefix = filter(lambda x:x, lib_prefix.split('/'))
 
   # Invoke the various *nix tools that the NativeClient SDK resembles.  This
   # is done so that SCons doesn't try to invoke cl.exe on Windows in the
@@ -172,6 +184,7 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
               NACL_TOOLCHAIN_VARIANT=toolchain_variant,
               NACL_TOOLCHAIN_ROOT=toolchain,
               NACL_INSTALL_ROOT=staging_dir,
+              NACL_LIB_PREFIX=lib_prefix,
              )
   # This supresses the "MS_DOS style path" warnings on Windows.  It's benign on
   # all other platforms.

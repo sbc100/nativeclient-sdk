@@ -308,7 +308,8 @@ def GenerateNmf(target, source, env):
                                'x86_64-nacl-objdump'),
           main_files=[str(file) for file in source],
           lib_path=[os.path.join(env['NACL_TOOLCHAIN_ROOT'], 'x86_64-nacl', dir)
-                    for dir in ['lib', 'lib32']])
+                    for dir in ['lib', 'lib32']],
+          lib_prefix=env['NACL_LIB_PREFIX'])
       nmf_json = nmf.GetJson()
       if env.get('NACL_INSTALL_ROOT', None):
         nmf.StageDependencies(env['NACL_INSTALL_ROOT'])

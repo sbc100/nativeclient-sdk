@@ -89,7 +89,7 @@ class NmfUtils(object):
   '''
 
   def __init__(self, main_files=None, objdump='x86_64-nacl-objdump',
-               lib_path=None, extra_files=None):
+               lib_path=None, extra_files=None, lib_prefix=None):
     ''' Constructor
 
     Args:
@@ -97,13 +97,17 @@ class NmfUtils(object):
           files->main.nexe for dynamic nexes, and program for static nexes
       objdump: path to x86_64-nacl-objdump tool (or Linux equivalent)
       lib_path: List of paths to library directories
-      extra_files: List of extra files to include in the nmf'''
+      extra_files: List of extra files to include in the nmf
+      lib_prefix: A list of path components to prepend to the library paths,
+          both for staging the libraries and for inclusion into the nmf file.
+          Examples:  ['..'], ['lib_dir'] '''
     self.objdump = objdump
     self.main_files = main_files or []
     self.extra_files = extra_files or []
     self.lib_path = lib_path or []
     self.manifest = None
     self.needed = None
+    self.lib_prefix = lib_prefix or []
 
   def GleanFromObjdump(self, files):
     '''Get architecture and dependency information for given files
@@ -137,9 +141,12 @@ class NmfUtils(object):
         filename = matched.group(1)
         arch = FORMAT_ARCH_MAP[matched.group(2)]
         if files[filename] is None or arch in files[filename]:
-          input_info[filename] = ArchFile(arch=arch,
-                                          name=os.path.basename(filename),
-                                          path=filename)
+          name = os.path.basename(filename)
+          input_info[filename] = ArchFile(
+              arch=arch,
+              name=name,
+              path=filename,
+              url='/'.join(self.lib_prefix + [arch, name]))
       matched = NeededMatcher.match(line)
       if matched is not None:
         if files[filename] is None or arch in files[filename]:
@@ -245,7 +252,7 @@ class NmfUtils(object):
 
     def arch_name(arch, file):
       # nmf files expect unix-style path separators
-      return {URL_KEY: '/'.join([arch, file])}
+      return {URL_KEY: '/'.join(self.lib_prefix + [arch, file])}
 
     # TODO(mcgrathr): perhaps notice a program with no deps
     # (i.e. statically linked) and generate program=nexe instead?

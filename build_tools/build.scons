@@ -114,6 +114,10 @@ AddPythonUnitTest('run_nmf_test',
                   dependencies=[env.GetToolchainNode()],
                   params=['--toolchain-dir=%s' %
                           env['NACL_TOOLCHAIN_ROOTS'][('x86', 'glibc')]])
+AddPythonUnitTest('run_html_check_test',
+                  'html_checker.py',
+                  params=[os.path.join(env['ROOT_DIR'], 'examples', name)
+                          for name in ['index.html', 'index_staging.html']])
 
 if env['IS_WINDOWS']:
   AddPythonUnitTest('run_install_nsis_test', 'tests/install_nsis_test.py')

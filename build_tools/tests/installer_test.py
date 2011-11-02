@@ -31,6 +31,7 @@ import urllib
 import zipfile
 
 from build_tools import build_utils
+from build_tools import html_checker
 from build_tools.sdk_tools import sdk_update
 from build_tools.sdk_tools import update_manifest
 
@@ -54,6 +55,7 @@ def TestingClosure(_outdir, _jobs):
   sel_ldr64 = os.path.join(toolchain_bin, 'sel_ldr_x86_64')
   irt_core64 = os.path.join(toolchain_runtime, 'irt_core_x86_64.nexe')
   scons = 'scons.bat' if sys.platform == 'win32' else 'scons'
+  staging_path = os.path.join(_outdir, 'staging')
 
   class TestSDK(unittest.TestCase):
     '''Contains tests that run within an extracted SDK installer'''
@@ -75,37 +77,41 @@ def TestingClosure(_outdir, _jobs):
               '--nacl-platform=.'
              ]
 
+    def buildExamplesWithFlags(self, flags=None):
+      '''A small helper function that runs scons with arch and variant flags.
+
+      Args:
+        flags: Any extra flags to pass to scons.  Must be an array,
+            can be empty.
+      '''
+      flags = flags or []
+      path = os.path.join(_outdir, 'examples')
+      command = self.SconsCommand(path) + flags
+      env = self.GetBotShellEnv()
+      annotator.Run(command, cwd=path, env=env)
+
     def testBuildExamplesVariant(self):
       '''Verify non-default toolchain SDK example build.'''
-
-      def buildExamplesWithFlags(flags=[]):
-        '''A small helper function that runs scons with arch and variant flags.
-
-        Args:
-          flags: Any extra flags to pass to scons.  Must be an array,
-              can be empty.
-        '''
-        path = os.path.join(_outdir, 'examples')
-        command = self.SconsCommand(path) + flags
-        env = self.GetBotShellEnv()
-        annotator.Run(command, cwd=path, env=env)
 
       # Note that --nacl-platform is set to ".".  This is done so that the bots
       # will use the repo's toolchain, instead of a platform-specific one.
       # There are no platform-specific toolchains in the repo.
-      buildExamplesWithFlags(['--architecture=x86',
-                              '--variant=newlib'])
-      buildExamplesWithFlags(['--architecture=x86',
-                              '--variant=glibc'])
+      self.buildExamplesWithFlags(['--architecture=x86',
+                                   '--variant=newlib'])
+      self.buildExamplesWithFlags(['--architecture=x86',
+                                   '--variant=glibc'])
       print "Test with bogus architectures, variants."
       print "We expect these tests to throw exceptions:"
       self.assertRaises(subprocess.CalledProcessError,
-                        buildExamplesWithFlags,
+                        self.buildExamplesWithFlags,
                         flags=['--architecture=nosucharch'])
       self.assertRaises(subprocess.CalledProcessError,
-                        buildExamplesWithFlags,
+                        self.buildExamplesWithFlags,
                         flags=['--variant=nosuchvariant'])
 
+    def testStagedHtmlFiles(self):
+      self.buildExamplesWithFlags(['--architecture=x86', '--variant=glibc'])
+      html_checker.ValidateAllLinks([os.path.join(staging_path, 'index.html')])
 
     def testReadMe(self):
       '''Check that the current build version and date are in the README file'''
@@ -174,7 +180,7 @@ def TestingClosure(_outdir, _jobs):
         Args:
           port: The port to use, defaults to 5103.
         '''
-        path = os.path.join(_outdir, 'staging')
+        path = staging_path
         command = [sys.executable, os.path.join(path, 'httpd.py')]
         # Add the port only if it's not the default.
         if port != DEFAULT_SERVER_PORT:
