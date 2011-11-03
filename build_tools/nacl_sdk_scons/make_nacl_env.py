@@ -137,6 +137,7 @@ def NaClEnvironment(use_c_plus_plus_libs=False,
               # NOTE: use g++ for linking so we can handle C AND C++.
               LINK=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}g++'),
               LD=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}ld'),
+              STRIP=os.path.join(tool_bin_path, '${NACL_ARCHITECTURE}strip'),
               NACL_SEL_LDR32=os.path.join(tool_bin_path, 'sel_ldr_x86_32'),
               NACL_IRT_CORE32=os.path.join(tool_runtime_path,
                                            'irt_core_x86_32.nexe'),

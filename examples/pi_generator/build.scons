@@ -31,7 +31,10 @@ app_files = [
     'pi_generator.nmf',
     ]
 
+# Split the install of the .nexes from the other app sources so that the strip
+# action is applied to the .nexes only.
+install_nexes = nacl_env.NaClStrippedInstall(dir=nacl_env['NACL_INSTALL_ROOT'],
+                                             source=opt_nexes)
 install_app = nacl_env.Install(dir=nacl_env['NACL_INSTALL_ROOT'],
-                               source=opt_nexes + app_files)
-
-nacl_env.Alias('install', source=[install_app])
+                               source=app_files)
+nacl_env.Alias('install', source=install_app + install_nexes)

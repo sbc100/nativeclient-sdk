@@ -354,7 +354,7 @@ def GetArchName(arch_spec):
 def MakeNaClCommonEnvironment(nacl_env,
                               arch_spec=ARCH_SPECS['x86-32'],
                               is_debug=False):
-  '''Make a clone of nacl_env that is suitable for building prohrams or
+  '''Make a clone of nacl_env that is suitable for building programs or
   libraries for a specific build variant.
 
   Make a cloned NaCl Environment and setup variables for options like optimized
@@ -377,9 +377,6 @@ def MakeNaClCommonEnvironment(nacl_env,
   env = nacl_env.Clone()
   env.AppendOptCCFlags(is_debug)
   env.AppendArchFlags(arch_spec)
-  if not is_debug:
-    # Strip the resulting executable if non-debug.
-    env.Append(LINKFLAGS=['--strip-all'])
 
   # Wrap linker command with TEMPFILE so that if lines are longer than
   # MAXLINELENGTH, the tools will be run with @tmpfile. This isn't needed

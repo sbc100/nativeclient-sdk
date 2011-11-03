@@ -240,6 +240,35 @@ def NaClStaticLib(env, target, sources, variant_dir='obj',
   return lib_file
 
 
+def NaClStrippedInstall(env, dir='', source=None):
+  '''Strip the target node.
+
+  Args:
+    env: Environment to modify.
+    dir: The root install directory.
+    source: a list of a list of Nodes representing the executables to be
+        stripped.
+
+  Returns:
+    A list of Install Nodes that strip each buildable in |source|.
+  '''
+  stripped_install_nodes = []
+  if not source:
+    return stripped_install_nodes
+  for source_nodes in source:
+    for strip_node in source_nodes:
+      # Use the construction Environment used to create the buildable object.
+      # Each environment has various important properties, such as the target
+      # architecture and tools prefix.
+      strip_env = strip_node.get_env()
+      install_node = strip_env.Install(dir=strip_env['NACL_INSTALL_ROOT'],
+                                       source=strip_node)
+      strip_env.AddPostAction(install_node, "%s $TARGET" % strip_env['STRIP'])
+      stripped_install_nodes.append(install_node)
+
+  return stripped_install_nodes
+
+
 def NaClModules(env, sources, module_name, is_debug=False):
   '''Produce one construction Environment for each supported instruction set
   architecture.
@@ -441,6 +470,7 @@ def generate(env):
   env.AddMethod(NaClStaticLib)
   env.AddMethod(NaClModules)
   env.AddMethod(NaClStaticLibraries)
+  env.AddMethod(NaClStrippedInstall)
 
 
 def exists(env):
