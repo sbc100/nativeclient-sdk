@@ -32,6 +32,7 @@ Help for NaCl SDK Examples
 * clean a target:      ./scons -c <target>
 
 Supported targets:
+  * fullscreen_tumbler Build the fullscreen-tumbler example.
   * geturl             Build the geturl example.
   * hello_world        Build the hello_world example.
   * hello_world_c      Build the hello_world_c example.
@@ -44,7 +45,8 @@ Supported targets:
   * tumbler            Build the tumbler example.
 """
 
-example_sconscripts = ['geturl/build.scons',
+example_sconscripts = ['fullscreen_tumbler/build.scons',
+                       'geturl/build.scons',
                        'hello_world/build.scons',
                        'hello_world_c/build.scons',
                        'input_events/build.scons',
