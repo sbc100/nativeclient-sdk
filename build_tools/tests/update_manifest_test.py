@@ -8,16 +8,47 @@
 
 __author__ = 'mball@google.com (Matt Ball)'
 
+import errno
 import mox
 import os
+import SimpleHTTPServer
+import SocketServer
+
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 import urlparse
 
 from build_tools.sdk_tools import sdk_update
 from build_tools.sdk_tools import update_manifest
+
+
+def GetHTTPHandler(path, length=None):
+  '''Returns a simple HTTP Request Handler that only servers up a given file
+
+  Args:
+    path: path and filename of the file to serve up
+    length: (optional) only serve up the first |length| bytes
+
+  Returns:
+    A SimpleHTTPRequestHandler class'''
+  class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    def do_GET(self):
+      with open(path, 'rb') as f:
+        # This code is largely lifted from SimpleHTTPRequestHandler.send_head
+        self.send_response(200)
+        self.send_header("Content-type", self.guess_type(path))
+        fs = os.fstat(f.fileno())
+        self.send_header("Content-Length", str(fs[6]))
+        self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+        self.end_headers()
+        if length != None:
+          self.wfile.write(f.read(length))
+        else:
+          self.copyfile(f, self.wfile)
+  return HTTPHandler
 
 
 class FakeOptions(object):
@@ -193,6 +224,39 @@ class TestUpdateManifest(unittest.TestCase):
     # Test invalid key name
     archive['guess'] = 'who'
     self.assertRaises(sdk_update.Error, archive.Validate)
+
+  def testUpdatePartialFile(self):
+    '''Test updating with a partially downloaded file'''
+    server = None
+    server_thread = None
+    temp_filename = 'testUpdatePartialFile_temp.txt'
+    try:
+      # Create a new local server on an arbitrary port that just serves-up
+      # the first 10 bytes of this file.
+      server = SocketServer.TCPServer(
+          ("", 0), GetHTTPHandler(__file__, 10))
+      ip, port = server.server_address
+      server_thread = threading.Thread(target=server.serve_forever)
+      server_thread.start()
+
+      archive = sdk_update.Archive('mac')
+      self.assertRaises(sdk_update.Error,
+                        archive.Update,
+                        'http://localhost:%s' % port)
+      try:
+        self.assertRaises(sdk_update.Error,
+                          archive.DownloadToFile,
+                          temp_filename)
+      finally:
+        try:
+          os.remove(temp_filename)
+        except OSError as error:
+          if error.errno != errno.ENOENT:
+            raise
+    finally:
+      if server_thread and server_thread.isAlive():
+        server.shutdown()
+        server_thread.join()
 
   def testUpdateManifestMain(self):
     ''' test the main function from update_manifest '''

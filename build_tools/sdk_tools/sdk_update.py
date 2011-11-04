@@ -28,21 +28,30 @@ import urlparse
 
 # Bump the MINOR_REV every time you check this file in.
 MAJOR_REV = 1
-MINOR_REV = 10
+MINOR_REV = 11
 
 GLOBAL_HELP = '''Usage: naclsdk [options] command [command_options]
 
 naclsdk is a simple utility that updates the Native Client (NaCl)
-Software Developer's Kit (SDK).
+Software Developer's Kit (SDK).  Each component is kept as a 'bundle' that
+this utility can download as as subdirectory into the SDK.
 
 Commands:
   help [command] - Get either general or command-specific help
   list - Lists the available bundles
-  update - Updates the SDK to the latest recommended toolchains'''
+  update/install - Updates/installs bundles in the SDK
+
+Example Usage:
+  naclsdk list
+  naclsdk update --force pepper_17
+  naclsdk install recommended
+  naclsdk help update'''
 
 MANIFEST_FILENAME='naclsdk_manifest.json'
 SDK_TOOLS='sdk_tools'  # the name for this tools directory
 USER_DATA_DIR='sdk_cache'
+
+HTTP_CONTENT_LENGTH = 'Content-Length'  # HTTP Header field for content length
 
 # The following SSL certificates are used to validate the SSL connection
 # to https://commondatastorage.googleapis.com
@@ -436,8 +445,13 @@ class Archive(dict):
     try:
       print 'Scanning archive to generate sha1 and size info:'
       stream = self._OpenURLStream()
+      content_length = int(stream.info()[HTTP_CONTENT_LENGTH])
       sha1, size = DownloadAndComputeHash(from_stream=stream,
                                           progress_func=ShowProgress)
+      if size != content_length:
+        raise Error('Download size mismatch for %s.\n'
+                    'Expected %s bytes but got %s' %
+                    (self['url'], content_length, size))
     finally:
       if stream: stream.close()
     return sha1, size
@@ -458,13 +472,18 @@ class Archive(dict):
       from_stream = None
       try:
         from_stream = self._OpenURLStream()
+        content_length = int(from_stream.info()[HTTP_CONTENT_LENGTH])
         progress_function = ProgressFunction(
-            from_stream.info()['Content-Length']).GetProgressFunction()
+            content_length).GetProgressFunction()
         InfoPrint('Downloading %s' % self['url'])
         sha1, size = DownloadAndComputeHash(
             from_stream,
             to_stream=to_stream,
             progress_func=progress_function)
+        if size != content_length:
+          raise Error('Download size mismatch for %s.\n'
+                      'Expected %s bytes but got %s' %
+                      (self['url'], content_length, size))
       finally:
         if from_stream: from_stream.close()
     return sha1, size
@@ -992,7 +1011,7 @@ def Update(options, argv):
     bundle_update_path = '%s_update' % bundle_path
     if not (bundle_name in args or
             ALL in args or (RECOMMENDED in args and
-                              bundle[RECOMMENDED] == 'yes')):
+                            bundle[RECOMMENDED] == 'yes')):
       continue
     def UpdateBundle():
       '''Helper to install a bundle'''
@@ -1087,7 +1106,8 @@ def main(argv):
   COMMANDS = {
       'list': List,
       'update': Update,
-  }
+      'install': Update,
+      }
 
   # Separate global options from command-specific options
   global_argv = argv
@@ -1147,11 +1167,5 @@ if __name__ == '__main__':
     raise
   except Error as error:
     print "Error: %s" % error
-  except:
-    if not _debug_mode:
-      print "Abnormal program termination: %s" % sys.exc_info()[1]
-      print "Run again in debug mode (-d option) for stack trace."
-    else:
-      raise
 
   sys.exit(return_value)
