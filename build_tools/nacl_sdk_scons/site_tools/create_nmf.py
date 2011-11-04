@@ -5,6 +5,7 @@
 
 from __future__ import with_statement
 
+import errno
 import optparse
 import os
 import re
@@ -222,9 +223,11 @@ class NmfUtils(object):
     for source, arch_file in needed.items():
       destination = os.path.join(destination_dir,
                                  urllib.url2pathname(arch_file.url))
-      dir = os.path.dirname(destination)
-      if not os.path.exists(dir):
-        os.makedirs(dir)
+      try:
+        os.makedirs(os.path.dirname(destination))
+      except OSError as exception_info:
+        if exception_info.errno != errno.EEXIST:
+          raise
       if (os.path.normcase(os.path.abspath(source)) !=
           os.path.normcase(os.path.abspath(destination))):
         shutil.copy2(source, destination)
