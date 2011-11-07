@@ -36,6 +36,13 @@ opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'fullscreen_tumbler')
 # of the example in the SDK installer.
 nacl_env.InstallPrebuilt('fullscreen_tumbler')
 
+common_files = [
+    'check_browser.js',
+    ]
+common_files = [
+    os.path.join(os.path.dirname(os.getcwd()), 'common', common_file)
+    for common_file in common_files]
+
 app_files = [
     'fullscreen_tumbler.html',
     'fullscreen_tumbler.nmf',
@@ -52,4 +59,8 @@ install_nexes = nacl_env.NaClStrippedInstall(dir=nacl_env['NACL_INSTALL_ROOT'],
                                              source=opt_nexes)
 install_app = nacl_env.Install(dir=nacl_env['NACL_INSTALL_ROOT'],
                                source=app_files)
-nacl_env.Alias('install', source=install_app + install_nexes)
+common_dir = os.path.join(os.path.dirname(nacl_env['NACL_INSTALL_ROOT']),
+                          'common')
+install_common = nacl_env.Install(dir=common_dir, source=common_files)
+nacl_env.Alias('install',
+               source=[install_app, install_common, install_nexes])
