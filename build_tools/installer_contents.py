@@ -27,6 +27,7 @@ INSTALLER_CONTENTS = [
     'build_tools/nacl_sdk_scons/nacl_utils.py',
     'build_tools/nacl_sdk_scons/site_tools/',
     'examples/build.scons',
+    'examples/common/',
     'examples/favicon.ico',
     'examples/geturl/',
     'examples/hello_world/',
