@@ -70,7 +70,7 @@ class TestUpdateManifest(unittest.TestCase):
         '}\n')
     self._temp_dir = tempfile.gettempdir()
     # os.path.join('build_tools', 'tests', 'test_archive')
-    self._manifest = sdk_update.SDKManifest()
+    self._manifest = update_manifest.UpdateSDKManifest()
 
   def testJSONBoilerplate(self):
     ''' Test creating a manifest object'''
@@ -121,7 +121,7 @@ class TestUpdateManifest(unittest.TestCase):
     options.opt1 = None
     self.assertTrue(self._manifest._VerifyAllOptionsConsumed(options, None))
     options.opt2 = 'blah'
-    self.assertRaises(sdk_update.Error,
+    self.assertRaises(update_manifest.Error,
                       self._manifest._VerifyAllOptionsConsumed,
                       options,
                       'no bundle name')
@@ -135,7 +135,7 @@ class TestUpdateManifest(unittest.TestCase):
     options.desc = 'What a hoot'
     options.stability = 'dev'
     options.recommended = 'yes'
-    bundle.Update(options)
+    update_manifest.UpdateBundle(bundle, options)
     self.assertEqual(bundle['revision'], 1)
 
   def testUpdateManifestModifyTopLevel(self):
