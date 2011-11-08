@@ -50,6 +50,7 @@ INSTALLER_CONTENTS = [
     'project_templates/html/',
     'project_templates/init_project.py',
     'project_templates/scons',
+    'project_templates/vs/',
     'third_party/scons-2.0.1/',
 ]
 

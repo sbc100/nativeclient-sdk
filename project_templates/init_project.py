@@ -34,7 +34,7 @@ import optparse
 import os.path
 import shutil
 import sys
-
+import uuid
 
 # A list of all platforms that should have make.cmd.
 WINDOWS_BUILD_PLATFORMS = ['cygwin', 'win32']
@@ -44,6 +44,10 @@ PROJECT_NAME_TAG = '<PROJECT_NAME>'
 PROJECT_NAME_CAMEL_CASE_TAG = '<ProjectName>'
 SDK_ROOT_TAG = '<NACL_SDK_ROOT>'
 NACL_PLATFORM_TAG = '<NACL_PLATFORM>'
+VS_PROJECT_UUID_TAG = '<VS_PROJECT_UUID>'
+VS_SOURCE_UUID_TAG = '<VS_SOURCE_UUID>'
+VS_HEADER_UUID_TAG = '<VS_HEADER_UUID>'
+VS_RESOURCE_UUID_TAG = '<VS_RESOURCE_UUID>'
 
 # This string is the part of the file name that will be replaced.
 PROJECT_FILE_NAME = 'project_file'
@@ -53,9 +57,10 @@ COMMON_PROJECT_FILES = ['scons']
 C_SOURCE_FILES = ['build.scons', '%s.c' % PROJECT_FILE_NAME]
 CC_SOURCE_FILES = ['build.scons', '%s.cc' % PROJECT_FILE_NAME]
 HTML_FILES = ['%s.html' % PROJECT_FILE_NAME]
+VS_FILES = ['%s.sln' % PROJECT_FILE_NAME, '%s.vcproj' % PROJECT_FILE_NAME]
 
-
-def Error(Exception):
+# Error needs to be a class, since we 'raise' it in several places.
+class Error(Exception):
   pass
 
 
@@ -123,6 +128,27 @@ def GetCommonSourceFiles():
   if sys.platform in WINDOWS_BUILD_PLATFORMS:
     project_files.extend(['scons.bat'])
   return project_files
+
+
+def GetVsDirectory(project_templates_dir):
+  """Decides what directory to pull Visual Studio stub from.
+
+  Args:
+    project_templates_dir: The path to the project_templates directory.
+
+  Returns:
+    The directory where the HTML stub is to be found.
+  """
+  return os.path.join(project_templates_dir, 'vs')
+
+
+def GetVsProjectFiles():
+  """Gives VisualStudio files to be included in project stub.
+
+  Returns:
+    The VisualStudio files needed for the project.
+  """
+  return VS_FILES
 
 
 def GetHTMLDirectory(project_templates_dir):
@@ -216,6 +242,10 @@ def ParseArguments(argv):
       default='pepper_17',
       help=('Optional: if set, the new project will target the given nacl\n'
             'platform. Default is the most current platform. e.g. pepper_17'))
+  parser.add_option(
+      '--vsproj', action='store_true', dest='is_vs_project',
+      default=False,
+      help=('Optional: If set, generate Visual Studio project files.'))
   result = parser.parse_args(argv)
   options = result[0]
   args = result[1]
@@ -233,18 +263,22 @@ def ParseArguments(argv):
 class ProjectInitializer(object):
   """Maintains the state of the project that is being created."""
 
-  def __init__(self, is_c_project, project_name, project_location,
-               nacl_platform, project_templates_dir, os_resource=os):
+  def __init__(self, is_c_project, is_vs_project, project_name,
+               project_location, nacl_platform, project_templates_dir,
+               os_resource=os):
     """Initializes all the fields that are known after parsing the parameters.
 
     Args:
       is_c_project: A boolean indicating whether this project is in C or not.
+      is_vs_project: A boolean indicating whether this project has Visual
+        Studio support.
       project_name: A string containing the name of the project to be created.
       project_location: A path indicating where the new project is to be placed.
       project_templates_dir: The path to the project_templates directory.
       os_resource: A resource to be used as os.  Provided for unit testing.
     """
     self.__is_c_project = is_c_project
+    self.__is_vs_project = is_vs_project
     self.__project_files = []
     self.__project_name = project_name
     self.__project_location = project_location
@@ -303,6 +337,10 @@ class ProjectInitializer(object):
     self.CopyAndRenameFiles(html_source_dir, html_source_files)
     self.CopyAndRenameFiles(self.__project_templates_dir,
                             common_source_files)
+    if  self.__is_vs_project:
+      vs_source_dir = GetVsDirectory(self.__project_templates_dir)
+      vs_files = GetVsProjectFiles()
+      self.CopyAndRenameFiles(vs_source_dir, vs_files)
     print('init_project has copied the appropriate files to: %s' %
           self.__project_dir)
 
@@ -317,6 +355,11 @@ class ProjectInitializer(object):
     if not sdk_root_dir:
       raise Error("Error: NACL_SDK_ROOT is not set")
     sdk_root_dir = self.os.path.abspath(sdk_root_dir)
+    if  self.__is_vs_project:
+      project_uuid = str(uuid.uuid4()).upper()
+      vs_source_uuid = str(uuid.uuid4()).upper()
+      vs_header_uuid = str(uuid.uuid4()).upper()
+      vs_resource_uuid = str(uuid.uuid4()).upper()
     for project_file in self.__project_files:
       self.ReplaceInFile(project_file, PROJECT_NAME_TAG, self.__project_name)
       self.ReplaceInFile(project_file,
@@ -324,7 +367,11 @@ class ProjectInitializer(object):
                          camel_case_name)
       self.ReplaceInFile(project_file, SDK_ROOT_TAG, sdk_root_dir)
       self.ReplaceInFile(project_file, NACL_PLATFORM_TAG, self.__nacl_platform)
-      print 'init_project has prepared %s.' % project_file
+      if  self.__is_vs_project:
+        self.ReplaceInFile(project_file, VS_PROJECT_UUID_TAG, project_uuid)
+        self.ReplaceInFile(project_file, VS_SOURCE_UUID_TAG, vs_source_uuid)
+        self.ReplaceInFile(project_file, VS_HEADER_UUID_TAG, vs_header_uuid)
+        self.ReplaceInFile(project_file, VS_RESOURCE_UUID_TAG, vs_resource_uuid)
 
   def ReplaceInFile(self, file_path, old_text, new_text):
     """Replaces a given string with another in a given file.
@@ -437,6 +484,7 @@ def main(argv):
             'directory %s.\nThese might be removed at the next update.' %
             sdk_root_dir)
   project_initializer = ProjectInitializer(options.is_c_project,
+                                           options.is_vs_project,
                                            options.project_name,
                                            options.project_directory,
                                            options.nacl_platform,

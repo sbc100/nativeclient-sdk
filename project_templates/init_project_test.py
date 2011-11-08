@@ -103,7 +103,8 @@ class TestProjectInitializer(unittest.TestCase):
     init_os_mock.makedirs('test/dir/test_project')
     self.mock_factory.ReplayAll()
     self.test_subject = init_project.ProjectInitializer(
-        True, 'test_project', 'test/dir', 'pepper_14', self.script_dir,
+        # True => is C project, False => is vs project
+        True, False, 'test_project', 'test/dir', 'pepper_14', self.script_dir,
         init_os_mock)
     self.mock_factory.VerifyAll()
     self.InitializeResourceMocks()
