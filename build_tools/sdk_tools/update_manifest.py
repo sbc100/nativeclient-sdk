@@ -6,6 +6,7 @@
 '''Utility to update the SDK manifest file in the build_tools directory'''
 
 import optparse
+import os
 import sdk_update
 import string
 import sys
@@ -109,7 +110,7 @@ class UpdateSDKManifest(sdk_update.SDKManifest):
         been consumed.
 
     Args:
-      options: the object containg the remaining unused options attributes.
+      options: the object containing the remaining unused options attributes.
       bundl_name: The name of the bundle, or None if it's missing.'''
     # Any option left in the list should have value = None
     for key, val in options.__dict__.items():
@@ -121,7 +122,7 @@ class UpdateSDKManifest(sdk_update.SDKManifest):
     return True;
 
   def UpdateManifest(self, options):
-    ''' Update the manifest object with value from the command-line options
+    ''' Update the manifest object with values from the command-line options
 
     Args:
       options: options object containing attribute for the command-line options.
@@ -173,8 +174,10 @@ class UpdateSDKManifestFile(sdk_update.SDKManifestFile):
 def main(argv):
   '''Main entry for update_manifest.py'''
 
+  buildtools_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
   parser = optparse.OptionParser(
-      usage="Usage: %prog [options] [manifest_file]")
+      usage="Usage: %prog [options]")
 
   # Setup options
   parser.add_option(
@@ -228,16 +231,19 @@ def main(argv):
       '-W', '--win-archive', dest='win_arch_url',
       default=None,
       help='URL for the Windows archive.')
+  parser.add_option(
+      '-f', '--manifest-file', dest='manifest_file',
+      default=os.path.join(buildtools_dir, 'json',
+                           sdk_update.MANIFEST_FILENAME),
+      help='location of manifest file to read and update')
 
   # Parse options and arguments and check.
   (options, args) = parser.parse_args(argv)
-  if len(args) > 1:
-    parser.error('Must provide at most one manifest file name')
+  if len(args) > 0:
+    parser.error('These arguments were not understood: %s' % args)
 
-  filename = None
-  if len(args) == 1:
-    filename = str(args[0])
-  manifest_file = UpdateSDKManifestFile(filename)
+  manifest_file = UpdateSDKManifestFile(options.manifest_file)
+  del options.manifest_file
   manifest_file.UpdateWithOptions(options)
 
   return 0

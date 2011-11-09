@@ -645,12 +645,14 @@ class SDKManifest(object):
         del bundles[i]
     bundles.append(new_bundle)
 
-  def LoadManifestString(self, json_string):
+  def LoadManifestString(self, json_string, all_hosts=False):
     ''' Load a JSON manifest string. Raises an exception if json_string
         is not well-formed JSON.
 
     Args:
-      json_string: a JSON-formatted string containing the previous manifest'''
+      json_string: a JSON-formatted string containing the previous manifest
+      all_hosts: True indicates that we should load bundles for all hosts.
+          False (default) says to only load bundles for the current host'''
     new_manifest = json.loads(json_string)
     for key, value in new_manifest.items():
       if key == BUNDLES_KEY:
@@ -662,7 +664,8 @@ class SDKManifest(object):
           # Only add this archive if it's supported on this platform.
           # However, the sdk_tools bundle might not have an archive entry,
           # but is still always valid.
-          if new_bundle.GetArchive(GetHostOS()) or b[NAME_KEY] == 'sdk_tools':
+          if (all_hosts or new_bundle.GetArchive(GetHostOS()) or
+              b[NAME_KEY] == 'sdk_tools'):
             bundles.append(new_bundle)
         self._manifest_data[key] = bundles
       else:
@@ -707,7 +710,7 @@ class SDKManifestFile(object):
     with open(self._json_filepath, 'r') as f:
       json_string = f.read()
     if json_string:
-      self._manifest.LoadManifestString(json_string)
+      self._manifest.LoadManifestString(json_string, all_hosts=True)
 
   def WriteFile(self):
     '''Write the json data to the file. If not file name was specified, the

@@ -105,6 +105,7 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
        '--recommended=yes',
        '--stability=stable',
        '--manifest-version=%s' % sdk_update.SDKManifest().MANIFEST_VERSION,
+       '--manifest-file=%s' %
        os.path.join(temp_dir, 'sdk_cache', 'naclsdk_manifest.json')]
   if 0 != update_manifest.main(update_manifest_options):
     raise Exception('update_manifest terminated abnormally.')

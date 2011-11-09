@@ -385,7 +385,7 @@ def ExtractInstaller(installer, outdir, bundle_name, nacl_sdk):
        '--recommended=yes',
        '--stability=stable',
        '--manifest-version=1',
-       manifest_filename]
+       '--manifest-file=%s' % manifest_filename]
   annotator.Print('Running update manifest with %s' % update_manifest_options)
   if 0 != update_manifest.main(update_manifest_options):
     raise Exception('update_manifest terminated abnormally.')

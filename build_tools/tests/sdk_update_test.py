@@ -85,7 +85,7 @@ class TestSDKUpdate(unittest.TestCase):
     self.assertEqual(bundle_list.count('sdk_tools'), 2)
     self.assertEqual(bundle_list.count('test_1'), 2)
     self.assertEqual(bundle_list.count('test_2'), 1)
-    self.assertEqual(bundle_list.count('description:'), 5)
+    self.assertEqual(bundle_list.count('description:'), 6)
 
   def testUpdateHelp(self):
     '''Test the help for the update command'''
@@ -105,7 +105,7 @@ class TestSDKUpdate(unittest.TestCase):
                      sdk_update.MANIFEST_FILENAME))
     self.assertNotEqual(None, manifest_file)
     bundles = manifest_file.GetBundles()
-    self.assertEqual(2, len(bundles))
+    self.assertEqual(3, len(bundles))
     test_bundle = manifest_file.GetBundleNamed('test_1')
     self.assertNotEqual(None, test_bundle)
     self.assertTrue('revision' in test_bundle)

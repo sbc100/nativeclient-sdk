@@ -9,12 +9,9 @@
 __author__ = 'mball@google.com (Matt Ball)'
 
 import errno
-import mox
 import os
 import SimpleHTTPServer
 import SocketServer
-
-import subprocess
 import sys
 import tempfile
 import threading
@@ -23,6 +20,15 @@ import urlparse
 
 from build_tools.sdk_tools import sdk_update
 from build_tools.sdk_tools import update_manifest
+
+
+def RemoveFile(filename):
+  '''Remove a filename if it exists and do nothing if it doesn't exist'''
+  try:
+    os.remove(filename)
+  except OSError as error:
+    if error.errno != errno.ENOENT:
+      raise
 
 
 def GetHTTPHandler(path, length=None):
@@ -248,11 +254,7 @@ class TestUpdateManifest(unittest.TestCase):
                           archive.DownloadToFile,
                           temp_filename)
       finally:
-        try:
-          os.remove(temp_filename)
-        except OSError as error:
-          if error.errno != errno.ENOENT:
-            raise
+        RemoveFile(temp_filename)
     finally:
       if server_thread and server_thread.isAlive():
         server.shutdown()
@@ -260,13 +262,18 @@ class TestUpdateManifest(unittest.TestCase):
 
   def testUpdateManifestMain(self):
     ''' test the main function from update_manifest '''
-    argv = ['--bundle-version', '0',
-            '--bundle-revision', '0',
-            '--description', 'test bundle for update_manifest unit tests',
-            '--bundle-name', 'test_bundle',
-            '--stability', 'dev',
-            '--recommended', 'no']
-    update_manifest.main(argv)
+    temp_filename = 'testUpdateManifestMain.json'
+    try:
+      argv = ['--bundle-version', '0',
+              '--bundle-revision', '0',
+              '--description', 'test bundle for update_manifest unit tests',
+              '--bundle-name', 'test_bundle',
+              '--stability', 'dev',
+              '--recommended', 'no',
+              '--manifest-file', temp_filename]
+      update_manifest.main(argv)
+    finally:
+      RemoveFile(temp_filename)
 
 
 def main():
