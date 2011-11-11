@@ -7,10 +7,22 @@
 
 import optparse
 import os
+import re
 import sdk_update
 import string
+import subprocess
 import sys
 
+HELP='''"Usage: %prog [-b bundle] [options]"
+
+Actions for particular bundles:
+  sdk_tools: Upload the most recently built nacl_sdk.zip and sdk_tools.tgz
+      files to the server and update the manifest file
+  pepper_??: Download the latest pepper builds off the appropriate branch,
+      upload these files to the appropriate location on the server, and
+      update the manifest file.
+  <others>: Only update manifest file -- you'll need to upload the file yourself
+'''
 
 # Map option keys to manifest attribute key. Option keys are used to retrieve
 # option values from cmd-line options. Manifest attribute keys label the
@@ -31,6 +43,16 @@ OPTION_KEY_TO_PLATFORM_MAP = {
     'linux_arch_url':  'linux',
     'all_arch_url':    'all',
     }
+
+NACL_SDK_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))))
+
+BUILD_TOOLS_OUT = os.path.join(NACL_SDK_ROOT, 'scons-out', 'build', 'obj',
+                               'build_tools')
+
+BUNDLE_SDK_TOOLS = 'sdk_tools'
+BUNDLE_PEPPER_MATCHER = re.compile('^pepper_([0-9]+)$')
+IGNORE_OPTIONS = set(['gsutil', 'manifest_file', 'upload'])
 
 
 class Error(Exception):
@@ -114,7 +136,7 @@ class UpdateSDKManifest(sdk_update.SDKManifest):
       bundl_name: The name of the bundle, or None if it's missing.'''
     # Any option left in the list should have value = None
     for key, val in options.__dict__.items():
-      if val != None:
+      if val != None and key not in IGNORE_OPTIONS:
         if bundle_name:
           raise Error('Unused option "%s" for bundle "%s"' % (key, bundle_name))
         else:
@@ -142,32 +164,124 @@ class UpdateSDKManifest(sdk_update.SDKManifest):
     self._ValidateManifest()
 
 
+class GsUtil(object):
+  def __init__(self, gsutil):
+    '''gsutil is the path to the gsutil executable'''
+    self.gsutil = gsutil
+    self.root = 'gs://nativeclient-mirror/nacl/nacl_sdk'
+
+  def GetURI(self, path):
+    '''Return the full gs:// URI for a given relative path'''
+    return '/'.join([self.root, path])
+
+  def Run(self, command):
+    '''Runs gsutil with a given argument list and returns exit status'''
+    args = [self.gsutil] + command
+    print 'GSUtil.Run(%s)' % args
+    sys.stdout.flush()
+    return subprocess.call(args)
+
+  def CheckIfExists(self, path):
+    '''Check whether a given path exists on commondatastorage
+
+    Args:
+      path: path relative to SDK root directory on the server
+
+    Returns: True if it exists, False if it does not'''
+    # todo(mball): Be a little more intelligent about this check and compare
+    # the output strings against expected values
+    return self.Run(['ls', self.GetURI(path)]) == 0
+
+  def Copy(self, source, destination):
+    '''Copies a given source file to a destination path and makes it readable
+
+    Args:
+      source: path to source file on local filesystem
+      destination: path to destination, relative to root directory'''
+    args = ['cp', '-a', 'public-read', source, self.GetURI(destination)]
+    if self.Run(args) != 0:
+      raise Error('Unable to copy %s to %s' % (source, destination))
+
+
 class UpdateSDKManifestFile(sdk_update.SDKManifestFile):
   '''Adds functions to SDKManifestFile that are only used in update_manifest'''
 
-  def __init__(self, json_filepath):
+  def __init__(self, options):
     '''Create a new SDKManifest object with default contents.
 
     If |json_filepath| is specified, and it exists, its contents are loaded and
     used to initialize the internal manifest.
 
     Args:
-      json_filepath: path to jason file to read/write, or None to write a new
+      json_filepath: path to json file to read/write, or None to write a new
           manifest file to stdout.
     '''
-    self._json_filepath = json_filepath
+    # Strip-off all the I/O-based options that do not relate to bundles
+    self._json_filepath = options.manifest_file
+    self.gsutil = GsUtil(options.gsutil)
+    self.options = options
     self._manifest = UpdateSDKManifest()
     if self._json_filepath:
       self._LoadFile()
 
-  def UpdateWithOptions(self, options):
+  def _HandleSDKTools(self):
+    '''Handles the sdk_tools bundle'''
+    # General sanity checking of parameters
+    SDK_TOOLS_FILES = ['sdk_tools.tgz', 'nacl_sdk.zip']
+    options = self.options
+    if options.bundle_version is None:
+      options.bundle_version = sdk_update.MAJOR_REV
+    if options.bundle_version != sdk_update.MAJOR_REV:
+      raise Error('Specified version (%s) does not match MAJOR_REV (%s)' %
+                  (options.bundle_version, sdk_update.MAJOR_REV))
+    if options.bundle_revision is None:
+      options.bundle_revision = sdk_update.MINOR_REV
+    if options.bundle_revision != sdk_update.MINOR_REV:
+      raise Error('Specified revision (%s) does not match MINOR_REV (%s)' %
+                  (options.bundle_revision, sdk_update.MINOR_REV))
+    version = '%s.%s' % (options.bundle_version, options.bundle_revision)
+    # Update the remaining options
+    if options.desc is None:
+      options.desc = ('Native Client SDK Tools, revision %s.%s' %
+                      (options.bundle_version, options.bundle_revision))
+    options.recommended = options.recommended or 'yes'
+    options.stability = options.stability or 'stable'
+    if options.upload:
+      # Check whether the tools already exist
+      for name in SDK_TOOLS_FILES:
+        path = '/'.join([version, name])
+        if self.gsutil.CheckIfExists(path):
+          raise Error('File already exists at %s' % path)
+      # Upload the tools files to the server
+      for name in SDK_TOOLS_FILES:
+        source = os.path.join(BUILD_TOOLS_OUT, name)
+        destination = '/'.join([version, name])
+        self.gsutil.Copy(source, destination)
+      url = ('http://commondatastorage.googleapis.com/nativeclient-mirror/'
+             'nacl/nacl_sdk/%s/sdk_tools.tgz' % version)
+      options.mac_arch_url = options.mac_arch_url or url
+      options.linux_arch_url = options.linux_arch_url or url
+      options.win_arch_url = options.win_arch_url or url
+
+  def _HandlePepper(self):
+    '''Handles the pepper bundles'''
+    pass
+
+  def HandleBundles(self):
+    '''Handles known bundles by automatically uploading files'''
+    bundle_name = self.options.bundle_name
+    if bundle_name == BUNDLE_SDK_TOOLS:
+      self._HandleSDKTools()
+
+  def UpdateWithOptions(self):
     ''' Update the manifest file with the given options. Create the manifest
         if it doesn't already exists. Raises an Error if the manifest doesn't
         validate after updating.
 
     Args:
       options: option data'''
-    self._manifest.UpdateManifest(options)
+    # UpdateManifest does not know how to deal with file-related options
+    self._manifest.UpdateManifest(self.options)
     self.WriteFile()
 
 
@@ -175,9 +289,7 @@ def main(argv):
   '''Main entry for update_manifest.py'''
 
   buildtools_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-  parser = optparse.OptionParser(
-      usage="Usage: %prog [options]")
+  parser = optparse.OptionParser(usage=HELP)
 
   # Setup options
   parser.add_option(
@@ -195,13 +307,21 @@ def main(argv):
       default=None,
       help='Required: Description for this bundle.')
   parser.add_option(
-      '-M', '--mac-archive', dest='mac_arch_url',
-      default=None,
-      help='URL for the Mac archive.')
+      '-f', '--manifest-file', dest='manifest_file',
+      default=os.path.join(buildtools_dir, 'json',
+                           sdk_update.MANIFEST_FILENAME),
+      help='location of manifest file to read and update')
+  parser.add_option(
+      '-g', '--gsutil', dest='gsutil',
+      default='gsutil', help='location of gsutil tool for uploading bundles')
   parser.add_option(
       '-L', '--linux-archive', dest='linux_arch_url',
       default=None,
       help='URL for the Linux archive.')
+  parser.add_option(
+      '-M', '--mac-archive', dest='mac_arch_url',
+      default=None,
+      help='URL for the Mac archive.')
   parser.add_option(
       '-n', '--bundle-name', dest='bundle_name',
       default=None,
@@ -222,6 +342,9 @@ def main(argv):
       default=None,
       help='Optional: URL to follow to read additional bundle info.')
   parser.add_option(
+      '-U', '--upload', dest='upload', default=False, action='store_true',
+      help='Indicates whether to upload bundle to server')
+  parser.add_option(
       '-v', '--manifest-version', dest='manifest_version',
       type='int',
       default=None,
@@ -231,20 +354,15 @@ def main(argv):
       '-W', '--win-archive', dest='win_arch_url',
       default=None,
       help='URL for the Windows archive.')
-  parser.add_option(
-      '-f', '--manifest-file', dest='manifest_file',
-      default=os.path.join(buildtools_dir, 'json',
-                           sdk_update.MANIFEST_FILENAME),
-      help='location of manifest file to read and update')
 
   # Parse options and arguments and check.
   (options, args) = parser.parse_args(argv)
   if len(args) > 0:
     parser.error('These arguments were not understood: %s' % args)
 
-  manifest_file = UpdateSDKManifestFile(options.manifest_file)
-  del options.manifest_file
-  manifest_file.UpdateWithOptions(options)
+  manifest_file = UpdateSDKManifestFile(options)
+  manifest_file.HandleBundles()
+  manifest_file.UpdateWithOptions()
 
   return 0
 

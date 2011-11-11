@@ -21,6 +21,8 @@ import urlparse
 from build_tools.sdk_tools import sdk_update
 from build_tools.sdk_tools import update_manifest
 
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def RemoveFile(filename):
   '''Remove a filename if it exists and do nothing if it doesn't exist'''
@@ -58,8 +60,23 @@ def GetHTTPHandler(path, length=None):
 
 
 class FakeOptions(object):
-  ''' Just a placeholder for options '''
-  pass
+  ''' Just a place holder for options '''
+  def __init__(self):
+    self.bundle_desc_url = None
+    self.bundle_name = None
+    self.bundle_version = None
+    self.bundle_revision = None
+    self.desc = None
+    self.gsutil = os.path.join(TEST_DIR, 'fake_gsutil.bat'
+                               if sys.platform == 'win32' else 'fake_gsutil.py')
+    self.linux_arch_url = None
+    self.mac_arch_url = None
+    self.manifest_file = os.path.join(TEST_DIR, 'naclsdk_manifest_test.json')
+    self.manifest_version = None
+    self.recommended = None
+    self.stability = None
+    self.upload = False
+    self.win_arch_url = None
 
 
 class TestUpdateManifest(unittest.TestCase):
@@ -235,7 +252,8 @@ class TestUpdateManifest(unittest.TestCase):
     '''Test updating with a partially downloaded file'''
     server = None
     server_thread = None
-    temp_filename = 'testUpdatePartialFile_temp.txt'
+    temp_filename = os.path.join(self._temp_dir,
+                                 'testUpdatePartialFile_temp.txt')
     try:
       # Create a new local server on an arbitrary port that just serves-up
       # the first 10 bytes of this file.
@@ -262,7 +280,7 @@ class TestUpdateManifest(unittest.TestCase):
 
   def testUpdateManifestMain(self):
     ''' test the main function from update_manifest '''
-    temp_filename = 'testUpdateManifestMain.json'
+    temp_filename = os.path.join(self._temp_dir, 'testUpdateManifestMain.json')
     try:
       argv = ['--bundle-version', '0',
               '--bundle-revision', '0',
@@ -274,6 +292,23 @@ class TestUpdateManifest(unittest.TestCase):
       update_manifest.main(argv)
     finally:
       RemoveFile(temp_filename)
+
+  def testHandleSDKTools(self):
+    '''Test the handling of the sdk_tools bundle'''
+    options = FakeOptions()
+    options.bundle_name = 'sdk_tools'
+    options.upload = True
+    options.bundle_version = 0
+    self.assertRaises(
+        update_manifest.Error,
+        update_manifest.UpdateSDKManifestFile(options).HandleBundles)
+    options.bundle_version = None
+    options.bundle_revision = 0
+    self.assertRaises(
+        update_manifest.Error,
+        update_manifest.UpdateSDKManifestFile(options).HandleBundles)
+    options.bundle_revision = None
+    update_manifest.UpdateSDKManifestFile(options).HandleBundles()
 
 
 def main():
