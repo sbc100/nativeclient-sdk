@@ -37,6 +37,7 @@ INSTALLER_CONTENTS = [
     'examples/index_staging.html',
     'examples/input_events/',
     'examples/load_progress/',
+    'examples/mouselock/',
     'examples/multithreaded_input_events/',
     'examples/pi_generator/',
     'examples/pong/',

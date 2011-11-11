@@ -38,6 +38,7 @@ Supported targets:
   * hello_world_c      Build the hello_world_c example.
   * input_events       Build the input_events example.
   * load_progress      Build the load_progress example.
+  * mouselock          Build the mouselock example.
   * multithreaded_input_events  Build the multithreaded input_events example.
   * pi_generator       Build the pi_generator example.
   * pong               Build the pong example.
@@ -51,6 +52,7 @@ example_sconscripts = ['fullscreen_tumbler/build.scons',
                        'hello_world_c/build.scons',
                        'input_events/build.scons',
                        'load_progress/build.scons',
+                       'mouselock/build.scons',
                        'multithreaded_input_events/build.scons',
                        'pi_generator/build.scons',
                        'pong/build.scons',
