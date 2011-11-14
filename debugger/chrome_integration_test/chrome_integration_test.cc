@@ -54,7 +54,7 @@ const int kDefaultOpTimeoutInSecs = 10;
 const int kWaitForNexeSleepMs = 500;
 
 const char* kNexePath =
-    "\\examples\\hello_world_c\\hello_world_x86_%d_dbg.nexe";
+    "\\examples\\hello_world_c\\hello_world_c_x86_%d_dbg.nexe";
 
 const char* kNexe2Path =
     "\\examples\\pi_generator\\pi_generator_x86_%d_dbg.nexe";
@@ -522,7 +522,7 @@ bool NaclGdbServerTest::AddrToLineNumber(uint64_t addr,
   int scanned_items = 0;
 
   // line.txt shall have something like this:
-  // /cygdrive/d/src/nacl_sdk2/src/examples/hello_world_c/hello_world.c:217
+  // /cygdrive/d/src/nacl_sdk2/src/examples/hello_world_c/hello_world_c.c:217
   FILE* file = fopen(kLineFileName, "rt");
   if (NULL != file) {
     char line[MAX_PATH] = {0};
@@ -909,4 +909,3 @@ TEST_F(NaclGdbServerTest, Multithreading) {
   EXPECT_TRUE(GetCurrThread(&curr_tid));
   EXPECT_EQ(main_tid, curr_tid);
 }
-

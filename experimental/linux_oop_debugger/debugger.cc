@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 #define CHROMEEE
 #ifdef CHROMEEE
 //  const char* cmd_line = "/usr/local/google/garianov/chrome/src/out/Debug/chrome --no-sandbox --allow-sandbox-debugging --disable-seccomp-sandbox";
-  const char* cmd_line = "/usr/local/google/garianov/chrome/src/out/Debug/chrome --incognito http://localhost:5103/hello_world_c/hello_world.html";
+  const char* cmd_line = "/usr/local/google/garianov/chrome/src/out/Debug/chrome --incognito http://localhost:5103/hello_world_c/hello_world_c.html";
   printf("Starting [%s]\npress any key...", cmd_line);
   getchar();
   bool sp_res = deb_api.StartProcess(
@@ -333,4 +333,3 @@ int main(int argc, char *argv[]) {
     printf("Exiting...");
     return 1;
 }
-

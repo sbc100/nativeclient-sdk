@@ -19,7 +19,7 @@ const char* kUsage =
     "usage: nacl-bpad -cmd \"<app_path-and_name> <arg0> <arg1> ...\""
     " -nexe <path to nexe>\n"
     "example: nacl-bpad -cmd \"c:\\chrome.exe --incognito "
-    "http://localhost:5103/hello_world_c/hello_world.html\"\n\n"
+    "http://localhost:5103/hello_world_c/hello_world_c.html\"\n\n"
     "Runs process tree, waiting for nexe to crash.\n"
     "When it crashes, it stops and prints values of registers,\n"
     "and source file name and line corresponding"
@@ -173,7 +173,7 @@ bool GetCodeLine(int addr, std::string* src_file, int* src_line) {
   int scanned_items = 0;
 
   // line.txt shall have something like this:
-  // /cygdrive/d/src/nacl_sdk2/src/examples/hello_world_c/hello_world.c:217
+  // /cygdrive/d/src/nacl_sdk2/src/examples/hello_world_c/hello_world_c.c:217
   FILE* file = fopen(kLineFileName, "rt");
   if (NULL != file) {
     char line[MAX_PATH] = {0};
@@ -281,4 +281,3 @@ void MakeContinueDecision(const debug::DebugEvent& debug_event,
 }
 
 }  // namespace
-

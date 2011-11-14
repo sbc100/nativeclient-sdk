@@ -5,6 +5,7 @@
 # found in the LICENSE file.
 
 import os
+import shutil
 import sys
 
 """
@@ -46,19 +47,20 @@ Supported targets:
   * tumbler            Build the tumbler example.
 """
 
-example_sconscripts = ['fullscreen_tumbler/build.scons',
-                       'geturl/build.scons',
-                       'hello_world/build.scons',
-                       'hello_world_c/build.scons',
-                       'input_events/build.scons',
-                       'load_progress/build.scons',
-                       'mouselock/build.scons',
-                       'multithreaded_input_events/build.scons',
-                       'pi_generator/build.scons',
-                       'pong/build.scons',
-                       'sine_synth/build.scons',
-                       'tumbler/build.scons',
-                      ]
+example_directories = [
+    'fullscreen_tumbler',
+    'geturl',
+    'hello_world',
+    'hello_world_c',
+    'input_events',
+    'load_progress',
+    'mouselock',
+    'multithreaded_input_events',
+    'pi_generator',
+    'pong',
+    'sine_synth',
+    'tumbler',
+    ]
 
 Help(HELP_STRING)
 
@@ -66,13 +68,15 @@ staging_dir = os.path.abspath(os.getenv(
     'NACL_INSTALL_ROOT', os.path.join(os.getenv('NACL_SDK_ROOT', '.'),
                                       'staging')))
 general_files = Install(staging_dir, ['httpd.py'])
-general_files.append(InstallAs(os.path.join(staging_dir, 'index.html'),
+general_files.extend(InstallAs(os.path.join(staging_dir, 'index.html'),
                                'index_staging.html'))
 
 if sys.platform in ['win32', 'cygwin']:
-  general_files.append(Install(staging_dir, 'httpd.cmd'))
+  general_files.extend(Install(staging_dir, 'httpd.cmd'))
 
-SConscript(example_sconscripts)
+SConscript([os.path.join(dir, 'build.scons') for dir in example_directories])
 
-if not GetOption('clean'):
-  Default(['install', general_files])
+Default(['install'] + general_files + example_directories)
+if GetOption('clean'):
+  print "Removing the staging directory at %s" % staging_dir
+  shutil.rmtree(staging_dir, ignore_errors=True)
