@@ -1,5 +1,5 @@
 vars = {
-  "chrome_rev": "107538",
+  "chrome_rev": "109032",
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   # Get PPAPI directly from Chrome, not via the NaCl repo.
   "gmock_trunk": "http://googlemock.googlecode.com/svn/trunk/",
@@ -7,12 +7,12 @@ vars = {
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "native_client_trunk": "http://src.chromium.org/native_client/trunk",
-  "native_client_version": "7030",
+  "native_client_version": "7141",
   # Note: The following version should exactly match the toolchain version in
   # the native_client DEPS file at version native_client_version
   # TODO(mball) find some clever way to extract this from NaCl DEPS
-  "pnacl_toolchain_version": "7005",
-  "x86_toolchain_version": "7030",
+  "pnacl_toolchain_version": "7107",
+  "x86_toolchain_version": "7098",
   # ARM is not supported, this number can stay pinned at 6645.
   "arm_trusted_toolchain_version": "6645",
   "pymox": "http://pymox.googlecode.com/svn/trunk",
@@ -37,31 +37,29 @@ deps = {
     Var("chromium_trunk") + "/src/base@" + Var("chrome_rev"),
   "src/third_party/native_client/build":
     Var("chromium_trunk") + "/src/build@" + Var("chrome_rev"),
-  "src/third_party/native_client/gpu/command_buffer":
-    Var("chromium_trunk") + "/src/gpu/command_buffer@" + Var("chrome_rev"),
-  "src/third_party/native_client/gpu/common":
-    Var("chromium_trunk") + "/src/gpu/common@" + Var("chrome_rev"),
-  "src/third_party/native_client/gpu/GLES2":
-    Var("chromium_trunk") + "/src/gpu/GLES2@" + Var("chrome_rev"),
-  "src/third_party/native_client/gpu/KHR":
-    Var("chromium_trunk") + "/src/gpu/KHR@" + Var("chrome_rev"),
+  "src/third_party/native_client/gpu":
+    Var("chromium_trunk") + "/src/gpu@" + Var("chrome_rev"),
   "src/third_party/native_client/native_client":
-    Var("native_client_trunk") + "/src/native_client@" +
+    Var("native_client_trunk") + "/src/native_client/@" +
     Var("native_client_version"),
   "src/third_party/native_client/ppapi":
     Var("chromium_trunk") + "/src/ppapi@" + Var("chrome_rev"),
-  "src/third_party/native_client/third_party/scons-2.0.1":
-    From("nacl_deps", "third_party/scons-2.0.1"),
   "src/third_party/pymox":
     Var("pymox") + "@" + Var("pymox_version"),
   "src/third_party/scons-2.0.1":
-    From("nacl_deps", "third_party/scons-2.0.1"),
+    Var("native_client_trunk") + "/src/third_party/scons-2.0.1@" +
+    Var("native_client_version"),
   "src/third_party/native_client/third_party/pylib":
-    From("nacl_deps", "third_party/pylib"),
+    Var("native_client_trunk") + "/src/third_party/pylib@" +
+    Var("native_client_version"),
+  "src/third_party/native_client/third_party/scons-2.0.1":
+    Var("native_client_trunk") + "/src/third_party/scons-2.0.1@" +
+    Var("native_client_version"),
   "src/third_party/native_client/third_party/simplejson":
-    From("nacl_deps", "third_party/simplejson"),
+    (Var("chromium_trunk") + "/tools/build/third_party/simplejson@" +
+     Var("chrome_rev")),
   "src/third_party/native_client/tools/valgrind":
-    From("nacl_deps", "tools/valgrind"),
+    Var("chromium_trunk") + "/src/tools/valgrind@" + Var("chrome_rev"),
 }
 
 deps_os = {
@@ -73,7 +71,9 @@ deps_os = {
       "/src/native_client/src/third_party/valgrind" + "@" +
       Var("native_client_version"),
     "src/third_party/valgrind/bin":
-      From("nacl_deps", "native_client/src/third_party/valgrind/bin"),
+      Var("native_client_trunk") +
+      "/src/native_client/src/third_party/valgrind/bin" + "@" +
+      Var("native_client_version"),
   },
   "win": {
     "src/experimental/visual_studio_plugin/third_party/native_client/"
