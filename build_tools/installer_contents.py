@@ -62,13 +62,6 @@ INSTALLER_CONTENTS.append('%s/' % nacl_utils.ToolchainPath(base_dir='',
 
 LINUX_ONLY_CONTENTS = [
     'third_party/ppapi/',
-    'third_party/valgrind/memcheck.sh',
-    'third_party/valgrind/tsan.sh',
-    'third_party/valgrind/nacl.supp',
-    'third_party/valgrind/nacl.ignore',
-    'third_party/valgrind/README',
-    'third_party/valgrind/bin/memcheck',
-    'third_party/valgrind/bin/tsan',
 ]
 
 MAC_ONLY_CONTENTS = [

@@ -309,7 +309,8 @@ def TestingClosure(_outdir, _jobs):
                         initAndCompileProject,
                         'test_cc_project')
 
-    def testValgrind(self):
+    # valgrind is deprecated as of pepper_17.
+    def deprecatedTestValgrind(self):
       '''Verify that Valgrind works properly (Linux 64-bit only)'''
 
       bit_widths = build_utils.SupportedNexeBitWidths()

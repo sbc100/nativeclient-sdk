@@ -64,17 +64,6 @@ deps = {
 
 deps_os = {
   # Please keep these in alphabetical order, by path
-  "unix": {
-    # Valgrind currently only works on Linux
-    "src/third_party/valgrind":
-      Var("native_client_trunk") +
-      "/src/native_client/src/third_party/valgrind" + "@" +
-      Var("native_client_version"),
-    "src/third_party/valgrind/bin":
-      Var("native_client_trunk") +
-      "/src/native_client/src/third_party/valgrind/bin" + "@" +
-      Var("native_client_version"),
-  },
   "win": {
     "src/experimental/visual_studio_plugin/third_party/native_client/"
       "src/shared/gio":
