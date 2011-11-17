@@ -1,0 +1,71 @@
+#! -*- python -*-
+#
+# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import make_nacl_env
+import os
+
+nacl_env = make_nacl_env.NaClEnvironment(
+    use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
+nacl_env.Append(
+    # Add a CPPPATH that enables the full-path #include directives, such as
+    # #include "examples/sine_synth/sine_synth.h"
+    CPPPATH=[os.path.dirname(os.path.dirname(os.getcwd()))],
+    # Strict ANSI compliance.
+    EXTRA_CCFLAGS=['-pedantic'],
+   )
+
+sources = ['hex_maniac.cc', 'hex_instance.cc']
+
+nacl_env.AllNaClModules(sources, 'hex')
+
+
+
+opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'hex')
+
+nacl_install_root = os.getenv(
+    'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
+install_dir = os.path.join(nacl_install_root, 'hex')
+
+cws_files = ['manifest.json',
+             os.path.join('images', 'hex_icon.png'),
+             os.path.join('images', 'hex_icon16.png'),
+           ]
+
+install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
+                               source=cws_files)
+
+# TODO - fix the 2 html files below
+app_files = ['about.html',
+             'hex.nmf',
+             'google0bfe793046475826.html',
+             'googlee7137647d2344460.html',
+             'index.html',
+            ]
+
+install_app = nacl_env.Install(dir=install_dir,
+                               source=opt_nexes + app_files)
+
+js_files = [os.path.join('js', js_file) for js_file in [
+    'hex.js',
+]]
+
+install_js = nacl_env.Install(
+    dir=os.path.join(install_dir, 'js'),
+    source=js_files)
+
+css_files = [os.path.join('css', css_file) for css_file in [
+    'hex.css',
+]]
+
+install_css = nacl_env.Install(
+    dir=os.path.join(install_dir, 'css'),
+    source=css_files)
+
+nacl_env.Alias('install',
+               source=[install_cws,
+                       install_app,
+                       install_css,
+                       install_js])

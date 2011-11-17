@@ -1,0 +1,14 @@
+{
+  "name": "Hex Game",
+  "description": "Hex Game implemented in JavaScript and in C++",
+  "version": "1.11.6",
+  "icons": {
+    "128": "hex_icon.png",
+    "16": "hex_icon16.png"
+  },
+  "app": {
+    "launch": {
+      "web_url": "http://nacl-gallery.appspot.com/hex/"
+    }
+  }
+}
