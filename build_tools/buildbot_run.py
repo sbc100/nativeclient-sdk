@@ -10,9 +10,38 @@ import os
 import subprocess
 import sys
 
+# Add scons to the python path (as nacl_utils.py requires it).
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(
+      os.path.abspath(__file__))))
+sys.path.append(os.path.join(PARENT_DIR, 'third_party/scons-2.0.1/engine'))
+
+import build_utils
+
+
+def Archive(revision, chrome_milestone):
+  """Archive the sdk to google storage.
+
+  Args:
+    revision: SDK svn revision number.
+    chrome_milestone: Chrome milestone (m14 etc), this is for.
+  """
+  if sys.platform in ['cygwin', 'win32']:
+    src = 'nacl-sdk.exe'
+    dst = 'naclsdk_win.exe'
+  elif sys.platform in ['darwin']:
+    src = 'nacl-sdk.tgz'
+    dst = 'naclsdk_mac.tgz'
+  else:
+    src = 'nacl-sdk.tgz'
+    dst = 'naclsdk_linux.tgz'
+  full_dst = 'gs://nativeclient-mirror/nacl/nacl_sdk/pepper_%s_%s/%s' % (
+      chrome_milestone, revision, dst)
+  subprocess.check_call(
+      '/b/build/scripts/slave/gsutil cp -a public-read %s %s' % (
+          src, full_dst))
+
 
 def main(argv):
-  parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
   if sys.platform in ['cygwin', 'win32']:
     # Windows build
     command = 'scons.bat'
@@ -20,14 +49,23 @@ def main(argv):
     # Linux and Mac build
     command = 'scons'
 
-  params = [os.path.join(parentdir, command)] + argv
+  parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+  params = [os.path.join(parent_dir, command)] + argv
   def Run(parameters):
     print '\nRunning ', parameters
     sys.stdout.flush()
-    subprocess.check_call(' '.join(parameters), shell=True, cwd=parentdir)
+    subprocess.check_call(' '.join(parameters), shell=True, cwd=parent_dir)
 
   Run(params + ['-c'])
   Run(params + ['bot'])
+
+  # Archive on non-trybots.
+  if '-sdk' in os.environ.get('BUILDBOT_BUILDERNAME', ''):
+    print '@@@BUILD_STEP archive build@@@'
+    sys.stdout.flush()
+    Archive(revision=os.environ.get('BUILDBOT_GOT_REVISION'),
+            chrome_milestone=build_utils.ChromeMilestone())
+
   return 0
 
 if __name__ == '__main__':
