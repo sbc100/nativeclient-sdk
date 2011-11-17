@@ -1,14 +1,17 @@
 {
   "name": "Hex Game",
   "description": "Hex Game implemented in JavaScript and in C++",
-  "version": "1.11.6",
+  "version": "1.0.1",
   "icons": {
     "128": "hex_icon.png",
     "16": "hex_icon16.png"
   },
   "app": {
+    "urls": [
+      "http://www.gonacl.com/dev/demos/hex/"
+    ],
     "launch": {
-      "web_url": "http://nacl-gallery.appspot.com/hex/"
+      "web_url": "http://www.gonacl.com/dev/demos/hex/"
     }
   }
 }
