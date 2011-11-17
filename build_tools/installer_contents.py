@@ -73,6 +73,7 @@ WINDOWS_ONLY_CONTENTS = [
     'examples/scons.bat',
     'project_templates/scons.bat',
     'debugger/nacl-gdb_server/x64/Release/',
+    'debugger/nacl-gdb_server/Release/',
     'debugger/nacl-bpad/x64/Release/'
 ]
 

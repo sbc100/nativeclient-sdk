@@ -35,16 +35,17 @@ Help for NaCl SDK
 * build a target:      ./scons <target>
 
 Supported targets:
-  * bot               Runs everything that the build and try bots run.
-  * debug_server      Build the out-of-process debug_server.
-  * docs              Build all of the Doxygen documentation.
-  * examples          Build the examples.
-  * experimental      Build the experimental projects.
-  * installer         Build the SDK installer.
-  * nacl-bpad         Build the native client crash reporting tool.
-  * sdk_tools         Build nacl_sdk.zip and sdk_tools.tgz
-  * toolchain         Update the toolchain's headers and libraries.
-  * vsx               Build the Visual Studio Plugin.
+  * bot                   Runs everything that the build and try bots run.
+  * debug_server_x64      Build the out-of-process debug_server.
+  * debug_server_Win32    Build the out-of-process debug_server.
+  * docs                  Build all of the Doxygen documentation.
+  * examples              Build the examples.
+  * experimental          Build the experimental projects.
+  * installer             Build the SDK installer.
+  * nacl-bpad             Build the native client crash reporting tool.
+  * sdk_tools             Build nacl_sdk.zip and sdk_tools.tgz
+  * toolchain             Update the toolchain's headers and libraries.
+  * vsx                   Build the Visual Studio Plugin.
 
 Flags:
   * USE_EXISTING_INSTALLER=1        Do not rebuild the installer if it exists.

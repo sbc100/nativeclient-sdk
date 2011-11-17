@@ -32,18 +32,24 @@ debugger_dir = os.path.join(env['ROOT_DIR'], 'debugger')
 # The following section specifies build and clean targets for the debug_server.
 debug_server_dir = os.path.join(debugger_dir, 'nacl-gdb_server')
 debug_server_solution = os.path.join(debug_server_dir, 'nacl-gdb_server.sln')
-DEBUG_SERVER_TARGET = 'debug_server'
-debug_server_build_command = env.BuildVSSolution(DEBUG_SERVER_TARGET,
-                                                 debug_server_solution,
-                                                 '"Release|x64"')
-env.CleanVSSolution(DEBUG_SERVER_TARGET, debug_server_dir)
-env.AlwaysBuild(debug_server_build_command)
-# The installer needs to become dependent on the result of this build step.
-env.Depends(env.GetInstallerPrereqsNode(), debug_server_build_command)
-# If this build runs alongside the examples build, it makes the examples build
-# flaky, so this step needs to happen after the examples build and before
-# generate_windows_installers.
-env.DependsOnExamples(debug_server_build_command)
+def BuildDebugServer(bitwidth_string):
+  DEBUG_SERVER_TARGET = 'debug_server_%s' % bitwidth_string
+  debug_server_build_command = env.BuildVSSolution(
+      DEBUG_SERVER_TARGET,
+      debug_server_solution,
+      '"Release|%s"' % bitwidth_string)
+  env.CleanVSSolution(DEBUG_SERVER_TARGET, debug_server_dir)
+  env.AlwaysBuild(debug_server_build_command)
+  # The installer needs to become dependent on the result of this build step.
+  env.Depends(env.GetInstallerPrereqsNode(), debug_server_build_command)
+  # If this build runs alongside the examples build, it makes the examples build
+  # flaky, so this step needs to happen after the examples build and before
+  # generate_windows_installers.
+  env.DependsOnExamples(debug_server_build_command)
+  return debug_server_build_command
+
+x64_debug_server_build_command = BuildDebugServer('x64')
+BuildDebugServer('Win32')
 
 #------------------------------------------------------------------------------
 # The following section specifies build, clean, and run targets for the
@@ -53,7 +59,7 @@ unit_test_solution = os.path.join(unit_test_dir, 'unit_tests.sln')
 UNIT_TEST_TARGET = 'debug_server_unit_test'
 unit_test_build_command = env.BuildVSSolution(UNIT_TEST_TARGET,
                                               unit_test_solution)
-env.Depends(unit_test_build_command, debug_server_build_command)
+env.Depends(unit_test_build_command, x64_debug_server_build_command)
 if env.HasBotTarget():
   # The target we're depending on is not directly visible from this scope.  If
   # a second instance of this style of dependency was ever needed, it would be
