@@ -11,8 +11,7 @@ import subprocess
 import sys
 
 # Add scons to the python path (as nacl_utils.py requires it).
-PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(
-      os.path.abspath(__file__))))
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(PARENT_DIR, 'third_party/scons-2.0.1/engine'))
 
 import build_utils
