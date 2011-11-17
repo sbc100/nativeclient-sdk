@@ -29,10 +29,7 @@ nacl_install_root = os.getenv(
     'NACL_INSTALL_ROOT', os.path.join('C:%s' % os.sep, 'inetpub', 'wwwroot'))
 install_dir = os.path.join(nacl_install_root, 'hex')
 
-cws_files = ['manifest.json',
-             os.path.join('images', 'hex_icon.png'),
-             os.path.join('images', 'hex_icon16.png'),
-           ]
+cws_files = ['manifest.json', 'hex_icon.png', 'hex_icon16.png']
 
 install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
                                source=cws_files)
