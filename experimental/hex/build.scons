@@ -19,10 +19,6 @@ nacl_env.Append(
 
 sources = ['hex_maniac.cc', 'hex_instance.cc']
 
-nacl_env.AllNaClModules(sources, 'hex')
-
-
-
 opt_nexes, dbg_nexes = nacl_env.AllNaClModules(sources, 'hex')
 
 nacl_install_root = os.getenv(
@@ -34,32 +30,25 @@ cws_files = ['manifest.json', 'hex_icon.png', 'hex_icon16.png']
 install_cws = nacl_env.Install(dir=os.path.join(install_dir, 'cws'),
                                source=cws_files)
 
-# TODO - fix the 2 html files below
 app_files = ['about.html',
              'hex.nmf',
-             'google0bfe793046475826.html',
-             'googlee7137647d2344460.html',
              'index.html',
             ]
 
 install_app = nacl_env.Install(dir=install_dir,
                                source=opt_nexes + app_files)
 
-js_files = [os.path.join('js', js_file) for js_file in [
+js_files = [
     'hex.js',
-]]
+]
 
-install_js = nacl_env.Install(
-    dir=os.path.join(install_dir, 'js'),
-    source=js_files)
+install_js = nacl_env.Install(dir=install_dir, source=js_files)
 
-css_files = [os.path.join('css', css_file) for css_file in [
+css_files = [
     'hex.css',
-]]
+]
 
-install_css = nacl_env.Install(
-    dir=os.path.join(install_dir, 'css'),
-    source=css_files)
+install_css = nacl_env.Install(dir=install_dir, source=css_files)
 
 nacl_env.Alias('install',
                source=[install_cws,
