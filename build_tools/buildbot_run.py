@@ -37,7 +37,7 @@ def Archive(revision, chrome_milestone):
       chrome_milestone, revision, dst)
   subprocess.check_call(
       '/b/build/scripts/slave/gsutil cp -a public-read %s %s' % (
-          src, full_dst))
+          src, full_dst), shell=True)
 
 
 def main(argv):
