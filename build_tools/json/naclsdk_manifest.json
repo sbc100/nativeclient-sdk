@@ -122,37 +122,37 @@
     },
     {
       "name": "pepper_16",
-      "description": "Chrome 16 bundle, revision 1344",
+      "description": "Chrome 16 bundle, revision 1364",
       "stability": "beta",
       "recommended": "no",
       "version": 16,
       "archives": [
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1344/naclsdk_mac.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1364/naclsdk_mac.tgz",
           "checksum": {
-            "sha1": "78cea07b5f11ef947df5645cde3dbaf92d37ac2d"
+            "sha1": "4a3cbc1c4d590bb3ea05647e41637b19655006cf"
           },
           "host_os": "mac",
-          "size": 149623600
+          "size": 150305285
         },
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1344/naclsdk_linux.tgz",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1364/naclsdk_linux.tgz",
           "checksum": {
-            "sha1": "10a4114291a826735a7a1c2abbf980d7f61e9b07"
+            "sha1": "3d067c3c388081a6d561293ed1b7990fb3aac259"
           },
           "host_os": "linux",
-          "size": 150858083
+          "size": 151528839
         },
         {
-          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1344/naclsdk_win.exe",
+          "url": "http://commondatastorage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/pepper_16_1364/naclsdk_win.exe",
           "checksum": {
-            "sha1": "adc316cb2dd570c6556d76f699202b5c09a75d80"
+            "sha1": "687fad7b2b59812dbf65ca2808234a3d3caee350"
           },
           "host_os": "win",
-          "size": 67582990
+          "size": 66730335
         }
       ],
-      "revision": 1344
+      "revision": 1364
     },
     {
       "name": "pepper_17",
