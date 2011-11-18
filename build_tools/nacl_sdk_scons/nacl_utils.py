@@ -41,7 +41,10 @@ __PLATFORM_TO_HOST_MAP = {
 
 # Map a platform host to a map of possible architectures and toolchains.
 # The platform host can be derived from sys.platform using |PLATFORM_HOST_MAP_}|
-# (see above).
+# (see above). (Note: if this map changes, you must also update the copy in
+# set_nacl_env.py.)
+# TODO(gwink): This map is duplicated in set_nacl_env.py. Find a good way to
+# share it instead.
 # @private
 __HOST_TO_TOOLCHAIN_MAP = {
     'windows': {

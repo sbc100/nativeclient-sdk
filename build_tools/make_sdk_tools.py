@@ -93,9 +93,13 @@ def MakeSdkTools(nacl_sdk_filename, sdk_tools_filename):
     text = source_file.read().replace("\n", "\r\n")
   with open(os.path.join(temp_dir, 'sdk_tools', 'LICENSE'), "wb") as dest_file:
     dest_file.write(text)
-  shutil.copy2(os.path.join(base_dir, 'sdk_tools', 'sdk_update.py'),
-               os.path.join(temp_dir, 'sdk_tools'))
-  py_compile.compile(os.path.join(temp_dir, 'sdk_tools', 'sdk_update.py'))
+
+  tool_list = ['sdk_update.py', 'set_nacl_env.py']
+  for tool in tool_list:
+    shutil.copy2(os.path.join(base_dir, 'sdk_tools', tool),
+                 os.path.join(temp_dir, 'sdk_tools'))
+    py_compile.compile(os.path.join(temp_dir, 'sdk_tools', tool))
+
   update_manifest_options = [
        '--bundle-revision=%s' % sdk_update.MINOR_REV,
        '--bundle-version=%s' % sdk_update.MAJOR_REV,
