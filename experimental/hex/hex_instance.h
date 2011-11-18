@@ -67,7 +67,8 @@ class HexGameInstance : public pp::Instance {
  public:
   explicit HexGameInstance(PP_Instance instance) :
       pp::Instance(instance), compute_pi_thread_(0), cond_true_(false),
-      computer_wins_(false), user_wins_(false), last_move_was_invalid_(false) {}
+      computer_wins_(false), user_wins_(false), last_move_was_invalid_(false),
+      game_loop_ready_(false), sent_game_loop_ready_(false) {}
   virtual ~HexGameInstance() {}
 
   /// Called by the browser to handle the postMessage() call in Javascript.
@@ -91,6 +92,9 @@ class HexGameInstance : public pp::Instance {
   void SendStatusToBrowser();
   void SetComputerMove(uint32_t col, uint32_t row);
 
+  // This indicates the game loop has initialized and is ready
+  // for the UI
+  void SetGameLoopReady() { game_loop_ready_ = true;}
 
   void SetComputerWins() { computer_wins_ = true;}
   void SetUserWins() { user_wins_ = true;}
@@ -109,6 +113,8 @@ class HexGameInstance : public pp::Instance {
   bool computer_wins_;
   bool user_wins_;
   bool last_move_was_invalid_;
+  bool game_loop_ready_;
+  bool sent_game_loop_ready_;
 };
 
 /// The Module class.  The browser calls the CreateInstance() method to create

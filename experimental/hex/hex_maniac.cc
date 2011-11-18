@@ -263,13 +263,24 @@ bool HEX_Game::DoMove(State who)
 //
 // Returns: whether user chose to swap
 //
-// Need HANDLE_MESSAGE HERE -- so that we get this from the user rather than calling this!
-// ONE APPROACH --  have the game thread running the 'main', then have GetUserMove
-// use a mutex / condition_variable so that when HandleMessage gets a valid value it
-// can signal so that GetUserMove wakes up and 'retrieves' the indicated move.
-// The indicated move could either be a swap (just once) or the 'i/j' combo for below.
+// We call WaitForUserMove, which gets the user move from a queue (or waits
+// for a new entry in the queue) in order to synchronize with the GUI.
+// The indicated move could either be a replaces the cin code to get 'i/j'.
+// Currently, we don't provide swap as an option.
+// NOTE: We send an update (message) just once to indicate the game loop is
+// ready, so that the UI knows it can now send user moves.
+//
 bool HEX_Game::GetUserMove(Coord& move) const
 {
+        static bool gameInitialized = false;
+        if (!gameInitialized) {
+          // we need to send a message to the UI just once that we have
+          // reached this code -- which indicates that not only is the nexe
+          // loaded but that the game loop is ready for events to be queued.
+          instance_->SetGameLoopReady();
+          DoUpdate();
+          gameInitialized = true;
+        }
 	// char str[4];
 	if (SwapOption && !HasSwapped && NumMoves==1)
 	{

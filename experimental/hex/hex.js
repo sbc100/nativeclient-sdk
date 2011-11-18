@@ -37,6 +37,7 @@ var HEIGHT = 800;
 var maxRows = 8;  // how many 'rows' of hexes
 var redColor = 'rgb(255,182,193)';
 
+var received_game_loop_ready = false;
 var whoseTurn = 'R'; // turn in 'B' or 'R'
 var gameWinner = ''; // set when we get a winner
 var turnNumber = 1;
@@ -97,6 +98,9 @@ function handleMessage(message_event) {
     }
     console.log('whoseTurn now is ' + whoseTurn);
     theBoard.initDraw(ctxBk);
+  } else if (result.indexOf("GAME_LOOP_READY") != -1) {
+    console.log('RECEIVED READY: ' + result);
+    received_game_loop_ready = true;
   } else {
     console.log('DID NOT HANDLE ' + result);
   }
@@ -464,6 +468,12 @@ function hexMouseDownHandler(e) {
   var columnClicked = xToColumn(x);
   var rowClicked = yToRow(columnClicked, y);
   console.log(' hexMouseDownHandler: ' + columnClicked + ':' + rowClicked);
+  if (received_game_loop_ready == false) {
+    // then we are waiting for the game loop in the nexe to ge up and 
+    // running...wait
+    alert('Sorry, the AI is still getting ready');
+    return;
+  }
   if (columnClicked <= 0 || rowClicked <= 0) {
     return;
   }

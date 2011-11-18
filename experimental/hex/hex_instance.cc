@@ -104,6 +104,12 @@ void HexGameInstance::GameOver() {
 // SendStatusToBrowser
 void HexGameInstance::SendStatusToBrowser() {
   fprintf(stderr, "Entered SendStatusToBrowser\n");
+  if (!sent_game_loop_ready_ && game_loop_ready_) {
+    fprintf(stderr, "Sending GameLoopReady!\n");
+    PostMessage(pp::Var("GAME_LOOP_READY"));
+    sent_game_loop_ready_ = true;
+    return;
+  }
   if (last_move_was_invalid_) {
     fprintf(stderr, "invalid move...\n");
     PostMessage(pp::Var("INVALIDMOVE"));
