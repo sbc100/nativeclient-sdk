@@ -74,6 +74,7 @@ class FakeOptions(object):
     self.manifest_file = os.path.join(TEST_DIR, 'naclsdk_manifest_test.json')
     self.manifest_version = None
     self.recommended = None
+    self.root_url = 'http://localhost/test_url'
     self.stability = None
     self.upload = False
     self.win_arch_url = None
@@ -308,6 +309,25 @@ class TestUpdateManifest(unittest.TestCase):
         update_manifest.Error,
         update_manifest.UpdateSDKManifestFile(options).HandleBundles)
     options.bundle_revision = None
+    update_manifest.UpdateSDKManifestFile(options).HandleBundles()
+
+  def testHandlePepper(self):
+    '''Test the handling of pepper bundles'''
+    options = FakeOptions()
+    options.bundle_name = 'pepper'
+    options.bundle_version = None
+    self.assertRaises(
+        update_manifest.Error,
+        update_manifest.UpdateSDKManifestFile(options).HandleBundles)
+    options.bundle_version = 1
+    options.bundle_revision = None
+    self.assertRaises(
+        update_manifest.Error,
+        update_manifest.UpdateSDKManifestFile(options).HandleBundles)
+    options.bundle_revision = 0
+    update_manifest.UpdateSDKManifestFile(options).HandleBundles()
+    options.bundle_name = 'pepper_1'
+    options.bundle_version = None
     update_manifest.UpdateSDKManifestFile(options).HandleBundles()
 
 

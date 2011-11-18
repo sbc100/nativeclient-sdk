@@ -52,7 +52,7 @@ BUILD_TOOLS_OUT = os.path.join(NACL_SDK_ROOT, 'scons-out', 'build', 'obj',
 
 BUNDLE_SDK_TOOLS = 'sdk_tools'
 BUNDLE_PEPPER_MATCHER = re.compile('^pepper_([0-9]+)$')
-IGNORE_OPTIONS = set(['gsutil', 'manifest_file', 'upload'])
+IGNORE_OPTIONS = set(['gsutil', 'manifest_file', 'upload', 'root_url'])
 
 
 class Error(Exception):
@@ -257,21 +257,37 @@ class UpdateSDKManifestFile(sdk_update.SDKManifestFile):
         source = os.path.join(BUILD_TOOLS_OUT, name)
         destination = '/'.join([version, name])
         self.gsutil.Copy(source, destination)
-      url = ('http://commondatastorage.googleapis.com/nativeclient-mirror/'
-             'nacl/nacl_sdk/%s/sdk_tools.tgz' % version)
+      url = '/'.join([options.root_url, version, 'sdk_tools.tgz'])
       options.mac_arch_url = options.mac_arch_url or url
       options.linux_arch_url = options.linux_arch_url or url
       options.win_arch_url = options.win_arch_url or url
 
   def _HandlePepper(self):
     '''Handles the pepper bundles'''
-    pass
+    options = self.options
+    match = BUNDLE_PEPPER_MATCHER.match(options.bundle_name)
+    if match is not None:
+      options.bundle_version = int(match.group(1))
+    if options.bundle_version is None:
+      raise Error('Need to specify a bundle version')
+    if options.bundle_revision is None:
+      raise Error('Need to specify a bundle revision')
+    if options.desc is None:
+      options.desc = ('Chrome %s bundle, revision %s' %
+                      (options.bundle_version, options.bundle_revision))
+    root_url = '%s/pepper_%s_%s' % (options.root_url, options.bundle_version,
+                                    options.bundle_revision)
+    options.mac_arch_url = '/'.join([root_url, 'naclsdk_mac.tgz'])
+    options.linux_arch_url = '/'.join([root_url, 'naclsdk_linux.tgz'])
+    options.win_arch_url = '/'.join([root_url, 'naclsdk_win.exe'])
 
   def HandleBundles(self):
     '''Handles known bundles by automatically uploading files'''
     bundle_name = self.options.bundle_name
     if bundle_name == BUNDLE_SDK_TOOLS:
       self._HandleSDKTools()
+    elif bundle_name.startswith('pepper'):
+      self._HandlePepper()
 
   def UpdateWithOptions(self):
     ''' Update the manifest file with the given options. Create the manifest
@@ -331,6 +347,11 @@ def main(argv):
       choices=sdk_update.YES_NO_LITERALS,
       default=None,
       help='Required: whether this bundle is recommended. one of "yes" or "no"')
+  parser.add_option(
+      '-R', '--root-url', dest='root_url',
+      default='http://commondatastorage.googleapis.com/nativeclient-mirror/'
+              'nacl/nacl_sdk',
+      help='Root url for uploading')
   parser.add_option(
       '-s', '--stability', dest='stability',
       choices=sdk_update.STABILITY_LITERALS,
