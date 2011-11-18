@@ -97,7 +97,9 @@ int main(int argc, char **argv) {
     return kErrStartProcessFailed;
   }
 
-  DBG_LOG("TR101.04", "msg='Debug server started' port=%d cmd='%s'", port, cmd);
+  DBG_LOG("TR101.04", "msg='Debug server started' port=%d cmd='%s'",
+          port,
+          cmd.c_str());
   while (true) {
     if (_kbhit()) {
       char cmd[200] = {0};
