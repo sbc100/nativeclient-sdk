@@ -33,11 +33,15 @@ def Archive(revision, chrome_milestone):
   else:
     src = 'nacl-sdk.tgz'
     dst = 'naclsdk_linux.tgz'
-  full_dst = 'gs://nativeclient-mirror/nacl/nacl_sdk/pepper_%s_%s/%s' % (
+  bucket_path = 'nativeclient-mirror/nacl/nacl_sdk/pepper_%s_%s/%s' % (
       chrome_milestone, revision, dst)
+  full_dst = 'gs://%s' % bucket_path
   subprocess.check_call(
       '/b/build/scripts/slave/gsutil cp -a public-read %s %s' % (
           src, full_dst), shell=True)
+  url = 'https://commondatastorage.googleapis.com/%s' % bucket_path
+  print '@@@STEP_LINK@download@%s@@@' % url
+  sys.stdout.flush()
 
 
 def main(argv):
@@ -54,6 +58,9 @@ def main(argv):
     print '\nRunning ', parameters
     sys.stdout.flush()
     subprocess.check_call(' '.join(parameters), shell=True, cwd=parent_dir)
+
+  print '@@@BUILD_STEP generate sdk@@@'
+  sys.stdout.flush()
 
   Run(params + ['-c'])
   Run(params + ['bot'])
