@@ -101,7 +101,8 @@ def AddPythonUnitTest(command, file, size='small', **kwargs):
 
 AddPythonUnitTest('run_build_utils_test', 'tests/build_utils_test.py')
 AddPythonUnitTest('run_tar_archive_test', 'tests/tar_archive_test.py')
-AddPythonUnitTest('run_update_manifest_test', 'tests/update_manifest_test.py')
+AddPythonUnitTest('run_update_manifest_test',
+                  'tests/update_manifest_test.py', size='medium')
 AddPythonUnitTest('run_sdk_update_test', 'tests/sdk_update_test.py')
 AddPythonUnitTest('run_set_nacl_env_test', 'tests/set_nacl_env_test.py',
                   dependencies=[env.GetToolchainNode()])
