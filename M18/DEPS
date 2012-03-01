@@ -34,62 +34,59 @@ vars = {
 }
 
 deps = {
-  "base":
+  "src/base":
     Var("chromium_trunk") + "/src/base@" + Var("chrome_rev"),
-  "build":
+  "src/build":
     Var("chromium_trunk") + "/src/build@" + Var("chrome_rev"),
-  "chrome/test/pyautolib":
-    Var("chromium_trunk") + "/src/chrome/test/pyautolib@" + Var("chrome_rev"),
-  "gpu":
+  "src/chrome":
+    Var("chromium_trunk") + "/src/chrome@" + Var("chrome_rev"),
+  "src/gpu":
     Var("chromium_trunk") + "/src/gpu@" + Var("chrome_rev"),
-  "native_client/tools/perf_expectations":
-    Var("chromium_trunk") + "/src/tools/perf_expectations@" + Var("chrome_rev"),
-  "net/tools/testserver":
+  "src/native_client":
+    Var("native_client_trunk") + "/src/native_client@" + Var("chrome_rev"),
+  "src/native_client_sdk":
+    Var("chromium_trunk") + "/src/native_client_sdk@" + Var("chrome_rev"),
+  "src/net/tools/testserver":
     Var("chromium_trunk") + "/src/net/tools/testserver@" + Var("chrome_rev"),
-  "ppapi":
+  "src/ppapi":
     Var("chromium_trunk") + "/src/ppapi@" + Var("chrome_rev"),
   "testing/gtest":
     "http://googletest.googlecode.com/svn/trunk@" + Var("gtest_rev"),
-  "third_party":
-    Var("native_client_trunk") + "/src/third_party@" + Var("tools_rev"),
-  "third_party/asan":
-    Var("chromium_trunk") + "/deps/third_party/asan@" + Var("chrome_rev"),
   "third_party/gles2_book":
     Var("chromium_trunk") + "/src/third_party/gles2_book@" + Var("chrome_rev"),
   "third_party/jsoncpp":
     Var("chromium_trunk") + "/src/third_party/jsoncpp@" + Var("chrome_rev"),
   # NOTE! These two for jsoncpp are taken verbatim from chromium/src/DEPS
   # and must match what is used there.
-  "third_party/jsoncpp/source/include":
+  "src/third_party/jsoncpp/source/include":
     (Var("sourceforge_url") % {"repo": "jsoncpp"}) +
         "/trunk/jsoncpp/include@" + Var("jsoncpp_revision"),
-  "third_party/jsoncpp/source/src/lib_json":
+  "src/third_party/jsoncpp/source/src/lib_json":
     (Var("sourceforge_url") % {"repo": "jsoncpp"}) +
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
-  "third_party/lcov":
-    Var("chromium_trunk") + "/src/third_party/lcov@" + Var("lcov_rev"),
-  "third_party/lss":
+  "src/third_party/lss":
     ((Var("googlecode_url") % "linux-syscall-support") +
      "/trunk/lss@" + Var("lss_rev")),
-  "third_party/khronos":
+  "src/third_party/khronos":
     Var("chromium_trunk") + "/src/third_party/khronos@" + Var("chrome_rev"),
   "third_party/ply":
     Var("chromium_trunk") + "/src/third_party/ply@" + Var("chrome_rev"),
-  "third_party/pyftpdlib":
+  "src/third_party/pyftpdlib":
     Var("chromium_trunk") + "/src/third_party/pyftpdlib@" + Var("chrome_rev"),
-  "third_party/pyftpdlib/src":
+  "src/third_party/pyftpdlib/src":
     (Var("googlecode_url") % "pyftpdlib") + "/trunk@888",
-  "third_party/simplejson":
-    (Var("chromium_trunk") + "/tools/build/third_party/simplejson@" +
-     Var("chrome_rev")),
-  "third_party/tlslite":
-    Var("chromium_trunk") + "/src/third_party/tlslite@" + Var("chrome_rev"),
-  "tools/clang":
+  "src/third_party/ply":
+    Var("chromium_trunk") + "/src/third_party/ply@" + Var("chrome_rev"),
+  "src/tools/clang":
     Var("chromium_trunk") + "/src/tools/clang@" + Var("chrome_rev"),
-  "tools/gyp":
+  "src/tools/gyp":
     "http://gyp.googlecode.com/svn/trunk@" + Var("gyp_rev"),
-  "tools/valgrind":
+  "src/tools/valgrind":
     Var("chromium_trunk") + "/src/tools/valgrind@" + Var("chrome_rev"),
+  "src/third_party/scons-2.0.1":
+    Var("native_client_trunk") + "/src/third_party/scons-2.0.1@",
+  "src/testing/gtest":
+    (Var("googlecode_url") % "googletest") + "/trunk@560",
 }
 
 deps_os = {
@@ -109,14 +106,10 @@ deps_os = {
 hooks = [
   {
     "pattern": ".",
-    "action": ["python", "native_client/build/download_toolchains.py",
+    "action": ["python", "src/native_client/build/download_toolchains.py",
                "--x86-version", Var("x86_toolchain_version"),
                "--arm-trusted-version", Var("arm_trusted_toolchain_version"),
                "--pnacl-version", Var("pnacl_toolchain_version"),
                "--keep"],
-  },
-  {
-    "pattern": ".",
-    "action": ["python", "native_client/build/gyp_nacl"],
   },
 ]
