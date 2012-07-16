@@ -1,0 +1,563 @@
+﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+namespace NativeClientVSAddIn
+{
+  using System;
+  using System.Collections.Generic;
+  using System.IO;
+  using System.Linq;
+  using System.Text;
+  using System.Windows.Forms;
+
+  using EnvDTE;
+  using EnvDTE80;
+  using Microsoft.VisualStudio.VCProjectEngine;
+
+  /// <summary>
+  /// This class contains functions and utilities which are run when the user
+  /// presses F5 or otherwise starts debugging from within Visual Studio.
+  /// </summary>
+  public class PluginDebuggerHelper
+  {
+    /// <summary>
+    /// This is the initial number of milliseconds to wait between
+    /// checking for plug-in processes to attach the debugger to.
+    /// </summary>
+    private const int InitialPluginCheckFrequency = 1000;
+
+    /// <summary>
+    /// After a plug-in has been found, we slow the frequency of checking
+    /// for new ones. This value is in milliseconds.
+    /// </summary>
+    private const int RelaxedPluginCheckFrequency = 5000;
+
+    /// <summary>
+    /// The main visual studio object through which all Visual Studio functions are executed.
+    /// </summary>
+    private DTE2 dte_;
+
+    /// <summary>
+    /// Indicates the PluginDebuggerHelper is configured properly to run.
+    /// </summary>
+    private bool isProperlyInitialized_ = false;
+
+    /// <summary>
+    /// Directory of the plug-in project we are debugging.
+    /// </summary>
+    private string pluginProjectDirectory_;
+
+    /// <summary>
+    /// Directory where the plug-in assembly is placed.
+    /// </summary>
+    private string pluginOutputDirectory_;
+
+    /// <summary>
+    /// Path to the actual plug-in assembly.
+    /// </summary>
+    private string pluginAssembly_;
+
+    /// <summary>
+    /// Path to the NaCl IRT.
+    /// </summary>
+    private string irtPath_;
+
+    /// <summary>
+    /// Root directory of the installed NaCl SDK.
+    /// </summary>
+    private string sdkRootDirectory_;
+
+    /// <summary>
+    /// If debugging a .nexe this is the nacl-gdb process object.
+    /// </summary>
+    private System.Diagnostics.Process gdbProcess_;
+
+    /// <summary>
+    /// Path to NaCl-GDB executable.
+    /// </summary>
+    private string gdbPath_;
+
+    /// <summary>
+    /// Path to the gdb initialization file that we auto-generate from the VS project.
+    /// </summary>
+    private string gdbInitFileName_;
+
+    /// <summary>
+    /// The platform that the start-up project is currently configured with (NaCl or PPAPI).
+    /// </summary>
+    private ProjectPlatformType projectPlatformType_;
+
+    /// <summary>
+    /// When debugging is started this is the web server process object.
+    /// </summary>
+    private System.Diagnostics.Process webServer_ = null;
+
+    /// <summary>
+    /// Visual Studio output window pane that captures output from the web server.
+    /// </summary>
+    private OutputWindowPane webServerOutputPane_ = null;
+
+    /// <summary>
+    /// Path to the web server executable.
+    /// </summary>
+    private string webServerExecutable_;
+
+    /// <summary>
+    /// Arguments to be passed to the web server executable to start it.
+    /// </summary>
+    private string webServerArguments_;
+
+    /// <summary>
+    /// Timer object that periodically calls a function to look for the plug-in process to debug.
+    /// </summary>
+    private Timer pluginFinderTimer_;
+
+    /// <summary>
+    /// List of process IDs which we should not attempt to attach the debugger to. Mainly this
+    /// list contains process IDs of processes we have already attached to.
+    /// </summary>
+    private List<uint> pluginFinderForbiddenPids_;
+
+    /// <summary>
+    /// Process searcher class which allows us to query the system for running processes.
+    /// </summary>
+    private ProcessSearcher processSearcher_;
+
+    /// <summary>
+    /// Constructs the PluginDebuggerHelper.
+    /// Object is not usable until LoadProjectSettings() is called.
+    /// </summary>
+    /// <param name="dte">Automation object from Visual Studio.</param>
+    public PluginDebuggerHelper(DTE2 dte)
+    {
+      if (dte == null)
+      {
+        throw new ArgumentNullException("dte");
+      }
+      
+      dte_ = dte;
+
+      // Every second, check for a new instance of the plug-in to attach to.
+      // Note that although the timer itself runs on a separate thread, the event
+      // is fired from the main UI thread during message processing, thus we do not
+      // need to worry about threading issues.
+      pluginFinderTimer_ = new Timer();
+      pluginFinderTimer_.Tick += new EventHandler(FindAndAttachToPlugin);
+      pluginFinderForbiddenPids_ = new List<uint>();
+      processSearcher_ = new ProcessSearcher();
+    }
+
+    /// <summary>
+    /// An event indicating a target plug-in was found on the system.
+    /// </summary>
+    public event EventHandler<PluginFoundEventArgs> PluginFoundEvent;
+
+    /// <summary>
+    /// Specifies the type of plug-in being run in this debug session.
+    /// </summary>
+    private enum ProjectPlatformType
+    {
+      /// <summary>
+      /// Represents all non-pepper/non-nacl platform types.
+      /// </summary>
+      Other,
+
+      /// <summary>
+      /// Indicates project platform is a trusted plug-in (nexe).
+      /// </summary>
+      NaCl,
+
+      /// <summary>
+      /// Indicates project platform is an untrusted plug-in.
+      /// </summary>
+      Pepper
+    }
+
+    /// <summary>
+    /// Initializes the PluginDebuggerHelper with the current project settings
+    /// If project settings are unsupported for NaCl/Pepper debugging then
+    /// the object is not initialized and we return false.
+    /// </summary>
+    /// <returns>True if the object is successfully initialized, false otherwise.</returns>
+    public bool LoadProjectSettings()
+    {
+      isProperlyInitialized_ = false;
+
+      // We require that there is only a single start-up project.
+      // If multiple start-up projects are specified then we use the first and
+      // leave a warning message in the Web Server output pane.
+      Array startupProjects = dte_.Solution.SolutionBuild.StartupProjects as Array;
+      if (startupProjects == null || startupProjects.Length == 0)
+      {
+        throw new ArgumentOutOfRangeException("startupProjects.Length");
+      }
+      else if (startupProjects.Length > 1)
+      {
+        WebServerWriteLine(Strings.WebServerMultiStartProjectWarning);
+      }
+
+      // Get the first start-up project object.
+      List<Project> projList = dte_.Solution.Projects.OfType<Project>().ToList();
+      string startProjectName = startupProjects.GetValue(0) as string;
+      Project startProject = projList.Find(proj => proj.UniqueName == startProjectName);
+
+      // Get the current platform type. If not nacl/pepper then fail.
+      string activePlatform = startProject.ConfigurationManager.ActiveConfiguration.PlatformName;
+      if (string.Compare(activePlatform, Strings.PepperPlatformName, true) == 0)
+      {
+        projectPlatformType_ = ProjectPlatformType.Pepper;
+        PluginFoundEvent += new EventHandler<PluginFoundEventArgs>(AttachVSDebugger);
+      }
+      else if (string.Compare(activePlatform, Strings.NaClPlatformName, true) == 0)
+      {
+        projectPlatformType_ = ProjectPlatformType.NaCl;
+        PluginFoundEvent += new EventHandler<PluginFoundEventArgs>(AttachNaClGDB);
+      }
+      else
+      {
+        projectPlatformType_ = ProjectPlatformType.Other;
+        return false;
+      }
+
+      // We only support certain project types (e.g. C/C++ projects). Otherwise we fail.
+      // If supported, extract necessary information from specific project type.
+      if (Utility.IsVisualCProject(startProject))
+      {
+        VCConfiguration config = Utility.GetActiveVCConfiguration(startProject);
+        VCProject vcproj = (VCProject)startProject.Object;
+        VCLinkerTool linker = config.Tools.Item("VCLinkerTool");
+        pluginProjectDirectory_ = vcproj.ProjectDirectory;  // Macros not allowed here.
+        pluginAssembly_ = config.Evaluate(linker.OutputFile);
+        pluginOutputDirectory_ = config.Evaluate(config.OutputDirectory);
+      }
+      else
+      {
+        return false;
+      }
+
+      // TODO(tysand): Add user option to specify this.
+      int webServerPort = 5103;
+      sdkRootDirectory_ = Environment.GetEnvironmentVariable(Strings.SDKPathEnvironmentVariable);
+      if (sdkRootDirectory_ == null)
+      {
+        MessageBox.Show(
+            string.Format(Strings.SDKPathNotSetFormat, Strings.SDKPathEnvironmentVariable));
+        return false;
+      }
+
+      sdkRootDirectory_ = sdkRootDirectory_.TrimEnd("/\\".ToArray<char>());
+
+      webServerExecutable_ = "python.exe";
+      webServerArguments_ = string.Format(
+          "{0}\\examples\\httpd.py --no_dir_check {1}",
+          sdkRootDirectory_,
+          webServerPort);
+
+      // TODO(tysand): Update this to nacl-gdb when it is ready. Should be able to remove irtPath_.
+      gdbPath_ = sdkRootDirectory_ + @"\customGDB\gdb.exe";
+      irtPath_ = sdkRootDirectory_ + @"\tools\irt_x86_64.nexe";
+
+      isProperlyInitialized_ = true;
+      return true;
+    }
+
+    /// <summary>
+    /// This function should be called to start the PluginDebuggerHelper functionality.
+    /// </summary>
+    public void StartDebugging()
+    {
+      if (!isProperlyInitialized_)
+      {
+        throw new Exception(Strings.NotInitializedMessage);
+      }
+
+      StartWebServer();
+      pluginFinderTimer_.Interval = InitialPluginCheckFrequency;
+      pluginFinderTimer_.Start();
+    }
+
+    /// <summary>
+    /// This function should be called to stop the PluginDebuggerHelper functionality.
+    /// </summary>
+    public void StopDebugging()
+    {
+      isProperlyInitialized_ = false;
+      pluginFinderTimer_.Stop();
+      pluginFinderForbiddenPids_.Clear();
+
+      // Remove all event handlers from the plug-in found event.
+      if (PluginFoundEvent != null)
+      {
+        foreach (Delegate del in PluginFoundEvent.GetInvocationList())
+        {
+          PluginFoundEvent -= (EventHandler<PluginFoundEventArgs>)del;
+        }
+      }
+
+      if (webServer_ != null)
+      {
+        webServer_.Kill();
+        webServer_.Dispose();
+        webServer_ = null;
+      }
+
+      KillGDBProcess();
+    }
+
+    /// <summary>
+    /// This function cleans up the started GDB process.
+    /// </summary>
+    private void KillGDBProcess()
+    {
+      if (gdbProcess_ != null)
+      {
+        if (!gdbProcess_.HasExited)
+        {
+          gdbProcess_.Kill();
+          gdbProcess_.Dispose();
+        }
+
+        if (!string.IsNullOrEmpty(gdbInitFileName_) && File.Exists(gdbInitFileName_))
+        {
+          File.Delete(gdbInitFileName_);
+        }
+
+        gdbProcess_ = null;
+      }
+    }
+
+    /// <summary>
+    /// This is called periodically by the Visual Studio UI thread to look for our plug-in process
+    /// and attach the debugger to it.  The call is triggered by the pluginFinderTimer_ object
+    /// </summary>
+    /// <param name="unused">The parameter is not used.</param>
+    /// <param name="unused1">The parameter is not used.</param>
+    private void FindAndAttachToPlugin(object unused, EventArgs unused1)
+    {
+      string processNameTarget;
+      string typeFlagTarget;
+      string identifierFlagTarget;
+      switch (projectPlatformType_)
+      {
+        case ProjectPlatformType.Pepper:
+          processNameTarget = Strings.PepperProcessName;
+          typeFlagTarget = Strings.PepperProcessTypeFlag;
+          identifierFlagTarget =
+              string.Format(Strings.PepperProcessPluginFlagFormat, pluginAssembly_);
+          break;
+        case ProjectPlatformType.NaCl:
+          processNameTarget = Strings.NaClProcessName;
+          typeFlagTarget = Strings.NaClProcessTypeFlag;
+          identifierFlagTarget = Strings.NaClDebugFlag;
+          break;
+        default:
+          return;
+      }
+
+      // To identify our target plug-in we look for: its process name (e.g. chrome.exe),
+      // identifying command line arguments (e.g. --type=renderer), not already attached
+      // to by us, and must be a descendant process of this instance of Visual Studio.
+      List<ProcessInfo> results = processSearcher_.GetResultsByName(processNameTarget);
+      uint currentProcessId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+      foreach (ProcessInfo process in results)
+      {
+        if (!pluginFinderForbiddenPids_.Contains(process.ID) &&
+            !string.IsNullOrEmpty(process.CommandLine) &&
+            process.CommandLine.Contains(typeFlagTarget, ignoreCase) &&
+            process.CommandLine.Contains(identifierFlagTarget, ignoreCase) &&
+            Utility.IsDescendantOfProcess(processSearcher_, process.ID, currentProcessId))
+        {
+          // If we are attaching to a plug-in, add it to the forbidden list to ensure we
+          // don't try to attach again later.
+          pluginFinderForbiddenPids_.Add(process.ID);
+          PluginFoundEvent.Invoke(this, new PluginFoundEventArgs(process.ID));
+
+          // Slow down the frequency of checks for new plugins.
+          pluginFinderTimer_.Interval = RelaxedPluginCheckFrequency;
+        }
+      }
+    }
+
+    /// <summary>
+    /// Attaches the visual studio debugger to a given process ID.
+    /// </summary>
+    /// <param name="src">The parameter is not used.</param>
+    /// <param name="args">Contains the process ID to attach to.</param>
+    private void AttachVSDebugger(object src, PluginFoundEventArgs args)
+    {
+      foreach (EnvDTE.Process proc in dte_.Debugger.LocalProcesses)
+      {
+        if (proc.ProcessID == args.ProcessID)
+        {
+          proc.Attach();
+          break;
+        }
+      }
+    }
+
+    /// <summary>
+    /// Attaches the NaCl GDB debugger to the NaCl plug-in process.  Handles loading symbols
+    /// and breakpoints from Visual Studio.
+    /// </summary>
+    /// <param name="src">The parameter is not used.</param>
+    /// <param name="args">
+    /// Contains the process ID to attach to, unused since debug stub is already attached.
+    /// </param>
+    private void AttachNaClGDB(object src, PluginFoundEventArgs args)
+    {
+      // NOTE: The settings listed here are a placeholder until nacl-gdb is ready.
+      //       Specifically, 'set architecture' and 'add-symbol-file' calls. See TODO comments.
+
+      // Clean up any pre-existing GDB process (can happen if user reloads page).
+      KillGDBProcess();
+
+      gdbInitFileName_ = Path.GetTempFileName();
+      string projectDir = pluginProjectDirectory_.TrimEnd('\\');
+      string pluginAssemblyEscaped = pluginAssembly_.Replace("\\", "\\\\");
+      string irtPathEscaped = irtPath_.Replace("\\", "\\\\");
+
+      // Create the initialization file to read in on GDB start.
+      StringBuilder contents = new StringBuilder();
+
+      // TODO(tysand): Allow user setting for debug stub port (currently 4014).
+      contents.AppendFormat("target remote localhost:{0}", 4014);
+      contents.AppendLine();
+
+      // TODO(tysand): Nacl-gdb should detect this automatically making this call unnecessary.
+      contents.Append("set architecture i386:x86-64");
+      contents.AppendLine();
+      contents.AppendFormat("cd {0}", projectDir);
+      contents.AppendLine();
+
+      // TODO(tysand): Nacl-gdb should handle the offset automatically. Remove 0xC00020080.
+      contents.AppendFormat("add-symbol-file {0} 0xC00020080", pluginAssemblyEscaped);
+      contents.AppendLine();
+
+      // TODO(tysand): Nacl-gdb should handle loading the irt automatically. Remove this line.
+      contents.AppendFormat("add-symbol-file {0} 0xC0fc00080", irtPathEscaped);
+      contents.AppendLine();
+
+      // Insert breakpoints from Visual Studio project.
+      foreach (Breakpoint bp in dte_.Debugger.Breakpoints)
+      {
+        if (bp.Enabled &&
+            bp.LocationType == dbgBreakpointLocationType.dbgBreakpointLocationTypeFile)
+        {
+          contents.AppendFormat("b {0}:{1}", Path.GetFileName(bp.File), bp.FileLine);
+          contents.AppendLine();
+        }
+        else if (bp.Enabled &&
+            bp.LocationType == dbgBreakpointLocationType.dbgBreakpointLocationTypeFunction)
+        {
+          contents.AppendFormat("b {0}", bp.FunctionName);
+          contents.AppendLine();
+        }
+        else if (bp.Enabled)
+        {
+          WebServerWriteLine(
+            string.Format(Strings.UnsupportedBreakpointTypeFormat, bp.LocationType.ToString()));
+        }
+      }
+
+      contents.AppendLine("continue");
+      File.WriteAllText(gdbInitFileName_, contents.ToString());
+
+      // Start NaCl-GDB.
+      try
+      {
+        gdbProcess_ = new System.Diagnostics.Process();
+        gdbProcess_.StartInfo.UseShellExecute = true;
+        gdbProcess_.StartInfo.FileName = gdbPath_;
+        gdbProcess_.StartInfo.Arguments = string.Format("-x {0}", gdbInitFileName_);
+        gdbProcess_.StartInfo.WorkingDirectory = pluginProjectDirectory_;
+        gdbProcess_.Start();
+      }
+      catch (Exception e)
+      {
+        MessageBox.Show(
+            string.Format("NaCl-GDB Start Failed. {0}. Path: {1}", e.Message, gdbPath_));
+      }
+    }
+
+    /// <summary>
+    /// Spins up the web server process to host our plug-in.
+    /// </summary>
+    private void StartWebServer()
+    {
+      // Add a panel to the output window which is used to capture output
+      // from the web server hosting the plugin.
+      if (webServerOutputPane_ == null)
+      {
+        webServerOutputPane_ = dte_.ToolWindows.OutputWindow.OutputWindowPanes.Add(
+            Strings.WebServerOutputWindowTitle);
+      }
+
+      webServerOutputPane_.Clear();
+      WebServerWriteLine(Strings.WebServerStartMessage);
+
+      try
+      {
+        webServer_ = new System.Diagnostics.Process();
+        webServer_.StartInfo.CreateNoWindow = true;
+        webServer_.StartInfo.UseShellExecute = false;
+        webServer_.StartInfo.RedirectStandardOutput = true;
+        webServer_.StartInfo.RedirectStandardError = true;
+        webServer_.StartInfo.FileName = webServerExecutable_;
+        webServer_.StartInfo.Arguments = webServerArguments_;
+        webServer_.StartInfo.WorkingDirectory = pluginProjectDirectory_;
+        webServer_.OutputDataReceived += WebServerMessageReceive;
+        webServer_.ErrorDataReceived += WebServerMessageReceive;
+        webServer_.Start();
+        webServer_.BeginOutputReadLine();
+        webServer_.BeginErrorReadLine();
+      }
+      catch (Exception e)
+      {
+        WebServerWriteLine(Strings.WebServerStartFail);
+        WebServerWriteLine("Exception: " + e.Message);
+      }
+    }
+
+    /// <summary>
+    /// Receives output from the web server process to display in the Visual Studio UI.
+    /// </summary>
+    /// <param name="sender">The parameter is not used.</param>
+    /// <param name="e">Contains the data to display.</param>
+    private void WebServerMessageReceive(object sender, System.Diagnostics.DataReceivedEventArgs e)
+    {
+      WebServerWriteLine(e.Data);
+    }
+
+    /// <summary>
+    /// Helper function to write data to the Web Server Output Pane.
+    /// </summary>
+    /// <param name="message">Message to write.</param>
+    private void WebServerWriteLine(string message)
+    {
+      webServerOutputPane_.OutputString(message + "\n");
+      webServerOutputPane_.Activate();
+    }
+
+    /// <summary>
+    /// The event arguments when a plug-in is found.
+    /// </summary>
+    public class PluginFoundEventArgs : EventArgs
+    {
+      /// <summary>
+      /// Construct the PluginFoundEventArgs.
+      /// </summary>
+      /// <param name="pid">Process ID of the found plug-in.</param>
+      public PluginFoundEventArgs(uint pid)
+      {
+        this.ProcessID = pid;
+      }
+
+      /// <summary>
+      /// Gets or sets process ID of the found plug-in.
+      /// </summary>
+      public uint ProcessID { get; set; }
+    }
+  }
+}

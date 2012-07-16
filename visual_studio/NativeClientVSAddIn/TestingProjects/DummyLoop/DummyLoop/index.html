@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <!--
+  Copyright (c) 2012 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+  -->
+<head>
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <script type="text/javascript">
+      function pageDidLoad() {
+          updateStatus('Page loaded.');
+      }
+
+      // Set the global status message
+      function updateStatus(opt_message) {
+          naclModule = document.getElementById('dummy_loop');
+          var statusField = document.getElementById('status_field');
+          if (statusField) {
+              statusField.innerHTML = opt_message;
+          }
+          if (opt_message == "relay1") {
+              naclModule.postMessage("relay2");
+          }
+          if (opt_message == "relay2") {
+              naclModule.postMessage("relay1");
+          }
+      }
+
+      function handleMessage(message_event) {
+          updateStatus(message_event.data);
+      }
+
+  </script>
+</head>
+<body onload="pageDidLoad()">
+  <div id="listener">
+    <script type="text/javascript">
+        var listener = document.getElementById('listener');
+        listener.addEventListener('message', handleMessage, true);
+    </script>
+    <embed name='nacl_module'
+      id='dummy_loop'
+      width=200
+      height=200
+      src='dummy_loop.nmf'
+      type='application/x-nacl'/>
+  </div>
+<h2>Status</h2>
+<div id="status_field">NO-STATUS</div>
+</body>
+</html>

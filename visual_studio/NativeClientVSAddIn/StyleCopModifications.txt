@@ -1,0 +1,12 @@
+The following default StyleCop rules have been disabled for the add-in and unit-test projects.
+SA1101: PrefixLocalCallsWithThis
+SA1310: FieldNamesMustNotContainUnderscore
+SA1633: FileMustHaveHeader
+SA1634: FileHeaderMustShowCopyright
+SA1635: FileHdeaderMustHaveCopyrightText
+SA1637: FileHeaderMustContainFileName
+SA1640: FileHeaderMustHaveValidCompanyText
+SA1642: ConstructorSummaryDocumentationMustBeginWithStandardText
+SA1643: DestructorSummaryDocumantionMustBeginWithStandardText
+
+Namely, this disables the requirement for file headers, links within constructor and destructor summaries, and allows us to name member fields with a underscore suffix instead of 'this.' prefix (to follow chrome C++ style).
