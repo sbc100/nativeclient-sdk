@@ -127,9 +127,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NativeClientVSAddIn.AddIn">
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="NativeClientVsAddIn_Testing.AddIn">
       <SubType>Designer</SubType>
     </Content>
