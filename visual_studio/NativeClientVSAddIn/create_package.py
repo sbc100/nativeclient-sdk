@@ -10,9 +10,7 @@ It zips up all files required for the add-in installation and places the
 result in out/NativeClientVSAddin.zip
 """
 
-import glob
 import os
-import shutil
 import zipfile
 
 # Root output directory
