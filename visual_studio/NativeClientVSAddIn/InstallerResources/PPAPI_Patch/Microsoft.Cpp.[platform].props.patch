@@ -1,0 +1,20 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\ImportBefore')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\ImportBefore')" />
+  </PatchAdd>
+  <PatchRemove>
+    <Import Condition="(exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.Win32.$(PlatformToolset).props'))" Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.Win32.$(PlatformToolset).props"/>
+  </PatchRemove>
+  <PatchAdd>
+    <Import Condition="(exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.PPAPI.$(PlatformToolset).props'))" Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.PPAPI.$(PlatformToolset).props"/>
+  </PatchAdd>
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\ImportAfter')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\ImportAfter')" />
+  </PatchAdd>
+</Project>

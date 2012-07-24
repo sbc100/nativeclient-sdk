@@ -11,6 +11,8 @@ namespace UnitTests
 
   using EnvDTE;
   using EnvDTE80;
+  using Microsoft.VisualStudio.TestTools.UnitTesting;
+  using Microsoft.VisualStudio.VCProjectEngine;
 
   /// <summary>
   /// This class contains utilities for running tests.
@@ -178,6 +180,91 @@ namespace UnitTests
           projectUniqueName,
           platformName,
           configurationName));
+    }
+
+    /// <summary>
+    /// Returns a VCConfiguration object with a matching configuration name and platform type.
+    /// </summary>
+    /// <param name="project">Project to get the configuration from.</param>
+    /// <param name="name">Name of configuration (e.g. 'Debug').</param>
+    /// <param name="platform">Name of the platform (e.g. 'NaCl').</param>
+    /// <returns>A matching VCConfiguration object.</returns>
+    public static VCConfiguration GetVCConfiguration(Project project, string name, string platform)
+    {
+      VCProject vcproj = (VCProject)project.Object;
+      IVCCollection configs = vcproj.Configurations;
+
+      foreach (VCConfiguration config in configs)
+      {
+        if (config.ConfigurationName == name && config.Platform.Name == platform)
+        {
+          return config;
+        }
+      }
+
+      throw new Exception(
+          string.Format("Project does not have configuration: {0}|{1}", platform, name));
+    }
+
+    /// <summary>
+    /// Tests that a given property has a specific value in a certain VCConfiguration
+    /// </summary>
+    /// <param name="configuration">Gives the platform and configuration type</param>
+    /// <param name="pageName">Property page name where property resides.</param>
+    /// <param name="propertyName">Name of the property to check.</param>
+    /// <param name="expectedValue">Expected value of the property.</param>
+    /// <param name="ignoreCase">Ignore case when comparing the expected and actual values.</param>
+    public static void AssertPropertyEquals(
+        VCConfiguration configuration,
+        string pageName,
+        string propertyName,
+        string expectedValue,
+        bool ignoreCase)
+    {
+      IVCRulePropertyStorage rule = configuration.Rules.Item(pageName);
+      string callInfo = string.Format(
+          "Page: {0}, Property: {1}, Configuration: {2}",
+          pageName,
+          propertyName,
+          configuration.ConfigurationName);
+
+      Assert.AreEqual(
+          expectedValue,
+          rule.GetUnevaluatedPropertyValue(propertyName),
+          ignoreCase,
+          callInfo);
+    }
+
+    /// <summary>
+    /// Tests that a given property contains a specific string in a certain VCConfiguration
+    /// </summary>
+    /// <param name="configuration">Gives the platform and configuration type</param>
+    /// <param name="pageName">Property page name where property resides.</param>
+    /// <param name="propertyName">Name of the property to check.</param>
+    /// <param name="expectedValue">Expected string to contain.</param>
+    /// <param name="ignoreCase">Ignore case when comparing the expected and actual values.</param>
+    public static void AssertPropertyContains(
+        VCConfiguration configuration,
+        string pageName,
+        string propertyName,
+        string expectedValue,
+        bool ignoreCase)
+    {
+      StringComparison caseSensitive = ignoreCase ?
+          StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+      IVCRulePropertyStorage rule = configuration.Rules.Item(pageName);
+      string propertyValue = rule.GetUnevaluatedPropertyValue(propertyName);
+
+      string message = string.Format(
+          "{0} should be contained in {1}. Page: {2}, Property: {3}, Configuration: {4}",
+          expectedValue,
+          propertyValue,
+          pageName,
+          propertyName,
+          configuration.ConfigurationName);
+
+      Assert.IsTrue(propertyValue.Contains(expectedValue, caseSensitive), message);
     }
 
     /// <summary>

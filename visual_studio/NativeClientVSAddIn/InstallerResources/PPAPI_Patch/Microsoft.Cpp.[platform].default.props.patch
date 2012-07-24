@@ -1,0 +1,29 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PatchRemove>
+      <PlatformToolset Condition="'$(PlatformToolset)' == ''">$(DefaultWin32PlatformToolset)</PlatformToolset>
+    </PatchRemove>
+    <PatchAdd>
+      <ConfigurationType>DynamicLibrary</ConfigurationType>
+      <PlatformToolset Condition="'$(PlatformToolset)' == ''">$(DefaultPPAPIPlatformToolset)</PlatformToolset>
+    </PatchAdd>
+    <PatchRemove>
+      <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(Configuration)\</IntDir>
+    </PatchRemove>
+    <PatchAdd>
+      <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)Intermediate\Win\</IntDir>
+    </PatchAdd>
+    <PatchRemove>
+      <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(SolutionDir)$(Configuration)\</OutDir>
+    </PatchRemove>
+    <PatchAdd>
+      <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(ProjectDir)Win\</OutDir>
+    </PatchAdd>
+    <PatchAdd>
+      <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(ProjectDir)Win\</OutDir>
+    </PatchAdd>
+    <PatchAdd>
+      <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+    </PatchAdd>
+  </PropertyGroup>
+</Project>

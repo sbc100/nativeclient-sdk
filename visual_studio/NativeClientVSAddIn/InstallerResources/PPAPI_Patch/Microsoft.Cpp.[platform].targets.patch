@@ -1,0 +1,63 @@
+﻿<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\ImportBefore')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\ImportBefore')" />
+  </PatchAdd>
+     
+  <PropertyGroup>
+  </PropertyGroup>
+    
+  <!-- *******************************************************************************************
+      Override Regular Property pages in order to disable other build types such as exe, makefile
+       ******************************************************************************************* -->
+  <PatchAdd>
+    <ItemGroup>
+      <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\PPAPI\Props\ppapi_general.xml">
+        <Context>Project</Context>
+      </PropertyPageSchema>
+      <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\PPAPI\Props\ppapi_general_ps.xml">
+        <Context>PropertySheet</Context>
+      </PropertyPageSchema>
+    </ItemGroup>
+  </PatchAdd>
+
+  <Target Name="ClCompile"
+          Condition="'@(ClCompile)' != ''"
+          DependsOnTargets="SelectClCompile">
+    <ItemGroup>
+      <ClCompile>
+        <PatchAdd>
+          <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </PatchAdd>
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+    
+  <!-- *******************************************************************************************
+        PlatformPrepareForBuild target
+       ******************************************************************************************* -->
+  <Target Name="PlatformPrepareForBuild" DependsOnTargets="$(PlatformPrepareForBuildDependsOn)">
+    <PatchRemove>
+      <VCMessage Code="MSB8008" Type="Error" Arguments="$(PlatformToolset)" Condition="!(exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.Win32.$(PlatformToolset).targets'))"/>
+    </PatchRemove>
+    <PatchAdd>
+      <VCMessage Code="MSB8008" Type="Error" Arguments="$(PlatformToolset)" Condition="!(exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.PPAPI.$(PlatformToolset).targets'))"/>
+    </PatchAdd>
+  </Target>
+
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.Win32.$(PlatformToolset).targets" Condition="(exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.Win32.$(PlatformToolset).targets'))" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.PPAPI.$(PlatformToolset).targets" Condition="(exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.PPAPI.$(PlatformToolset).targets'))" />
+  </PatchAdd>
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\ImportAfter\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\ImportAfter')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\ImportAfter\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\ImportAfter')" />
+  </PatchAdd>
+</Project>
+    

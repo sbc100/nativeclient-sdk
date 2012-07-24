@@ -78,6 +78,7 @@
     <Compile Include="ComMessageFilter.cs" />
     <Compile Include="MockProcessSearcher.cs" />
     <Compile Include="PluginDebuggerHelperTest.cs" />
+    <Compile Include="ProjectSettingsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestUtilities.cs" />
   </ItemGroup>

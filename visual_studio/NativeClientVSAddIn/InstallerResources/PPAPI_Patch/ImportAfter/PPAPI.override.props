@@ -1,0 +1,33 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- add PPAPI preprocessor -->
+      <PreprocessorDefinitions>PPAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+  <!-- Set the run-time library to the non-DLL versions to match Chrome. -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Debug'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  
+  <!-- Add the Pepper static libraries -->
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>ppapi_cpp.lib;ppapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  
+  <!-- setup default debugging parameters -->
+  <PropertyGroup>
+    <LocalDebuggerCommand>$(CHROME_PATH)\chrome.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:5103</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+</Project>

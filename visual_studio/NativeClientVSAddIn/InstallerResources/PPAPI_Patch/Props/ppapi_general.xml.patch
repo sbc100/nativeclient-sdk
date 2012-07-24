@@ -1,0 +1,45 @@
+﻿<Rule
+      Name="ConfigurationGeneral"
+      DisplayName="General"
+      PageTemplate="generic"
+      Description="General"
+      xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <Rule.Categories>
+    <Category Name="ProjectDefaults" DisplayName="Project Defaults" Description="Project Defaults" />
+    <PatchAdd>
+      <Category Name="NativeClient" DisplayName="Native Client" Description="Native Client General Properties" />
+    </PatchAdd>
+  </Rule.Categories>
+  <Rule.DataSource>
+    <DataSource Persistence="ProjectFile" Label="Configuration" />
+  </Rule.DataSource>
+  
+  <!-- Add VS NaCl SDK Root.  Note the default value is actually set in Microsoft.cpp.PPAPI.default.props.patch -->
+  <PatchAdd>
+    <StringProperty Name="VSNaClSDKRoot" DisplayName="NaCl SDK Root"
+                  Description="Specifies the path to the Native Client SDK root directory"
+                  Category="NativeClient" Default=""
+                  Subtype="folder" F1Keyword="VC.Project.VCConfiguration.NaClSDKRoot">
+      <StringProperty.DataSource>
+        <DataSource Persistence="ProjectFile" Label="" />
+      </StringProperty.DataSource>
+    </StringProperty>
+  </PatchAdd>
+  
+  <EnumProperty Name="ConfigurationType" DisplayName="Configuration Type"
+                Description="Specifies the type of output this configuration generates."
+                Category="ProjectDefaults"
+                F1Keyword="VC.Project.VCConfiguration.ConfigurationType">
+    <PatchRemove>
+      <EnumValue Name="Makefile" DisplayName="Makefile" Description="Makefile" />
+      <EnumValue Name="Application" DisplayName="Application (.exe)" Description="Application (.exe)" />
+      <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.dll)" Description="Dynamic Library (.dll)" />
+      <EnumValue Name="StaticLibrary" DisplayName="Static library (.lib)" Description="Static Library (.lib)" />
+      <EnumValue Name="Utility" DisplayName="Utility" Description="Utility" />
+    </PatchRemove>
+    <PatchAdd>
+      <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.dll)" Description="Dynamic Library (.dll)" />
+      <EnumValue Name="StaticLibrary" DisplayName="Static library (.lib)" Description="Static Library (.lib)" />
+    </PatchAdd>
+  </EnumProperty>
+</Rule>

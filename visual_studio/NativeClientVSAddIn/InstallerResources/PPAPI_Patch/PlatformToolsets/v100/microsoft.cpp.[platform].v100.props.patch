@@ -1,0 +1,31 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportBefore')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportBefore')" />
+  </PatchAdd>
+    
+  <PropertyGroup>    
+    <!-- added NaCl include and lib information -->
+    <PatchRemove>
+      <IncludePath Condition="'$(IncludePath)' == ''">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    </PatchRemove>
+    <PatchAdd>
+      <IncludePath Condition="'$(IncludePath)' == ''">$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    </PatchAdd>
+    <PatchRemove>
+      <LibraryPath Condition="'$(LibraryPath)' == ''">$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    </PatchRemove>
+    <PatchAdd>
+      <LibraryPath Condition="'$(LibraryPath)' == ''">$(VSNaClSDKRoot)lib;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    </PatchAdd>
+  </PropertyGroup>
+
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportAfter')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportAfter')" />
+  </PatchAdd>
+</Project>

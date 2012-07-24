@@ -1,0 +1,14 @@
+﻿<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportBefore')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportBefore')" />
+  </PatchAdd>
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportAfter\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v100\ImportAfter')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportAfter\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportAfter')" />
+  </PatchAdd>
+</Project>
