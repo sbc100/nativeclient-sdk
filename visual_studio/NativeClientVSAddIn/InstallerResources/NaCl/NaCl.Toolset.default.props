@@ -1,0 +1,49 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ObjectFileName>$(IntDir)%(FileName).o</ObjectFileName>
+      <PreprocessorDefinitions  Condition="'%(ClCompile.PreprocessorDefinitions)'   == ''"></PreprocessorDefinitions>
+      <Warnings                 Condition="'%(ClCompile.Warnings)'                  == ''">NormalWarnings</Warnings>
+      <WarningsAsErrors         Condition="'%(ClCompile.WarningsAsErrors)'          == ''">false</WarningsAsErrors>
+      <SystemIncludeDirectories       Condition="'%(ClCompile.SystemIncludeDirectories)'      == ''">$(IncludePath)</SystemIncludeDirectories>
+      <SystemPreprocessorDefinitions  Condition="'%(ClCompile.SystemPreprocessorDefinitions)' == ''">$(NaClDefines)</SystemPreprocessorDefinitions>
+      <UserHeaderDependenciesOnly     Condition="'%(ClCompile.UserHeaderDependenciesOnly)' == ''">true</UserHeaderDependenciesOnly>
+      <ConfigurationType            Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
+      <ExceptionHandling>true</ExceptionHandling>
+      <OutputCommandLine>true</OutputCommandLine>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="$(Configuration) == 'Debug'">
+    <ClCompile>
+      <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">true</GenerateDebuggingInformation> 
+      <OptimizationLevel        Condition="'%(ClCompile.OptimizationLevel)'         == ''">O0</OptimizationLevel>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <!-- Default compile release options -->
+  <ItemDefinitionGroup Condition="$(Configuration) != 'Debug'">
+    <ClCompile>      
+      <OptimizationLevel            Condition="'%(ClCompile.OptimizationLevel)'         == ''">O3</OptimizationLevel>
+      <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">false</GenerateDebuggingInformation>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories Condition="'%(Link.AdditionalLibraryDirectories)' == ''"></AdditionalLibraryDirectories>
+      <AdditionalDependencies     Condition="'%(Link.AdditionalDependencies)'         == ''"></AdditionalDependencies>
+      <IgnoreAllDefaultLibraries  Condition="'%(Link.IgnoreAllDefaultLibraries)'      == ''">false</IgnoreAllDefaultLibraries>
+      <NaClSystemLibs             Condition="'%(Link.NaClSystemLibs)'                 == ''">c;m;log;gcc</NaClSystemLibs>
+      <ReportUndefinedSymbols     Condition="'%(Link.ReportUndefinedSymbols)'         == ''">true</ReportUndefinedSymbols>
+      <SystemLibraryDirectories	  Condition="'%(Link.SystemLibraryDirectories)'       == ''">$(LibraryPath)</SystemLibraryDirectories>
+      <ConfigurationType          Condition="'%(Link.ConfigurationType)'            == ''">$(ConfigurationType)</ConfigurationType>
+      <OutputCommandLine>true</OutputCommandLine>
+  </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <Lib>
+      <OutputFile                 Condition="'%(Lib.OutputFile)'                    == ''">$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
+      <OutputCommandLine>true</OutputCommandLine>
+    </Lib>
+  </ItemDefinitionGroup>
+</Project>

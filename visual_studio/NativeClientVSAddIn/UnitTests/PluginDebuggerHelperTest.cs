@@ -10,6 +10,7 @@ namespace UnitTests
   using System.Reflection;
   using System.Threading;
 
+  using EnvDTE;
   using EnvDTE80;
   using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -23,23 +24,48 @@ namespace UnitTests
   public class PluginDebuggerHelperTest
   {
     /// <summary>
-    /// The dummy loop solution is a valid nacl/pepper plug-in VS solution.
+    /// This holds the path to the NaCl solution used in these tests.
+    /// The NaCl solution is a valid nacl/pepper plug-in VS solution.
     /// It is copied into the testing deployment directory and opened in some tests.
     /// Because unit-tests run in any order, the solution should not be written to
     /// in any tests.
     /// </summary>
-    private const string DummyLoopSolution = @"\DummyLoop\DummyLoop.sln";
+    private static string naclSolution;
 
     /// <summary>
     /// The main visual studio object.
     /// </summary>
-    private DTE2 dte_ = null;
+    private DTE2 dte_;
 
     /// <summary>
     /// Gets or sets the test context which provides information about,
     /// and functionality for the current test run.
     /// </summary>
     public TestContext TestContext { get; set; }
+
+    /// <summary>
+    /// This is run one time before any test methods are called. Here we set-up a test-copy of a
+    /// new NaCl solution for use in the tests.
+    /// </summary>
+    /// <param name="testContext">Holds information about the current test run</param>
+    [ClassInitialize]
+    public static void ClassSetup(TestContext testContext)
+    {
+      DTE2 dte = TestUtilities.StartVisualStudioInstance();
+      try
+      {
+        naclSolution = TestUtilities.CreateBlankValidNaClSolution(
+          dte,
+          "PluginDebuggerHelperTest",
+          NativeClientVSAddIn.Strings.PepperPlatformName,
+          NativeClientVSAddIn.Strings.NaClPlatformName,
+          testContext);
+      }
+      finally
+      {
+        TestUtilities.CleanUpVisualStudioInstance(dte);
+      }
+    }
 
     /// <summary>
     /// This is run before each test to create test resources.
@@ -111,7 +137,7 @@ namespace UnitTests
 
         // Visual studio won't allow adding a breakpoint unless it is associated with
         // an existing file and valid line number, so use DummyLoopSolution.
-        dte_.Solution.Open(TestContext.DeploymentDirectory + DummyLoopSolution);
+        dte_.Solution.Open(naclSolution);
         string fileName = "main.cpp";
         string functionName = "DummyInstance::HandleMessage";
         int lineNumber = 35;
@@ -186,33 +212,36 @@ namespace UnitTests
       target.isProperlyInitialized_ = true;
 
       MockProcessSearcher processResults = new MockProcessSearcher();
-      uint currentProcId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
-      string naclCommandLine = Strings.NaClProcessTypeFlag + " " + Strings.NaClDebugFlag;
+      target.debuggedChromeMainProcess_ = System.Diagnostics.Process.GetCurrentProcess();
+      uint currentProcId = (uint)target.debuggedChromeMainProcess_.Id;
+      string naclCommandLine = Strings.NaClLoaderFlag;
+
       target.pluginAssembly_ = "testAssemblyPath";
       string pluginLoadFlag = string.Format(
           Strings.PepperProcessPluginFlagFormat, target.pluginAssembly_);
       string pepperCommandLine = string.Concat(
-          pluginLoadFlag, " ", Strings.PepperProcessTypeFlag);
-      string pluginFlagCommandLine =
-          string.Format(Strings.PepperProcessPluginFlagFormat, target.pluginAssembly_);
+          pluginLoadFlag, " ", Strings.ChromeRendererFlag);
 
       // Fake the list of processes on the system.
       processResults.ProcessList.Add(
-          new ProcessInfo(currentProcId, currentProcId, string.Empty, string.Empty, "devenv.exe"));
+          new ProcessInfo(
+              currentProcId, currentProcId, string.Empty, string.Empty, Strings.ChromeProcessName));
       processResults.ProcessList.Add(
           new ProcessInfo(1, currentProcId, string.Empty, string.Empty, "MyParentProcess"));
       processResults.ProcessList.Add(
-          new ProcessInfo(10, 1, string.Empty, pepperCommandLine, Strings.PepperProcessName));
+          new ProcessInfo(10, 1, string.Empty, pepperCommandLine, Strings.ChromeProcessName));
       processResults.ProcessList.Add(
           new ProcessInfo(11, 1, string.Empty, naclCommandLine, Strings.NaClProcessName));
+
+      // These two are missing some relevant command line args, they should not be attached to.
       processResults.ProcessList.Add(
-          new ProcessInfo(12, 1, string.Empty, pluginFlagCommandLine, Strings.PepperProcessName));
+          new ProcessInfo(12, 1, string.Empty, pluginLoadFlag, Strings.ChromeProcessName));
       processResults.ProcessList.Add(
-          new ProcessInfo(13, 1, string.Empty, Strings.NaClDebugFlag, Strings.NaClProcessName));
+          new ProcessInfo(13, 1, string.Empty, string.Empty, Strings.NaClProcessName));
 
       // These two don't have this process as their parent, so they should not be attached to.
       processResults.ProcessList.Add(
-          new ProcessInfo(14, 14, string.Empty, pepperCommandLine, Strings.PepperProcessName));
+          new ProcessInfo(14, 14, string.Empty, pepperCommandLine, Strings.ChromeProcessName));
       processResults.ProcessList.Add(
           new ProcessInfo(15, 15, string.Empty, naclCommandLine, Strings.NaClProcessName));
 
@@ -309,67 +338,62 @@ namespace UnitTests
         // This is expected for a correct implementation.
       }
 
-      dte_.Solution.Open(TestContext.DeploymentDirectory + DummyLoopSolution);
+      dte_.Solution.Open(naclSolution);
 
       // Setting the start-up project to a non-cpp project should make loading fail.
-      string badProjectUniqueName = @"NotNaCl\NotNaCl.csproj";
-      object[] badStartupProj = { badProjectUniqueName };
+      object[] badStartupProj = { TestUtilities.NotNaClProjectUniqueName };
       dte_.Solution.SolutionBuild.StartupProjects = badStartupProj;
       Assert.IsFalse(target.LoadProjectSettings());
       Assert.IsFalse(target.isProperlyInitialized_);
 
       // Setting the start-up project to correct C++ project, but also setting the platform
       // to non-nacl/pepper should make loading fail.
-      string projectUniqueName = @"DummyLoop\DummyLoop.vcxproj";
-      object[] startupProj = { projectUniqueName };
+      object[] startupProj = { TestUtilities.BlankNaClProjectUniqueName };
       dte_.Solution.SolutionBuild.StartupProjects = startupProj;
-      TestUtilities.SetSolutionConfiguration(dte_, projectUniqueName, "Debug", "Win32");
+      TestUtilities.SetSolutionConfiguration(
+          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", "Win32");
       Assert.IsFalse(target.LoadProjectSettings());
       Assert.IsFalse(target.isProperlyInitialized_);
-
+      
       // Setting the platform to NaCl should make loading succeed.
       TestUtilities.SetSolutionConfiguration(
-          dte_, projectUniqueName, "Debug", Strings.NaClPlatformName);
+          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", Strings.NaClPlatformName);
       Assert.IsTrue(target.LoadProjectSettings());
       Assert.IsTrue(target.isProperlyInitialized_);
       Assert.AreEqual(
-          target.projectPlatformType_,
-          PluginDebuggerHelper_Accessor.ProjectPlatformType.NaCl);
-      Assert.AreEqual(
-          target.pluginProjectDirectory_,
-          TestContext.DeploymentDirectory + @"\DummyLoop\DummyLoop\");
-      Assert.AreEqual(
-          target.pluginAssembly_,
-          TestContext.DeploymentDirectory + @"\DummyLoop\DummyLoop\NaCl\Debug\DummyLoop.nexe");
-      Assert.AreEqual(
-          target.pluginOutputDirectory_,
-          TestContext.DeploymentDirectory + @"\DummyLoop\DummyLoop\NaCl\Debug\");
-      Assert.AreEqual(target.sdkRootDirectory_, expectedSDKRootDir);
-      Assert.AreEqual(target.webServerExecutable_, "python.exe");
-      ////Assert.AreEqual(target._webServerArguments, "");
-      ////Assert.AreEqual(target._gdbPath, "");
+          PluginDebuggerHelper_Accessor.ProjectPlatformType.NaCl,
+          target.projectPlatformType_);
+
+      string projectDir = Path.Combine(
+          Path.GetDirectoryName(naclSolution),
+          Path.GetDirectoryName(TestUtilities.BlankNaClProjectUniqueName)) + @"\";
+      string outputDir = Path.Combine(projectDir, "newlib") + @"\";
+      string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + ".nexe");
+
+      Assert.AreEqual(projectDir, target.pluginProjectDirectory_);
+      Assert.AreEqual(outputDir, target.pluginOutputDirectory_);
+      Assert.AreEqual(assembly, target.pluginAssembly_);
+
+      Assert.AreEqual(expectedSDKRootDir, target.sdkRootDirectory_);
+      Assert.AreEqual("python.exe", target.webServerExecutable_);
 
       // Setting platform to Pepper should make succeed.
       TestUtilities.SetSolutionConfiguration(
-          dte_, projectUniqueName, "Debug", Strings.PepperPlatformName);
+          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", Strings.PepperPlatformName);
       Assert.IsTrue(target.LoadProjectSettings());
       Assert.IsTrue(target.isProperlyInitialized_);
       Assert.AreEqual(
-          target.projectPlatformType_,
-          PluginDebuggerHelper_Accessor.ProjectPlatformType.Pepper);
-      Assert.AreEqual(
-          target.pluginProjectDirectory_,
-          TestContext.DeploymentDirectory + @"\DummyLoop\DummyLoop\");
-      Assert.AreEqual(
-          target.pluginAssembly_,
-          TestContext.DeploymentDirectory + @"\DummyLoop\Debug\PPAPI\DummyLoop.dll");
-      Assert.AreEqual(
-          target.pluginOutputDirectory_,
-          TestContext.DeploymentDirectory + @"\DummyLoop\Debug\PPAPI\");
-      Assert.AreEqual(target.sdkRootDirectory_, expectedSDKRootDir);
-      Assert.AreEqual(target.webServerExecutable_, "python.exe");
-      ////Assert.AreEqual(target._webServerArguments, "");
-      ////Assert.AreEqual(target._gdbPath, "");
+          PluginDebuggerHelper_Accessor.ProjectPlatformType.Pepper,
+          target.projectPlatformType_);
+
+      outputDir = Path.Combine(projectDir, "win") + @"\";
+      assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + ".dll");
+      Assert.AreEqual(projectDir, target.pluginProjectDirectory_);
+      Assert.AreEqual(outputDir, target.pluginOutputDirectory_);
+      Assert.AreEqual(assembly, target.pluginAssembly_);
+
+      Assert.AreEqual(expectedSDKRootDir, target.sdkRootDirectory_);
+      Assert.AreEqual("python.exe", target.webServerExecutable_);
     }
 
     /// <summary>
@@ -379,7 +403,8 @@ namespace UnitTests
     [DeploymentItem("NativeClientVSAddIn.dll")]
     public void AttachVSDebuggerTest()
     {
-      using (Process dummyProc = TestUtilities.StartProcessForKilling("DummyProc", 20))
+      using (System.Diagnostics.Process dummyProc = TestUtilities.StartProcessForKilling(
+          "DummyProc", 20))
       {
         try
         {
@@ -387,9 +412,9 @@ namespace UnitTests
           target.projectPlatformType_ = PluginDebuggerHelper_Accessor.ProjectPlatformType.Pepper;
           target.isProperlyInitialized_ = true;
 
-          target.AttachVSDebugger(
-              null,
-              new NativeClientVSAddIn.PluginDebuggerHelper.PluginFoundEventArgs((uint)dummyProc.Id));
+          var pluginFoundArgs = new NativeClientVSAddIn.PluginDebuggerHelper.PluginFoundEventArgs(
+              (uint)dummyProc.Id);
+          target.AttachVSDebugger(null, pluginFoundArgs);
 
           bool isBeingDebugged = false;
           foreach (EnvDTE.Process proc in dte_.Debugger.DebuggedProcesses)
@@ -511,7 +536,7 @@ namespace UnitTests
             break;
           }
 
-          Thread.Sleep(500);
+          System.Threading.Thread.Sleep(500);
           result = TestUtilities.GetPaneText(target.webServerOutputPane_);
         }
 
@@ -597,7 +622,7 @@ namespace UnitTests
           break;
         }
 
-        Thread.Sleep(500);
+        System.Threading.Thread.Sleep(500);
         result = TestUtilities.GetPaneText(target.webServerOutputPane_);
       }
 

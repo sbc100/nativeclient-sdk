@@ -6,6 +6,7 @@ namespace UnitTests
 {
   using System;
   using System.Collections.Generic;
+  using System.IO;
   using System.Linq;
   using System.Management;
 
@@ -20,7 +21,22 @@ namespace UnitTests
   public static class TestUtilities
   {
     /// <summary>
-    /// This starts an instance of Visual Studio and get it's DTE object.
+    /// Name of the NaCl project in BlankValidSolution.
+    /// </summary>
+    public const string BlankNaClProjectName = @"NaClProject";
+
+    /// <summary>
+    /// Uniquename of the NaCl project in BlankValidSolution.
+    /// </summary>
+    public const string BlankNaClProjectUniqueName = @"NaClProject\NaClProject.vcxproj";
+
+    /// <summary>
+    /// Uniquename of the non-NaCl project in BlankValidSolution.
+    /// </summary>
+    public const string NotNaClProjectUniqueName = @"NotNaCl\NotNaCl.csproj";
+
+    /// <summary>
+    /// This starts an instance of Visual Studio and get its DTE object.
     /// </summary>
     /// <returns>DTE of the started instance.</returns>
     public static DTE2 StartVisualStudioInstance()
@@ -58,6 +74,59 @@ namespace UnitTests
 
       // Stop the message filter.
       ComMessageFilter.Revoke();
+    }
+
+    /// <summary>
+    /// Creates a blank valid NaCl project with up-to-date settings.  The path to the new solution
+    /// is returned.
+    /// </summary>
+    /// <param name="dte">Interface to an open Visual Studio instance to use.</param>
+    /// <param name="name">Name to give newly created solution.</param>
+    /// <param name="pepperCopyFrom">Platform name to copy existing settings from to pepper.</param>
+    /// <param name="naclCopyFrom">Platform name to copy existing settings from to NaCl.</param>
+    /// <param name="testContext">Test context used for finding deployment directory.</param>
+    /// <returns>Path to the newly created solution.</returns>
+    public static string CreateBlankValidNaClSolution(
+        DTE2 dte, string name, string pepperCopyFrom, string naclCopyFrom, TestContext testContext)
+    {
+      const string BlankSolution = "BlankValidSolution";
+      string newSolutionDir = Path.Combine(testContext.DeploymentDirectory, name);
+      string newSolution = Path.Combine(newSolutionDir, BlankSolution + ".sln");
+      CopyDirectory(Path.Combine(testContext.DeploymentDirectory, BlankSolution), newSolutionDir);
+
+      try
+      {
+        dte.Solution.Open(newSolution);
+        Project proj = dte.Solution.Projects.Item(BlankNaClProjectUniqueName);
+
+        // Order matters if copying from the other Native Client type.
+        if (pepperCopyFrom.Equals(NativeClientVSAddIn.Strings.NaClPlatformName))
+        {
+          proj.ConfigurationManager.AddPlatform(
+            NativeClientVSAddIn.Strings.NaClPlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(
+            NativeClientVSAddIn.Strings.PepperPlatformName, pepperCopyFrom, true);
+        }
+        else
+        {
+          proj.ConfigurationManager.AddPlatform(
+            NativeClientVSAddIn.Strings.PepperPlatformName, pepperCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(
+            NativeClientVSAddIn.Strings.NaClPlatformName, naclCopyFrom, true);
+        }
+
+        proj.Save();
+        dte.Solution.SaveAs(newSolution);
+      }
+      finally
+      {
+        if (dte.Solution != null)
+        {
+          dte.Solution.Close();
+        }
+      }
+
+      return newSolution;
     }
 
     /// <summary>
@@ -278,6 +347,39 @@ namespace UnitTests
     public static bool Contains(this string source, string toCheck, StringComparison comparison)
     {
       return source.IndexOf(toCheck, comparison) != -1;
+    }
+
+    /// <summary>
+    /// Copies the entire contents of a directory and sub directories.
+    /// </summary>
+    /// <param name="source">Directory to copy from.</param>
+    /// <param name="dest">Directory to copy to.</param>
+    public static void CopyDirectory(string source, string dest)
+    {
+      DirectoryInfo dir = new DirectoryInfo(source);
+
+      if (!dir.Exists)
+      {
+        throw new DirectoryNotFoundException(source);
+      }
+
+      if (!Directory.Exists(dest))
+      {
+        Directory.CreateDirectory(dest);
+      }
+
+      FileInfo[] files = dir.GetFiles();
+      foreach (FileInfo file in files)
+      {
+        string path = Path.Combine(dest, file.Name);
+        file.CopyTo(path, false);
+      }
+
+      foreach (DirectoryInfo subdir in dir.GetDirectories())
+      {
+        string path = Path.Combine(dest, subdir.Name);
+        CopyDirectory(subdir.FullName, path);
+      }
     }
   }
 }

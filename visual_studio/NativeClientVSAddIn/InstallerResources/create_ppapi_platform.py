@@ -12,10 +12,16 @@ and intelligently modifies the copy to be the PPAPI template.
 """
 
 import os
+import optparse
 import shutil
 import string
 import xml_patch
-import xml.etree.ElementTree
+import third_party.etree.ElementTree as ElementTree
+
+
+PEPPER_PLATFORM_NAME = 'PPAPI'
+
+DEFAULT_MS_BUILD_DIRECTORY = os.path.expandvars('%ProgramFiles(x86)%\\MSBuild')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -94,8 +100,8 @@ def CreateTemplateFile(source, patch, dest):
   Returns:
     None.
   """
-  source_xml = xml.etree.ElementTree.parse(source)
-  patch_xml = xml.etree.ElementTree.parse(patch)
+  source_xml = ElementTree.parse(source)
+  patch_xml = ElementTree.parse(patch)
   modified_xml = xml_patch.PatchXML(source_xml, patch_xml)
 
   if not os.path.exists(os.path.dirname(dest)):
@@ -137,16 +143,28 @@ def FixAttributesNamespace(tree):
     elem.attrib = new_attrib
 
 
-def main():
-  install_dir = os.path.expandvars(
-      '%ProgramFiles(x86)%\\MSBuild\\Microsoft.Cpp\\v4.0\\Platforms')
+def CreatePPAPI(msbuild_dir):
+  """Creates the PPAPI template.
+
+  Args:
+    msbuild_dir: The path to the MSBuild installation.
+
+  Returns:
+    Nothing.
+
+  Raises:
+    Exception indicating Win32 platform was not found.
+  """
+  if not os.path.exists(msbuild_dir):
+    raise Exception('MSBuild directory was not found!')
+
+  install_dir = os.path.join(msbuild_dir, 'Microsoft.Cpp\\v4.0\\Platforms')
 
   # Note 1033 is code for the english language.
-  ui_xml_dir = os.path.expandvars(
-      '%ProgramFiles(x86)%\\MSBuild\\Microsoft.Cpp\\v4.0\\1033')
+  ui_xml_dir = os.path.join(msbuild_dir, 'Microsoft.Cpp\\v4.0\\1033')
 
   win32_dir = os.path.join(install_dir, 'Win32')
-  ppapi_dir = os.path.join(install_dir, 'PPAPI')
+  ppapi_dir = os.path.join(install_dir, PEPPER_PLATFORM_NAME)
   patch_dir = os.path.join(SCRIPT_DIR, 'PPAPI_Patch')
 
   if not os.path.exists(win32_dir):
@@ -175,6 +193,14 @@ def main():
       os.path.join(win32_dir, 'Microsoft.Build.CPPTasks.Win32.dll'),
       os.path.join(ppapi_dir, 'Microsoft.Build.CPPTasks.PPAPI.dll'))
 
+
+def main():
+  parser = optparse.OptionParser(usage='Usage: %prog [options]')
+  parser.add_option('-b', '--msbuild-path', dest='msbuild_path',
+      default=DEFAULT_MS_BUILD_DIRECTORY,
+      help='Provide the path to the MSBuild directory', metavar='PATH')
+  (options, args) = parser.parse_args()
+  CreatePPAPI(options.msbuild_path)
 
 if __name__ == '__main__':
   main()

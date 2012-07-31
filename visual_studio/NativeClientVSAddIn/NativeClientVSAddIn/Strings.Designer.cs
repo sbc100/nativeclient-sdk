@@ -70,11 +70,38 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to chrome.exe.
+        /// </summary>
+        internal static string ChromeProcessName {
+            get {
+                return ResourceManager.GetString("ChromeProcessName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --type=renderer.
+        /// </summary>
+        internal static string ChromeRendererFlag {
+            get {
+                return ResourceManager.GetString("ChromeRendererFlag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --enable-nacl-debug.
         /// </summary>
         internal static string NaClDebugFlag {
             get {
                 return ResourceManager.GetString("NaClDebugFlag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --type=nacl-loader.
+        /// </summary>
+        internal static string NaClLoaderFlag {
+            get {
+                return ResourceManager.GetString("NaClLoaderFlag", resourceCulture);
             }
         }
         
@@ -97,15 +124,6 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --type=nacl-loader.
-        /// </summary>
-        internal static string NaClProcessTypeFlag {
-            get {
-                return ResourceManager.GetString("NaClProcessTypeFlag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Not initialized correctly!.
         /// </summary>
         internal static string NotInitializedMessage {
@@ -124,29 +142,11 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to chrome.exe.
-        /// </summary>
-        internal static string PepperProcessName {
-            get {
-                return ResourceManager.GetString("PepperProcessName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to --register-pepper-plugins=&quot;{0};application/x-nacl&quot;.
         /// </summary>
         internal static string PepperProcessPluginFlagFormat {
             get {
                 return ResourceManager.GetString("PepperProcessPluginFlagFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to --type=renderer.
-        /// </summary>
-        internal static string PepperProcessTypeFlag {
-            get {
-                return ResourceManager.GetString("PepperProcessTypeFlag", resourceCulture);
             }
         }
         

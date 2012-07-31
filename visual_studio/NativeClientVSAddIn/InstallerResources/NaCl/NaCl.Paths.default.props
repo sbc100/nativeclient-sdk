@@ -1,0 +1,29 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+
+    <VCInstallDir>$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC@ProductDir)</VCInstallDir>
+    <VCInstallDir Condition="'$(VCInstallDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\Setup\VC@ProductDir)</VCInstallDir>
+    <VCInstallDir Condition="'$(VCInstallDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VCExpress\10.0\Setup\VC@ProductDir)</VCInstallDir>
+    <VCInstallDir Condition="'$(VCInstallDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VCExpress\10.0\Setup\VC@ProductDir)</VCInstallDir>
+
+    <VSInstallDir>$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VS@ProductDir)</VSInstallDir>
+    <VSInstallDir Condition="'$(VSInstallDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\Setup\VS@ProductDir)</VSInstallDir>
+    <VSInstallDir Condition="'$(VSInstallDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VCExpress\10.0\Setup\VS@ProductDir)</VSInstallDir>
+    <VSInstallDir Condition="'$(VSInstallDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VCExpress\10.0\Setup\VS@ProductDir)</VSInstallDir>
+
+    <WindowsSdkDir Condition="'$(UseEnv)' != 'true'">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A@InstallationFolder)</WindowsSdkDir>
+    <WindowsSdkDir Condition="'$(WindowsSdkDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v7.0A@InstallationFolder)</WindowsSdkDir>
+
+    <FrameworkDir Condition="'$(UseEnv)' != 'true'">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework@InstallRoot)</FrameworkDir>
+    <FrameworkDir Condition="'$(FrameworkDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\.NETFramework@InstallRoot)</FrameworkDir>
+
+    <FrameworkSdkDir Condition="'$(UseEnv)' != 'true'">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A@InstallationFolder)</FrameworkSdkDir>
+    <FrameworkSdkDir Condition="'$(FrameworkSdkDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v7.0A@InstallationFolder)</FrameworkSdkDir>
+
+    <IncludePath Condition="'$(IncludePath)' == ''">$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath Condition="'$(LibraryPath)' == '' AND '$(TargetArchitecture)'=='i686'">$(VSNaClSDKRoot)lib32;</LibraryPath>
+    <LibraryPath Condition="'$(LibraryPath)' == '' AND '$(TargetArchitecture)'=='x86_64'">$(VSNaClSDKRoot)lib;</LibraryPath>
+    <ExecutablePath Condition="'$(ExecutablePath)' == ''">$(NaClToolsPath);$(PATH);</ExecutablePath>
+    
+  </PropertyGroup>
+</Project>

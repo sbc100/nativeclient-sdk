@@ -120,8 +120,17 @@
   <data name="ChromePathEnvironmentVariable" xml:space="preserve">
     <value>CHROME_PATH</value>
   </data>
+  <data name="ChromeProcessName" xml:space="preserve">
+    <value>chrome.exe</value>
+  </data>
+  <data name="ChromeRendererFlag" xml:space="preserve">
+    <value>--type=renderer</value>
+  </data>
   <data name="NaClDebugFlag" xml:space="preserve">
     <value>--enable-nacl-debug</value>
+  </data>
+  <data name="NaClLoaderFlag" xml:space="preserve">
+    <value>--type=nacl-loader</value>
   </data>
   <data name="NaClPlatformName" xml:space="preserve">
     <value>NaCl</value>
@@ -129,24 +138,15 @@
   <data name="NaClProcessName" xml:space="preserve">
     <value>nacl64.exe</value>
   </data>
-  <data name="NaClProcessTypeFlag" xml:space="preserve">
-    <value>--type=nacl-loader</value>
-  </data>
   <data name="NotInitializedMessage" xml:space="preserve">
     <value>Not initialized correctly!</value>
   </data>
   <data name="PepperPlatformName" xml:space="preserve">
     <value>PPAPI</value>
   </data>
-  <data name="PepperProcessName" xml:space="preserve">
-    <value>chrome.exe</value>
-  </data>
   <data name="PepperProcessPluginFlagFormat" xml:space="preserve">
     <value>--register-pepper-plugins="{0};application/x-nacl"</value>
     <comment>Argument is plug-in assembly's path</comment>
-  </data>
-  <data name="PepperProcessTypeFlag" xml:space="preserve">
-    <value>--type=renderer</value>
   </data>
   <data name="SDKPathEnvironmentVariable" xml:space="preserve">
     <value>NACL_SDK_ROOT</value>

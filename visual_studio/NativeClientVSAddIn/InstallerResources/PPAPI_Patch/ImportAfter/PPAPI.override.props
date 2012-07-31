@@ -15,19 +15,36 @@
   <ItemDefinitionGroup Condition="'$(Configuration)' == 'Debug'">
     <ClCompile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release'">
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
   </ItemDefinitionGroup>
   
-  <!-- Add the Pepper static libraries -->
+  <!-- Add the Pepper static libraries, change output file -->
   <ItemDefinitionGroup>
     <Link>
       <AdditionalDependencies>ppapi_cpp.lib;ppapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   
   <!-- setup default debugging parameters -->
   <PropertyGroup>
-    <LocalDebuggerCommand>$(CHROME_PATH)\chrome.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:5103</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommand>$(CHROME_PATH)</LocalDebuggerCommand>
+    <LocalDebuggerCommandArguments Condition="$(Configuration) == 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:5103 --wait-for-debugger-children</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="$(Configuration) != 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:5103</LocalDebuggerCommandArguments>
+    
+    <LinkIncremental Condition="$(Configuration) == 'Debug'">true</LinkIncremental>
+    <LinkIncremental Condition="$(Configuration) != 'Debug'">false</LinkIncremental>
   </PropertyGroup>
 </Project>

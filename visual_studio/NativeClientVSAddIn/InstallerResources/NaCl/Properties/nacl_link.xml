@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Rule Name="Link" PageTemplate="tool" DisplayName="Linker" SwitchPrefix="-" Order="20" xmlns="http://schemas.microsoft.com/build/2009/properties" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+ 
+  <Rule.Categories>
+    <Category Name="General" DisplayName="General" />
+    <Category Name="Input" DisplayName="Input" />
+    <Category Name="Advanced" DisplayName="Advanced" />
+    <Category Name="Command Line" DisplayName="Command Line" Subtype="CommandLine" />
+  </Rule.Categories>
+  <Rule.DataSource>
+    <DataSource Persistence="ProjectFile" ItemType="Link" Label="" HasConfigurationCondition="true" />
+  </Rule.DataSource>
+  
+  <StringProperty Subtype="file" Name="OutputFile" DisplayName="Output File" Category="General" Switch="o" Separator=" ">
+  </StringProperty>
+  <BoolProperty Name="OutputCommandLine" DisplayName="Output Command Line" Category="General">
+  </BoolProperty>  
+  <StringListProperty Subtype="folder" Name="AdditionalLibraryDirectories" DisplayName="Additional Library Directories" Category="General" Switch="L">
+  </StringListProperty>
+  <EnumProperty Name="ConfigurationType" DisplayName="Configuration Type" Category="General" Visible="false">
+    <EnumValue Name="Application" DisplayName="Application (.nexe)" />
+    <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.so)" Switch="shared"/>
+    <EnumValue Name="StaticLibrary" DisplayName="Static library (.a)" />
+  </EnumProperty>
+  <StringListProperty Subtype="folder" Name="SystemLibraryDirectories" Category="General" Visible="false" Switch="L">
+  </StringListProperty>  
+
+
+  <BoolProperty Name="IgnoreAllDefaultLibraries" DisplayName="Ignore All Default Libraries" Category="Input" Switch="nostdlib">
+  </BoolProperty>  
+  <StringListProperty Subtype="file" Name="AdditionalDependencies" DisplayName="Additional Dependencies" Description="Specifies additional dependencies to add to the link command line" Category="Input" Switch="l">
+  </StringListProperty>
+
+  
+  <BoolProperty Name="ReportUndefinedSymbols" DisplayName="Report Undefined Symbols" Category="Advanced" Switch="Wl,--no-undefined">
+  </BoolProperty>
+
+
+  <StringProperty Name="AdditionalOptions" DisplayName="Additional Options" Description="Additional Options" Category="Command Line">
+  </StringProperty>
+  
+</Rule>

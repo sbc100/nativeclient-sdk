@@ -48,6 +48,30 @@ namespace NativeClientVSAddIn
     }
 
     /// <summary>
+    /// Returns a list of all descendant processes of a process.
+    /// </summary>
+    /// <param name="root">Process ID of the process to get all descendants from.</param>
+    /// <returns>All descendants of the given root process.</returns>
+    public List<ProcessInfo> GetDescendants(uint root)
+    {
+      List<ProcessInfo> processes = GetSystemProcesses();
+      HashSet<ProcessInfo> descendants = new HashSet<ProcessInfo>();
+      descendants.UnionWith(processes.Where(p => p.ID == root));
+      int lastCount = 0;
+      while (descendants.Count > lastCount)
+      {
+        lastCount = descendants.Count;
+
+        // Add any processes who have a parent that is in the descendant list already.
+        // Note we check the creation date to prevent cycles caused by recycled process IDs.
+        descendants.UnionWith(processes.Where(p => descendants.Any(
+            parent => parent.ID == p.ParentID && parent.CreationDate <= p.CreationDate)));
+      }
+
+      return descendants.ToList();
+    }
+
+    /// <summary>
     /// Queries the system for the full list of processes.
     /// </summary>
     /// <returns>List of processes on the system.</returns>

@@ -1,0 +1,10 @@
+{
+  "program": {
+    "x86-64": {
+      "url": "newlib/NaClProject.nexe"
+    },
+    "x86-32": {
+      "url": "newlib/NaClProject.nexe"
+    }
+  }
+}

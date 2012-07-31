@@ -11,19 +11,18 @@
       <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(Configuration)\</IntDir>
     </PatchRemove>
     <PatchAdd>
-      <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)Intermediate\Win\</IntDir>
+      <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)Intermediate\win\</IntDir>
     </PatchAdd>
     <PatchRemove>
       <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(SolutionDir)$(Configuration)\</OutDir>
     </PatchRemove>
     <PatchAdd>
-      <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(ProjectDir)Win\</OutDir>
-    </PatchAdd>
-    <PatchAdd>
-      <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(ProjectDir)Win\</OutDir>
+      <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(ProjectDir)win\</OutDir>
     </PatchAdd>
     <PatchAdd>
       <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+      <CharacterSet Condition="'$(CharacterSet)'==''">Unicode</CharacterSet>
+      <UseDebugLibraries Condition="'$(Configuration)' == 'Debug'">true</UseDebugLibraries>
     </PatchAdd>
   </PropertyGroup>
 </Project>

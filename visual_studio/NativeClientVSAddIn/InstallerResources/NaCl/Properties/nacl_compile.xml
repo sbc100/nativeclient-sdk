@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Rule Name="CL" PageTemplate="tool" DisplayName="C/C++" SwitchPrefix="-" Order="10" xmlns="http://schemas.microsoft.com/build/2009/properties" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+  <Rule.Categories>    
+    <Category Name="General" DisplayName="General" />
+    <Category Name="Optimization" DisplayName="Optimization" />
+    <Category Name="Preprocessor" DisplayName="Preprocessor" />
+    <Category Name="Code Generation" DisplayName="Code Generation" />	
+    <Category Name="Output Files" DisplayName="Output Files" />
+    <Category Name="Advanced" DisplayName="Advanced" />
+    <Category Name="Command Line" DisplayName="Command Line" Subtype="CommandLine" />
+  </Rule.Categories>
+  <Rule.DataSource>
+    <DataSource Persistence="ProjectFile" ItemType="ClCompile" Label="" HasConfigurationCondition="true" />
+  </Rule.DataSource>
+
+  
+  <StringListProperty Subtype="folder" Name="AdditionalIncludeDirectories" DisplayName="Additional Include Directories" Category="General" Switch="I">
+  </StringListProperty>
+  <BoolProperty Name="GenerateDebuggingInformation" DisplayName="Generate Debugging Information" Category="General" Switch="g">
+  </BoolProperty>  
+  <EnumProperty Name="Warnings" DisplayName="Warnings" Category="General">
+    <EnumValue Name="DisableAllWarnings" DisplayName="Disable All Warnings" Switch="w" />
+    <EnumValue Name="NormalWarnings" DisplayName="Enable Normal Warnings" />
+    <EnumValue Name="AllWarnings" DisplayName="Enable All Warnings" Switch="Wall" />
+  </EnumProperty>  
+  <BoolProperty Name="WarningsAsErrors" DisplayName="Treat Warnings as Errors" Category="General" Switch="Werror">
+  </BoolProperty>
+  <BoolProperty Name="OutputCommandLine" DisplayName="Output Command Line" Category="General">
+  </BoolProperty>
+  <EnumProperty Name="ConfigurationType" DisplayName="Configuration Type" Category="General">
+    <EnumValue Name="Application" DisplayName="Application (.nexe)" />
+    <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.so)" Switch="shared"/>
+    <EnumValue Name="StaticLibrary" DisplayName="Static library (.a)" />
+  </EnumProperty>
+  <BoolProperty Name="UserHeaderDependenciesOnly" Category="General" Visible="true" Switch="MMD">
+  </BoolProperty>  
+
+    <BoolProperty Name="PositionIndependentCode" DisplayName="Generate Position-Independent Code" Category="Code Generation" Switch="fpic">
+  </BoolProperty>
+  <BoolProperty Name="ExceptionHandling" DisplayName="Enable C++ Exceptions" Category="Code Generation" Switch="fexceptions" ReverseSwitch="fno-exceptions">
+  </BoolProperty>  
+  
+  <EnumProperty Name="OptimizationLevel" DisplayName="Optimization" Category="Optimization">
+    <EnumValue Name="O0" DisplayName="No Optimization" Switch="O0" >
+    </EnumValue>
+    <EnumValue Name="O1" DisplayName="Moderate Optimization" Switch="O1">
+    </EnumValue>
+    <EnumValue Name="O2" DisplayName="Full Optimization" Switch="O2">      
+    </EnumValue>
+    <EnumValue Name="O3" DisplayName="Full Optimization and Aggressive Inlining" Switch="O3">      
+    </EnumValue>
+    <EnumValue Name="Os" DisplayName="Optimize for Size" Switch="Os">
+    </EnumValue>
+  </EnumProperty>
+
+
+  <StringListProperty Name="PreprocessorDefinitions" DisplayName="Preprocessor Definitions" Category="Preprocessor" Switch="D">
+  </StringListProperty>
+  
+
+  <EnumProperty Name="CompileAs" DisplayName="Compile As" Category="Advanced">
+    <EnumValue Name="Default" DisplayName="Default">
+    </EnumValue>
+    <EnumValue Name="CompileAsC" DisplayName="Compile as C Code" Switch="x c">
+    </EnumValue>
+    <EnumValue Name="CompileAsCpp" DisplayName="Compile as C++ Code" Switch="x c++">
+    </EnumValue>
+  </EnumProperty>
+  
+
+  <StringProperty Subtype="file" Name="ObjectFileName" DisplayName="Object File Name" Category="Output Files" Switch="o ">
+  </StringProperty>
+  
+
+  <StringProperty Name="AdditionalOptions" DisplayName="Additional Options" Description="Additional Options" Category="Command Line">
+  </StringProperty>
+
+
+  <StringListProperty Name="SystemPreprocessorDefinitions" Category="General" Visible="false" Switch="D">
+  </StringListProperty>
+  
+  <StringListProperty Subtype="folder" Name="SystemIncludeDirectories" Category="General" Visible="false" Switch="I">
+  </StringListProperty>
+</Rule>

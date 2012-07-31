@@ -91,12 +91,12 @@ namespace NativeClientVSAddIn
     /// <summary>
     /// When debugging is started this is the web server process object.
     /// </summary>
-    private System.Diagnostics.Process webServer_ = null;
+    private System.Diagnostics.Process webServer_;
 
     /// <summary>
     /// Visual Studio output window pane that captures output from the web server.
     /// </summary>
-    private OutputWindowPane webServerOutputPane_ = null;
+    private OutputWindowPane webServerOutputPane_;
 
     /// <summary>
     /// Path to the web server executable.
@@ -123,6 +123,11 @@ namespace NativeClientVSAddIn
     /// Process searcher class which allows us to query the system for running processes.
     /// </summary>
     private ProcessSearcher processSearcher_;
+
+    /// <summary>
+    /// The main process of chrome that was started by Visual Studio during debugging.
+    /// </summary>
+    private System.Diagnostics.Process debuggedChromeMainProcess_;
 
     /// <summary>
     /// Constructs the PluginDebuggerHelper.
@@ -225,21 +230,20 @@ namespace NativeClientVSAddIn
       if (Utility.IsVisualCProject(startProject))
       {
         VCConfiguration config = Utility.GetActiveVCConfiguration(startProject);
-        VCProject vcproj = (VCProject)startProject.Object;
+        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
         VCLinkerTool linker = config.Tools.Item("VCLinkerTool");
-        pluginProjectDirectory_ = vcproj.ProjectDirectory;  // Macros not allowed here.
-        pluginAssembly_ = config.Evaluate(linker.OutputFile);
+        VCProject vcproj = (VCProject)startProject.Object;
+        sdkRootDirectory_ = general.GetEvaluatedPropertyValue("VSNaClSDKRoot");
         pluginOutputDirectory_ = config.Evaluate(config.OutputDirectory);
+        pluginAssembly_ = config.Evaluate(linker.OutputFile);
+        pluginProjectDirectory_ = vcproj.ProjectDirectory;  // Macros not allowed here.
       }
       else
       {
         return false;
       }
 
-      // TODO(tysand): Add user option to specify this.
-      int webServerPort = 5103;
-      sdkRootDirectory_ = Environment.GetEnvironmentVariable(Strings.SDKPathEnvironmentVariable);
-      if (sdkRootDirectory_ == null)
+      if (string.IsNullOrEmpty(sdkRootDirectory_))
       {
         MessageBox.Show(
             string.Format(Strings.SDKPathNotSetFormat, Strings.SDKPathEnvironmentVariable));
@@ -248,6 +252,8 @@ namespace NativeClientVSAddIn
 
       sdkRootDirectory_ = sdkRootDirectory_.TrimEnd("/\\".ToArray<char>());
 
+      // TODO(tysand): Add user option to specify this.
+      int webServerPort = 5103;
       webServerExecutable_ = "python.exe";
       webServerArguments_ = string.Format(
           "{0}\\examples\\httpd.py --no_dir_check {1}",
@@ -255,8 +261,10 @@ namespace NativeClientVSAddIn
           webServerPort);
 
       // TODO(tysand): Update this to nacl-gdb when it is ready. Should be able to remove irtPath_.
-      gdbPath_ = sdkRootDirectory_ + @"\customGDB\gdb.exe";
+      gdbPath_ = sdkRootDirectory_ + @"\gdb-remote-x86-64\gdb.exe";
       irtPath_ = sdkRootDirectory_ + @"\tools\irt_x86_64.nexe";
+
+      debuggedChromeMainProcess_ = null;
 
       isProperlyInitialized_ = true;
       return true;
@@ -329,54 +337,68 @@ namespace NativeClientVSAddIn
 
     /// <summary>
     /// This is called periodically by the Visual Studio UI thread to look for our plug-in process
-    /// and attach the debugger to it.  The call is triggered by the pluginFinderTimer_ object
+    /// and attach the debugger to it.  The call is triggered by the pluginFinderTimer_ object.
     /// </summary>
     /// <param name="unused">The parameter is not used.</param>
     /// <param name="unused1">The parameter is not used.</param>
     private void FindAndAttachToPlugin(object unused, EventArgs unused1)
     {
-      string processNameTarget;
-      string typeFlagTarget;
-      string identifierFlagTarget;
+      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+
+      // Set the main chrome process that was started by visual studio.  If it's not chrome
+      // or not found then we have no business attaching to any plug-ins so return.
+      if (debuggedChromeMainProcess_ == null)
+      {
+        foreach (Process proc in dte_.Debugger.DebuggedProcesses)
+        {
+          if (proc.Name.EndsWith(Strings.ChromeProcessName, ignoreCase))
+          {
+            debuggedChromeMainProcess_ = System.Diagnostics.Process.GetProcessById(proc.ProcessID);
+            break;
+          }
+        }
+
+        return;
+      }
+
+      // Get the list of all descendants of the main chrome process.
+      uint mainChromeProcId = (uint)debuggedChromeMainProcess_.Id;
+      List<ProcessInfo> chromeDescendants = processSearcher_.GetDescendants(mainChromeProcId);
+
+      // From the list of descendants, find the plug-in by it's command line arguments and
+      // process name as well as not being attached to already.
+      List<ProcessInfo> plugins;
       switch (projectPlatformType_)
       {
         case ProjectPlatformType.Pepper:
-          processNameTarget = Strings.PepperProcessName;
-          typeFlagTarget = Strings.PepperProcessTypeFlag;
-          identifierFlagTarget =
+          string identifierFlagTarget =
               string.Format(Strings.PepperProcessPluginFlagFormat, pluginAssembly_);
+          plugins = chromeDescendants.FindAll(p =>
+             p.Name.Equals(Strings.ChromeProcessName, ignoreCase) &&
+             p.CommandLine.Contains(Strings.ChromeRendererFlag, ignoreCase) &&
+             p.CommandLine.Contains(identifierFlagTarget, ignoreCase) &&
+             !pluginFinderForbiddenPids_.Contains(p.ID));
           break;
         case ProjectPlatformType.NaCl:
-          processNameTarget = Strings.NaClProcessName;
-          typeFlagTarget = Strings.NaClProcessTypeFlag;
-          identifierFlagTarget = Strings.NaClDebugFlag;
+          plugins = chromeDescendants.FindAll(p =>
+             p.Name.Equals(Strings.NaClProcessName, ignoreCase) &&
+             p.CommandLine.Contains(Strings.NaClLoaderFlag, ignoreCase) &&
+             !pluginFinderForbiddenPids_.Contains(p.ID));
           break;
         default:
           return;
       }
 
-      // To identify our target plug-in we look for: its process name (e.g. chrome.exe),
-      // identifying command line arguments (e.g. --type=renderer), not already attached
-      // to by us, and must be a descendant process of this instance of Visual Studio.
-      List<ProcessInfo> results = processSearcher_.GetResultsByName(processNameTarget);
-      uint currentProcessId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
-      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
-      foreach (ProcessInfo process in results)
+      // Attach to all plug-ins that we found.
+      foreach (ProcessInfo process in plugins)
       {
-        if (!pluginFinderForbiddenPids_.Contains(process.ID) &&
-            !string.IsNullOrEmpty(process.CommandLine) &&
-            process.CommandLine.Contains(typeFlagTarget, ignoreCase) &&
-            process.CommandLine.Contains(identifierFlagTarget, ignoreCase) &&
-            Utility.IsDescendantOfProcess(processSearcher_, process.ID, currentProcessId))
-        {
-          // If we are attaching to a plug-in, add it to the forbidden list to ensure we
-          // don't try to attach again later.
-          pluginFinderForbiddenPids_.Add(process.ID);
-          PluginFoundEvent.Invoke(this, new PluginFoundEventArgs(process.ID));
+        // If we are attaching to a plug-in, add it to the forbidden list to ensure we
+        // don't try to attach again later.
+        pluginFinderForbiddenPids_.Add(process.ID);
+        PluginFoundEvent.Invoke(this, new PluginFoundEventArgs(process.ID));
 
-          // Slow down the frequency of checks for new plugins.
-          pluginFinderTimer_.Interval = RelaxedPluginCheckFrequency;
-        }
+        // Slow down the frequency of checks for new plugins.
+        pluginFinderTimer_.Interval = RelaxedPluginCheckFrequency;
       }
     }
 
@@ -432,11 +454,11 @@ namespace NativeClientVSAddIn
       contents.AppendLine();
 
       // TODO(tysand): Nacl-gdb should handle the offset automatically. Remove 0xC00020080.
-      contents.AppendFormat("add-symbol-file {0} 0xC00020080", pluginAssemblyEscaped);
+      contents.AppendFormat("add-symbol-file \"{0}\" 0xC00020080", pluginAssemblyEscaped);
       contents.AppendLine();
 
       // TODO(tysand): Nacl-gdb should handle loading the irt automatically. Remove this line.
-      contents.AppendFormat("add-symbol-file {0} 0xC0fc00080", irtPathEscaped);
+      contents.AppendFormat("add-symbol-file \"{0}\" 0xC0fc00080", irtPathEscaped);
       contents.AppendLine();
 
       // Insert breakpoints from Visual Studio project.
@@ -537,7 +559,6 @@ namespace NativeClientVSAddIn
     private void WebServerWriteLine(string message)
     {
       webServerOutputPane_.OutputString(message + "\n");
-      webServerOutputPane_.Activate();
     }
 
     /// <summary>

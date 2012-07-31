@@ -1,0 +1,12 @@
+Name: ElementTree
+Short Name: ElementTree
+URL: http://effbot.org/zone/element-index.htm and http://www.python.org/
+Version: ElementTree 1.3 from Python 2.7.3
+License File: LICENSE in this directory.
+Security Critical: No.
+
+Description:
+The ElementTree package is used to parse XML files, modify them, and write them out. Version 1.3 (from Python 2.7.3) is needed for our install scripts but we require only Python 2.6 for our users so we need to include this functionality.
+
+Local Modifications:
+No changes from the version shipped with python 2.7.3

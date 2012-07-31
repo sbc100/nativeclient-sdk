@@ -11,7 +11,7 @@ the patch_xml() function.
 
 import collections
 import copy
-import xml.etree.ElementTree as ElementTree
+import third_party.etree.ElementTree as ElementTree
 
 
 def PatchXML(source_xml_tree, patch_xml_tree):
@@ -96,24 +96,24 @@ def MergeElement(source_elem, patch_elem):
   # the subelements of source with the patch and put them in new_element.
   new_element = ElementTree.Element(source_elem.tag, source_elem.attrib)
 
-  patch_children = patch_elem.getchildren()
+  patch_children = list(patch_elem)
   patch_index = 0
   remove_targets = collections.deque()
   find_target = None
-  for source_child in source_elem.getchildren():
+  for source_child in source_elem:
     # If we have no current patch operation then read the next patch element.
     while (len(remove_targets) == 0 and find_target is None and
         patch_index < len(patch_children)):
 
       # PatchAdd operation.
       if IsPatchAddTag(patch_children[patch_index].tag):
-        for addition in patch_children[patch_index].getchildren():
+        for addition in patch_children[patch_index]:
           new_element.append(copy.deepcopy(addition))
 
       # Start a remove operation by creating a list of elements to skip adding.
       elif IsPatchRemoveTag(patch_children[patch_index].tag):
         remove_targets = collections.deque(
-            patch_children[patch_index].getchildren())
+            patch_children[patch_index])
 
       # Not an Add or Remove, must be a find target (find operation).
       else:
@@ -144,14 +144,14 @@ def MergeElement(source_elem, patch_elem):
   # We may have more add operations after source has run empty:
   while patch_index < len(patch_children):
     if IsPatchAddTag(patch_children[patch_index].tag):
-      for addition in patch_children[patch_index].getchildren():
+      for addition in patch_children[patch_index]:
         new_element.append(copy.deepcopy(addition))
       patch_index += 1
     else:
       raise Exception('Non-add operation attempted after source end. ' +
                       'Tag: %s, Children %s' %
                       (patch_children[patch_index].tag,
-                       patch_children[patch_index].get_children()))
+                       list(patch_children[patch_index])))
 
   return new_element
 

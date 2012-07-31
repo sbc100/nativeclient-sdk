@@ -62,7 +62,7 @@ namespace NativeClientVSAddIn
     /// <summary>
     /// Called when Visual Studio starts a debugging session.
     /// </summary>
-    /// <param name="reason">The parameter is not used.</param>
+    /// <param name="reason">Indicates how we are entering run mode (breakpoint or launch).</param>
     public void DebuggerOnEnterRunMode(dbgEventReason reason)
     {
       // If we are starting debugging (not re-entering from a breakpoint)
