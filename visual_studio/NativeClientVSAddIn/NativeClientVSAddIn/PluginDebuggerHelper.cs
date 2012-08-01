@@ -64,6 +64,11 @@ namespace NativeClientVSAddIn
     private string irtPath_;
 
     /// <summary>
+    /// Path to the project's nmf file.
+    /// </summary>
+    private string manifestPath_;
+
+    /// <summary>
     /// Root directory of the installed NaCl SDK.
     /// </summary>
     private string sdkRootDirectory_;
@@ -189,6 +194,8 @@ namespace NativeClientVSAddIn
     {
       isProperlyInitialized_ = false;
 
+      string platformToolset;
+
       // We require that there is only a single start-up project.
       // If multiple start-up projects are specified then we use the first and
       // leave a warning message in the Web Server output pane.
@@ -233,10 +240,18 @@ namespace NativeClientVSAddIn
         IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
         VCLinkerTool linker = config.Tools.Item("VCLinkerTool");
         VCProject vcproj = (VCProject)startProject.Object;
+        
         sdkRootDirectory_ = general.GetEvaluatedPropertyValue("VSNaClSDKRoot");
+        platformToolset = general.GetEvaluatedPropertyValue("PlatformToolset");
         pluginOutputDirectory_ = config.Evaluate(config.OutputDirectory);
         pluginAssembly_ = config.Evaluate(linker.OutputFile);
         pluginProjectDirectory_ = vcproj.ProjectDirectory;  // Macros not allowed here.
+        
+        if (projectPlatformType_ == ProjectPlatformType.NaCl)
+        {
+          irtPath_ = general.GetEvaluatedPropertyValue("NaClIrtPath");
+          manifestPath_ = general.GetEvaluatedPropertyValue("NaClManifestPath");
+        }
       }
       else
       {
@@ -260,9 +275,8 @@ namespace NativeClientVSAddIn
           sdkRootDirectory_,
           webServerPort);
 
-      // TODO(tysand): Update this to nacl-gdb when it is ready. Should be able to remove irtPath_.
-      gdbPath_ = sdkRootDirectory_ + @"\gdb-remote-x86-64\gdb.exe";
-      irtPath_ = sdkRootDirectory_ + @"\tools\irt_x86_64.nexe";
+      gdbPath_ = Path.Combine(
+          sdkRootDirectory_, "toolchain", platformToolset, @"bin\x86_64-nacl-gdb.exe");
 
       debuggedChromeMainProcess_ = null;
 
@@ -429,37 +443,28 @@ namespace NativeClientVSAddIn
     /// </param>
     private void AttachNaClGDB(object src, PluginFoundEventArgs args)
     {
-      // NOTE: The settings listed here are a placeholder until nacl-gdb is ready.
-      //       Specifically, 'set architecture' and 'add-symbol-file' calls. See TODO comments.
-
       // Clean up any pre-existing GDB process (can happen if user reloads page).
       KillGDBProcess();
 
       gdbInitFileName_ = Path.GetTempFileName();
-      string projectDir = pluginProjectDirectory_.TrimEnd('\\');
       string pluginAssemblyEscaped = pluginAssembly_.Replace("\\", "\\\\");
       string irtPathEscaped = irtPath_.Replace("\\", "\\\\");
 
       // Create the initialization file to read in on GDB start.
       StringBuilder contents = new StringBuilder();
 
-      // TODO(tysand): Allow user setting for debug stub port (currently 4014).
-      contents.AppendFormat("target remote localhost:{0}", 4014);
-      contents.AppendLine();
+      if (!string.IsNullOrEmpty(manifestPath_))
+      {
+        string manifestEscaped = manifestPath_.Replace("\\", "\\\\");
+        contents.AppendFormat("nacl-manifest {0}\n", manifestEscaped);
+      }
+      else
+      {
+        contents.AppendFormat("file \"{0}\"\n", pluginAssemblyEscaped);
+      }
 
-      // TODO(tysand): Nacl-gdb should detect this automatically making this call unnecessary.
-      contents.Append("set architecture i386:x86-64");
-      contents.AppendLine();
-      contents.AppendFormat("cd {0}", projectDir);
-      contents.AppendLine();
-
-      // TODO(tysand): Nacl-gdb should handle the offset automatically. Remove 0xC00020080.
-      contents.AppendFormat("add-symbol-file \"{0}\" 0xC00020080", pluginAssemblyEscaped);
-      contents.AppendLine();
-
-      // TODO(tysand): Nacl-gdb should handle loading the irt automatically. Remove this line.
-      contents.AppendFormat("add-symbol-file \"{0}\" 0xC0fc00080", irtPathEscaped);
-      contents.AppendLine();
+      contents.AppendFormat("nacl-irt {0}\n", irtPathEscaped);
+      contents.AppendFormat("target remote localhost:{0}\n", 4014);
 
       // Insert breakpoints from Visual Studio project.
       foreach (Breakpoint bp in dte_.Debugger.Breakpoints)

@@ -16,9 +16,27 @@
   </Rule.DataSource>
   
   <StringProperty Name="VSNaClSDKRoot" DisplayName="NaCl SDK Root"
-                  Description="Specifies the path to the Native Client SDK root directory"
+                  Description="Specifies the path to the Native Client SDK root directory."
                   Category="NativeClient" Default=""
                   Subtype="folder" F1Keyword="VC.Project.VCConfiguration.NaClSDKRoot">
+    <StringProperty.DataSource>
+      <DataSource Persistence="ProjectFile" Label="" />
+    </StringProperty.DataSource>
+  </StringProperty>
+  
+  <StringProperty Name="NaClManifestPath" DisplayName="Manifest File Path"
+                  Description="Specifies the path to the .nmf file for this project configuration."
+                  Category="NativeClient" Default=""
+                  Subtype="file" F1Keyword="VC.Project.VCConfiguration.NaClManifestPath">
+    <StringProperty.DataSource>
+      <DataSource Persistence="ProjectFile" Label="" />
+    </StringProperty.DataSource>
+  </StringProperty>
+  
+  <StringProperty Name="NaClIrtPath" DisplayName="IRT File Path"
+                  Description="Specifies the path to the NaCl Intermediate Runtime file for this project configuration."
+                  Category="NativeClient" Default=""
+                  Subtype="file" F1Keyword="VC.Project.VCConfiguration.NaClIrtPath">
     <StringProperty.DataSource>
       <DataSource Persistence="ProjectFile" Label="" />
     </StringProperty.DataSource>

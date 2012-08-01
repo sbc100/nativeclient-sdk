@@ -15,5 +15,7 @@
     <OutDir Condition="'$(OutDir)'==''">$(ProjectDir)$(ToolchainName)\</OutDir>
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+    <NaClManifestPath></NaClManifestPath>
+    <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
   </PropertyGroup>
 </Project>
