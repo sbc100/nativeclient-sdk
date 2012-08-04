@@ -12,7 +12,7 @@
   <!-- setup default debugging parameters -->
   <PropertyGroup>
     <LocalDebuggerCommand>$(CHROME_PATH)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments Condition="$(Configuration) == 'Debug'">--enable-nacl-debug --no-sandbox localhost:5103</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArguments Condition="$(Configuration) != 'Debug'">localhost:5103</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="$(Configuration) == 'Debug'">--enable-nacl-debug --no-sandbox localhost:$(NaClWebServerPort) --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="$(Configuration) != 'Debug'">localhost:$(NaClWebServerPort) --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

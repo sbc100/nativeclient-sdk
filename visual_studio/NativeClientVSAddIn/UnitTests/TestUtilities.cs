@@ -115,6 +115,10 @@ namespace UnitTests
             NativeClientVSAddIn.Strings.NaClPlatformName, naclCopyFrom, true);
         }
 
+        // Set the active solution configuration to Debug|NaCl.
+        SetSolutionConfiguration(
+            dte, BlankNaClProjectUniqueName, "Debug", NativeClientVSAddIn.Strings.NaClPlatformName);
+
         proj.Save();
         dte.Solution.SaveAs(newSolution);
       }
@@ -127,6 +131,27 @@ namespace UnitTests
       }
 
       return newSolution;
+    }
+
+    /// <summary>
+    /// Ensures that the add-in is configured to load on start. If it isn't then some tests may
+    /// unexpectedly fail, this check helps catch that problem early.
+    /// </summary>
+    /// <param name="dte">The main Visual Studio interface.</param>
+    /// <param name="addInName">The name of the add-in to check if loaded.</param>
+    public static void AssertAddinLoaded(DTE2 dte, string addInName)
+    {
+      bool found = false;
+      foreach (AddIn addin in dte.AddIns)
+      {
+        if (addin.Connected && addInName.Equals(addin.Name))
+        {
+          found = true;
+          break;
+        }
+      }
+
+      Assert.IsTrue(found, "Add-in is not configured to load on start.");
     }
 
     /// <summary>
@@ -334,6 +359,29 @@ namespace UnitTests
           configuration.ConfigurationName);
 
       Assert.IsTrue(propertyValue.Contains(expectedValue, caseSensitive), message);
+    }
+
+    /// <summary>
+    /// Tests that a given property is not null or empty.
+    /// </summary>
+    /// <param name="configuration">Gives the platform and configuration type</param>
+    /// <param name="pageName">Property page name where property resides.</param>
+    /// <param name="propertyName">Name of the property to check.</param>
+    public static void AssertPropertyIsNotNullOrEmpty(
+        VCConfiguration configuration,
+        string pageName,
+        string propertyName)
+    {
+      IVCRulePropertyStorage rule = configuration.Rules.Item(pageName);
+      string propertyValue = rule.GetUnevaluatedPropertyValue(propertyName);
+
+      string message = string.Format(
+          "{0} was null or empty. Page: {1}, Configuration: {2}",
+          propertyName,
+          pageName,
+          configuration.ConfigurationName);
+
+      Assert.IsFalse(string.IsNullOrEmpty(propertyValue), message);
     }
 
     /// <summary>

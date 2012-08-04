@@ -74,6 +74,15 @@ namespace UnitTests
     public void TestSetup()
     {
       dte_ = TestUtilities.StartVisualStudioInstance();
+      try
+      {
+        TestUtilities.AssertAddinLoaded(dte_, NativeClientVSAddIn.Strings.AddInName);
+      }
+      catch
+      {
+        TestUtilities.CleanUpVisualStudioInstance(dte_);
+        throw;
+      }
     }
 
     /// <summary>
@@ -225,7 +234,11 @@ namespace UnitTests
       // Fake the list of processes on the system.
       processResults.ProcessList.Add(
           new ProcessInfo(
-              currentProcId, currentProcId, string.Empty, string.Empty, Strings.ChromeProcessName));
+              currentProcId,
+              currentProcId,
+              string.Empty,
+              Strings.NaClDebugFlag,
+              Strings.ChromeProcessName));
       processResults.ProcessList.Add(
           new ProcessInfo(1, currentProcId, string.Empty, string.Empty, "MyParentProcess"));
       processResults.ProcessList.Add(

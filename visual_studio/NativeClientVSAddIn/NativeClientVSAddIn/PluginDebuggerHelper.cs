@@ -34,6 +34,11 @@ namespace NativeClientVSAddIn
     private const int RelaxedPluginCheckFrequency = 5000;
 
     /// <summary>
+    /// The web server port to default to if the user does not specify one.
+    /// </summary>
+    private const int DefaultWebServerPort = 5103;
+
+    /// <summary>
     /// The main visual studio object through which all Visual Studio functions are executed.
     /// </summary>
     private DTE2 dte_;
@@ -233,47 +238,47 @@ namespace NativeClientVSAddIn
       }
 
       // We only support certain project types (e.g. C/C++ projects). Otherwise we fail.
-      // If supported, extract necessary information from specific project type.
-      if (Utility.IsVisualCProject(startProject))
-      {
-        VCConfiguration config = Utility.GetActiveVCConfiguration(startProject);
-        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
-        VCLinkerTool linker = config.Tools.Item("VCLinkerTool");
-        VCProject vcproj = (VCProject)startProject.Object;
-        
-        sdkRootDirectory_ = general.GetEvaluatedPropertyValue("VSNaClSDKRoot");
-        platformToolset = general.GetEvaluatedPropertyValue("PlatformToolset");
-        pluginOutputDirectory_ = config.Evaluate(config.OutputDirectory);
-        pluginAssembly_ = config.Evaluate(linker.OutputFile);
-        pluginProjectDirectory_ = vcproj.ProjectDirectory;  // Macros not allowed here.
-        
-        if (projectPlatformType_ == ProjectPlatformType.NaCl)
-        {
-          irtPath_ = general.GetEvaluatedPropertyValue("NaClIrtPath");
-          manifestPath_ = general.GetEvaluatedPropertyValue("NaClManifestPath");
-        }
-      }
-      else
+      if (!Utility.IsVisualCProject(startProject))
       {
         return false;
       }
 
+      // Extract necessary information from specific project type.
+      VCConfiguration config = Utility.GetActiveVCConfiguration(startProject);
+      IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
+      VCLinkerTool linker = config.Tools.Item("VCLinkerTool");
+      VCProject vcproj = (VCProject)startProject.Object;
+        
+      sdkRootDirectory_ = general.GetEvaluatedPropertyValue("VSNaClSDKRoot");
+      platformToolset = general.GetEvaluatedPropertyValue("PlatformToolset");
+      pluginOutputDirectory_ = config.Evaluate(config.OutputDirectory);
+      pluginAssembly_ = config.Evaluate(linker.OutputFile);
+      pluginProjectDirectory_ = vcproj.ProjectDirectory;  // Macros not allowed here.
+      
+      if (projectPlatformType_ == ProjectPlatformType.NaCl)
+      {
+        irtPath_ = general.GetEvaluatedPropertyValue("NaClIrtPath");
+        manifestPath_ = general.GetEvaluatedPropertyValue("NaClManifestPath");
+      }
+
       if (string.IsNullOrEmpty(sdkRootDirectory_))
       {
-        MessageBox.Show(
-            string.Format(Strings.SDKPathNotSetFormat, Strings.SDKPathEnvironmentVariable));
+        MessageBox.Show(Strings.SDKPathNotSetError);
         return false;
       }
 
       sdkRootDirectory_ = sdkRootDirectory_.TrimEnd("/\\".ToArray<char>());
 
-      // TODO(tysand): Add user option to specify this.
-      int webServerPort = 5103;
+      // TODO(tysand): Move this code getting port to where the web server is started.
+      int webServerPort;
+      if (!int.TryParse(general.GetEvaluatedPropertyValue("NaClWebServerPort"), out webServerPort))
+      {
+        webServerPort = DefaultWebServerPort;
+      }
+
       webServerExecutable_ = "python.exe";
       webServerArguments_ = string.Format(
-          "{0}\\examples\\httpd.py --no_dir_check {1}",
-          sdkRootDirectory_,
-          webServerPort);
+          "{0}\\examples\\httpd.py --no_dir_check {1}", sdkRootDirectory_, webServerPort);
 
       gdbPath_ = Path.Combine(
           sdkRootDirectory_, "toolchain", platformToolset, @"bin\x86_64-nacl-gdb.exe");
@@ -317,35 +322,21 @@ namespace NativeClientVSAddIn
         }
       }
 
-      if (webServer_ != null)
-      {
-        webServer_.Kill();
-        webServer_.Dispose();
-        webServer_ = null;
-      }
-
-      KillGDBProcess();
+      Utility.EnsureProcessKill(ref webServer_);
+      WebServerWriteLine(Strings.WebServerStopMessage);
+      CleanUpGDBProcess();
     }
 
     /// <summary>
     /// This function cleans up the started GDB process.
     /// </summary>
-    private void KillGDBProcess()
+    private void CleanUpGDBProcess()
     {
-      if (gdbProcess_ != null)
+      Utility.EnsureProcessKill(ref gdbProcess_);
+      if (!string.IsNullOrEmpty(gdbInitFileName_) && File.Exists(gdbInitFileName_))
       {
-        if (!gdbProcess_.HasExited)
-        {
-          gdbProcess_.Kill();
-          gdbProcess_.Dispose();
-        }
-
-        if (!string.IsNullOrEmpty(gdbInitFileName_) && File.Exists(gdbInitFileName_))
-        {
-          File.Delete(gdbInitFileName_);
-        }
-
-        gdbProcess_ = null;
+        File.Delete(gdbInitFileName_);
+        gdbInitFileName_ = null;
       }
     }
 
@@ -378,6 +369,14 @@ namespace NativeClientVSAddIn
       // Get the list of all descendants of the main chrome process.
       uint mainChromeProcId = (uint)debuggedChromeMainProcess_.Id;
       List<ProcessInfo> chromeDescendants = processSearcher_.GetDescendants(mainChromeProcId);
+
+      // If we didn't start with debug flags then we should not attach.
+      string mainChromeFlags = chromeDescendants.Find(p => p.ID == mainChromeProcId).CommandLine;
+      if (projectPlatformType_ == ProjectPlatformType.NaCl &&
+          !mainChromeFlags.Contains(Strings.NaClDebugFlag))
+      {
+        return;
+      }
 
       // From the list of descendants, find the plug-in by it's command line arguments and
       // process name as well as not being attached to already.
@@ -444,7 +443,7 @@ namespace NativeClientVSAddIn
     private void AttachNaClGDB(object src, PluginFoundEventArgs args)
     {
       // Clean up any pre-existing GDB process (can happen if user reloads page).
-      KillGDBProcess();
+      CleanUpGDBProcess();
 
       gdbInitFileName_ = Path.GetTempFileName();
       string pluginAssemblyEscaped = pluginAssembly_.Replace("\\", "\\\\");
@@ -469,19 +468,20 @@ namespace NativeClientVSAddIn
       // Insert breakpoints from Visual Studio project.
       foreach (Breakpoint bp in dte_.Debugger.Breakpoints)
       {
-        if (bp.Enabled &&
-            bp.LocationType == dbgBreakpointLocationType.dbgBreakpointLocationTypeFile)
+        if (!bp.Enabled)
         {
-          contents.AppendFormat("b {0}:{1}", Path.GetFileName(bp.File), bp.FileLine);
-          contents.AppendLine();
+          continue;
         }
-        else if (bp.Enabled &&
-            bp.LocationType == dbgBreakpointLocationType.dbgBreakpointLocationTypeFunction)
+
+        if (bp.LocationType == dbgBreakpointLocationType.dbgBreakpointLocationTypeFile)
         {
-          contents.AppendFormat("b {0}", bp.FunctionName);
-          contents.AppendLine();
+          contents.AppendFormat("b {0}:{1}\n", Path.GetFileName(bp.File), bp.FileLine);
         }
-        else if (bp.Enabled)
+        else if (bp.LocationType == dbgBreakpointLocationType.dbgBreakpointLocationTypeFunction)
+        {
+          contents.AppendFormat("b {0}\n", bp.FunctionName);
+        }
+        else
         {
           WebServerWriteLine(
             string.Format(Strings.UnsupportedBreakpointTypeFormat, bp.LocationType.ToString()));
@@ -563,7 +563,10 @@ namespace NativeClientVSAddIn
     /// <param name="message">Message to write.</param>
     private void WebServerWriteLine(string message)
     {
-      webServerOutputPane_.OutputString(message + "\n");
+      if (webServerOutputPane_ != null)
+      {
+        webServerOutputPane_.OutputString(message + "\n");
+      }
     }
 
     /// <summary>

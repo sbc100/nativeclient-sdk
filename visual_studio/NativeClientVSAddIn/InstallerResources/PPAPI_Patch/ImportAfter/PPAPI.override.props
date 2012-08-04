@@ -41,9 +41,8 @@
   <!-- setup default debugging parameters -->
   <PropertyGroup>
     <LocalDebuggerCommand>$(CHROME_PATH)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments Condition="$(Configuration) == 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:5103 --wait-for-debugger-children</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArguments Condition="$(Configuration) != 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:5103</LocalDebuggerCommandArguments>
-    
+    <LocalDebuggerCommandArguments Condition="$(Configuration) == 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort) --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl --wait-for-debugger-children --no-sandbox</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="$(Configuration) != 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort) --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
     <LinkIncremental Condition="$(Configuration) == 'Debug'">true</LinkIncremental>
     <LinkIncremental Condition="$(Configuration) != 'Debug'">false</LinkIncremental>
   </PropertyGroup>

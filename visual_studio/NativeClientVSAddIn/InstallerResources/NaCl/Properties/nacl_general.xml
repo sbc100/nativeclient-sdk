@@ -15,6 +15,13 @@
     <DataSource Persistence="ProjectFile" Label="Configuration" />
   </Rule.DataSource>
   
+  <StringProperty Name="NaClAddInVersion" Visible="false"
+                  Category="NativeClient" Default="">
+    <StringProperty.DataSource>
+      <DataSource Persistence="ProjectFile" Label=""/>
+    </StringProperty.DataSource>
+  </StringProperty>
+  
   <StringProperty Name="VSNaClSDKRoot" DisplayName="NaCl SDK Root"
                   Description="Specifies the path to the Native Client SDK root directory."
                   Category="NativeClient" Default=""
@@ -40,6 +47,29 @@
     <StringProperty.DataSource>
       <DataSource Persistence="ProjectFile" Label="" />
     </StringProperty.DataSource>
+  </StringProperty>
+  
+  <StringProperty Name="NaClWebServerPort" DisplayName="Web Server Port"
+                  Description="Specifies the port number to use while hosting the nexe"
+                  Category="NativeClient" Default=""
+                  F1Keyword="VC.Project.VCConfiguration.NaClWebServerPort">
+    <StringProperty.DataSource>
+      <DataSource Persistence="ProjectFile" Label="" />
+    </StringProperty.DataSource>
+  </StringProperty>
+  
+  <EnumProperty Name="ToolchainName" DisplayName="Toolchain" Category="NativeClient">
+    <EnumValue Name="newlib" DisplayName="newlib" />
+    <EnumValue Name="glibc" DisplayName="glibc" />
+  </EnumProperty>
+  
+  <!-- PlatformToolset is constructed in Microsoft.Cpp.NaCl.default.props to be win_x86_$(ToolchainName) -->
+  <StringProperty Name="PlatformToolset" DisplayName="Platform Toolset" Visible="false"
+                  Description="The 'hidden' property which constructs the toolchain name from current settings."
+                  Category="NativeClient">
+                  <StringProperty.DataSource>
+                     <DataSource Persistence="ProjectFile" Label="" />
+                  </StringProperty.DataSource>
   </StringProperty>
   
   <StringProperty Name="OutDir" DisplayName="Output Directory"
@@ -98,20 +128,6 @@
                   Subtype="file">
                   <StringProperty.DataSource>
                      <DataSource Persistence="ProjectFile" ItemType="BuildLog" PersistedName="Path" />
-                  </StringProperty.DataSource>
-  </StringProperty>
-  
-  <EnumProperty Name="ToolchainName" DisplayName="Toolchain" Category="General">
-    <EnumValue Name="newlib" DisplayName="newlib" />
-    <EnumValue Name="glibc" DisplayName="glibc" />
-  </EnumProperty>
-  
-  <!-- PlatformToolset is constructed in Microsoft.Cpp.NaCl.default.props to be win_x86_$(ToolchainName) -->
-  <StringProperty Name="PlatformToolset" DisplayName="Platform Toolset" Visible="false"
-                  Description="The 'hidden' property which constructs the toolchain name from current settings."
-                  Category="General">
-                  <StringProperty.DataSource>
-                     <DataSource Persistence="ProjectFile" Label="" />
                   </StringProperty.DataSource>
   </StringProperty>
   

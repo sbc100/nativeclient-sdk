@@ -16,10 +16,26 @@
   
   <!-- Add VS NaCl SDK Root.  Note the default value is actually set in Microsoft.cpp.PPAPI.default.props.patch -->
   <PatchAdd>
+    <StringProperty Name="NaClAddInVersion" Visible="false"
+                  Category="NativeClient" Default="">
+      <StringProperty.DataSource>
+        <DataSource Persistence="ProjectFile" Label=""/>
+      </StringProperty.DataSource>
+    </StringProperty>
+  
     <StringProperty Name="VSNaClSDKRoot" DisplayName="NaCl SDK Root"
                   Description="Specifies the path to the Native Client SDK root directory"
                   Category="NativeClient" Default=""
                   Subtype="folder" F1Keyword="VC.Project.VCConfiguration.NaClSDKRoot">
+      <StringProperty.DataSource>
+        <DataSource Persistence="ProjectFile" Label="" />
+      </StringProperty.DataSource>
+    </StringProperty>
+    
+    <StringProperty Name="NaClWebServerPort" DisplayName="Web Server Port"
+                  Description="Specifies the port number to use while hosting the Pepper Plugin"
+                  Category="NativeClient" Default=""
+                  F1Keyword="VC.Project.VCConfiguration.NaClWebServerPort">
       <StringProperty.DataSource>
         <DataSource Persistence="ProjectFile" Label="" />
       </StringProperty.DataSource>

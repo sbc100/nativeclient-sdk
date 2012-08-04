@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddInName" xml:space="preserve">
+    <value>Native Client Visual Studio Add-In</value>
+  </data>
   <data name="ChromePathEnvironmentVariable" xml:space="preserve">
     <value>CHROME_PATH</value>
   </data>
@@ -151,9 +154,8 @@
   <data name="SDKPathEnvironmentVariable" xml:space="preserve">
     <value>NACL_SDK_ROOT</value>
   </data>
-  <data name="SDKPathNotSetFormat" xml:space="preserve">
-    <value>Environment variable {0} is not set! Cannot run NaCl add-in functionality.</value>
-    <comment>Argument is the expected environment variable name</comment>
+  <data name="SDKPathNotSetError" xml:space="preserve">
+    <value>NaCl SDK Root is not set in project properties! Cannot run NaCl functionality.</value>
   </data>
   <data name="UnsupportedBreakpointTypeFormat" xml:space="preserve">
     <value>Unsupported breakpoint type: {0}</value>
@@ -165,10 +167,17 @@
   <data name="WebServerOutputWindowTitle" xml:space="preserve">
     <value>Native Client Web Server Output</value>
   </data>
+  <data name="WebServerPortNotSetFormat" xml:space="preserve">
+    <value>Specified web server port was not valid, defaulting to {0}</value>
+    <comment>Argument is the default web server port number</comment>
+  </data>
   <data name="WebServerStartFail" xml:space="preserve">
     <value>Warning: Failed to start web server. Is python.exe in PATH?</value>
   </data>
   <data name="WebServerStartMessage" xml:space="preserve">
     <value>Launching web server...</value>
+  </data>
+  <data name="WebServerStopMessage" xml:space="preserve">
+    <value>Killing web server...</value>
   </data>
 </root>

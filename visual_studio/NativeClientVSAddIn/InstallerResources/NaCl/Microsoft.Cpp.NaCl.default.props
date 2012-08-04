@@ -11,11 +11,12 @@
     <PlatformToolset>win_x86_$(ToolchainName)</PlatformToolset>
     
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'!=''">$(IntermediateOutputPath)</IntDir>
-    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)Intermediate\$(ToolchainName)\</IntDir>
+    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)$(ToolchainName)\$(Configuration)\</IntDir>
     <OutDir Condition="'$(OutDir)'==''">$(ProjectDir)$(ToolchainName)\</OutDir>
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
-    <NaClManifestPath></NaClManifestPath>
-    <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
+    <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
+    <NaClManifestPath Condition="'$(NaClManifestPath)'==''"></NaClManifestPath>
+    <NaClIrtPath Condition="'$(NaClIrtPath)'==''">$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
   </PropertyGroup>
 </Project>

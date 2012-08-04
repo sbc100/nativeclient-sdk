@@ -78,6 +78,15 @@ namespace UnitTests
     public void TestSetup()
     {
       dte_ = TestUtilities.StartVisualStudioInstance();
+      try
+      {
+        TestUtilities.AssertAddinLoaded(dte_, NativeClientVSAddIn.Strings.AddInName);
+      }
+      catch
+      {
+        TestUtilities.CleanUpVisualStudioInstance(dte_);
+        throw;
+      }
     }
 
     /// <summary>
@@ -227,40 +236,42 @@ namespace UnitTests
 
       // General
       page = "ConfigurationGeneral";
-      AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)Win\", true);
-      AllConfigsAssertPropertyEquals(page, "IntDir", @"$(ProjectDir)Intermediate\Win\", true);
+      AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)win\", true);
+      AllConfigsAssertPropertyEquals(page, "IntDir", @"$(ProjectDir)win\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "TargetExt", ".dll", true);
       AllConfigsAssertPropertyEquals(page, "ConfigurationType", "DynamicLibrary", true);
       AllConfigsAssertPropertyEquals(page, "VSNaClSDKRoot", @"$(NACL_SDK_ROOT)\", false);
+      AllConfigsAssertPropertyEquals(page, "NaClWebServerPort", "5103", false);
       AllConfigsAssertPropertyEquals(page, "CharacterSet", "Unicode", false);
+      AllConfigsAssertPropertyIsNotNullOrEmpty(page, "NaClAddInVersion");
 
       // Debugging
       page = "WindowsLocalDebugger";
+      string chromePath = System.Environment.GetEnvironmentVariable(
+          NativeClientVSAddIn.Strings.ChromePathEnvironmentVariable);
       AllConfigsAssertPropertyEquals(
-          page, "LocalDebuggerCommand", @"$(CHROME_PATH)", true);
+          page, "LocalDebuggerCommand", chromePath, true);
 
+      string propName = "LocalDebuggerCommandArguments";
+      string dataDir = "--user-data-dir=\"$(ProjectDir)/chrome_data\"";
+      string address = "localhost:$(NaClWebServerPort)";
+      string naclFlag = "--enable-nacl";
       string targetFlag = "--register-pepper-plugins=\"$(TargetPath)\";application/x-nacl";
-      string serverFlag = "localhost:5103";
-      string debuggerFlag = "--wait-for-debugger-children";
-      TestUtilities.AssertPropertyEquals(
-          debug_,
-          page,
-          "LocalDebuggerCommandArguments",
-          string.Format("{0} {1} {2}", targetFlag, serverFlag, debuggerFlag),
-          true);
-      TestUtilities.AssertPropertyEquals(
-          release_,
-          page,
-          "LocalDebuggerCommandArguments",
-          string.Format("{0} {1}", targetFlag, serverFlag),
-          true);
+      string noSandBoxFlag = "--no-sandbox";
+      string debugChildrenFlag = "--wait-for-debugger-children";
+      AllConfigsAssertPropertyContains(page, propName, dataDir, true);
+      AllConfigsAssertPropertyContains(page, propName, address, true);
+      AllConfigsAssertPropertyContains(page, propName, naclFlag, true);
+      AllConfigsAssertPropertyContains(page, propName, targetFlag, true);
+      TestUtilities.AssertPropertyContains(debug_, page, propName, debugChildrenFlag, true);
+      TestUtilities.AssertPropertyContains(debug_, page, propName, noSandBoxFlag, true);
 
       // VC++ Directories
       page = "ConfigurationDirectories";
       AllConfigsAssertPropertyContains(page, "IncludePath", @"$(VSNaClSDKRoot)include;", true);
       AllConfigsAssertPropertyContains(page, "IncludePath", @"$(VCInstallDir)include", true);
       AllConfigsAssertPropertyContains(
-          page, "LibraryPath", @"$(VSNaClSDKRoot)lib\win_x86_32_host;", true);
+          page, "LibraryPath", @"$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);", true);
       AllConfigsAssertPropertyContains(page, "LibraryPath", @"$(VCInstallDir)lib", true);
 
       // C/C++ Code Generation
@@ -314,7 +325,7 @@ namespace UnitTests
       page = "ConfigurationGeneral";
       AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)$(ToolchainName)\", true);
       AllConfigsAssertPropertyEquals(
-          page, "IntDir", @"$(ProjectDir)Intermediate\$(ToolchainName)\", true);
+          page, "IntDir", @"$(ProjectDir)$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "ToolchainName", "newlib", true);
       AllConfigsAssertPropertyEquals(page, "PlatformToolset", "win_x86_$(ToolchainName)", true);
       AllConfigsAssertPropertyEquals(page, "TargetArchitecture", "x86_64", true);
@@ -322,19 +333,30 @@ namespace UnitTests
       AllConfigsAssertPropertyEquals(page, "NaClManifestPath", string.Empty, false);
       AllConfigsAssertPropertyEquals(
           page, "NaClIrtPath", @"$(VSNaClSDKRoot)\tools\irt_x86_64.nexe", false);
+      AllConfigsAssertPropertyEquals(page, "NaClWebServerPort", "5103", false);
+      AllConfigsAssertPropertyIsNotNullOrEmpty(page, "NaClAddInVersion");
 
       // Debugging
       page = "WindowsLocalDebugger";
+      string chromePath = System.Environment.GetEnvironmentVariable(
+          NativeClientVSAddIn.Strings.ChromePathEnvironmentVariable);
       AllConfigsAssertPropertyEquals(
-          page, "LocalDebuggerCommand", @"$(CHROME_PATH)", true);
-      TestUtilities.AssertPropertyEquals(
-          debug_,
-          page,
-          "LocalDebuggerCommandArguments",
-          "--enable-nacl-debug --no-sandbox localhost:5103",
-          true);
-      TestUtilities.AssertPropertyEquals(
-          release_, page, "LocalDebuggerCommandArguments", "localhost:5103", true);
+          page, "LocalDebuggerCommand", chromePath, true);
+
+      string propName = "LocalDebuggerCommandArguments";
+      string dataDir = "--user-data-dir=\"$(ProjectDir)/chrome_data\"";
+      string address = "localhost:$(NaClWebServerPort)";
+      string naclFlag = "--enable-nacl";
+      string naclDebugFlag = "--enable-nacl-debug";
+      string noSandBoxFlag = "--no-sandbox";
+      TestUtilities.AssertPropertyContains(debug_, page, propName, dataDir, true);
+      TestUtilities.AssertPropertyContains(debug_, page, propName, address, true);
+      TestUtilities.AssertPropertyContains(debug_, page, propName, naclFlag, true);
+      TestUtilities.AssertPropertyContains(debug_, page, propName, naclDebugFlag, true);
+      TestUtilities.AssertPropertyContains(debug_, page, propName, noSandBoxFlag, true);
+      TestUtilities.AssertPropertyContains(release_, page, propName, dataDir, true);
+      TestUtilities.AssertPropertyContains(release_, page, propName, address, true);
+      TestUtilities.AssertPropertyContains(release_, page, propName, naclFlag, true);
 
       // VC++ Directories
       page = "ConfigurationDirectories";
@@ -386,7 +408,10 @@ namespace UnitTests
     private void TryCompile(string solutionPath, string configName, string platformName)
     {
       string failFormat = "Project compile failed for {0} platform {1} config. Build output: {2}";
-
+      string cygwinWarningFormat = "Did not pass cygwin nodosfilewarning environment var to tools"
+                                 + " Platform: {0}, configuration: {1}";
+      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+      
       // Open Debug configuration and build.
       dte_.Solution.Open(solutionPath);
       TestUtilities.SetSolutionConfiguration(
@@ -396,8 +421,12 @@ namespace UnitTests
       string compileOutput = TestUtilities.GetPaneText(
           dte_.ToolWindows.OutputWindow.OutputWindowPanes.Item("Build"));
       Assert.IsTrue(
-          compileOutput.Contains("Build succeeded.", StringComparison.InvariantCultureIgnoreCase),
+          compileOutput.Contains("Build succeeded.", ignoreCase),
           string.Format(failFormat, platformName, configName, compileOutput));
+      Assert.IsFalse(
+          compileOutput.Contains("MS-DOS style path detected", ignoreCase),
+          string.Format(cygwinWarningFormat, platformName, configName));
+
       dte_.Solution.Close();
     }
 
@@ -447,7 +476,7 @@ namespace UnitTests
 
     /// <summary>
     /// Tests that a given property contains a specific string for both Debug and Release
-    /// configurations under the NaCl platform.
+    /// configurations under the current test's platform.
     /// </summary>
     /// <param name="pageName">Property page name where property resides.</param>
     /// <param name="propertyName">Name of the property to check.</param>
@@ -471,6 +500,26 @@ namespace UnitTests
           propertyName,
           expectedValue,
           ignoreCase);
+    }
+
+    /// <summary>
+    /// Tests that a given property's value is not null or empty for both Debug and Release
+    /// configurations under the current test's platform.
+    /// </summary>
+    /// <param name="pageName">Property page name where property resides.</param>
+    /// <param name="propertyName">Name of the property to check.</param>
+    private void AllConfigsAssertPropertyIsNotNullOrEmpty(
+        string pageName,
+        string propertyName)
+    {
+      TestUtilities.AssertPropertyIsNotNullOrEmpty(
+          debug_,
+          pageName,
+          propertyName);
+      TestUtilities.AssertPropertyIsNotNullOrEmpty(
+          release_,
+          pageName,
+          propertyName);
     }
   }
 }

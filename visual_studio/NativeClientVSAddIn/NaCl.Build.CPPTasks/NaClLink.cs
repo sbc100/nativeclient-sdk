@@ -37,7 +37,7 @@ namespace NaCl.Build.CPPTasks
         public NaClLink()
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
         {
-
+          this.EnvironmentVariables = new string[] { "CYGWIN=nodosfilewarning", "LC_CTYPE=C" };
         }
 
         protected override string CommandTLogName

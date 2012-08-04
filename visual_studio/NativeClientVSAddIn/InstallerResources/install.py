@@ -30,6 +30,10 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ADDIN_FILES = ['NativeClientVSAddIn.AddIn', 'NativeClientVSAddIn.dll']
 
+class InstallError(Exception):
+  """Error class for this installer indicating a fatal but expected error."""
+  pass
+
 def UninstallDirectory(directory):
   if os.path.exists(directory):
     shutil.rmtree(directory)
@@ -71,8 +75,14 @@ def main():
       dest='uninstall', help='Remove the add-in.')
   (options, args) = parser.parse_args()
 
+  print "*************************************************"
+  print "Native-Client Visual Studio 2010 Add-in Installer"
+  print "*************************************************\n"
+  print "Please ensure Visual Studio and MSBuild are closed " \
+        "during installation.\n"
+
   if platform.system() != 'Windows':
-    raise Exception('Must install to Windows system')
+    raise InstallError('Must install to Windows system')
 
   if sys.version_info < (2, 6, 2):
     print "\n\nWARNING: Only python version 2.6.2 or greater is supported. " \
@@ -80,15 +90,15 @@ def main():
 
   # Admin is needed to write to the default platform directory.
   if ctypes.windll.shell32.IsUserAnAdmin() != 1:
-    raise Exception("Not running as administrator. The install script needs "
-                    "write access to protected Visual Studio directories.")
+    raise InstallError("Not running as administrator. The install script needs "
+                       "write access to protected Visual Studio directories.")
 
   # Ensure install directories exist.
   if not os.path.exists(options.vsuser_path):
-    raise Exception("Could not find user Visual Studio directory: %s" % (
+    raise InstallError("Could not find user Visual Studio directory: %s" % (
         options.vsuser_path))
   if not os.path.exists(options.msbuild_path):
-    raise Exception("Could not find MS Build directory: %s" % (
+    raise InstallError("Could not find MS Build directory: %s" % (
         options.msbuild_path))
 
   addin_directory = os.path.join(options.vsuser_path, 'Addins')
@@ -104,7 +114,7 @@ def main():
     exit(0)
 
   if not os.path.exists(platform_directory):
-    raise Exception("Could not find path: %s" % platform_directory)
+    raise InstallError("Could not find path: %s" % platform_directory)
   if not os.path.exists(addin_directory):
     os.mkdir(addin_directory)
 
@@ -112,19 +122,19 @@ def main():
   nacl_sdk_root = os.getenv('NACL_SDK_ROOT', None)
   chrome_path = os.getenv('CHROME_PATH', None)
   if nacl_sdk_root is None:
-    raise Exception('Environment Variable NACL_SDK_ROOT is not set')
+    raise InstallError('Environment Variable NACL_SDK_ROOT is not set')
   if chrome_path is None:
-    raise Exception('Environment Variable CHROME_PATH is not set')
+    raise InstallError('Environment Variable CHROME_PATH is not set')
 
   # Remove existing installation.
   if os.path.exists(nacl_directory) or os.path.exists(pepper_directory):
     # If not forced then ask user permission.
     if not options.overwrite:
-      print "Warning: Pre-existing add-in installation will be overwritten."
+      print "\nWarning: Pre-existing add-in installation will be overwritten."
       print "Continue? ((Yes))/((No))"
       remove_answer = raw_input().strip()
       if not (remove_answer.lower() == "yes" or remove_answer.lower() == "y"):
-        raise Exception('User did not allow overwrite of existing install.')
+        raise InstallError('User did not allow overwrite of existing install.')
     print "Removing existing install..."
     Uninstall(nacl_directory, pepper_directory, addin_directory)
 
@@ -141,9 +151,9 @@ def main():
       options.install_ppapi = True
     else:
       options.install_ppapi = False
-      print "Not installing PPAPI platform."
+      print "Will not install PPAPI platform during installation."
 
-  print "Installing..."
+  print "\nBegin installing components..."
 
   try:
     # Copy the necessary files into place.
@@ -165,4 +175,18 @@ def main():
     print "\nInstallation complete!\n"
 
 if __name__ == '__main__':
-  main()
+  try:
+    main()
+  except InstallError as e:
+    print
+    print e
+  except shutil.Error as e:
+    print "Error while copying file. Please ensure file is not in use."
+    print e
+  except WindowsError as e:
+    if e.winerror == 5:
+      print "Access denied error.  Please ensure Visual Studio and MSBuild"
+      print "processes are closed."
+    else:
+      raise
+

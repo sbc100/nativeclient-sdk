@@ -51,6 +51,7 @@ namespace NaCl.Build.CPPTasks
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
         {
             this.pathToLog = string.Empty;
+            this.EnvironmentVariables = new string []{"CYGWIN=nodosfilewarning", "LC_CTYPE=C"};
         }
 
         protected IDictionary<string, string> GenerateCommandLinesFromTlog()

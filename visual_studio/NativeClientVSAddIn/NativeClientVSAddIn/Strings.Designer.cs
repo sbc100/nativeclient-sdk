@@ -61,6 +61,15 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Native Client Visual Studio Add-In.
+        /// </summary>
+        internal static string AddInName {
+            get {
+                return ResourceManager.GetString("AddInName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CHROME_PATH.
         /// </summary>
         internal static string ChromePathEnvironmentVariable {
@@ -160,11 +169,11 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Environment variable {0} is not set! Cannot run NaCl add-in functionality..
+        ///   Looks up a localized string similar to NaCl SDK Root is not set in project properties! Cannot run NaCl functionality..
         /// </summary>
-        internal static string SDKPathNotSetFormat {
+        internal static string SDKPathNotSetError {
             get {
-                return ResourceManager.GetString("SDKPathNotSetFormat", resourceCulture);
+                return ResourceManager.GetString("SDKPathNotSetError", resourceCulture);
             }
         }
         
@@ -196,6 +205,15 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specified web server port was not valid, defaulting to {0}.
+        /// </summary>
+        internal static string WebServerPortNotSetFormat {
+            get {
+                return ResourceManager.GetString("WebServerPortNotSetFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Failed to start web server. Is python.exe in PATH?.
         /// </summary>
         internal static string WebServerStartFail {
@@ -210,6 +228,15 @@ namespace NativeClientVSAddIn {
         internal static string WebServerStartMessage {
             get {
                 return ResourceManager.GetString("WebServerStartMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Killing web server....
+        /// </summary>
+        internal static string WebServerStopMessage {
+            get {
+                return ResourceManager.GetString("WebServerStopMessage", resourceCulture);
             }
         }
     }

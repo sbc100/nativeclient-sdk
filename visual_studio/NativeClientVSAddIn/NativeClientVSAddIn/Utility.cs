@@ -8,6 +8,7 @@ namespace NativeClientVSAddIn
   using System.Collections.Generic;
 
   using EnvDTE;
+  using EnvDTE80;
   using Microsoft.VisualStudio.VCProjectEngine;
 
   /// <summary>
@@ -22,8 +23,16 @@ namespace NativeClientVSAddIn
     /// <returns>True if project is a Visual C/C++ project.</returns>
     public static bool IsVisualCProject(Project proj)
     {
-      string projectType = proj.Properties.Item("Kind").Value as string;
-      return projectType == "VCProject";
+      foreach (Property prop in proj.Properties)
+      {
+        if (prop.Name == "Kind")
+        {
+          string projectType = prop.Value as string;
+          return projectType == "VCProject";
+        }
+      }
+
+      return false;
     }
 
     /// <summary>
@@ -53,6 +62,36 @@ namespace NativeClientVSAddIn
       }
 
       return null;
+    }
+
+    /// <summary>
+    /// Returns all VCConfigurations from the open solution that have the specified platform name.
+    /// Note only VC++ projects are checked.
+    /// </summary>
+    /// <param name="dte">Visual studio main interface.</param>
+    /// <param name="platformName">Name of the platform to get.</param>
+    /// <returns>List of all matching VCConfigurations.</returns>
+    public static List<VCConfiguration> GetPlatformVCConfigurations(DTE2 dte, string platformName)
+    {
+      var platformConfigs = new List<VCConfiguration>();
+      foreach (Project proj in dte.Solution.Projects)
+      {
+        if (Utility.IsVisualCProject(proj))
+        {
+          VCProject vcproj = (VCProject)proj.Object;
+          IVCCollection configs = vcproj.Configurations;
+
+          foreach (VCConfiguration config in configs)
+          {
+            if (platformName.Equals(config.Platform.Name))
+            {
+              platformConfigs.Add(config);
+            }
+          }
+        }
+      }
+
+      return platformConfigs;
     }
 
     /// <summary>
@@ -86,6 +125,31 @@ namespace NativeClientVSAddIn
           descendant,
           ancestor,
           DateTime.UtcNow);
+    }
+
+    /// <summary>
+    /// Helper function to properly dispose of a process object and ensure it is dead.  The given
+    /// reference is set to null afterwards.
+    /// </summary>
+    /// <param name="process">Process to kill.  Reference is set to null afterwards.</param>
+    public static void EnsureProcessKill(ref System.Diagnostics.Process process)
+    {
+      if (process == null)
+      {
+        return;
+      }
+
+      try
+      {
+        process.Kill();
+      }
+      catch (System.InvalidOperationException)
+      {
+        // This happens if the process has already exited.
+      }
+      
+      process.Dispose();
+      process = null;
     }
 
     /// <summary>
