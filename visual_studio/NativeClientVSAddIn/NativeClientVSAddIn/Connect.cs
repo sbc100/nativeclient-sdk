@@ -11,11 +11,16 @@ namespace NativeClientVSAddIn
   using Extensibility;
   using Microsoft.VisualStudio;
   using Microsoft.VisualStudio.VCProjectEngine;
-
+  
   /// <summary>The object for implementing an Add-in.</summary>
   /// <seealso class='IDTExtensibility2' />
   public class Connect : IDTExtensibility2
   {
+    /// <summary>
+    /// The main Visual Studio interface.
+    /// </summary>
+    private DTE2 dte_;
+
     /// <summary>
     /// Receives events related to starting/stopping debugging.
     /// </summary>
@@ -27,14 +32,20 @@ namespace NativeClientVSAddIn
     private CommandEvents commandEvents_;
 
     /// <summary>
-    /// The main Visual Studio interface.
+    /// Holds methods related to debugging.
     /// </summary>
-    private DTE2 dte_;
+    private PluginDebuggerBase debugger_;
 
     /// <summary>
-    /// Holds methods related to running the plug-in and debugging.
+    /// The web server launched during debugging.
     /// </summary>
-    private PluginDebuggerHelper debuggerHelper_;
+    private WebServer webServer_;
+
+    /// <summary>
+    /// Visual Studio output window pane that captures output from the web server, and displays
+    /// other web-server related information.
+    /// </summary>
+    private OutputWindowPane webServerOutputPane_;
 
     /// <summary>
     /// Implements the OnConnection method of the IDTExtensibility2 interface.
@@ -55,7 +66,6 @@ namespace NativeClientVSAddIn
         ref Array custom)
     {
       dte_ = (DTE2)application;
-      debuggerHelper_ = new PluginDebuggerHelper(dte_);
 
       debuggerEvents_ = dte_.Events.DebuggerEvents;
       debuggerEvents_.OnEnterDesignMode += DebuggerOnEnterDesignMode;
@@ -63,6 +73,18 @@ namespace NativeClientVSAddIn
 
       commandEvents_ = dte_.Events.CommandEvents;
       commandEvents_.AfterExecute += CommandEventsAfterExecute;
+
+      try
+      {
+        webServerOutputPane_ = dte_.ToolWindows.OutputWindow.OutputWindowPanes.Item(
+            Strings.WebServerOutputWindowTitle);
+      }
+      catch (ArgumentException)
+      {
+        // This exception is expected if the window pane hasn't been created yet.
+        webServerOutputPane_ = dte_.ToolWindows.OutputWindow.OutputWindowPanes.Add(
+            Strings.WebServerOutputWindowTitle);
+      }
     }
 
     /// <summary>
@@ -149,13 +171,19 @@ namespace NativeClientVSAddIn
       var configs = Utility.GetPlatformVCConfigurations(dte_, Strings.PepperPlatformName);
       configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaClPlatformName));
 
+      var properties = new PropertyManager();
       foreach (VCConfiguration config in configs)
       {
-        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
-        string projectVersionSetting = general.GetEvaluatedPropertyValue("NaClAddInVersion");
-        if (string.IsNullOrEmpty(projectVersionSetting))
+        properties.SetTarget(config);
+        if (string.IsNullOrEmpty(properties.NaClAddInVersion))
         {
-          general.SetPropertyValue("NaClAddInVersion", naclAddInVersion);
+          // Set the NaCl add-in version so that it is stored in the project file.
+          properties.SetProperty("ConfigurationGeneral", "NaClAddInVersion", naclAddInVersion);
+          
+          // Expand the CHROME_PATH variable to its full path.
+          string expandedChrome = properties.GetProperty(
+              "WindowsLocalDebugger", "LocalDebuggerCommand");
+          properties.SetProperty("WindowsLocalDebugger", "LocalDebuggerCommand", expandedChrome);
 
           // Work around for issue 140162. Forces some properties to save to the project file.
           PerformPropertyFixes(config);
@@ -171,9 +199,6 @@ namespace NativeClientVSAddIn
     private void PerformPropertyFixes(VCConfiguration config)
     {
       IVCRulePropertyStorage debugger = config.Rules.Item("WindowsLocalDebugger");
-      string evaluatedCommand = debugger.GetEvaluatedPropertyValue("LocalDebuggerCommand");
-      debugger.SetPropertyValue("LocalDebuggerCommand", evaluatedCommand);
-
       string arguments = debugger.GetUnevaluatedPropertyValue("LocalDebuggerCommandArguments");
       debugger.SetPropertyValue("LocalDebuggerCommandArguments", arguments);
     }
@@ -206,25 +231,47 @@ namespace NativeClientVSAddIn
 
     /// <summary>
     /// Called when Visual Studio ends a debugging session.
+    /// Shuts down the web server and debugger.
     /// </summary>
     /// <param name="reason">The parameter is not used.</param>
     private void DebuggerOnEnterDesignMode(dbgEventReason reason)
     {
-      debuggerHelper_.StopDebugging();
+      if (debugger_ != null)
+      {
+        debugger_.Dispose();
+        debugger_ = null;
+      }
+
+      if (webServer_ != null)
+      {
+        webServer_.Dispose();
+        webServer_ = null;
+      }
     }
 
     /// <summary>
     /// Called when Visual Studio starts a debugging session.
+    /// Here we kick off the debugger and web server if appropriate.
     /// </summary>
     /// <param name="reason">Indicates how we are entering run mode (breakpoint or launch).</param>
     private void DebuggerOnEnterRunMode(dbgEventReason reason)
     {
       // If we are starting debugging (not re-entering from a breakpoint)
       // then load project settings and start the debugger-helper.
-      if (reason == dbgEventReason.dbgEventReasonLaunchProgram &&
-          debuggerHelper_.LoadProjectSettings())
+      if (reason == dbgEventReason.dbgEventReasonLaunchProgram)
       {
-        debuggerHelper_.StartDebugging();
+        PropertyManager properties = new PropertyManager();
+        properties.SetTargetToActive(dte_);
+        if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.NaCl)
+        {
+          debugger_ = new PluginDebuggerGDB(dte_, properties);
+          webServer_ = new WebServer(webServerOutputPane_, properties);
+        }
+        else if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.Pepper)
+        {
+          debugger_ = new PluginDebuggerVS(dte_, properties);
+          webServer_ = new WebServer(webServerOutputPane_, properties);
+        }
       }
     }
   }

@@ -65,6 +65,25 @@ namespace NativeClientVSAddIn
     }
 
     /// <summary>
+    /// Will print a message to the web server output pane.
+    /// </summary>
+    /// <param name="dte">The main visual studio interface.</param>
+    /// <param name="message">Message to print to the output pane.</param>
+    public static void WebServerWriteLine(DTE2 dte, string message)
+    {
+      try
+      {
+        OutputWindowPane pane = dte.ToolWindows.OutputWindow.OutputWindowPanes.Item(
+            Strings.WebServerOutputWindowTitle);
+        pane.OutputString(message + "\n");
+      }
+      catch (ArgumentException)
+      {
+        // This exception is expected if the window pane hasn't been created yet.
+      }
+    }
+
+    /// <summary>
     /// Returns all VCConfigurations from the open solution that have the specified platform name.
     /// Note only VC++ projects are checked.
     /// </summary>

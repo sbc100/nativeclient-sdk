@@ -1,5 +1,6 @@
 The following default StyleCop rules have been disabled for the add-in and unit-test projects.
 SA1101: PrefixLocalCallsWithThis
+SA1126: PrefixCallsCorrectly
 SA1310: FieldNamesMustNotContainUnderscore
 SA1633: FileMustHaveHeader
 SA1634: FileHeaderMustShowCopyright

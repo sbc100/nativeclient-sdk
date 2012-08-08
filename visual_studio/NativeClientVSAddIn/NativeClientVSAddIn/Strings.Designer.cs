@@ -97,6 +97,15 @@ namespace NativeClientVSAddIn {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Multiple start-up projects not supported. Web server will only be run from first project directory.
+        /// </summary>
+        internal static string MultiStartProjectWarning {
+            get {
+                return ResourceManager.GetString("MultiStartProjectWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --enable-nacl-debug.
         /// </summary>
         internal static string NaClDebugFlag {
@@ -129,15 +138,6 @@ namespace NativeClientVSAddIn {
         internal static string NaClProcessName {
             get {
                 return ResourceManager.GetString("NaClProcessName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not initialized correctly!.
-        /// </summary>
-        internal static string NotInitializedMessage {
-            get {
-                return ResourceManager.GetString("NotInitializedMessage", resourceCulture);
             }
         }
         
@@ -183,15 +183,6 @@ namespace NativeClientVSAddIn {
         internal static string UnsupportedBreakpointTypeFormat {
             get {
                 return ResourceManager.GetString("UnsupportedBreakpointTypeFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warning: Multiple start-up projects not supported. Web server will only be run from first project directory.
-        /// </summary>
-        internal static string WebServerMultiStartProjectWarning {
-            get {
-                return ResourceManager.GetString("WebServerMultiStartProjectWarning", resourceCulture);
             }
         }
         

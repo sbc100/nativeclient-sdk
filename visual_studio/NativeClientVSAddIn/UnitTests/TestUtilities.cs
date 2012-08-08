@@ -36,6 +36,12 @@ namespace UnitTests
     public const string NotNaClProjectUniqueName = @"NotNaCl\NotNaCl.csproj";
 
     /// <summary>
+    /// A generic boolean statement to be used with RetryWithTimeout.
+    /// </summary>
+    /// <returns>True if the statement is true, false if false.</returns>
+    public delegate bool RetryStatement();
+
+    /// <summary>
     /// This starts an instance of Visual Studio and get its DTE object.
     /// </summary>
     /// <returns>DTE of the started instance.</returns>
@@ -131,27 +137,6 @@ namespace UnitTests
       }
 
       return newSolution;
-    }
-
-    /// <summary>
-    /// Ensures that the add-in is configured to load on start. If it isn't then some tests may
-    /// unexpectedly fail, this check helps catch that problem early.
-    /// </summary>
-    /// <param name="dte">The main Visual Studio interface.</param>
-    /// <param name="addInName">The name of the add-in to check if loaded.</param>
-    public static void AssertAddinLoaded(DTE2 dte, string addInName)
-    {
-      bool found = false;
-      foreach (AddIn addin in dte.AddIns)
-      {
-        if (addin.Connected && addInName.Equals(addin.Name))
-        {
-          found = true;
-          break;
-        }
-      }
-
-      Assert.IsTrue(found, "Add-in is not configured to load on start.");
     }
 
     /// <summary>
@@ -382,6 +367,51 @@ namespace UnitTests
           configuration.ConfigurationName);
 
       Assert.IsFalse(string.IsNullOrEmpty(propertyValue), message);
+    }
+
+    /// <summary>
+    /// Ensures that the add-in is configured to load on start. If it isn't then some tests may
+    /// unexpectedly fail, this check helps catch that problem early.
+    /// </summary>
+    /// <param name="dte">The main Visual Studio interface.</param>
+    /// <param name="addInName">The name of the add-in to check if loaded.</param>
+    public static void AssertAddinLoaded(DTE2 dte, string addInName)
+    {
+      bool found = false;
+      foreach (AddIn addin in dte.AddIns)
+      {
+        if (addin.Connected && addInName.Equals(addin.Name))
+        {
+          found = true;
+          break;
+        }
+      }
+
+      Assert.IsTrue(found, "Add-in is not configured to load on start.");
+    }
+
+    /// <summary>
+    /// Will retry the given statement up to maxRetry times while pausing between each try for
+    /// the given interval.
+    /// </summary>
+    /// <param name="test">Generic boolean statement.</param>
+    /// <param name="interval">Amount of time to wait between each retry.</param>
+    /// <param name="maxRetry">Maximum number of retries.</param>
+    /// <param name="message">Message to print on failure.</param>
+    public static void AssertTrueWithTimeout(
+        RetryStatement test, TimeSpan interval, int maxRetry, string message)
+    {
+      for (int tryCount = 0; tryCount <= maxRetry; tryCount++)
+      {
+        if (test.Invoke())
+        {
+          return;
+        }
+
+        System.Threading.Thread.Sleep(interval);
+      }
+
+      throw new Exception(string.Format("Statement timed out. {0}", message));
     }
 
     /// <summary>

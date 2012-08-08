@@ -69,7 +69,11 @@
     <Compile Include="Connect.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PluginDebuggerHelper.cs" />
+    <Compile Include="PluginDebuggerVS.cs" />
+    <Compile Include="PluginDebuggerGDB.cs" />
+    <Compile Include="PropertyManager.cs" />
+    <Compile Include="WebServer.cs" />
+    <Compile Include="PluginDebuggerBase.cs" />
     <Compile Include="ProcessInfo.cs" />
     <Compile Include="ProcessSearcher.cs" />
     <Compile Include="Utility.cs" />
@@ -135,11 +139,6 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="NativeClientVSAddIn - For Testing.AddIn">
-      <SubType>Designer</SubType>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

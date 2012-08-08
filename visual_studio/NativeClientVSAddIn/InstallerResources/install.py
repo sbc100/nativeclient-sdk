@@ -149,6 +149,7 @@ def main():
     ppapi_answer = raw_input().strip()
     if ppapi_answer.lower() == "yes" or ppapi_answer.lower() == "y":
       options.install_ppapi = True
+      print "Confirmed installer will include PPAPI platform."
     else:
       options.install_ppapi = False
       print "Will not install PPAPI platform during installation."

@@ -77,10 +77,14 @@
   <ItemGroup>
     <Compile Include="ComMessageFilter.cs" />
     <Compile Include="MockProcessSearcher.cs" />
-    <Compile Include="PluginDebuggerHelperTest.cs" />
+    <Compile Include="PluginDebuggerGDBTest.cs" />
+    <Compile Include="PluginDebuggerVSTest.cs" />
     <Compile Include="ProjectSettingsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MockPropertyManager.cs" />
+    <Compile Include="PropertyManagerTest.cs" />
     <Compile Include="TestUtilities.cs" />
+    <Compile Include="WebServerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Shadow Include="Test References\NativeClientVSAddIn.accessor" />

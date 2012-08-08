@@ -4,9 +4,7 @@
 
 namespace UnitTests
 {
-  using System;
   using System.Collections.Generic;
-  using System.Management;
 
   /// <summary>
   /// A fake process searcher that allows the list of 'processes' on the system to be faked.

@@ -129,6 +129,9 @@
   <data name="ChromeRendererFlag" xml:space="preserve">
     <value>--type=renderer</value>
   </data>
+  <data name="MultiStartProjectWarning" xml:space="preserve">
+    <value>Warning: Multiple start-up projects not supported. Web server will only be run from first project directory</value>
+  </data>
   <data name="NaClDebugFlag" xml:space="preserve">
     <value>--enable-nacl-debug</value>
   </data>
@@ -140,9 +143,6 @@
   </data>
   <data name="NaClProcessName" xml:space="preserve">
     <value>nacl64.exe</value>
-  </data>
-  <data name="NotInitializedMessage" xml:space="preserve">
-    <value>Not initialized correctly!</value>
   </data>
   <data name="PepperPlatformName" xml:space="preserve">
     <value>PPAPI</value>
@@ -160,9 +160,6 @@
   <data name="UnsupportedBreakpointTypeFormat" xml:space="preserve">
     <value>Unsupported breakpoint type: {0}</value>
     <comment>Argument is the breakpoint type</comment>
-  </data>
-  <data name="WebServerMultiStartProjectWarning" xml:space="preserve">
-    <value>Warning: Multiple start-up projects not supported. Web server will only be run from first project directory</value>
   </data>
   <data name="WebServerOutputWindowTitle" xml:space="preserve">
     <value>Native Client Web Server Output</value>

@@ -25,20 +25,21 @@ namespace NativeClientVSAddIn
     /// <param name="name">Process name.</param>
     public ProcessInfo(uint id, uint parentId, string creationDate, string commandLine, string name)
     {
-      // Convert an empty creationDate string into the current timestamp.
       if (string.IsNullOrEmpty(creationDate))
       {
-        int timezoneMinutes = (int)Math.Round((DateTime.Now - DateTime.UtcNow).TotalMinutes);
-        creationDate = string.Format("{0:yyyyMMddHHmmss.ffffff}{1}", DateTime.Now, timezoneMinutes);
+        // If creationDate string is empty, then use the current timestamp.
+        CreationDate = DateTime.UtcNow;
       }
-
-      // Example creationDate: "20120622150149.843021-420".
-      CreationDate = DateTime.ParseExact(
-          creationDate.Substring(0, 21),
-          "yyyyMMddHHmmss.ffffff",
-          CultureInfo.InvariantCulture);
-      long timeZoneMinutes = long.Parse(creationDate.Substring(21));
-      CreationDate = CreationDate.AddMinutes(-timeZoneMinutes);
+      else
+      {
+        // Example creationDate: "20120622150149.843021-420".
+        CreationDate = DateTime.ParseExact(
+            creationDate.Substring(0, 21),
+            "yyyyMMddHHmmss.ffffff",
+            CultureInfo.InvariantCulture);
+        long timeZoneMinutes = long.Parse(creationDate.Substring(21));
+        CreationDate = CreationDate.AddMinutes(-timeZoneMinutes);
+      }
 
       ID = id;
       ParentID = parentId;

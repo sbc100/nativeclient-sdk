@@ -32,11 +32,16 @@ def main():
   # Print the results, note any failures by setting exit_code to 1
   print test_run_name
   for result in results:
+    fail_message = 'None.'
     if result.attrib['outcome'] != 'Passed':
       exit_code = 1
-    print 'Test: %s, Duration: %s, Outcome: %s\n' % (
-      result.attrib['testName'], result.attrib['duration'],
-      result.attrib['outcome'])
+      fail_element = result.find('{%s}Output/{%s}ErrorInfo/{%s}Message' % (
+          MSTEST_NAMESPACE, MSTEST_NAMESPACE, MSTEST_NAMESPACE))
+      if fail_element is not None:
+        fail_message = fail_element.text
+    print 'Test: %s, Duration: %s, Outcome: %s, Reason: %s\n' % (
+        result.attrib['testName'], result.attrib['duration'],
+        result.attrib['outcome'], fail_message)
 
   return exit_code
 
