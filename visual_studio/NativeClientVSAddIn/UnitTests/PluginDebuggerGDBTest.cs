@@ -101,7 +101,7 @@ namespace UnitTests
                     NativeClientVSAddIn.Strings.SDKPathEnvironmentVariable);
                 case "NaClIrtPath": return @"fake\Irt\Path";
                 case "NaClManifestPath": return string.Empty;
-                case "PlatformToolset": return "win_x86_newlib";
+                case "ToolchainName": return "newlib";
               }
 
               break;

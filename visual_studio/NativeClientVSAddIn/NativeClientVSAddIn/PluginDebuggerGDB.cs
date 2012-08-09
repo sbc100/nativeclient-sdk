@@ -67,7 +67,7 @@ namespace NativeClientVSAddIn
       gdbPath_ = Path.Combine(
           properties.SDKRootDirectory,
           "toolchain",
-          properties.PlatformToolset,
+          string.Concat("win_x86_", properties.ToolchainName),
           @"bin\x86_64-nacl-gdb.exe");
 
       PluginFoundEvent += new EventHandler<PluginFoundEventArgs>(Attach);

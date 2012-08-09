@@ -123,14 +123,14 @@ namespace NativeClientVSAddIn
     /// <param name="unused1">The parameter is not used.</param>
     public void FindAndAttachToPlugin(object unused, EventArgs unused1)
     {
+      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+
       // This function is called by the main Visual Studio event loop and we may have put the event
       // on the queue just before disposing it meaning this could be called after we've disposed.
       if (Disposed)
       {
         return;
       }
-
-      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
 
       // Set the main chrome process that was started by visual studio.  If it's not chrome
       // or not found then we have no business attaching to any plug-ins so return.
@@ -148,10 +148,29 @@ namespace NativeClientVSAddIn
         return;
       }
 
+      if (debuggedChromeMainProcess_.HasExited)
+      {
+        // Might happen if we're shutting down debugging.
+        return;
+      }
+
       // Get the list of all descendants of the main chrome process.
       uint mainChromeProcId = (uint)debuggedChromeMainProcess_.Id;
       List<ProcessInfo> chromeDescendants = processSearcher_.GetDescendants(mainChromeProcId);
-      string mainChromeFlags = chromeDescendants.Find(p => p.ID == mainChromeProcId).CommandLine;
+      if (chromeDescendants.Count == 0)
+      {
+        // Might happen if we're shutting down debugging.
+        return;
+      }
+
+      ProcessInfo mainProcInfo = chromeDescendants.Find(p => p.ID == mainChromeProcId);
+      if (mainProcInfo == null)
+      {
+        // Might happen if we're shutting down debugging.
+        return;
+      }
+
+      string mainChromeFlags = mainProcInfo.CommandLine;
 
       // From the list of descendants, find the plug-in by it's command line arguments and
       // process name as well as not being attached to already.

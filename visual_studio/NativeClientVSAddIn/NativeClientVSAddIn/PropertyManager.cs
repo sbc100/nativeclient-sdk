@@ -169,14 +169,14 @@ namespace NativeClientVSAddIn
     }
 
     /// <summary>
-    /// Gets or sets the full toolchain and platform name. Ex: win_x86_newlib
+    /// Gets or sets the toolchain name. Ex: newlib.
     /// </summary>
-    public string PlatformToolset
+    public string ToolchainName
     {
       get
       {
-        AssertValidPlatform();
-        return GetProperty("ConfigurationGeneral", "PlatformToolset");
+        AssertNaCl();
+        return GetProperty("ConfigurationGeneral", "ToolchainName");
       }
 
       protected set
