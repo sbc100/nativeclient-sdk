@@ -185,6 +185,28 @@ namespace NativeClientVSAddIn
               "WindowsLocalDebugger", "LocalDebuggerCommand");
           properties.SetProperty("WindowsLocalDebugger", "LocalDebuggerCommand", expandedChrome);
 
+          // Change the library includes to have the appropriate extension.
+          string libs = properties.GetProperty("Link", "AdditionalDependencies");
+          if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.NaCl)
+          {
+            libs = libs.Replace(".lib", string.Empty);
+          }
+          else if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.Pepper)
+          {
+            string[] libsList = libs.Split(';');
+            libs = string.Empty;
+            foreach (string lib in libsList)
+            {
+              string baseLibName = lib.Replace(".lib", string.Empty);
+              if (!string.IsNullOrWhiteSpace(lib))
+              {
+                libs = string.Concat(libs, baseLibName, ".lib;");
+              }
+            }
+          }
+
+          properties.SetProperty("Link", "AdditionalDependencies", libs);
+
           // Work around for issue 140162. Forces some properties to save to the project file.
           PerformPropertyFixes(config);
         }
@@ -201,6 +223,31 @@ namespace NativeClientVSAddIn
       IVCRulePropertyStorage debugger = config.Rules.Item("WindowsLocalDebugger");
       string arguments = debugger.GetUnevaluatedPropertyValue("LocalDebuggerCommandArguments");
       debugger.SetPropertyValue("LocalDebuggerCommandArguments", arguments);
+
+      IVCRulePropertyStorage directories = config.Rules.Item("ConfigurationDirectories");
+      string includePath = directories.GetUnevaluatedPropertyValue("IncludePath");
+      string libraryPath = directories.GetUnevaluatedPropertyValue("LibraryPath");
+      directories.SetPropertyValue("IncludePath", includePath);
+      directories.SetPropertyValue("LibraryPath", libraryPath);
+
+      // Pepper specific:
+      if (config.Platform.Name == Strings.PepperPlatformName)
+      {
+        string executablePath = directories.GetUnevaluatedPropertyValue("ExecutablePath");
+        directories.SetPropertyValue("ExecutablePath", executablePath);
+      }
+
+      // NaCl Platform Specific:
+      if (config.Platform.Name == Strings.NaClPlatformName)
+      {
+        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
+        string outdir = general.GetUnevaluatedPropertyValue("OutDir");
+        string intdir = general.GetUnevaluatedPropertyValue("IntDir");
+        string irtPath = general.GetUnevaluatedPropertyValue("NaClIrtPath");
+        general.SetPropertyValue("NaClIrtPath", irtPath);
+        general.SetPropertyValue("OutDir", outdir);
+        general.SetPropertyValue("IntDir", intdir);
+      }
     }
 
     /// <summary>

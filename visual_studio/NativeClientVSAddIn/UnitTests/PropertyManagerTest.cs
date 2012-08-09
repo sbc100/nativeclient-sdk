@@ -198,9 +198,9 @@ namespace UnitTests
       Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
       Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
       Assert.AreEqual(
-          @"win_x86_newlib",
-          target.GetProperty("ConfigurationGeneral", "PlatformToolset"),
-          "GetProperty() with PlatformToolset incorrect.");
+          @"newlib",
+          target.GetProperty("ConfigurationGeneral", "ToolchainName"),
+          "GetProperty() with ToolchainName incorrect.");
     }
 
     /// <summary>

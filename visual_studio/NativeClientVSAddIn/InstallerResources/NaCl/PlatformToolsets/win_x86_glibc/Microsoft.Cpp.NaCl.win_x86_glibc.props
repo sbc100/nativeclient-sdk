@@ -1,16 +1,3 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   
-  <PropertyGroup>
-
-    <PlatformToolsetVer>win_x86_glibc</PlatformToolsetVer>       
-    <ToolchainPath>$(NACL_SDK_ROOT)\toolchain\$(PlatformToolsetVer)</ToolchainPath>
-	
-    <NaClToolsPath>$(ToolchainPath)\bin</NaClToolsPath>
-
-    <NaClCompiler>$(NaClToolsPath)\$(TargetArchitecture)-nacl-g++.exe</NaClCompiler>
-    <NaClLinker>$(NaClToolsPath)\$(TargetArchitecture)-nacl-g++.exe</NaClLinker>
-    <NaClLibrarian>$(NaClToolsPath)\$(TargetArchitecture)-nacl-ar.exe</NaClLibrarian>
-    	
-  </PropertyGroup>
-
 </Project>

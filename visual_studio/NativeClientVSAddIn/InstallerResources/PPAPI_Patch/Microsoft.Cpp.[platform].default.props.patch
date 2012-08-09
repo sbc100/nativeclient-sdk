@@ -11,7 +11,7 @@
       <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(Configuration)\</IntDir>
     </PatchRemove>
     <PatchAdd>
-      <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)win\$(Configuration)\</IntDir>
+      <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">win\$(Configuration)\</IntDir>
     </PatchAdd>
     <PatchRemove>
       <OutDir Condition="'$(OutDir)'=='' AND '$(SolutionDir)' != ''">$(SolutionDir)$(Configuration)\</OutDir>

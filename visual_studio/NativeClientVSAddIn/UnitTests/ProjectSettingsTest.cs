@@ -237,7 +237,7 @@ namespace UnitTests
       // General
       page = "ConfigurationGeneral";
       AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)win\", true);
-      AllConfigsAssertPropertyEquals(page, "IntDir", @"$(ProjectDir)win\$(Configuration)\", true);
+      AllConfigsAssertPropertyEquals(page, "IntDir", @"win\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "TargetExt", ".dll", true);
       AllConfigsAssertPropertyEquals(page, "ConfigurationType", "DynamicLibrary", true);
       AllConfigsAssertPropertyEquals(page, "VSNaClSDKRoot", @"$(NACL_SDK_ROOT)\", false);
@@ -325,9 +325,8 @@ namespace UnitTests
       page = "ConfigurationGeneral";
       AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)$(ToolchainName)\", true);
       AllConfigsAssertPropertyEquals(
-          page, "IntDir", @"$(ProjectDir)$(ToolchainName)\$(Configuration)\", true);
+          page, "IntDir", @"$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "ToolchainName", "newlib", true);
-      AllConfigsAssertPropertyEquals(page, "PlatformToolset", "win_x86_$(ToolchainName)", true);
       AllConfigsAssertPropertyEquals(page, "TargetArchitecture", "x86_64", true);
       AllConfigsAssertPropertyEquals(page, "VSNaClSDKRoot", @"$(NACL_SDK_ROOT)\", false);
       AllConfigsAssertPropertyEquals(page, "NaClManifestPath", string.Empty, false);

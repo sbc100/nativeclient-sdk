@@ -63,15 +63,6 @@
     <EnumValue Name="glibc" DisplayName="glibc" />
   </EnumProperty>
   
-  <!-- PlatformToolset is constructed in Microsoft.Cpp.NaCl.default.props to be win_x86_$(ToolchainName) -->
-  <StringProperty Name="PlatformToolset" DisplayName="Platform Toolset" Visible="false"
-                  Description="The 'hidden' property which constructs the toolchain name from current settings."
-                  Category="NativeClient">
-                  <StringProperty.DataSource>
-                     <DataSource Persistence="ProjectFile" Label="" />
-                  </StringProperty.DataSource>
-  </StringProperty>
-  
   <StringProperty Name="OutDir" DisplayName="Output Directory"
                   Description="Specifies a relative path to the output file directory; can include environment variables."
                   Category="General" Default="$(SolutionDir)$(Configuration)\"

@@ -8,10 +8,9 @@
     <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x86_64</TargetArchitecture>
     
     <ToolchainName Condition="'$(ToolchainName)' == ''">newlib</ToolchainName>
-    <PlatformToolset>win_x86_$(ToolchainName)</PlatformToolset>
     
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'!=''">$(IntermediateOutputPath)</IntDir>
-    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ProjectDir)$(ToolchainName)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ToolchainName)\$(Configuration)\</IntDir>
     <OutDir Condition="'$(OutDir)'==''">$(ProjectDir)$(ToolchainName)\</OutDir>
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>

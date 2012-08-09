@@ -27,7 +27,7 @@
                  Sources                            ="@(ClCompile)"                 
                  OutputCommandLine                  ="%(ClCompile.OutputCommandLine)"
                  MinimalRebuildFromTracking         ="%(ClCompile.MinimalRebuildFromTracking)"
-                 NaCLCompilerPath                   ="$(NaClCompiler)"
+                 NaCLCompilerPath                   ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
                  PropertiesFile                       ="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_compile.xml"
                  TLogReadFiles                      ="@(CLTLogReadFiles)"
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
@@ -55,7 +55,7 @@
               Sources                        ="@(Link)"
 
               OutputCommandLine              ="%(Link.OutputCommandLine)"        
-              NaClLinkerPath                 ="$(NaClLinker)"        
+              NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"        
               MinimalRebuildFromTracking     ="$(Link_MinimalRebuildFromTracking)"
               OutputFile                     ="%(Link.OutputFile)"        
               PropertiesFile                   ="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_link.xml"
@@ -92,7 +92,7 @@
     <NaClLib BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
              Sources                        ="@(Lib)"
              OutputCommandLine              ="%(Lib.OutputCommandLine)"
-             LibrarianToolPath 			    ="$(NaClLibrarian)"
+             LibrarianToolPath 			        ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-ar.exe"
              MinimalRebuildFromTracking     ="%(Lib.MinimalRebuildFromTracking)"
              OutputFile                     ="%(Lib.OutputFile)"
              PropertiesFile                 ="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_lib.xml"
@@ -111,7 +111,9 @@
   
   <!-- Imports -->
   <Import Project="$(VCTargetsPath)\Platforms\NaCl\NaCl.CppBuild.targets" />	
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.NaCl.$(PlatformToolset).targets" Condition="(exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\$(PlatformToolset)\Microsoft.Cpp.NaCl.$(PlatformToolset).targets'))" />
+  <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets" Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets'))" />
+  <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets" Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets'))" />
+  
 </Project>
 
 
