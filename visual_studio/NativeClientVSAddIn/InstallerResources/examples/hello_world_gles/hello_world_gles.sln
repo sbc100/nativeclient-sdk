@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world_gles", "hello_world_gles\hello_world_gles.vcxproj", "{F82336A6-3A85-45E2-9A96-26DEA54280C5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|NaCl = Debug|NaCl
+		Debug|PPAPI = Debug|PPAPI
+		Debug|Win32 = Debug|Win32
+		Release|NaCl = Release|NaCl
+		Release|PPAPI = Release|PPAPI
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl.ActiveCfg = Debug|NaCl
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl.Build.0 = Debug|NaCl
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PPAPI.ActiveCfg = Debug|PPAPI
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PPAPI.Build.0 = Debug|PPAPI
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|Win32.Build.0 = Debug|Win32
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl.ActiveCfg = Release|NaCl
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl.Build.0 = Release|NaCl
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PPAPI.ActiveCfg = Release|PPAPI
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PPAPI.Build.0 = Release|PPAPI
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|Win32.ActiveCfg = Release|Win32
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
