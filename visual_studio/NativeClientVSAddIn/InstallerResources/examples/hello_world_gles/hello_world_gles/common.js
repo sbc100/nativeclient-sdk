@@ -25,7 +25,7 @@ var common = (function () {
     moduleEl.setAttribute('id', 'nacl_module');
     moduleEl.setAttribute('width', width);
     moduleEl.setAttribute('height',height);
-    moduleEl.setAttribute('src', name + '_' + tool + '.nmf');
+    moduleEl.setAttribute('src', tool + '/' + name + '.nmf');
     moduleEl.setAttribute('type', 'application/x-nacl');
 
     // The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
