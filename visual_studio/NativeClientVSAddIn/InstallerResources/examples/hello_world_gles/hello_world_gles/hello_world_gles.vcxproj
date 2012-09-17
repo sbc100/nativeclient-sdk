@@ -67,32 +67,34 @@
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl'">
-    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
-    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
     <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
+    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <IntDir>$(ToolchainName)\$(Configuration)\</IntDir>
-    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl'">
-    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
-    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
     <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
+    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <IntDir>$(ToolchainName)\$(Configuration)\</IntDir>
-    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PPAPI'">
-    <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
-    <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
     <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
-    <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
-    <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
     <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

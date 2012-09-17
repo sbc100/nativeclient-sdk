@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -11,7 +11,9 @@ namespace NativeClientVSAddIn
   using Extensibility;
   using Microsoft.VisualStudio;
   using Microsoft.VisualStudio.VCProjectEngine;
-  
+  using System.Collections.Generic;
+  using System.Diagnostics;
+
   /// <summary>The object for implementing an Add-in.</summary>
   /// <seealso class='IDTExtensibility2' />
   public class Connect : IDTExtensibility2
@@ -175,11 +177,13 @@ namespace NativeClientVSAddIn
       foreach (VCConfiguration config in configs)
       {
         properties.SetTarget(config);
-        if (string.IsNullOrEmpty(properties.NaClAddInVersion))
+        if (properties.NaClAddInVersion != naclAddInVersion)
         {
+          Debug.WriteLine("Modifying Config: " + config.Name);
+
           // Set the NaCl add-in version so that it is stored in the project file.
           properties.SetProperty("ConfigurationGeneral", "NaClAddInVersion", naclAddInVersion);
-          
+
           // Expand the CHROME_PATH variable to its full path.
           string expandedChrome = properties.GetProperty(
               "WindowsLocalDebugger", "LocalDebuggerCommand");
@@ -224,9 +228,29 @@ namespace NativeClientVSAddIn
       string arguments = debugger.GetUnevaluatedPropertyValue("LocalDebuggerCommandArguments");
       debugger.SetPropertyValue("LocalDebuggerCommandArguments", arguments);
 
+      // NaCl Platform Specific:
+      if (config.Platform.Name == Strings.NaClPlatformName)
+      {
+        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
+        string[] keys = {"VSNaClSDKRoot", "OutDir", "IntDir"};
+        Dictionary<string, string> values = new Dictionary<string, string>();
+        foreach (var key in keys)
+        {
+          values[key] = general.GetUnevaluatedPropertyValue(key);
+          general.DeleteProperty(key);
+        }
+
+        foreach (var key in keys)
+        {
+          general.SetPropertyValue(key, values[key]);
+        }
+      }
+
       IVCRulePropertyStorage directories = config.Rules.Item("ConfigurationDirectories");
       string includePath = directories.GetUnevaluatedPropertyValue("IncludePath");
       string libraryPath = directories.GetUnevaluatedPropertyValue("LibraryPath");
+      directories.DeleteProperty("IncludePath");
+      directories.DeleteProperty("LibraryPath");
       directories.SetPropertyValue("IncludePath", includePath);
       directories.SetPropertyValue("LibraryPath", libraryPath);
 
