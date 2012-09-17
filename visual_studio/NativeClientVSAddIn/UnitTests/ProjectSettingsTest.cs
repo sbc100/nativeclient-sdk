@@ -330,8 +330,6 @@ namespace UnitTests
       AllConfigsAssertPropertyEquals(page, "TargetArchitecture", "x86_64", true);
       AllConfigsAssertPropertyEquals(page, "VSNaClSDKRoot", @"$(NACL_SDK_ROOT)\", false);
       AllConfigsAssertPropertyEquals(page, "NaClManifestPath", string.Empty, false);
-      AllConfigsAssertPropertyEquals(
-          page, "NaClIrtPath", @"$(VSNaClSDKRoot)\tools\irt_x86_64.nexe", false);
       AllConfigsAssertPropertyEquals(page, "NaClWebServerPort", "5103", false);
       AllConfigsAssertPropertyIsNotNullOrEmpty(page, "NaClAddInVersion");
 

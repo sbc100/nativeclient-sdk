@@ -243,8 +243,6 @@ namespace NativeClientVSAddIn
         IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
         string outdir = general.GetUnevaluatedPropertyValue("OutDir");
         string intdir = general.GetUnevaluatedPropertyValue("IntDir");
-        string irtPath = general.GetUnevaluatedPropertyValue("NaClIrtPath");
-        general.SetPropertyValue("NaClIrtPath", irtPath);
         general.SetPropertyValue("OutDir", outdir);
         general.SetPropertyValue("IntDir", intdir);
       }

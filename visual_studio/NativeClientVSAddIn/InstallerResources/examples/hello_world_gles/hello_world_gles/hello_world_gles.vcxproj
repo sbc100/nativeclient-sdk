@@ -72,8 +72,7 @@
     <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <IntDir>$(ToolchainName)\$(Configuration)\</IntDir>
-    <NaClAddInVersion>1.0.4611.21610</NaClAddInVersion>
-    <VSNaClSDKRoot>D:\private_svn\src\\chrome_clean\src\out\pepper_23</VSNaClSDKRoot>
+    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl'">
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
@@ -81,19 +80,19 @@
     <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <IntDir>$(ToolchainName)\$(Configuration)\</IntDir>
-    <NaClAddInVersion>1.0.4611.21610</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PPAPI'">
     <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
-    <NaClAddInVersion>1.0.4611.21610</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
     <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
-    <NaClAddInVersion>1.0.4611.21610</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -133,6 +132,7 @@
     <PostBuildEvent>
       <Command>set PATH=$(Path)
 python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32 -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) $(TargetDir)$(TargetName)_$(TargetArchitecture)$(TargetExt)</Command>
+      <Message>Running 'create_nmf'</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl'">

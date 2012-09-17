@@ -9,6 +9,7 @@
 *.o
 *.pyc
 *.pyo
+*.suo
 
 # Ignore all hidden files
 .*
@@ -31,3 +32,20 @@ toolchain/
 /experimental/webgtt/tests/nacltest/*.cc
 /site_scons/
 /staging/
+/out
+
+/visual_studio/NativeClientVSAddIn/NaCl.Build.CPPTasks/obj/
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn.vsmdi
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn/obj/
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn/bin/
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn/NativeClientVSAddIn.xml
+/visual_studio/NativeClientVSAddIn/UnitTests/obj/
+/visual_studio/NativeClientVSAddIn/TestResults/
+
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/chrome_data
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/newlib
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/win
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/ipch
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/Debug
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles.sdf
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles.opensdf

@@ -169,6 +169,22 @@ namespace NativeClientVSAddIn
     }
 
     /// <summary>
+    /// Gets or sets the command to debug (assumed to be chrome.exe)
+    /// </summary>
+    public string LocalDebuggerCommand
+    {
+      get
+      {
+        AssertValidPlatform();
+        return GetProperty("WindowsLocalDebugger", "LocalDebuggerCommand");
+      }
+
+      protected set
+      {
+      }
+    }
+
+    /// <summary>
     /// Gets or sets the toolchain name. Ex: newlib.
     /// </summary>
     public string ToolchainName
@@ -185,14 +201,14 @@ namespace NativeClientVSAddIn
     }
 
     /// <summary>
-    /// Gets or sets the path to the NaCl IRT to use during debugging. (NaCl platform only).
+    /// Gets or sets the target archirecture name. Ex: x86_64.
     /// </summary>
-    public string IrtPath
+    public string TargetArchitecture
     {
       get
       {
         AssertNaCl();
-        return GetProperty("ConfigurationGeneral", "NaClIrtPath");
+        return GetProperty("ConfigurationGeneral", "TargetArchitecture");
       }
 
       protected set

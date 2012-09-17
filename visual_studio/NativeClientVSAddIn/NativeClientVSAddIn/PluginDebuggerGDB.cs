@@ -8,6 +8,7 @@ namespace NativeClientVSAddIn
   using System.IO;
   using System.Text;
   using System.Windows.Forms;
+  using System.Diagnostics;
 
   using EnvDTE;
   using EnvDTE80;
@@ -60,7 +61,71 @@ namespace NativeClientVSAddIn
     public PluginDebuggerGDB(DTE2 dte, PropertyManager properties)
         : base(dte, properties)
     {
-      irtPath_ = properties.IrtPath;
+      string arch = "i686";
+      if (Environment.Is64BitOperatingSystem)
+      {
+        arch = "x86_64";
+      }
+
+      if (properties.TargetArchitecture != arch)
+      {
+        MessageBox.Show(string.Format("Debugging of {0} NaCl modules is not possible on this system ({1}).", 
+                                      properties.TargetArchitecture, arch));
+      }
+
+      // check chrome version
+      string chrome_path = properties.LocalDebuggerCommand;
+      FileVersionInfo version_info = FileVersionInfo.GetVersionInfo(chrome_path);
+      string file_version = version_info.FileVersion;
+      if (file_version != null)
+      {
+        string major_version = file_version.Split('.')[0];
+        int major_version_int = 0;
+        try
+        {
+          major_version_int = Convert.ToInt32(major_version);
+        }
+        catch
+        {
+        }
+        if (major_version_int < 22)
+        {
+          MessageBox.Show("Chrome 22 or above required for NaCl debugging (your version is "
+                          + major_version + ")");
+          return;
+        }
+      }
+
+      // We look for the IRT in several ways, mimicing what chrome itself
+      // does in chrome/app/client_util.cc:MakeMainDllLoader.
+
+      // First look for the IRT alongside chrome.exe
+      string irt_basename = "nacl_irt_" + arch + ".nexe";
+      irtPath_ = Path.Combine(Path.GetDirectoryName(chrome_path), irt_basename);
+      if (!File.Exists(irtPath_))
+      {
+        // Next look for a folder alongside chrome.exe with the same name
+        // as the version embedded in chrome.exe.
+        if (file_version == null)
+        {
+          if (!File.Exists(irtPath_))
+          {
+            MessageBox.Show("NaCl IRT not found in chrome install.\nLooking for: " + irtPath_);
+            irtPath_ = null;
+          }
+        }
+        else
+        {
+          irtPath_ = Path.Combine(Path.GetDirectoryName(chrome_path), 
+                                  file_version, irt_basename);
+          if (!File.Exists(irtPath_))
+          {
+            MessageBox.Show("NaCl IRT not found in chrome install.\nLooking for: " + irtPath_);
+            irtPath_ = null;
+          }
+        }
+      }
+
       manifestPath_ = properties.ManifestPath;
       pluginAssembly_ = properties.PluginAssembly;
       pluginProjectDirectory_ = properties.ProjectDirectory;
@@ -162,8 +227,14 @@ namespace NativeClientVSAddIn
         contents.AppendFormat("file \"{0}\"\n", pluginAssemblyEscaped);
       }
 
-      string irtPathEscaped = irtPath_.Replace("\\", "\\\\");
-      contents.AppendFormat("nacl-irt {0}\n", irtPathEscaped);
+      // irtPath_ could be null if the irt nexe was not found in the chrome
+      // install.
+      if (irtPath_ != null)
+      {
+        string irtPathEscaped = irtPath_.Replace("\\", "\\\\");
+        contents.AppendFormat("nacl-irt \"{0}\"\n", irtPathEscaped);
+      }
+
       contents.AppendFormat("target remote localhost:{0}\n", 4014);
 
       // Insert breakpoints from Visual Studio project.
