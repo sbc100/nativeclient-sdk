@@ -1,5 +1,4 @@
-﻿
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(VCTargetsPath)\Platforms\NaCl\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\NaCl\ImportBefore')" />
   <Import Project="$(VCTargetsPath)\Microsoft.CppCommon.targets" />
 
@@ -8,7 +7,7 @@
   <UsingTask TaskName="NaClLib" AssemblyFile="$(VCTargetsPath)\Platforms\NaCl\NaCl.Build.CPPTasks.dll" />
   <UsingTask TaskName="VCMessage" AssemblyName="Microsoft.Build.CppTasks.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
 
-  
+
   <PropertyGroup>
     <!-- Enable incremental build by enable file tracking in tasks-->
     <TrackFileAccess Condition="'$(TrackFileAccess)' == ''">true</TrackFileAccess>
@@ -24,7 +23,7 @@
 
     <NaClCompile Condition="'%(ClCompile.ExcludedFromBuild)'!='true'"
                  BuildingInIDE                      ="$(BuildingInsideVisualStudio)"
-                 Sources                            ="@(ClCompile)"                 
+                 Sources                            ="@(ClCompile)"
                  OutputCommandLine                  ="%(ClCompile.OutputCommandLine)"
                  MinimalRebuildFromTracking         ="%(ClCompile.MinimalRebuildFromTracking)"
                  NaCLCompilerPath                   ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
@@ -50,14 +49,14 @@
       <Link_MinimalRebuildFromTracking Condition="'$(BuildType)' != 'Build' or '$(ForceRebuild)' == 'true'" >false</Link_MinimalRebuildFromTracking>
       <Link_MinimalRebuildFromTracking Condition="'$(Link_MinimalRebuildFromTracking)' == ''">true</Link_MinimalRebuildFromTracking>
     </PropertyGroup>
-    
+
     <NaClLink BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
               Sources                        ="@(Link)"
 
-              OutputCommandLine              ="%(Link.OutputCommandLine)"        
-              NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"        
+              OutputCommandLine              ="%(Link.OutputCommandLine)"
+              NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
               MinimalRebuildFromTracking     ="$(Link_MinimalRebuildFromTracking)"
-              OutputFile                     ="%(Link.OutputFile)"        
+              OutputFile                     ="%(Link.OutputFile)"
               PropertiesFile                   ="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_link.xml"
               TLogReadFiles                  ="@(LinkTLogReadFiles)"
               TLogWriteFiles                 ="@(LinkTLogWriteFiles)"
@@ -65,15 +64,15 @@
               ToolPath                       ="$(LinkToolPath)"
               TrackerLogDirectory            ="%(Link.TrackerLogDirectory)"
               TrackFileAccess                ="$(TrackFileAccess)"
-			  ConfigurationType              ="$(ConfigurationType)">
+        ConfigurationType              ="$(ConfigurationType)">
       <Output TaskParameter="SkippedExecution" PropertyName="LinkSkippedExecution" />
     </NaClLink>
 
     <Message Condition="'$(LinkSkippedExecution)' == 'false'" Text="$(MSBuildProjectFile) -&gt; $(TargetPath)" Importance="High" />
-    
+
   </Target>
-  
-  
+
+
   <!-- *******************************************************************************************
         Lib
        ******************************************************************************************* -->
@@ -82,7 +81,7 @@
 
   <Target Name="Lib"
           Condition="'@(Lib)' != ''">
-    
+
     <ItemGroup>
       <Lib>
         <MinimalRebuildFromTracking Condition="'%(Lib.MinimalRebuildFromTracking)' == '' and '$(BuildType)' == 'Build' and '$(ForceRebuild)' != 'true'">true</MinimalRebuildFromTracking>
@@ -92,7 +91,7 @@
     <NaClLib BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
              Sources                        ="@(Lib)"
              OutputCommandLine              ="%(Lib.OutputCommandLine)"
-             LibrarianToolPath 			        ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-ar.exe"
+             LibrarianToolPath              ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-ar.exe"
              MinimalRebuildFromTracking     ="%(Lib.MinimalRebuildFromTracking)"
              OutputFile                     ="%(Lib.OutputFile)"
              PropertiesFile                 ="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_lib.xml"
@@ -102,19 +101,16 @@
              ToolExe                        ="$(LIBToolExe)"
              ToolPath                       ="$(LIBToolPath)"
              TrackFileAccess                ="$(TrackFileAccess)">
-      	<Output TaskParameter="SkippedExecution" PropertyName="LibSkippedExecution" />
+        <Output TaskParameter="SkippedExecution" PropertyName="LibSkippedExecution" />
     </NaClLib>
 
     <Message Condition="'$(LibSkippedExecution)' == 'false'" Text="$(MSBuildProjectFile) -&gt; $(TargetPath)" Importance="High" />
-    
+
   </Target>
-  
+
   <!-- Imports -->
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\NaCl.CppBuild.targets" />	
+  <Import Project="$(VCTargetsPath)\Platforms\NaCl\NaCl.CppBuild.targets" />
   <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets" Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets'))" />
   <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets" Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets'))" />
-  
+
 </Project>
-
-
-

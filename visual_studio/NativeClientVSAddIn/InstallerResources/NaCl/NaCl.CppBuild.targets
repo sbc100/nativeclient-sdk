@@ -1,4 +1,3 @@
-
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
@@ -45,7 +44,7 @@
         $(VCTargetsPath)\Platforms\NaCl\Properties\nacl_compile.xml;
         $(VCTargetsPath)$(LangID)\custom_build_step.xml;
     "/>
-    <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_link.xml" Condition="'$(ConfigurationType)' == 'Application' or '$(ConfigurationType)' == 'DynamicLibrary'" /> 
+    <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_link.xml" Condition="'$(ConfigurationType)' == 'Application' or '$(ConfigurationType)' == 'DynamicLibrary'" />
     <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\NaCl\Properties\nacl_lib.xml" Condition="'$(ConfigurationType)' == 'StaticLibrary'" />
   </ItemGroup>
 
@@ -63,7 +62,7 @@
     <ProjectTools Include="Link"/>
     <ProjectTools Include="CustomBuildStep"/>
   </ItemGroup>
-  
+
   <!-- Tools that show up in the IDE property pages for lib project-->
   <ItemGroup Condition="'$(ConfigurationType)' == 'StaticLibrary'">
     <ProjectTools Include="Lib"/>

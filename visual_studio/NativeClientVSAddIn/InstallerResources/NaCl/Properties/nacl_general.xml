@@ -14,14 +14,14 @@
   <Rule.DataSource>
     <DataSource Persistence="ProjectFile" Label="Configuration" />
   </Rule.DataSource>
-  
+
   <StringProperty Name="NaClAddInVersion" Visible="false"
                   Category="NativeClient" Default="">
     <StringProperty.DataSource>
       <DataSource Persistence="ProjectFile" Label=""/>
     </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="VSNaClSDKRoot" DisplayName="NaCl SDK Root"
                   Description="Specifies the path to the Native Client SDK root directory."
                   Category="NativeClient" Default=""
@@ -30,7 +30,7 @@
       <DataSource Persistence="ProjectFile" Label="" />
     </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="NaClManifestPath" DisplayName="Manifest File Path"
                   Description="Specifies the path to the .nmf file for this project configuration."
                   Category="NativeClient" Default=""
@@ -39,7 +39,7 @@
       <DataSource Persistence="ProjectFile" Label="" />
     </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="NaClIrtPath" DisplayName="IRT File Path"
                   Description="Specifies the path to the NaCl Intermediate Runtime file for this project configuration."
                   Category="NativeClient" Default=""
@@ -48,7 +48,7 @@
       <DataSource Persistence="ProjectFile" Label="" />
     </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="NaClWebServerPort" DisplayName="Web Server Port"
                   Description="Specifies the port number to use while hosting the nexe"
                   Category="NativeClient" Default=""
@@ -57,12 +57,12 @@
       <DataSource Persistence="ProjectFile" Label="" />
     </StringProperty.DataSource>
   </StringProperty>
-  
+
   <EnumProperty Name="ToolchainName" DisplayName="Toolchain" Category="NativeClient">
     <EnumValue Name="newlib" DisplayName="newlib" />
     <EnumValue Name="glibc" DisplayName="glibc" />
   </EnumProperty>
-  
+
   <StringProperty Name="OutDir" DisplayName="Output Directory"
                   Description="Specifies a relative path to the output file directory; can include environment variables."
                   Category="General" Default="$(SolutionDir)$(Configuration)\"
@@ -72,7 +72,7 @@
                      <DataSource Persistence="ProjectFile" Label="" />
                   </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="IntDir" DisplayName="Intermediate Directory"
                   Description="Specifies a relative path to the intermediate file directory; can include environment variables."
                   Category="General" Default="$(Configuration)\"
@@ -82,7 +82,7 @@
                      <DataSource Persistence="ProjectFile" Label="" />
                   </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="TargetName" DisplayName="Target Name"
                   Description="Specifies a file name that this project will generate."
                   F1Keyword="VC.Project.VCConfiguration.TargetName"
@@ -92,7 +92,7 @@
                      <DataSource Persistence="ProjectFile" Label="" />
                   </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringProperty Name="TargetExt" DisplayName="Target Extension"
                   Description="Specifies a file extension that this project will generate. (Example: .exe or .dll)"
                   F1Keyword="VC.Project.VCConfiguration.TargetExt"
@@ -102,7 +102,7 @@
                      <DataSource Persistence="ProjectFile" Label="" />
                   </StringProperty.DataSource>
   </StringProperty>
-  
+
   <StringListProperty Name="ExtensionsToDeleteOnClean" DisplayName="Extensions to Delete on Clean"
                       Description="Semi-colon delimited wildcard specification for which files in the intermediate directory to delete on clean or rebuild."
                       Category="General" Separator=";"
@@ -111,7 +111,7 @@
                             <DataSource Persistence="ProjectFile" Label="" />
                       </StringListProperty.DataSource>
   </StringListProperty>
-  
+
   <StringProperty Name="BuildLogFile" DisplayName="Build Log File"
                   Description="Specifies the build log file to write to when build logging is enabled."
                   F1Keyword="VC.Project.VCConfiguration.BuildLogFile"
@@ -121,7 +121,7 @@
                      <DataSource Persistence="ProjectFile" ItemType="BuildLog" PersistedName="Path" />
                   </StringProperty.DataSource>
   </StringProperty>
-  
+
   <EnumProperty Name="ConfigurationType" DisplayName="Configuration Type"
                 Description="Specifies the type of output this configuration generates."
                 Category="ProjectDefaults"
@@ -131,10 +131,10 @@
     <EnumValue Name="StaticLibrary" DisplayName="Static library (.a)" />
   </EnumProperty>
   <EnumProperty Name="TargetArchitecture" DisplayName="Target Architecture" Category="ProjectDefaults">
-    <EnumValue Name="i686"   DisplayName="x86 32-bit" />
+    <EnumValue Name="i686" DisplayName="x86 32-bit" />
     <EnumValue Name="x86_64" DisplayName="x86 64-bit" />
   </EnumProperty>
-  
+
   <EnumProperty Name="CLRSupport" DisplayName="Common Language Runtime Support"
                 Description="Specifies whether this configuration supports the Common Language Runtime. This is incompatible with some other settings, e.g. runtime checks. See help for /clr family of C++ compiler switches for full list of conflicts."
                 Category="ProjectDefaults"
@@ -150,5 +150,5 @@
     <EnumValue Name="OldSyntax" DisplayName="Common Language Runtime Support, Old Syntax (/clr:oldSyntax)"
                Description="Common Language Runtime Support, Old Syntax (/clr:oldSyntax)" />
   </EnumProperty>
-  
+
 </Rule>

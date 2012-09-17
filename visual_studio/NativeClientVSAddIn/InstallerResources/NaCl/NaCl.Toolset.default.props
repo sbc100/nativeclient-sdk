@@ -16,13 +16,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="$(Configuration) == 'Debug'">
     <ClCompile>
-      <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">true</GenerateDebuggingInformation> 
+      <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">true</GenerateDebuggingInformation>
       <OptimizationLevel        Condition="'%(ClCompile.OptimizationLevel)'         == ''">O0</OptimizationLevel>
     </ClCompile>
   </ItemDefinitionGroup>
   <!-- Default compile release options -->
   <ItemDefinitionGroup Condition="$(Configuration) != 'Debug'">
-    <ClCompile>      
+    <ClCompile>
       <OptimizationLevel            Condition="'%(ClCompile.OptimizationLevel)'         == ''">O3</OptimizationLevel>
       <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">false</GenerateDebuggingInformation>
     </ClCompile>
@@ -35,7 +35,7 @@
       <IgnoreAllDefaultLibraries  Condition="'%(Link.IgnoreAllDefaultLibraries)'      == ''">false</IgnoreAllDefaultLibraries>
       <NaClSystemLibs             Condition="'%(Link.NaClSystemLibs)'                 == ''">c;m;log;gcc</NaClSystemLibs>
       <ReportUndefinedSymbols     Condition="'%(Link.ReportUndefinedSymbols)'         == ''">true</ReportUndefinedSymbols>
-      <SystemLibraryDirectories	  Condition="'%(Link.SystemLibraryDirectories)'       == ''">$(LibraryPath)</SystemLibraryDirectories>
+      <SystemLibraryDirectories   Condition="'%(Link.SystemLibraryDirectories)'       == ''">$(LibraryPath)</SystemLibraryDirectories>
       <ConfigurationType          Condition="'%(Link.ConfigurationType)'            == ''">$(ConfigurationType)</ConfigurationType>
       <OutputCommandLine>true</OutputCommandLine>
   </Link>

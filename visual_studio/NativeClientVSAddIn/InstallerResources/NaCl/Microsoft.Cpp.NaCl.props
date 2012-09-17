@@ -1,6 +1,5 @@
-﻿
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\NaCl\ImportBefore')" />  
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(VCTargetsPath)\Platforms\NaCl\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\NaCl\ImportBefore')" />
   <Import Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props'))" Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props"/>
   <Import Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props'))" Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props"/>
 
@@ -9,10 +8,10 @@
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Platforms\NaCl\NaCl.Toolset.default.props" />
-  
+
   <PropertyGroup>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
-    <GenerateManifest>false</GenerateManifest>  
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ConfigurationType)' == 'Application'">
