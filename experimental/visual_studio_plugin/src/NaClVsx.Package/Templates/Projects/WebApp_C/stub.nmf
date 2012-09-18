@@ -1,6 +1,0 @@
-{
-  "program": {
-    "x86-64": {"url": "$safeprojectname$_x86_64.nexe"},
-    "x86-32": {"url": "$safeprojectname$_x86_32.nexe"}
-  }
-}
