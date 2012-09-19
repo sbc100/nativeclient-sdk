@@ -10,7 +10,6 @@ It zips up all files required for the add-in installation and places the
 result in out/NativeClientVSAddin.zip
 """
 
-import codecs
 import os
 import re
 import fileinput
@@ -79,6 +78,7 @@ def AddFolderToZip(path, zip_file):
       write_path = os.path.join(zip_based_dir, file)
       zip_file.write(read_path, write_path, zipfile.ZIP_DEFLATED)
 
+
 def AddVersionModifiedAddinFile(zip_file):
   """Modifies the .AddIn file with the build version and adds to the zip.
 
@@ -100,8 +100,8 @@ def AddVersionModifiedAddinFile(zip_file):
   modified_file = os.path.join(ASSEMBLY_DIRECTORY, metadata_filename)
 
   # Copy the metadata file to new location and modify the version info.
-  with codecs.open(ADDIN_METADATA, 'r', encoding='utf-16') as source_file:
-    with codecs.open(modified_file, 'w', encoding='utf-16') as dest_file:
+  with open(ADDIN_METADATA, 'r') as source_file:
+    with open(modified_file, 'w') as dest_file:
       for line in source_file:
         dest_file.write(line.replace("[REPLACE_ADDIN_VERSION]", version))
 
