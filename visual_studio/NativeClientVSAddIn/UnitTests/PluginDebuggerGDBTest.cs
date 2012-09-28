@@ -102,8 +102,16 @@ namespace UnitTests
                 case "NaClIrtPath": return @"fake\Irt\Path";
                 case "NaClManifestPath": return string.Empty;
                 case "ToolchainName": return "newlib";
+                case "TargetArchitecture": return "x86_64";
               }
 
+              break;
+            case "WindowsLocalDebugger":
+              switch (name)
+              {
+                case "LocalDebuggerCommand":
+                  return Environment.GetEnvironmentVariable("CHROME_PATH");
+              }
               break;
             case "Property":
               switch (name)
@@ -346,7 +354,7 @@ namespace UnitTests
         target.gdbInitFileName_ = existingInitFileName;
 
         target.Dispose();
-        
+
         // Check that the pre-existing gdb process was killed and its init file cleaned up.
         Assert.IsFalse(
             TestUtilities.DoesProcessExist("python.exe", existingGDB),

@@ -1,9 +1,9 @@
 @echo off
 
 :: Locations
-set out_directory=..\..\out\NativeClientVSAddIn\Test
+set out_directory=..\..\out\vs_addin\Test
 set mstest_file=Results.trx
-set test_assembly=..\..\out\NativeClientVSAddIn\Debug\UnitTests.dll
+set test_assembly=..\..\out\vs_addin\Debug\UnitTests.dll
 
 :: Set up the Visual Studio environment
 call "%VS100COMNTOOLS%vsvars32.bat"

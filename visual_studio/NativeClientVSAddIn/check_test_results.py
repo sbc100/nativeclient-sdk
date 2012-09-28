@@ -20,6 +20,8 @@ def main():
     print 'Must provide path to the Results.trx file'
     return 1
 
+  print "Processing results: %s" % sys.argv[1]
+
   # Parse the xml results file
   tree = xml.etree.ElementTree.parse(sys.argv[1])
   root = tree.getroot()
@@ -33,14 +35,18 @@ def main():
   print test_run_name
   for result in results:
     fail_message = 'None.'
+    if 'outcome' not in result.attrib:
+      result.attrib['outcome'] = 'Error'
+
     if result.attrib['outcome'] != 'Passed':
       exit_code = 1
       fail_element = result.find('{%s}Output/{%s}ErrorInfo/{%s}Message' % (
           MSTEST_NAMESPACE, MSTEST_NAMESPACE, MSTEST_NAMESPACE))
       if fail_element is not None:
         fail_message = fail_element.text
+
     print 'Test: %s, Duration: %s, Outcome: %s, Reason: %s\n' % (
-        result.attrib['testName'], result.attrib['duration'],
+        result.attrib['testName'], result.attrib.get('duration'),
         result.attrib['outcome'], fail_message)
 
   return exit_code
