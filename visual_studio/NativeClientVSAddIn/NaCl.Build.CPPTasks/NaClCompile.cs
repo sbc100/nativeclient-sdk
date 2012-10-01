@@ -120,7 +120,7 @@ namespace NaCl.Build.CPPTasks
                         {
                             writer.WriteLine("^" + sourcePath);
                             DependencyParser parser = new DependencyParser(depFilePath);
-                            
+
                             foreach (string filename in parser.Dependencies)
                             {
                                 //source itself not required
@@ -167,7 +167,7 @@ namespace NaCl.Build.CPPTasks
                 trackedFiles.RemoveEntriesForSource(sourceItem);
 
                 //add entry with updated information
-                trackedFiles.AddComputedOutputForSourceRoot( Path.GetFullPath(sourceItem.ItemSpec).ToUpperInvariant(), 
+                trackedFiles.AddComputedOutputForSourceRoot( Path.GetFullPath(sourceItem.ItemSpec).ToUpperInvariant(),
                                                              Path.GetFullPath(sourceItem.GetMetadata("ObjectFileName")).ToUpperInvariant());
             }
 
@@ -222,8 +222,7 @@ namespace NaCl.Build.CPPTasks
                 string props = m_XamlParser.Parse(sourceFile);
                 commandLine.Append(props);
                 commandLine.Append(" -MD -c ");
-                commandLine.Append(sourcePath);
-
+                commandLine.Append("\"" + sourcePath "\"");
             }
 
             return commandLine.ToString();
@@ -288,7 +287,7 @@ namespace NaCl.Build.CPPTasks
                         string logMessage = pathToTool + " " + commandLine;
                         Log.LogMessageFromText(logMessage, MessageImportance.High);
                     }
-                    
+
 
                     // compile
                     returnCode = base.ExecuteTool(pathToTool, commandLine, string.Empty);
@@ -588,7 +587,7 @@ namespace NaCl.Build.CPPTasks
                 return m_toolname + ".compile.write.1.tlog";
             }
         }
-        
+
         public bool TrackFileAccess
         {
             get
