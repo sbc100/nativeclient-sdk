@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,13 +17,13 @@ namespace NaCl.Build.CPPTasks
             // load and store properties from xaml file
             m_parsedBuildRule = (Rule)XamlServices.Load(path);
 
-            // NOTE: 
-            // There are MSBuild classes which support command line building, 
-            // argument switch encapsulation and more.  Code within VCToolTask, 
-            // a hidden interface, uses some these classes to generate command line 
-            // switches given project settings. As the VCToolTask class is a hidden 
-            // class and the MSBuild documentation is very sparse, we are going 
-            // with a small custom solution.  For reference see the 
+            // NOTE:
+            // There are MSBuild classes which support command line building,
+            // argument switch encapsulation and more.  Code within VCToolTask,
+            // a hidden interface, uses some these classes to generate command line
+            // switches given project settings. As the VCToolTask class is a hidden
+            // class and the MSBuild documentation is very sparse, we are going
+            // with a small custom solution.  For reference see the
             // Microsoft.Build.Tasks.Xaml, Microsoft.Build.Framework.XamlTypes namespaces.
 
             // move the properties to a property name keyed dictionary for faster lookup
@@ -87,19 +87,27 @@ namespace NaCl.Build.CPPTasks
             value = value.Trim();
 
             // could cache this SubType test off in property wrapper or somewhere if performance were an issue
+            string switchName = m_parsedBuildRule.SwitchPrefix + property.Switch;
+            switchName += property.Separator;
             if (subtype == "file" || subtype == "folder")
             {
-                builder.AppendSwitchIfNotNull(m_parsedBuildRule.SwitchPrefix + property.Switch + property.Separator, value);
+                // for switches that contains files or folders we need quoting
+                builder.AppendSwitchIfNotNull(switchName, value);
             }
-            else
+            else if (!string.IsNullOrEmpty(property.Switch))
             {
-                builder.AppendSwitchUnquotedIfNotNull(m_parsedBuildRule.SwitchPrefix + property.Switch + property.Separator, value);
+                builder.AppendSwitchUnquotedIfNotNull(switchName, value);
+            }
+            else if (!string.IsNullOrEmpty(value))
+            {
+                // for non-switches such as AdditionalOptions we just append the value
+                builder.AppendTextUnquoted(" " + value);
             }
         }
 
         private void GenerateArgumentStringList(CommandLineBuilder builder, BaseProperty property, string value)
         {
-			string [] arguments = value.Split(';');
+            string[] arguments = value.Split(';');
 
             foreach (string argument in arguments)
             {

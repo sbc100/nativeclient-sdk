@@ -222,7 +222,7 @@ namespace NaCl.Build.CPPTasks
                 string props = m_XamlParser.Parse(sourceFile);
                 commandLine.Append(props);
                 commandLine.Append(" -MD -c ");
-                commandLine.Append("\"" + sourcePath "\"");
+                commandLine.Append("\"" + sourcePath + "\"");
             }
 
             return commandLine.ToString();
