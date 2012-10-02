@@ -63,6 +63,7 @@ def _GetGsutil():
     gsutil = os.path.join(slave_dir, 'gsutil')
     if os.name == 'nt':
       gsutil += '.bat'
+    gsutil = [gsutil]
   else:
     if os.name == 'nt':
       gsutil = [sys.executable, _FindInPath('gsutil')]
