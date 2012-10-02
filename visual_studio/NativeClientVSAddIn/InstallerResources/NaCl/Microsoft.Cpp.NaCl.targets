@@ -26,7 +26,7 @@
                  Sources                            ="@(ClCompile)"
                  OutputCommandLine                  ="%(ClCompile.OutputCommandLine)"
                  MinimalRebuildFromTracking         ="%(ClCompile.MinimalRebuildFromTracking)"
-                 NaCLCompilerPath                   ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
+                 NaCLCompilerPath                   ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-gcc.exe"
                  PropertiesFile                       ="$(VCTargetsPath)\Platforms\NaCl\Props\nacl_compile.xml"
                  TLogReadFiles                      ="@(CLTLogReadFiles)"
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
