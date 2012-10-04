@@ -12,7 +12,7 @@ import os
 import sys
 import subprocess
 
-GSURL = 'https://commondatastorage.googleapis.com/'
+GSURL = 'https://commondatastorage.googleapis.com'
 GSPATH = 'nativeclient-mirror/nacl/nacl_sdk/sdk'
 
 def Log(msg):
