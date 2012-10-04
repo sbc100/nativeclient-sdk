@@ -17,6 +17,7 @@ import optparse
 import platform
 import shutil
 import sys
+import time
 
 NACL_PLATFORM_NAME = 'NaCl'
 PEPPER_PLATFORM_NAME = 'PPAPI'
@@ -57,6 +58,24 @@ def Uninstall(nacl_directory, pepper_directory, addin_directory):
     UninstallFile(os.path.join(addin_directory, file_name))
 
 
+def CheckForRunningProgams():
+  tasklist = os.popen('tasklist.exe').readlines()
+  tasklist = [l for l in tasklist if 'MSBuild' in l or 'devenv' in l]
+  return tasklist
+
+
+def Ask(question):
+  while True:
+    print '\n'
+    print question
+    print "Continue? ((Yes))/((No))"
+    answer = raw_input().strip().lower()
+    if answer in ('y', 'yes'):
+      return True
+    if answer in ('n', 'no'):
+      return False
+
+
 def main():
   parser = optparse.OptionParser(usage='Usage: %prog [options]')
   parser.add_option('-b', '--msbuild-path', dest='msbuild_path',
@@ -65,7 +84,7 @@ def main():
   parser.add_option('-a', '--vsuser-path', dest='vsuser_path',
       default=DEFAULT_VS_USER_DIRECTORY, metavar='PATH',
       help='Provide the path to the Visual Studio user directory')
-  parser.add_option('-f', '--force', action="store_true", dest='overwrite',
+  parser.add_option('-f', '--force', action="store_true",
       default=False, help='Force an overwrite of existing files')
   parser.add_option('-p', '--ppapi', action="store_true", dest='install_ppapi',
       help='Install PPAPI template without asking.')
@@ -78,11 +97,30 @@ def main():
   print "*************************************************"
   print "Native-Client Visual Studio 2010 Add-in Installer"
   print "*************************************************\n"
-  print "Please ensure Visual Studio and MSBuild are closed " \
-        "during installation.\n"
 
   if platform.system() != 'Windows':
     raise InstallError('Must install to Windows system')
+
+  if CheckForRunningProgams():
+    if not options.force:
+      print "Visual Studio and MSBuild must be closed during installation"
+      if not Ask("Kill all instances now?"):
+        raise InstallError('Please close all Visual Studio or MSBuild '
+                           'instances before installing')
+    os.system("taskkill.exe /IM MSBuild.exe /f")
+    os.system("taskkill.exe /IM devenv.exe")
+    if CheckForRunningProgams():
+      for i in xrange(10):
+        if not CheckForRunningProgams():
+          break
+        time.sleep(1)
+        if not CheckForRunningProgams():
+          break
+        if i == 5:
+          print "Trying taskkill with /f"
+          os.system("taskkill.exe /IM devenv.exe /f")
+      if CheckForRunningProgams():
+        raise InstallError('Failed to kill Visual Studio and MSBuild instances')
 
   if sys.version_info < (2, 6, 2):
     print "\n\nWARNING: Only python version 2.6.2 or greater is supported. " \
@@ -111,7 +149,7 @@ def main():
   if options.uninstall:
     Uninstall(nacl_directory, pepper_directory, addin_directory)
     print "\nUninstall complete!\n"
-    exit(0)
+    sys.exit(0)
 
   if not os.path.exists(platform_directory):
     raise InstallError("Could not find path: %s" % platform_directory)
@@ -126,28 +164,26 @@ def main():
   if chrome_path is None:
     raise InstallError('Environment Variable CHROME_PATH is not set')
 
+
   # Remove existing installation.
   if os.path.exists(nacl_directory) or os.path.exists(pepper_directory):
     # If not forced then ask user permission.
-    if not options.overwrite:
-      print "\nWarning: Pre-existing add-in installation will be overwritten."
-      print "Continue? ((Yes))/((No))"
-      remove_answer = raw_input().strip()
-      if not (remove_answer.lower() == "yes" or remove_answer.lower() == "y"):
+    if not options.force:
+      if not Ask("Warning: Pre-existing add-in installation "
+                 "will be overwritten."):
         raise InstallError('User did not allow overwrite of existing install.')
     print "Removing existing install..."
     Uninstall(nacl_directory, pepper_directory, addin_directory)
 
+
   # Ask user before installing PPAPI template.
   if options.install_ppapi is None:
-    print "\n"
-    print "Set up configuration to enable Pepper development " \
-          "with Visual Studio?"
-    print "((Yes)) - I want to create and copy relevant files into a " \
-           "Pepper subdirectory"
-    print "((No)) - I am not interested or will set up the configuration later"
-    ppapi_answer = raw_input().strip()
-    if ppapi_answer.lower() == "yes" or ppapi_answer.lower() == "y":
+    ppapi_answer = Ask("Set up configuration to enable Pepper development "
+          "with Visual Studio?\n"
+          "((Yes)) - I want to create and copy relevant files into a "
+          "Pepper subdirectory\n"
+          "((No)) - I am not interested or will set up the configuration later")
+    if ppapi_answer:
       options.install_ppapi = True
       print "Confirmed installer will include PPAPI platform."
     else:
