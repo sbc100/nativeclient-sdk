@@ -46,12 +46,12 @@ namespace NaCl.Build.CPPTasks
         {
             StringBuilder responseFileCmds = new StringBuilder(GCCUtilities.s_CommandLineLength);
             responseFileCmds.Append("rcs ");
-            responseFileCmds.Append(GCCUtilities.Convert_Path_Windows_To_Posix(OutputFile));
+            responseFileCmds.Append(GCCUtilities.ConvertPathWindowsToPosix(OutputFile));
 
             foreach (ITaskItem item in Sources)
             {
                 responseFileCmds.Append(" ");
-                responseFileCmds.Append(GCCUtilities.Convert_Path_Windows_To_Posix(item.ToString()));
+                responseFileCmds.Append(GCCUtilities.ConvertPathWindowsToPosix(item.ToString()));
             }
             return responseFileCmds.ToString();
         }

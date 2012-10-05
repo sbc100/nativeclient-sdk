@@ -44,7 +44,7 @@ namespace NaCl.Build.CPPTasks
                 // assumes .o file is only possible file ending with 'o'
                 if (path.ElementAt(path.Length - 1) != 'o' && path.ElementAt(path.Length - 1) != ':')
                 {
-                    string newDependency = GCCUtilities.Convert_Path_Posix_To_Windows(path);
+                    string newDependency = GCCUtilities.ConvertPathPosixToWindows(path);
                     m_dependencies.Add(newDependency);
                 }
             }

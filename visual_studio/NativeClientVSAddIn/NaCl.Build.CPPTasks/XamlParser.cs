@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 using Microsoft.Build.Framework;
 using System.Xaml;
@@ -39,19 +40,27 @@ namespace NaCl.Build.CPPTasks
             {
                 { typeof(StringListProperty), GenerateArgumentStringList },
                 { typeof(StringProperty), GenerateArgumentString },
-                { typeof(IntProperty), GenerateArgumentString },
+                { typeof(IntProperty), GenerateArgumentInt },
                 { typeof(BoolProperty), GenerateArgumentBool },
                 { typeof(EnumProperty), GenerateArgumentEnum }
             };
         }
 
-        public string Parse(ITaskItem taskItem)
+        public string Parse(ITaskItem taskItem, bool fullOutputName)
         {
             CommandLineBuilder builder = new CommandLineBuilder();
 
             foreach (string name in taskItem.MetadataNames)
             {
                 string value = taskItem.GetMetadata(name);
+                if (fullOutputName && name == "ObjectFileName")
+                {
+                    if ((File.GetAttributes(value) & FileAttributes.Directory) != 0)
+                    {
+                        value = Path.Combine(value, Path.GetFileName(taskItem.ItemSpec));
+                        value = Path.ChangeExtension(value, ".obj");
+                    }
+                }
                 AppendArgumentForProperty(builder, name, value);
             }
 
@@ -124,6 +133,12 @@ namespace NaCl.Build.CPPTasks
             // could cache this SubType test off in property wrapper or somewhere if performance were an issue
             StringProperty casted = (StringProperty)property;
             AppendStringValue(builder, property, casted.Subtype, value);
+        }
+
+        private void GenerateArgumentInt(CommandLineBuilder builder, BaseProperty property, string value)
+        {
+            // Currently we only have one Int property and it doesn't correspond to a
+            // command line arguemnt (ProcessorNumber) so we ignore it here.
         }
 
         private void GenerateArgumentBool(CommandLineBuilder builder, BaseProperty property, string value)

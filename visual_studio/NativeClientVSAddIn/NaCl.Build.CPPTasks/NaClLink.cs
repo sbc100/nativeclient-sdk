@@ -70,7 +70,7 @@ namespace NaCl.Build.CPPTasks
 
         protected override void LogEventsFromTextOutput(string singleLine, MessageImportance messageImportance)
         {
-            base.LogEventsFromTextOutput(GCCUtilities.Convert_Output_GCC_to_VS(singleLine), messageImportance);
+            base.LogEventsFromTextOutput(GCCUtilities.ConvertGCCOutput(singleLine), messageImportance);
         }
 
         protected override string GenerateResponseFileCommands()
@@ -79,11 +79,11 @@ namespace NaCl.Build.CPPTasks
 
             foreach (ITaskItem sourceFile in Sources)
             {
-                responseFileCmds.Append(GCCUtilities.Convert_Path_Windows_To_Posix(sourceFile.GetMetadata("Identity")));
+                responseFileCmds.Append(GCCUtilities.ConvertPathWindowsToPosix(sourceFile.GetMetadata("Identity")));
                 responseFileCmds.Append(" ");
             }
 
-            responseFileCmds.Append(m_XamlParser.Parse(Sources[0]));
+            responseFileCmds.Append(m_XamlParser.Parse(Sources[0], false));
 
             return responseFileCmds.ToString();
         }

@@ -2,14 +2,14 @@
 
   <ItemDefinitionGroup>
     <ClCompile>
-      <ObjectFileName>$(IntDir)%(FileName).o</ObjectFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
       <PreprocessorDefinitions  Condition="'%(ClCompile.PreprocessorDefinitions)'   == ''"></PreprocessorDefinitions>
       <Warnings                 Condition="'%(ClCompile.Warnings)'                  == ''">NormalWarnings</Warnings>
       <WarningsAsErrors         Condition="'%(ClCompile.WarningsAsErrors)'          == ''">false</WarningsAsErrors>
-      <SystemIncludeDirectories       Condition="'%(ClCompile.SystemIncludeDirectories)'      == ''">$(IncludePath)</SystemIncludeDirectories>
+      <SystemIncludeDirectories Condition="'%(ClCompile.SystemIncludeDirectories)'  == ''">$(IncludePath)</SystemIncludeDirectories>
       <SystemPreprocessorDefinitions  Condition="'%(ClCompile.SystemPreprocessorDefinitions)' == ''">$(NaClDefines)</SystemPreprocessorDefinitions>
       <UserHeaderDependenciesOnly     Condition="'%(ClCompile.UserHeaderDependenciesOnly)' == ''">true</UserHeaderDependenciesOnly>
-      <ConfigurationType            Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
+      <ConfigurationType        Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
       <ExceptionHandling>true</ExceptionHandling>
       <OutputCommandLine>true</OutputCommandLine>
     </ClCompile>

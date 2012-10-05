@@ -12,12 +12,12 @@ namespace NaCl.Build.CPPTasks
     {
         public const int s_CommandLineLength = 256;
 
-        public static string Convert_Path_Windows_To_Posix(string path)
+        public static string ConvertPathWindowsToPosix(string path)
         {
             return path.Replace('\\', '/');
         }
 
-        public static string Convert_Path_Posix_To_Windows(string path)
+        public static string ConvertPathPosixToWindows(string path)
         {
             path = path.Replace('/', '\\');
             // also make double backslashes a single slash
@@ -26,7 +26,7 @@ namespace NaCl.Build.CPPTasks
         }
 
         // replace GCC error are warning output to Visual Studio format to support going to source code from error output.
-        public static string Convert_Output_GCC_to_VS(string line)
+        public static string ConvertGCCOutput(string line)
         {
             string result;
             foreach (GCCRegexLineConverter converter in s_RegexConverters)
@@ -76,21 +76,21 @@ namespace NaCl.Build.CPPTasks
             }
         } // GCCRegexLineConverter
 
-        private static readonly List<GCCRegexLineConverter> s_RegexConverters = new List<GCCRegexLineConverter> 
+        private static readonly List<GCCRegexLineConverter> s_RegexConverters = new List<GCCRegexLineConverter>
         {
-            new GCCRegexLineConverter 
+            new GCCRegexLineConverter
             {
                 OutputExpression =      new Regex(@"^\s*(.?.?[^:]*.*?):([1-9]\d*):([1-9]\d*):(.*$)"),
                 FilenameIdentifier =    @"$1",
                 RemainderIdentifier =   @"($2,$3):$4"
             },
-            new GCCRegexLineConverter 
+            new GCCRegexLineConverter
             {
                 OutputExpression =      new Regex(@"^\s*(.?.?[^:]*.*?):([1-9]\d*):(.*$)"),
                 FilenameIdentifier =    @"$1",
                 RemainderIdentifier =   @"($2):$3"
             },
-            new GCCRegexLineConverter 
+            new GCCRegexLineConverter
             {
                 OutputExpression =      new Regex(@"^\s*(.?.?[^:]*.*?):(.?.?[^:]*.*?):([1-9]\d*):(.*$)"),
                 FilenameIdentifier =    @"$2",

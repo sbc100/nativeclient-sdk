@@ -37,8 +37,15 @@
   <BoolProperty Name="UserHeaderDependenciesOnly" Category="General" Visible="true" Switch="MMD">
   </BoolProperty>
 
-    <BoolProperty Name="PositionIndependentCode" DisplayName="Generate Position-Independent Code" Category="Code Generation" Switch="fpic">
+  <BoolProperty Name="PositionIndependentCode" DisplayName="Generate Position-Independent Code" Category="Code Generation" Switch="fpic">
   </BoolProperty>
+
+  <BoolProperty Name="MultiProcessorCompilation" DisplayName="Multi-processor Compilation" Description="Multi-processor Compilation" Category="General">
+  </BoolProperty>
+
+  <IntProperty Name="ProcessorNumber" DisplayName="Number of processors" Description="Number of processors." Category="General" Visible="false">
+  </IntProperty>
+
   <BoolProperty Name="ExceptionHandling" DisplayName="Enable C++ Exceptions" Category="Code Generation" Switch="fexceptions" ReverseSwitch="fno-exceptions">
   </BoolProperty>
 

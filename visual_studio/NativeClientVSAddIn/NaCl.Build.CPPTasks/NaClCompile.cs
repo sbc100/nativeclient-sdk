@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,8 +6,11 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Resources;
+using System.Windows.Forms;
 using Microsoft.Build.Framework;
+using Microsoft.Win32;
 using Microsoft.Build.Utilities;
+using System.Collections.Specialized;
 
 using System.Diagnostics;
 
@@ -39,11 +42,26 @@ namespace NaCl.Build.CPPTasks
         public string NaCLCompilerPath { get; set; }
 
         [Required]
-        public string OutputCommandLine { get; set; }
+        public bool OutputCommandLine { get; set; }
+
+        public int ProcessorNumber { get; set; }
+
+        public bool MultiProcessorCompilation { get; set; }
 
         [Required]
         public string TrackerLogDirectory { get; set; }
 
+        protected override StringDictionary EnvironmentOverride
+        {
+            get {
+                string show = OutputCommandLine ? "1" : "0";
+                string cores = Convert.ToString(ProcessorNumber);
+                return new StringDictionary() {
+                      {"NACL_GCC_CORES", cores},
+                      {"NACL_GCC_SHOW_COMMANDS", show }
+                };
+            }
+        }
 
         protected override string GenerateFullPathToTool() { return ToolName; }
 
@@ -51,7 +69,7 @@ namespace NaCl.Build.CPPTasks
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
         {
             this.pathToLog = string.Empty;
-            this.EnvironmentVariables = new string []{"CYGWIN=nodosfilewarning", "LC_CTYPE=C"};
+            this.EnvironmentVariables = new string[] { "CYGWIN=nodosfilewarning", "LC_CTYPE=C" };
         }
 
         protected IDictionary<string, string> GenerateCommandLinesFromTlog()
@@ -68,7 +86,7 @@ namespace NaCl.Build.CPPTasks
                         if (lineStr.Length == 0 ||
                             (lineStr[0] == '^' && lineStr.Length == 1))
                         {
-                            Log.LogMessage(MessageImportance.High, "Invalid line in command tlog");
+                            Log.LogError("Invalid line in command tlog");
                             break;
                         }
                         else if (lineStr[0] == '^')
@@ -87,7 +105,21 @@ namespace NaCl.Build.CPPTasks
 
         protected override void LogEventsFromTextOutput(string singleLine, MessageImportance messageImportance)
         {
-            base.LogEventsFromTextOutput(GCCUtilities.Convert_Output_GCC_to_VS(singleLine), messageImportance);
+            base.LogEventsFromTextOutput(GCCUtilities.ConvertGCCOutput(singleLine), messageImportance);
+        }
+
+        static string GetObjectFile(ITaskItem source)
+        {
+            string objectFilePath = Path.GetFullPath(source.GetMetadata("ObjectFileName"));
+            // cl.exe will accept a folder name as the ObjectFileName in which case
+            // the objectfile is created as <ObjectFileName>/<basename>.obj.  Here
+            // we mimic this behaviour.
+            if ((File.GetAttributes(objectFilePath) & FileAttributes.Directory) != 0)
+            {
+                objectFilePath = Path.Combine(objectFilePath, Path.GetFileName(source.ItemSpec));
+                objectFilePath = Path.ChangeExtension(objectFilePath, ".obj");
+            }
+            return objectFilePath;
         }
 
         private void ConstructReadTLog(ITaskItem[] compiledSources, CanonicalTrackedOutputFiles outputs)
@@ -106,8 +138,7 @@ namespace NaCl.Build.CPPTasks
                 foreach (ITaskItem source in compiledSources)
                 {
                     string sourcePath = Path.GetFullPath(source.ItemSpec).ToUpperInvariant();
-
-                    string objectFilePath = Path.GetFullPath(source.GetMetadata("ObjectFileName"));
+                    string objectFilePath = GetObjectFile(source);
                     string depFilePath = Path.ChangeExtension(objectFilePath, ".d");
 
                     try
@@ -167,8 +198,8 @@ namespace NaCl.Build.CPPTasks
                 trackedFiles.RemoveEntriesForSource(sourceItem);
 
                 //add entry with updated information
-                trackedFiles.AddComputedOutputForSourceRoot( Path.GetFullPath(sourceItem.ItemSpec).ToUpperInvariant(),
-                                                             Path.GetFullPath(sourceItem.GetMetadata("ObjectFileName")).ToUpperInvariant());
+                trackedFiles.AddComputedOutputForSourceRoot(Path.GetFullPath(sourceItem.ItemSpec).ToUpperInvariant(),
+                                                            Path.GetFullPath(GetObjectFile(sourceItem)).ToUpperInvariant());
             }
 
             //output tlog
@@ -203,14 +234,12 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        protected string GenerateCommandLineFromProps(ITaskItem sourceFile)
+        protected string GenerateCommandLineFromProps(ITaskItem sourceFile, bool fullOutputName=false)
         {
             StringBuilder commandLine = new StringBuilder(GCCUtilities.s_CommandLineLength);
 
             if (sourceFile != null)
             {
-                string sourcePath = GCCUtilities.Convert_Path_Windows_To_Posix(sourceFile.ToString());
-
                 // Remove rtti items as they are not relevant in C compilation and will produce warnings
                 if (SourceIsC(sourceFile.ToString()))
                 {
@@ -219,10 +248,9 @@ namespace NaCl.Build.CPPTasks
                 }
 
                 //build command line from components and add required switches
-                string props = m_XamlParser.Parse(sourceFile);
+                string props = m_XamlParser.Parse(sourceFile, fullOutputName);
                 commandLine.Append(props);
                 commandLine.Append(" -MD -c ");
-                commandLine.Append("\"" + sourcePath + "\"");
             }
 
             return commandLine.ToString();
@@ -272,20 +300,68 @@ namespace NaCl.Build.CPPTasks
 
         private int Compile(string pathToTool)
         {
+            // If multiprocess complication is enabled (not the VS default)
+            // and the number of processors to use is not 1, then use the
+            // compiler_wrapper python script to run multiple instances of
+            // gcc
+            if (MultiProcessorCompilation && ProcessorNumber != 1)
+            {
+
+                string envvar = (string)Registry.GetValue("HKEY_CURRENT_USER\\Environment", "PATH", "");
+                List<string> pathList = new List<string>(envvar.Split(';'));
+                envvar = (string)Registry.GetValue("HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment", "PATH", "");
+                pathList.AddRange(new List<string>(envvar.Split(';')));
+                string pythonExe = null;
+                foreach (string path in pathList)
+                {
+                    string testPath = Path.Combine(path, "python.bat");
+                    if (File.Exists(testPath))
+                    {
+                        pythonExe = testPath;
+                        break;
+                    }
+                    testPath = Path.Combine(path, "python.exe");
+                    if (File.Exists(testPath))
+                    {
+                        pythonExe = testPath;
+                        break;
+                    }
+                }
+
+                if (pythonExe == null)
+                {
+                    MessageBox.Show("Multi-processor Compilation with NaCl requires that python available in the PATH.\n" +
+                                    "Please disable Multi-processor Compilation in the project properties or add python " +
+                                    "to the your PATH\n" +
+                                    "Falling back to serial compilation.\n");
+                }
+                else
+                {
+                    return CompileParallel(pathToTool, pythonExe);
+                }
+            }
+            return CompileSerial(pathToTool);
+        }
+
+        private int CompileSerial(string pathToTool)
+        {
             int returnCode = 0;
 
-            foreach (ITaskItem sourceFileItem in CompileSourceList)
+            foreach (ITaskItem sourceItem in CompileSourceList)
             {
                 try
                 {
-                    string commandLine = GenerateCommandLineFromProps(sourceFileItem);
+                    string commandLine = GenerateCommandLineFromProps(sourceItem, true);
+                    commandLine += "\"" + GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString()) + "\"";
 
-                    base.Log.LogMessageFromText(Path.GetFileName(sourceFileItem.ToString()), MessageImportance.High);
-
-                    if (OutputCommandLine == "true")
+                    if (OutputCommandLine)
                     {
                         string logMessage = pathToTool + " " + commandLine;
-                        Log.LogMessageFromText(logMessage, MessageImportance.High);
+                        Log.LogMessage(logMessage);
+                    }
+                    else
+                    {
+                        base.Log.LogMessage(Path.GetFileName(sourceItem.ToString()));
                     }
 
 
@@ -303,6 +379,62 @@ namespace NaCl.Build.CPPTasks
                     return returnCode;
                 }
             }
+            return returnCode;
+        }
+
+        private int CompileParallel(string pathToTool, string pythonExe)
+        {
+            int returnCode = 0;
+
+            // Compute sources that can be compiled together.
+            Dictionary<string, List<ITaskItem>> srcGroups =
+                    new Dictionary<string, List<ITaskItem>>();
+
+            foreach (ITaskItem sourceItem in CompileSourceList)
+            {
+                string commandLine = GenerateCommandLineFromProps(sourceItem);
+                if (srcGroups.ContainsKey(commandLine))
+                {
+                    srcGroups[commandLine].Add(sourceItem);
+                }
+                else
+                {
+                    srcGroups.Add(commandLine, new List<ITaskItem> {sourceItem});
+                }
+            }
+
+            string pythonScript = Path.GetDirectoryName(Path.GetDirectoryName(PropertiesFile));
+            pythonScript = Path.Combine(pythonScript, "compiler_wrapper.py");
+
+            foreach (KeyValuePair<string, List<ITaskItem>> entry in srcGroups)
+            {
+                string commandLine = entry.Key;
+                string cmd = "\"" + pathToTool + "\" " + commandLine + "--";
+                List<ITaskItem> sources = entry.Value;
+
+                foreach (ITaskItem sourceItem in sources)
+                {
+                    string src = GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
+                    cmd += " \"" + src + "\"";
+                }
+
+                try
+                {
+                    // compile this group of sources
+                    returnCode = base.ExecuteTool(pythonExe, cmd, "\"" + pythonScript + "\"");
+                }
+                catch (Exception e)
+                {
+                    Log.LogMessage("compiler exception: {0}", e);
+                    returnCode = base.ExitCode;
+                }
+
+                //abort if an error was encountered
+                if (returnCode != 0)
+                    break;
+            }
+
+            Log.LogMessage(MessageImportance.Low, "compiler returned: {0}", returnCode);
             return returnCode;
         }
 
@@ -343,7 +475,7 @@ namespace NaCl.Build.CPPTasks
             if (this.ForcedRebuildRequired() || this.MinimalRebuildFromTracking == false)
             {
                 this.CompileSourceList = this.Sources;
-                if ((this.CompileSourceList == null) || (this.CompileSourceList.Length == 0))
+                if (this.CompileSourceList == null || this.CompileSourceList.Length == 0)
                 {
                     this.SkippedExecution = true;
                 }

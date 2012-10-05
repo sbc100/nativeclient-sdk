@@ -25,9 +25,11 @@
                  BuildingInIDE                      ="$(BuildingInsideVisualStudio)"
                  Sources                            ="@(ClCompile)"
                  OutputCommandLine                  ="%(ClCompile.OutputCommandLine)"
+                 ProcessorNumber                    ="%(ClCompile.ProcessorNumber)"
+                 MultiProcessorCompilation          ="%(ClCompile.MultiProcessorCompilation)"
                  MinimalRebuildFromTracking         ="%(ClCompile.MinimalRebuildFromTracking)"
                  NaCLCompilerPath                   ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-gcc.exe"
-                 PropertiesFile                       ="$(VCTargetsPath)\Platforms\NaCl\Props\nacl_compile.xml"
+                 PropertiesFile                     ="$(VCTargetsPath)\Platforms\NaCl\Props\nacl_compile.xml"
                  TLogReadFiles                      ="@(CLTLogReadFiles)"
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
                  ToolExe                            ="$(CLToolExe)"
@@ -52,7 +54,6 @@
 
     <NaClLink BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
               Sources                        ="@(Link)"
-
               OutputCommandLine              ="%(Link.OutputCommandLine)"
               NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
               MinimalRebuildFromTracking     ="$(Link_MinimalRebuildFromTracking)"
