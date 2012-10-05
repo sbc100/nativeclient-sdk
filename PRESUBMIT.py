@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The Native Client Authors. All rights reserved.
+# Copyright (c) 2011 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -10,7 +10,7 @@ def CheckChangeOnUpload(input_api, output_api):
   report = []
   affected_files = input_api.AffectedFiles(include_deletes=False)
   report.extend(input_api.canned_checks.PanProjectChecks(
-      input_api, output_api, project_name='Native Client'))
+      input_api, output_api))
   return report
 
 
