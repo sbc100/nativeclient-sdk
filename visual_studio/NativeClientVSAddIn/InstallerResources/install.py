@@ -25,8 +25,6 @@ PEPPER_PLATFORM_NAME = 'PPAPI'
 DEFAULT_VS_USER_DIRECTORY = os.path.expandvars(
     '%USERPROFILE%\\My Documents\\Visual Studio 2010')
 
-DEFAULT_MS_BUILD_DIRECTORY = os.path.expandvars('%ProgramFiles(x86)%\\MSBuild')
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ADDIN_FILES = ['NativeClientVSAddIn.AddIn', 'NativeClientVSAddIn.dll']
@@ -75,8 +73,7 @@ def Ask(question):
 def main():
   parser = optparse.OptionParser(usage='Usage: %prog [options]')
   parser.add_option('-b', '--msbuild-path', dest='msbuild_path',
-      default=DEFAULT_MS_BUILD_DIRECTORY, metavar='PATH',
-      help='Provide the path to the MSBuild directory')
+      metavar='PATH', help='Provide the path to the MSBuild directory')
   parser.add_option('-a', '--vsuser-path', dest='vsuser_path',
       default=DEFAULT_VS_USER_DIRECTORY, metavar='PATH',
       help='Provide the path to the Visual Studio user directory')
@@ -96,6 +93,17 @@ def main():
 
   if platform.system() != 'Windows':
     raise InstallError('Must install to Windows system')
+
+  if not options.msbuild_path:
+    # Find the x86 program files folder.  If we are uing a 64-bit version of
+    # python.exe then ProgramFiles(x86).  If we using a 32-bit python then
+    # ProgramFiles will always be set to point the x86 program files even
+    # under W0W64.
+    if 'ProgramFiles(x86)' in os.environ:
+      options.msbuild_path = os.path.expandvars('%ProgramFiles(x86)%\\MSBuild')
+    else:
+      options.msbuild_path = os.path.expandvars('%ProgramFiles%\\MSBuild')
+
 
   if CheckForRunningProgams():
     if not options.force:
