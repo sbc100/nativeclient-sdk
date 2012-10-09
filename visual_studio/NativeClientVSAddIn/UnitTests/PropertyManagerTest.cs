@@ -100,6 +100,7 @@ namespace UnitTests
       string expectedSDKRootDir =
           Environment.GetEnvironmentVariable(Strings.SDKPathEnvironmentVariable);
       Assert.IsNotNull(expectedSDKRootDir, "SDK Path environment variable not set!");
+      expectedSDKRootDir = expectedSDKRootDir.TrimEnd(new char[] { '/', '\\' });
 
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(naclSolution);
@@ -176,6 +177,7 @@ namespace UnitTests
       string expectedSDKRootDir =
           Environment.GetEnvironmentVariable(Strings.SDKPathEnvironmentVariable);
       Assert.IsNotNull(expectedSDKRootDir, "SDK Path environment variable not set!");
+      expectedSDKRootDir = expectedSDKRootDir.TrimEnd(new char[] { '/', '\\' });
 
       // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
       PropertyManager target = new PropertyManager();

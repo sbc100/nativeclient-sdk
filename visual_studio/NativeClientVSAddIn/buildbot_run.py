@@ -11,19 +11,32 @@ annootator syntax
 import os
 import sys
 import subprocess
+import urllib2
+import zipfile
 
 GSURL = 'https://commondatastorage.googleapis.com'
 GSPATH = 'nativeclient-mirror/nacl/nacl_sdk/sdk'
+SDKROOT = os.path.join('..', '..', 'out', 'sdk')
+
 
 def Log(msg):
   sys.stdout.write(msg + '\n')
   sys.stdout.flush()
 
 
-def RunCommand(cmd):
+def RunCommand(cmd, env=None):
   Log("Running: %s" % cmd)
   Log("CWD: %s" % os.getcwd())
-  rtn = subprocess.call(cmd, shell=True)
+  if type(cmd) == str:
+    cmd = cmd.split()
+
+  if sys.platform == 'cygwin':
+    # allow bat files in the current working directory to
+    # be executed on cygwin as they are on win32
+    if not os.path.dirname(cmd[0]) and os.path.exists(cmd[0]):
+      cmd = './' + cmd
+
+  rtn = subprocess.call(cmd, shell=True, env=env)
   if rtn:
     Log('@@@STEP_FAILURE@@@')
     sys.exit(1)
@@ -31,16 +44,41 @@ def RunCommand(cmd):
 
 def StepBuild():
   Log('@@@BUILD_STEP build AddIn@@@')
-  if sys.platform == 'cygwin':
-    RunCommand(['./build.bat'])
-  else:
-    RunCommand(['build.bat'])
+  RunCommand('build.bat')
+
+
+def StepInstall():
+  Log('@@@BUILD_STEP Install AddIn@@@')
+  RunCommand('developer_deploy.bat')
+
+
+def StepInstallSDK():
+  Log('@@@BUILD_STEP Install SDK@@@')
+  naclsdk = os.path.join(SDKROOT, 'nacl_sdk', 'naclsdk.bat')
+  if not os.path.exists(naclsdk):
+    if not os.path.exists(SDKROOT):
+      os.makedirs(SDKROOT)
+    filename = os.path.join(SDKROOT, 'nacl_sdk.zip')
+    url = GSURL + "/nativeclient-mirror/nacl/nacl_sdk/nacl_sdk.zip"
+    contents = urllib2.urlopen(url).read()
+    with open(filename, 'wb') as zfileout:
+      zfileout.write(contents)
+    zfile = zipfile.ZipFile(filename)
+    zfile.extractall(SDKROOT)
+
+  RunCommand([naclsdk, 'update', '--force', 'pepper_23'])
+  RunCommand([naclsdk, 'update', '--force', 'pepper_canary'])
 
 
 def StepTest():
   Log('@@@BUILD_STEP Testing AddIn@@@')
   # Don't actually test yet
-  #RunCommand(['test.bat'])
+  env = dict(os.environ)
+  sdkroot = os.path.abspath(os.path.join(SDKROOT, 'nacl_sdk'))
+  env['NACL_SDK_ROOT'] = os.path.join(sdkroot, 'pepper_23')
+  RunCommand('test.bat', env)
+  env['NACL_SDK_ROOT'] = os.path.join(sdkroot, 'pepper_canary')
+  RunCommand('test.bat', env)
 
 
 def _FindInPath(filename):
@@ -94,6 +132,8 @@ def StepArchive():
 
 def main():
   StepBuild()
+  StepInstall()
+  StepInstallSDK()
   StepTest()
   StepArchive()
 

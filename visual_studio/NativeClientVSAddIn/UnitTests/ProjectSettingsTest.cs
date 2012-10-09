@@ -384,7 +384,7 @@ namespace UnitTests
       AllConfigsAssertPropertyEquals(page, "ExceptionHandling", "true", false);
 
       // C/C++ Output Files
-      AllConfigsAssertPropertyEquals(page, "ObjectFileName", @"$(IntDir)%(FileName).o", false);
+      AllConfigsAssertPropertyEquals(page, "ObjectFileName", @"$(IntDir)", false);
 
       // C/C++ Advanced
       AllConfigsAssertPropertyEquals(page, "CompileAs", "Default", true);

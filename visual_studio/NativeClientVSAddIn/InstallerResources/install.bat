@@ -1,3 +1,3 @@
 @echo off
 python.exe "%~dp0install.py" %*
-pause
+if not defined NO_PAUSE pause

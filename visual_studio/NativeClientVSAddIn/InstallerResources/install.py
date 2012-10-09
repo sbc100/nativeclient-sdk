@@ -39,16 +39,12 @@ def UninstallDirectory(directory):
   if os.path.exists(directory):
     shutil.rmtree(directory)
     print 'Removed: %s' % (directory)
-  else:
-    print 'Failed to remove non-existant directory: %s' % (directory)
 
 
 def UninstallFile(file_path):
   if os.path.exists(file_path):
     os.remove(file_path)
     print 'Removed: %s' % (file_path)
-  else:
-    print 'Failed to remove non-existant file: %s' % (file_path)
 
 
 def Uninstall(nacl_directory, pepper_directory, addin_directory):
@@ -126,11 +122,6 @@ def main():
     print "\n\nWARNING: Only python version 2.6.2 or greater is supported. " \
           "Current version is %s\n\n" % (sys.version_info[:3],)
 
-  # Admin is needed to write to the default platform directory.
-  if ctypes.windll.shell32.IsUserAnAdmin() != 1:
-    raise InstallError("Not running as administrator. The install script needs "
-                       "write access to protected Visual Studio directories.")
-
   # Ensure install directories exist.
   if not os.path.exists(options.vsuser_path):
     raise InstallError("Could not find user Visual Studio directory: %s" % (
@@ -140,10 +131,23 @@ def main():
         options.msbuild_path))
 
   addin_directory = os.path.join(options.vsuser_path, 'Addins')
-  platform_directory = os.path.join(
-      options.msbuild_path, 'Microsoft.Cpp\\v4.0\\Platforms')
-  nacl_directory = os.path.join(platform_directory, NACL_PLATFORM_NAME)
-  pepper_directory = os.path.join(platform_directory, PEPPER_PLATFORM_NAME)
+  platform_root = os.path.join(options.msbuild_path,
+                               'Microsoft.Cpp', 'v4.0', 'Platforms')
+  if not os.path.exists(platform_root):
+    raise InstallError("Could not find path: %s" % platform_root)
+
+  if (not os.access(addin_directory, os.W_OK)
+     or not os.access(platform_root, os.W_OK)):
+    # Admin is needed to write to the default platform directory.
+    if ctypes.windll.shell32.IsUserAnAdmin() != 1:
+      raise InstallError("Not running as administrator. The install script "
+                         "needs write access to protected Visual Studio "
+                         "directories.")
+    raise InstallError("install script needs write access to: %s"
+                       % platform_root)
+
+  nacl_directory = os.path.join(platform_root, NACL_PLATFORM_NAME)
+  pepper_directory = os.path.join(platform_root, PEPPER_PLATFORM_NAME)
 
   # If uninstalling then redirect to uninstall program.
   if options.uninstall:
@@ -151,8 +155,8 @@ def main():
     print "\nUninstall complete!\n"
     sys.exit(0)
 
-  if not os.path.exists(platform_directory):
-    raise InstallError("Could not find path: %s" % platform_directory)
+  if not os.path.exists(platform_root):
+    raise InstallError("Could not find path: %s" % platform_root)
   if not os.path.exists(addin_directory):
     os.mkdir(addin_directory)
 
@@ -226,4 +230,3 @@ if __name__ == '__main__':
       print "processes are closed."
     else:
       raise
-
