@@ -14,5 +14,6 @@ python.exe -c "import tarfile; zztop=tarfile.open(r'%OUT_DIR%\%ZIP_BASE%.tgz'); 
 :: Pass flags to bypass the install questions. Also pipe a key stroke 'return' to pass the 'Press any key to continue' in install.bat
 set NO_PAUSE=1
 call "%OUT_DIR%\%ZIP_BASE%\install.bat" --force --ppapi
+exit /B %ERRORLEVEL%
 
 endlocal

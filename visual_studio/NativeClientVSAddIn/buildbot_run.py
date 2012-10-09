@@ -34,10 +34,11 @@ def RunCommand(cmd, env=None):
     # allow bat files in the current working directory to
     # be executed on cygwin as they are on win32
     if not os.path.dirname(cmd[0]) and os.path.exists(cmd[0]):
-      cmd = './' + cmd
+      cmd[0] = './' + cmd[0]
 
-  rtn = subprocess.call(cmd, shell=True, env=env)
+  rtn = subprocess.call(cmd, env=env)
   if rtn:
+    Log("Command returned non-zero exit code: %s" % rtn)
     Log('@@@STEP_FAILURE@@@')
     sys.exit(1)
 

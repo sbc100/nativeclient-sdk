@@ -215,9 +215,12 @@ def main():
   else:
     print "\nInstallation complete!\n"
 
+  return 0
+
 if __name__ == '__main__':
+  rtn = 1
   try:
-    main()
+    rtn = main()
   except InstallError as e:
     print
     print e
@@ -230,3 +233,4 @@ if __name__ == '__main__':
       print "processes are closed."
     else:
       raise
+  sys.exit(rtn)
