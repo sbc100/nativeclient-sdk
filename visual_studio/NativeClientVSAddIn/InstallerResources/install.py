@@ -144,8 +144,7 @@ def main():
   if not os.path.exists(platform_root):
     raise InstallError("Could not find path: %s" % platform_root)
 
-  if (not os.access(addin_directory, os.W_OK)
-     or not os.access(platform_root, os.W_OK)):
+  if not os.access(platform_root, os.W_OK):
     # Admin is needed to write to the default platform directory.
     if ctypes.windll.shell32.IsUserAnAdmin() != 1:
       raise InstallError("Not running as administrator. The install script "
@@ -166,16 +165,16 @@ def main():
   if not os.path.exists(platform_root):
     raise InstallError("Could not find path: %s" % platform_root)
   if not os.path.exists(addin_directory):
-    os.mkdir(addin_directory)
+    os.makedirs(addin_directory)
 
   # Ensure environment variables are set.
-  nacl_sdk_root = os.getenv('NACL_SDK_ROOT', None)
-  chrome_path = os.getenv('CHROME_PATH', None)
-  if nacl_sdk_root is None:
-    raise InstallError('Environment Variable NACL_SDK_ROOT is not set')
-  if chrome_path is None:
-    raise InstallError('Environment Variable CHROME_PATH is not set')
-
+  if not options.force:
+    nacl_sdk_root = os.getenv('NACL_SDK_ROOT', None)
+    chrome_path = os.getenv('CHROME_PATH', None)
+    if nacl_sdk_root is None:
+      raise InstallError('Environment Variable NACL_SDK_ROOT is not set')
+    if chrome_path is None:
+      raise InstallError('Environment Variable CHROME_PATH is not set')
 
   # Remove existing installation.
   if os.path.exists(nacl_directory) or os.path.exists(pepper_directory):

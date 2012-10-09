@@ -76,6 +76,19 @@ def StepTest():
   # Don't actually test yet
   env = dict(os.environ)
   sdkroot = os.path.abspath(os.path.join(SDKROOT, 'nacl_sdk'))
+  if 'CHROME_PATH' not in os.environ:
+    # TODO(sbc): Addin itself should autodetect chrome location
+    # http://crbug.com/154911
+    progfiles = os.environ.get('PROGRAMFILES')
+    progfiles = os.environ.get('PROGRAMFILES(X86)', progfiles)
+    chrome = os.path.join(progfiles, 'Google', 'Chrome', 'Application',
+                          'chrome.exe')
+    if not os.path.exists(chrome):
+      Log('CHROME_PATH not found')
+      Log('chrome not found in the default location: %s' % chrome)
+      Log('@@@STEP_FAILURE@@@')
+      sys.exit(1)
+    env['CHROME_PATH'] = chrome
   env['NACL_SDK_ROOT'] = os.path.join(sdkroot, 'pepper_23')
   RunCommand('test.bat', env)
   env['NACL_SDK_ROOT'] = os.path.join(sdkroot, 'pepper_canary')
