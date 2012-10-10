@@ -11,7 +11,7 @@
       <UserHeaderDependenciesOnly     Condition="'%(ClCompile.UserHeaderDependenciesOnly)' == ''">true</UserHeaderDependenciesOnly>
       <ConfigurationType        Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
       <ExceptionHandling>true</ExceptionHandling>
-      <OutputCommandLine>true</OutputCommandLine>
+      <OutputCommandLine>false</OutputCommandLine>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="$(Configuration) == 'Debug'">
@@ -37,13 +37,13 @@
       <ReportUndefinedSymbols     Condition="'%(Link.ReportUndefinedSymbols)'         == ''">true</ReportUndefinedSymbols>
       <SystemLibraryDirectories   Condition="'%(Link.SystemLibraryDirectories)'       == ''">$(LibraryPath)</SystemLibraryDirectories>
       <ConfigurationType          Condition="'%(Link.ConfigurationType)'            == ''">$(ConfigurationType)</ConfigurationType>
-      <OutputCommandLine>true</OutputCommandLine>
+      <OutputCommandLine>false</OutputCommandLine>
   </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <Lib>
       <OutputFile                 Condition="'%(Lib.OutputFile)'                    == ''">$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <OutputCommandLine>true</OutputCommandLine>
+      <OutputCommandLine>false</OutputCommandLine>
     </Lib>
   </ItemDefinitionGroup>
 </Project>
