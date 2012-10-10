@@ -148,8 +148,12 @@ def main():
     shutil.rmtree(dest32)
   os.makedirs(dest32)
   for filename in os.listdir(src64):
+    srcfile = join(src64, filename)
+    # skip non-files, in particular .svn folders.
+    if not os.path.isfile(srcfile):
+      continue
     destfile = join(dest32, filename.replace('NaCl64', 'NaCl32'))
-    data = open(join(src64, filename), "rb").read()
+    data = open(srcfile, "rb").read()
     data = data.replace("x86_64", "i686")
     data = data.replace("64", "32")
     open(destfile, "wb").write(data)
