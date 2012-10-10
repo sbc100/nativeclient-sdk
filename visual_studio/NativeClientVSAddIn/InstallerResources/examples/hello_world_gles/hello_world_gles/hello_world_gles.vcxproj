@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|NaCl32">
+      <Configuration>Debug</Configuration>
+      <Platform>NaCl32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|NaCl64">
       <Configuration>Debug</Configuration>
       <Platform>NaCl64</Platform>
@@ -9,9 +13,9 @@
       <Configuration>Debug</Configuration>
       <Platform>PPAPI</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
+    <ProjectConfiguration Include="Release|NaCl32">
+      <Configuration>Release</Configuration>
+      <Platform>NaCl32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|NaCl64">
       <Configuration>Release</Configuration>
@@ -21,10 +25,6 @@
       <Configuration>Release</Configuration>
       <Platform>PPAPI</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F82336A6-3A85-45E2-9A96-26DEA54280C5}</ProjectGuid>
@@ -32,41 +32,32 @@
     <RootNamespace>hello_world_gles</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
+    <ToolchainName>newlib</ToolchainName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'" Label="Configuration">
     <ToolchainName>newlib</ToolchainName>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <ToolchainName>newlib</ToolchainName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'" Label="Configuration">
+    <ToolchainName>newlib</ToolchainName>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
-    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
+    <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
+    <TargetName>$(ProjectName)_$(TargetArchitecture)</TargetName>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
+    <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <TargetName>$(ProjectName)_$(TargetArchitecture)</TargetName>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
@@ -74,7 +65,14 @@
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
-    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
+    <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
+    <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
@@ -82,47 +80,17 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PPAPI'">
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
-    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
-    <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
     <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;HELLO_WORLD_GLES_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;HELLO_WORLD_GLES_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
     <Link>
       <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
@@ -133,7 +101,22 @@ python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\wi
       <Message>Running 'create_nmf'</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
+    <Link>
+      <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>set PATH=$(Path)
+python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32 -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) $(TargetDir)$(TargetName)_$(TargetArchitecture)$(TargetExt)</Command>
+      <Message>Running 'create_nmf'</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
+    <Link>
+      <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
     <Link>
       <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
     </Link>
