@@ -50,30 +50,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
     <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
-    <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
-    <TargetName>$(ProjectName)_$(TargetArchitecture)</TargetName>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
     <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
-    <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
-    <TargetName>$(ProjectName)_$(TargetArchitecture)</TargetName>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
-    <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
     <NaClAddInVersion>1.0.4665.30163</NaClAddInVersion>
-    <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
@@ -97,7 +91,8 @@
     </Link>
     <PostBuildEvent>
       <Command>set PATH=$(Path)
-python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32 -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) $(TargetDir)$(TargetName)_$(TargetArchitecture)$(TargetExt)</Command>
+mkdir $(ToolchainName)
+python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
       <Message>Running 'create_nmf'</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -107,7 +102,8 @@ python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\wi
     </Link>
     <PostBuildEvent>
       <Command>set PATH=$(Path)
-python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe -L $(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetDir)$(TargetName)$(TargetExt)"</Command>
+mkddir $(ToolchainName)
+python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
       <Message>Running 'create_nmf'</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
