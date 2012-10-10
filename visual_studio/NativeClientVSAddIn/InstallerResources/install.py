@@ -19,8 +19,10 @@ import shutil
 import sys
 import time
 
-NACL_PLATFORM_NAME = 'NaCl'
-PEPPER_PLATFORM_NAME = 'PPAPI'
+NACL32_PLATFORM = 'NaCl32'
+NACL64_PLATFORM = 'NaCl64'
+NACL_PLATFORM_OLD = 'NaCl'
+PEPPER_PLATFORM = 'PPAPI'
 
 DEFAULT_VS_USER_DIRECTORY = os.path.expandvars(
     '%USERPROFILE%\\My Documents\\Visual Studio 2010')
@@ -29,9 +31,11 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ADDIN_FILES = ['NativeClientVSAddIn.AddIn', 'NativeClientVSAddIn.dll']
 
+
 class InstallError(Exception):
   """Error class for this installer indicating a fatal but expected error."""
   pass
+
 
 def UninstallDirectory(directory):
   if os.path.exists(directory):
@@ -45,9 +49,9 @@ def UninstallFile(file_path):
     print 'Removed: %s' % (file_path)
 
 
-def Uninstall(nacl_directory, pepper_directory, addin_directory):
-  UninstallDirectory(nacl_directory)
-  UninstallDirectory(pepper_directory)
+def Uninstall(platform_dirs, addin_directory):
+  for dirname in platform_dirs:
+    UninstallDirectory(dirname)
   for file_name in ADDIN_FILES:
     UninstallFile(os.path.join(addin_directory, file_name))
 
@@ -153,12 +157,16 @@ def main():
     raise InstallError("install script needs write access to: %s"
                        % platform_root)
 
-  nacl_directory = os.path.join(platform_root, NACL_PLATFORM_NAME)
-  pepper_directory = os.path.join(platform_root, PEPPER_PLATFORM_NAME)
-
+  nacl_directory32 = os.path.join(platform_root, NACL32_PLATFORM)
+  nacl_directory64 = os.path.join(platform_root, NACL64_PLATFORM)
+  nacl_directoryold = os.path.join(platform_root, NACL_PLATFORM_OLD)
+  nacl_common = os.path.join(os.path.dirname(platform_root), 'NaCl')
+  pepper_directory = os.path.join(platform_root, PEPPER_PLATFORM)
+  remove_dirs = (nacl_directory32, nacl_directory64,
+                   nacl_directoryold, pepper_directory, nacl_common)
   # If uninstalling then redirect to uninstall program.
   if options.uninstall:
-    Uninstall(nacl_directory, pepper_directory, addin_directory)
+    Uninstall(remove_dirs, addin_directory)
     print "\nUninstall complete!\n"
     sys.exit(0)
 
@@ -177,15 +185,14 @@ def main():
       raise InstallError('Environment Variable CHROME_PATH is not set')
 
   # Remove existing installation.
-  if os.path.exists(nacl_directory) or os.path.exists(pepper_directory):
+  if any(os.path.exists(d) for d in remove_dirs):
     # If not forced then ask user permission.
     if not options.force:
       if not Ask("Warning: Pre-existing add-in installation "
                  "will be overwritten."):
         raise InstallError('User did not allow overwrite of existing install.')
     print "Removing existing install..."
-    Uninstall(nacl_directory, pepper_directory, addin_directory)
-
+    Uninstall(remove_dirs, addin_directory)
 
   # Ask user before installing PPAPI template.
   if options.install_ppapi is None:
@@ -209,15 +216,21 @@ def main():
       shutil.copy(os.path.join(SCRIPT_DIR, file_name), addin_directory)
     print "Add-in installed."
 
-    shutil.copytree(os.path.join(SCRIPT_DIR, 'NaCl'), nacl_directory)
-    print "NaCl platform installed."
+    shutil.copytree(os.path.join(SCRIPT_DIR, 'NaCl'), nacl_common)
+    print "NaCl common resources installed."
+
+    shutil.copytree(os.path.join(SCRIPT_DIR, NACL32_PLATFORM), nacl_directory32)
+    print "NaCl32 platform installed."
+
+    shutil.copytree(os.path.join(SCRIPT_DIR, NACL64_PLATFORM), nacl_directory64)
+    print "NaCl64 platform installed."
 
     if options.install_ppapi:
       create_ppapi_platform.CreatePPAPI(options.msbuild_path)
       print "PPAPI platform installed."
   except:
     print "\nException occured! Rolling back install...\n"
-    Uninstall(nacl_directory, pepper_directory, addin_directory)
+    Uninstall(remove_dirs, addin_directory)
     raise
   else:
     print "\nInstallation complete!\n"

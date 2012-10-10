@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -55,7 +55,7 @@ namespace UnitTests
           dte,
           "PropertyManagerTest",
           NativeClientVSAddIn.Strings.PepperPlatformName,
-          NativeClientVSAddIn.Strings.NaClPlatformName,
+          NativeClientVSAddIn.Strings.NaCl64PlatformName,
           testContext);
       }
       finally
@@ -116,7 +116,7 @@ namespace UnitTests
           "SetTarget should not succeed with non-nacl/pepper project.");
 
       // Try valid project with different platforms.
-      target.SetTarget(naclProject, Strings.NaClPlatformName, "Debug");
+      target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
           target.ProjectPlatform,
@@ -159,7 +159,7 @@ namespace UnitTests
 
       // Now setting the platform to NaCl should make this succeed.
       TestUtilities.SetSolutionConfiguration(
-          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", Strings.NaClPlatformName);
+          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", Strings.NaCl64PlatformName);
       target.SetTargetToActive(dte_);
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
@@ -183,7 +183,7 @@ namespace UnitTests
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(naclSolution);
       Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
-      target.SetTarget(naclProject, Strings.NaClPlatformName, "Debug");
+      target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
           target.ProjectPlatform,
@@ -214,15 +214,15 @@ namespace UnitTests
       string setTargetSolution = TestUtilities.CreateBlankValidNaClSolution(
           dte_,
           "PropertyManagerTestSetTarget",
-          NativeClientVSAddIn.Strings.NaClPlatformName,
-          NativeClientVSAddIn.Strings.NaClPlatformName,
+          NativeClientVSAddIn.Strings.NaCl64PlatformName,
+          NativeClientVSAddIn.Strings.NaCl64PlatformName,
           TestContext);
 
       // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(setTargetSolution);
       Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
-      target.SetTarget(naclProject, Strings.NaClPlatformName, "Debug");
+      target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
           target.ProjectPlatform,

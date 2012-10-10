@@ -1,0 +1,34 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(VCTargetsPath)\NaCl\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\NaCl\ImportBefore')" />
+  <Import Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props'))" Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props"/>
+  <Import Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props'))" Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props"/>
+
+  <PropertyGroup>
+    <DebuggerFlavor Condition="'$(DebuggerFlavor)'==''">WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\NaCl\NaCl.Toolset.default.props" />
+
+  <PropertyGroup>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ConfigurationType)' == 'Application'">
+    <LinkCompiled>true</LinkCompiled>
+    <TargetExt>.nexe</TargetExt>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ConfigurationType)' == 'DynamicLibrary'">
+    <LinkCompiled>true</LinkCompiled>
+    <TargetExt>.so</TargetExt>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ConfigurationType)' == 'StaticLibrary'">
+    <LibCompiled>true</LibCompiled>
+    <TargetExt>.a</TargetExt>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\NaCl\NaCl.Paths.default.props" />
+  <Import Project="$(VCTargetsPath)\NaCl\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\NaCl\ImportAfter')" />
+</Project>

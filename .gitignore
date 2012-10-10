@@ -47,5 +47,8 @@ toolchain/
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/win
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/ipch
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/Debug
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/Release
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/NaCl64
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/NaCl32
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles.sdf
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles.opensdf

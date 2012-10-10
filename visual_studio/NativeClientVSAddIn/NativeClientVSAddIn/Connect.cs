@@ -150,8 +150,7 @@ namespace NativeClientVSAddIn
         if (id == (int)VSConstants.VSStd2KCmdID.SolutionPlatform)
         {
           string platform = customOut as string;
-          if (Strings.NaClPlatformName.Equals(platform) ||
-              Strings.PepperPlatformName.Equals(platform))
+          if (PropertyManager.IsNaClPlatform(platform) || PropertyManager.IsPepperPlatform(platform))
           {
             PerformPropertyModifications();
           }
@@ -171,7 +170,8 @@ namespace NativeClientVSAddIn
       string naclAddInVersion = GetAddInVersionFromDescription();
 
       var configs = Utility.GetPlatformVCConfigurations(dte_, Strings.PepperPlatformName);
-      configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaClPlatformName));
+      configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl64PlatformName));
+      configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl32PlatformName));
 
       var properties = new PropertyManager();
       foreach (VCConfiguration config in configs)
@@ -229,10 +229,10 @@ namespace NativeClientVSAddIn
       debugger.SetPropertyValue("LocalDebuggerCommandArguments", arguments);
 
       // NaCl Platform Specific:
-      if (config.Platform.Name == Strings.NaClPlatformName)
+      if (PropertyManager.IsNaClPlatform(config.Platform.Name))
       {
         IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
-        string[] keys = {"VSNaClSDKRoot", "OutDir", "IntDir"};
+        string[] keys = {"VSNaClSDKRoot"};
         Dictionary<string, string> values = new Dictionary<string, string>();
         foreach (var key in keys)
         {
@@ -259,16 +259,6 @@ namespace NativeClientVSAddIn
       {
         string executablePath = directories.GetUnevaluatedPropertyValue("ExecutablePath");
         directories.SetPropertyValue("ExecutablePath", executablePath);
-      }
-
-      // NaCl Platform Specific:
-      if (config.Platform.Name == Strings.NaClPlatformName)
-      {
-        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
-        string outdir = general.GetUnevaluatedPropertyValue("OutDir");
-        string intdir = general.GetUnevaluatedPropertyValue("IntDir");
-        general.SetPropertyValue("OutDir", outdir);
-        general.SetPropertyValue("IntDir", intdir);
       }
     }
 

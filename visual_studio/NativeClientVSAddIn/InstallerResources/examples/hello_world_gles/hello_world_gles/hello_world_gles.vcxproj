@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|NaCl">
+    <ProjectConfiguration Include="Debug|NaCl64">
       <Configuration>Debug</Configuration>
-      <Platform>NaCl</Platform>
+      <Platform>NaCl64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|PPAPI">
       <Configuration>Debug</Configuration>
@@ -13,9 +13,9 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|NaCl">
+    <ProjectConfiguration Include="Release|NaCl64">
       <Configuration>Release</Configuration>
-      <Platform>NaCl</Platform>
+      <Platform>NaCl64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|PPAPI">
       <Configuration>Release</Configuration>
@@ -43,11 +43,10 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl'">
-    <TargetArchitecture>x86_64</TargetArchitecture>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
     <ToolchainName>newlib</ToolchainName>
   </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|NaCl'">
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <ToolchainName>newlib</ToolchainName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -66,27 +65,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl'">
-    <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
     <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
-    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
-    <IntDir>$(ToolchainName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_$(TargetArchitecture)</TargetName>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl'">
-    <NaClIrtPath>$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
-    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <OutDir>$(ProjectDir)$(ToolchainName)\</OutDir>
-    <IntDir>$(ToolchainName)\$(Configuration)\</IntDir>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PPAPI'">
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
     <NaClAddInVersion>1.0.4632.27091</NaClAddInVersion>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
   </PropertyGroup>
@@ -126,10 +123,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
     <Link>
       <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
-      <OutputFile>$(TargetDir)$(TargetName)_$(TargetArchitecture)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
       <Command>set PATH=$(Path)
@@ -137,7 +133,7 @@ python.exe $(VSNaClSDKRoot)\tools\create_nmf.py -D $(VSNaClSDKRoot)\toolchain\wi
       <Message>Running 'create_nmf'</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <Link>
       <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
     </Link>

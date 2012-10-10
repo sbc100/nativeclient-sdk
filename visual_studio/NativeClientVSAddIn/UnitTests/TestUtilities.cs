@@ -106,10 +106,10 @@ namespace UnitTests
         Project proj = dte.Solution.Projects.Item(BlankNaClProjectUniqueName);
 
         // Order matters if copying from the other Native Client type.
-        if (pepperCopyFrom.Equals(NativeClientVSAddIn.Strings.NaClPlatformName))
+        if (pepperCopyFrom.Equals(NativeClientVSAddIn.Strings.NaCl64PlatformName))
         {
           proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.NaClPlatformName, naclCopyFrom, true);
+            NativeClientVSAddIn.Strings.NaCl64PlatformName, naclCopyFrom, true);
           proj.ConfigurationManager.AddPlatform(
             NativeClientVSAddIn.Strings.PepperPlatformName, pepperCopyFrom, true);
         }
@@ -118,12 +118,12 @@ namespace UnitTests
           proj.ConfigurationManager.AddPlatform(
             NativeClientVSAddIn.Strings.PepperPlatformName, pepperCopyFrom, true);
           proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.NaClPlatformName, naclCopyFrom, true);
+            NativeClientVSAddIn.Strings.NaCl64PlatformName, naclCopyFrom, true);
         }
 
-        // Set the active solution configuration to Debug|NaCl.
+        // Set the active solution configuration to Debug|NaCl64.
         SetSolutionConfiguration(
-            dte, BlankNaClProjectUniqueName, "Debug", NativeClientVSAddIn.Strings.NaClPlatformName);
+            dte, BlankNaClProjectUniqueName, "Debug", NativeClientVSAddIn.Strings.NaCl64PlatformName);
 
         proj.Save();
         dte.Solution.SaveAs(newSolution);

@@ -135,6 +135,7 @@ namespace NativeClientVSAddIn
           string.Concat("win_x86_", properties.ToolchainName),
           @"bin\x86_64-nacl-gdb.exe");
 
+      Debug.WriteLine("Found gdb: {0}", gdbPath_);
       PluginFoundEvent += new EventHandler<PluginFoundEventArgs>(Attach);
     }
 

@@ -7,6 +7,7 @@ namespace NativeClientVSAddIn
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using System.Windows.Forms;
 
   using EnvDTE;
   using EnvDTE80;
@@ -140,7 +141,7 @@ namespace NativeClientVSAddIn
 
         if (string.IsNullOrEmpty(value))
         {
-          System.Windows.Forms.MessageBox.Show(Strings.SDKPathNotSetError);
+          MessageBox.Show(Strings.SDKPathNotSetError);
           return null;
         }
 
@@ -232,6 +233,17 @@ namespace NativeClientVSAddIn
       }
     }
 
+    public static bool IsNaClPlatform(string platformName)
+    {
+        return platformName.Equals(Strings.NaCl32PlatformName, StringComparison.OrdinalIgnoreCase) ||
+               platformName.Equals(Strings.NaCl64PlatformName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsPepperPlatform(string platformName)
+    {
+        return platformName.Equals(Strings.PepperPlatformName, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>
     /// Sets the target project, platform, and configuration to get settings from.
     /// </summary>
@@ -241,11 +253,11 @@ namespace NativeClientVSAddIn
     public void SetTarget(Project proj, string targetPlatformName, string targetConfigName)
     {
       // Set the project platform.  If it is set to Other then no settings are valid to be read.
-      if (string.Compare(targetPlatformName, Strings.PepperPlatformName, true) == 0)
+      if (IsPepperPlatform(targetPlatformName))
       {
         ProjectPlatform = ProjectPlatformType.Pepper;
       }
-      else if (string.Compare(targetPlatformName, Strings.NaClPlatformName, true) == 0)
+      else if (IsNaClPlatform(targetPlatformName))
       {
         ProjectPlatform = ProjectPlatformType.NaCl;
       }
@@ -289,11 +301,11 @@ namespace NativeClientVSAddIn
       configuration_ = config;
       project_ = config.project;
 
-      if (string.Compare(config.Platform.Name, Strings.PepperPlatformName, true) == 0)
+      if (IsPepperPlatform(config.Platform.Name))
       {
         ProjectPlatform = ProjectPlatformType.Pepper;
       }
-      else if (string.Compare(config.Platform.Name, Strings.NaClPlatformName, true) == 0)
+      else if (IsNaClPlatform(config.Platform.Name))
       {
         ProjectPlatform = ProjectPlatformType.NaCl;
       }
@@ -323,9 +335,7 @@ namespace NativeClientVSAddIn
         foreach (Project proj in startupProjects)
         {
           VCConfiguration config = Utility.GetActiveVCConfiguration(proj);
-          StringComparison ignoreCase = StringComparison.OrdinalIgnoreCase;
-          if (Strings.PepperPlatformName.Equals(config.Platform.Name, ignoreCase) ||
-              Strings.NaClPlatformName.Equals(config.Platform.Name, ignoreCase))
+          if (IsPepperPlatform(config.Platform.Name) || IsNaClPlatform(config.Platform.Name))
           {
             System.Windows.Forms.MessageBox.Show(Strings.MultiStartProjectWarning);
             break;

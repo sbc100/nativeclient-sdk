@@ -132,14 +132,17 @@
   <data name="MultiStartProjectWarning" xml:space="preserve">
     <value>Warning: Multiple start-up projects not supported. Web server will only be run from first project directory</value>
   </data>
+  <data name="NaCl32PlatformName" xml:space="preserve">
+    <value>NaCl32</value>
+  </data>
+  <data name="NaCl64PlatformName" xml:space="preserve">
+    <value>NaCl64</value>
+  </data>
   <data name="NaClDebugFlag" xml:space="preserve">
     <value>--enable-nacl-debug</value>
   </data>
   <data name="NaClLoaderFlag" xml:space="preserve">
     <value>--type=nacl-loader</value>
-  </data>
-  <data name="NaClPlatformName" xml:space="preserve">
-    <value>NaCl</value>
   </data>
   <data name="NaClProcessName" xml:space="preserve">
     <value>nacl64.exe</value>

@@ -62,7 +62,7 @@ namespace UnitTests
             dte,
             "ProjectSettingsTestEmptyInit",
             NativeClientVSAddIn.Strings.PepperPlatformName,
-            NativeClientVSAddIn.Strings.NaClPlatformName,
+            NativeClientVSAddIn.Strings.NaCl64PlatformName,
             testContext);
       }
       finally
@@ -104,7 +104,7 @@ namespace UnitTests
     [TestMethod]
     public void CheckNaClCompile()
     {
-      string naclPlatform = NativeClientVSAddIn.Strings.NaClPlatformName;
+      string naclPlatform = NativeClientVSAddIn.Strings.NaCl64PlatformName;
       TryCompile(naclSolutionEmptyInitialization, "Debug", naclPlatform);
       TryCompile(naclSolutionEmptyInitialization, "Release", naclPlatform);
     }
@@ -148,7 +148,7 @@ namespace UnitTests
 
       // NaCl inherit specific checks on the NaCl platform.
       OpenSolutionAndGetProperties(
-          naclSolutionWin32Initialization, NativeClientVSAddIn.Strings.NaClPlatformName);
+          naclSolutionWin32Initialization, NativeClientVSAddIn.Strings.NaCl64PlatformName);
       AllConfigsAssertPropertyEquals("ConfigurationGeneral", "TargetExt", ".so", true);
       AllConfigsAssertPropertyEquals(
           "ConfigurationGeneral", "ConfigurationType", "DynamicLibrary", true);
@@ -182,7 +182,7 @@ namespace UnitTests
 
       // NaCl inherit specific checks on the NaCl platform.
       OpenSolutionAndGetProperties(
-          naclSolutionPepperInitialization, NativeClientVSAddIn.Strings.NaClPlatformName);
+          naclSolutionPepperInitialization, NativeClientVSAddIn.Strings.NaCl64PlatformName);
       AllConfigsAssertPropertyEquals("ConfigurationGeneral", "TargetExt", ".nexe", true);
       AllConfigsAssertPropertyEquals(
           "ConfigurationGeneral", "ConfigurationType", "Application", true);
@@ -200,8 +200,8 @@ namespace UnitTests
       string naclSolutionNaClInitialization = TestUtilities.CreateBlankValidNaClSolution(
           dte_,
           "ProjectSettingsTestNaClInit",
-          NativeClientVSAddIn.Strings.NaClPlatformName,
-          NativeClientVSAddIn.Strings.NaClPlatformName,
+          NativeClientVSAddIn.Strings.NaCl64PlatformName,
+          NativeClientVSAddIn.Strings.NaCl64PlatformName,
           TestContext);
       VerifyDefaultPepperSettings(naclSolutionNaClInitialization);
       VerifyDefaultNaClSettings(naclSolutionNaClInitialization);
@@ -216,7 +216,7 @@ namespace UnitTests
 
       // NaCl inherit specific checks on the NaCl platform.
       OpenSolutionAndGetProperties(
-          naclSolutionNaClInitialization, NativeClientVSAddIn.Strings.NaClPlatformName);
+          naclSolutionNaClInitialization, NativeClientVSAddIn.Strings.NaCl64PlatformName);
       AllConfigsAssertPropertyEquals("ConfigurationGeneral", "TargetExt", ".nexe", true);
       AllConfigsAssertPropertyEquals(
           "ConfigurationGeneral", "ConfigurationType", "Application", true);
@@ -317,15 +317,15 @@ namespace UnitTests
     /// <param name="naclSolution">Path to the solution file to verify.</param>
     private void VerifyDefaultNaClSettings(string naclSolution)
     {
-      OpenSolutionAndGetProperties(naclSolution, NativeClientVSAddIn.Strings.NaClPlatformName);
-      
+      OpenSolutionAndGetProperties(naclSolution, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+
       string page;
 
       // General
       page = "ConfigurationGeneral";
       AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)$(ToolchainName)\", true);
       AllConfigsAssertPropertyEquals(
-          page, "IntDir", @"$(ToolchainName)\$(Configuration)\", true);
+          page, "IntDir", @"$(Platform)\$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "ToolchainName", "newlib", true);
       AllConfigsAssertPropertyEquals(page, "TargetArchitecture", "x86_64", true);
       AllConfigsAssertPropertyEquals(page, "VSNaClSDKRoot", @"$(NACL_SDK_ROOT)\", false);
@@ -408,7 +408,7 @@ namespace UnitTests
       string cygwinWarningFormat = "Did not pass cygwin nodosfilewarning environment var to tools"
                                  + " Platform: {0}, configuration: {1}";
       StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
-      
+
       // Open Debug configuration and build.
       dte_.Solution.Open(solutionPath);
       TestUtilities.SetSolutionConfiguration(

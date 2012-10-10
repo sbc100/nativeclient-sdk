@@ -40,15 +40,6 @@
     </StringProperty.DataSource>
   </StringProperty>
 
-  <StringProperty Name="NaClIrtPath" DisplayName="IRT File Path"
-                  Description="Specifies the path to the NaCl Intermediate Runtime file for this project configuration."
-                  Category="NativeClient" Default=""
-                  Subtype="file" F1Keyword="VC.Project.VCConfiguration.NaClIrtPath">
-    <StringProperty.DataSource>
-      <DataSource Persistence="ProjectFile" Label="" />
-    </StringProperty.DataSource>
-  </StringProperty>
-
   <StringProperty Name="NaClWebServerPort" DisplayName="Web Server Port"
                   Description="Specifies the port number to use while hosting the nexe"
                   Category="NativeClient" Default=""
@@ -130,7 +121,8 @@
     <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.so)" />
     <EnumValue Name="StaticLibrary" DisplayName="Static library (.a)" />
   </EnumProperty>
-  <EnumProperty Name="TargetArchitecture" DisplayName="Target Architecture" Category="ProjectDefaults">
+
+  <EnumProperty Name="TargetArchitecture" DisplayName="Target Architecture" Category="ProjectDefaults" Visible="false">
     <EnumValue Name="i686" DisplayName="x86 32-bit" />
     <EnumValue Name="x86_64" DisplayName="x86 64-bit" />
   </EnumProperty>

@@ -1,10 +1,10 @@
 ﻿<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\Platforms\NaCl\ImportBefore')" />
+  <Import Project="$(VCTargetsPath)\NaCl\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\NaCl\ImportBefore')" />
   <Import Project="$(VCTargetsPath)\Microsoft.CppCommon.targets" />
 
-  <UsingTask TaskName="NaClCompile" AssemblyFile="$(VCTargetsPath)\Platforms\NaCl\NaCl.Build.CPPTasks.dll" />
-  <UsingTask TaskName="NaClLink" AssemblyFile="$(VCTargetsPath)\Platforms\NaCl\NaCl.Build.CPPTasks.dll" />
-  <UsingTask TaskName="NaClLib" AssemblyFile="$(VCTargetsPath)\Platforms\NaCl\NaCl.Build.CPPTasks.dll" />
+  <UsingTask TaskName="NaClCompile" AssemblyFile="$(VCTargetsPath)\NaCl\NaCl.Build.CPPTasks.dll" />
+  <UsingTask TaskName="NaClLink" AssemblyFile="$(VCTargetsPath)\NaCl\NaCl.Build.CPPTasks.dll" />
+  <UsingTask TaskName="NaClLib" AssemblyFile="$(VCTargetsPath)\NaCl\NaCl.Build.CPPTasks.dll" />
   <UsingTask TaskName="VCMessage" AssemblyName="Microsoft.Build.CppTasks.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
 
 
@@ -29,7 +29,7 @@
                  MultiProcessorCompilation          ="%(ClCompile.MultiProcessorCompilation)"
                  MinimalRebuildFromTracking         ="%(ClCompile.MinimalRebuildFromTracking)"
                  NaCLCompilerPath                   ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-gcc.exe"
-                 PropertiesFile                     ="$(VCTargetsPath)\Platforms\NaCl\Props\nacl_compile.xml"
+                 PropertiesFile                     ="$(VCTargetsPath)\NaCl\Props\nacl_compile.xml"
                  TLogReadFiles                      ="@(CLTLogReadFiles)"
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
                  ToolExe                            ="$(CLToolExe)"
@@ -58,7 +58,7 @@
               NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
               MinimalRebuildFromTracking     ="$(Link_MinimalRebuildFromTracking)"
               OutputFile                     ="%(Link.OutputFile)"
-              PropertiesFile                   ="$(VCTargetsPath)\Platforms\NaCl\Props\nacl_link.xml"
+              PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\nacl_link.xml"
               TLogReadFiles                  ="@(LinkTLogReadFiles)"
               TLogWriteFiles                 ="@(LinkTLogWriteFiles)"
               ToolExe                        ="$(LinkToolExe)"
@@ -95,7 +95,7 @@
              LibrarianToolPath              ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-ar.exe"
              MinimalRebuildFromTracking     ="%(Lib.MinimalRebuildFromTracking)"
              OutputFile                     ="%(Lib.OutputFile)"
-             PropertiesFile                 ="$(VCTargetsPath)\Platforms\NaCl\Props\nacl_lib.xml"
+             PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\nacl_lib.xml"
              TrackerLogDirectory            ="%(Lib.TrackerLogDirectory)"
              TLogReadFiles                  ="@(LIBTLogReadFiles)"
              TLogWriteFiles                 ="@(LIBTLogWriteFiles)"
@@ -110,8 +110,8 @@
   </Target>
 
   <!-- Imports -->
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\NaCl.CppBuild.targets" />
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets" Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets'))" />
-  <Import Project="$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets" Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\Platforms\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets'))" />
+  <Import Project="$(VCTargetsPath)\NaCl\NaCl.CppBuild.targets" />
+  <Import Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets" Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets'))" />
+  <Import Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets" Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets'))" />
 
 </Project>

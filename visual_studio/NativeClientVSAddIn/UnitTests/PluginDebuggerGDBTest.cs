@@ -61,7 +61,7 @@ namespace UnitTests
           dte,
           "PluginDebuggerGDBTest",
           NativeClientVSAddIn.Strings.PepperPlatformName,
-          NativeClientVSAddIn.Strings.NaClPlatformName,
+          NativeClientVSAddIn.Strings.NaCl64PlatformName,
           testContext);
       }
       finally
@@ -99,7 +99,6 @@ namespace UnitTests
               {
                 case "VSNaClSDKRoot": return System.Environment.GetEnvironmentVariable(
                     NativeClientVSAddIn.Strings.SDKPathEnvironmentVariable);
-                case "NaClIrtPath": return @"fake\Irt\Path";
                 case "NaClManifestPath": return string.Empty;
                 case "ToolchainName": return "newlib";
                 case "TargetArchitecture": return "x86_64";

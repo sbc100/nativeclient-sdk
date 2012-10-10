@@ -1,19 +1,17 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <PlatformShortName>NaCl</PlatformShortName>
-    <PlatformArchitecture>32</PlatformArchitecture>
-
-    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x86_64</TargetArchitecture>
+    <PlatformShortName>NaCl64</PlatformShortName>
+    <PlatformArchitecture>64</PlatformArchitecture>
+    <TargetArchitecture>x86_64</TargetArchitecture>
 
     <ToolchainName Condition="'$(ToolchainName)' == ''">newlib</ToolchainName>
 
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'!=''">$(IntermediateOutputPath)</IntDir>
-    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(ToolchainName)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(Platform)\$(ToolchainName)\$(Configuration)\</IntDir>
     <OutDir Condition="'$(OutDir)'==''">$(ProjectDir)$(ToolchainName)\</OutDir>
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
     <NaClManifestPath Condition="'$(NaClManifestPath)'==''"></NaClManifestPath>
-    <NaClIrtPath Condition="'$(NaClIrtPath)'==''">$(VSNaClSDKRoot)\tools\irt_x86_64.nexe</NaClIrtPath>
   </PropertyGroup>
 </Project>
