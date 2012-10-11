@@ -98,12 +98,12 @@ def AddVersionModifiedAddinFile(archive):
   Args:
   archive: Already open archive file.
   """
-  info = win32api.GetFileVersionInfo(ADDIN_ASSEMBLY, "\\")
-  ms = info['FileVersionMS']
-  ls = info['FileVersionLS']
-  version = "[%i.%i.%i.%i]" % (
-      win32api.HIWORD(ms), win32api.LOWORD(ms),
-      win32api.HIWORD(ls), win32api.LOWORD(ls))
+  path = '\\VarFileInfo\\Translation'
+  pairs = win32api.GetFileVersionInfo(ADDIN_ASSEMBLY, path)
+  lang, codepage = pairs[0]
+  path = u'\\StringFileInfo\\%04X%04X\\ProductVersion' % (lang, codepage)
+  prodVersion = win32api.GetFileVersionInfo(ADDIN_ASSEMBLY, path)
+  version = "[%s]" % prodVersion
   print "\nNaCl VS Add-in Build version: %s\n" % (version)
 
   metadata_filename = os.path.basename(ADDIN_METADATA)

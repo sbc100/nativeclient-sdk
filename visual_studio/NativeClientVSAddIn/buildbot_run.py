@@ -10,6 +10,8 @@ annootator syntax
 
 import os
 import sys
+import re
+import shutil
 import subprocess
 import urllib2
 import zipfile
@@ -45,7 +47,40 @@ def RunCommand(cmd, env=None):
 
 def StepBuild():
   Log('@@@BUILD_STEP build AddIn@@@')
-  RunCommand('build.bat')
+
+  rev = os.environ.get('BUILDBOT_GOT_REVISION')
+  if not rev:
+    Log('No BUILDBOT_GOT_REVISION found in environ')
+    Log('@@@STEP_FAILURE@@@')
+    sys.exit(1)
+
+  if rev[0] == 'r':
+    rev = rev[1:]
+
+  # make a backup of AssemblyInfo.cs before we modify it
+  filename = os.path.join('NativeClientVSAddIn', 'AssemblyInfo.cs')
+  backup = filename + '.orig'
+  shutil.copyfile(filename, backup)
+
+  try:
+    # Before we do the build, insert the revsion information
+    # info AssemblyInfo.cs.  Thie will then be reported as
+    # the addin version in visual studio.
+    with open(filename, 'rb') as f:
+      contents = f.read()
+
+    pattern = r'(\[assembly: AssemblyInformationalVersion\("\d+\.\d+\.).*"\)\]'
+    contents = re.sub(pattern, r'\g<1>%s")]' % rev, contents)
+
+    with open(filename, 'wb') as f:
+      f.write(contents)
+
+    RunCommand('build.bat')
+  finally:
+    # Once build is done restore original file
+    os.remove(filename)
+    os.rename(backup, filename)
+
 
 
 def StepInstall():
