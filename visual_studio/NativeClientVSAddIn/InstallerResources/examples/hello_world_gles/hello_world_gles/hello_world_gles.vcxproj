@@ -102,7 +102,7 @@ python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain
     </Link>
     <PostBuildEvent>
       <Command>set PATH=$(Path)
-mkddir $(ToolchainName)
+mkdir $(ToolchainName)
 python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\hello_world_gles.nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
       <Message>Running 'create_nmf'</Message>
     </PostBuildEvent>
