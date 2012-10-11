@@ -323,7 +323,7 @@ namespace UnitTests
 
       // General
       page = "ConfigurationGeneral";
-      AllConfigsAssertPropertyEquals(page, "OutDir", @"$(SolutionDir)$(Platform)\$(ToolchainName)\$(Configuration)\", true);
+      AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)$(Platform)\$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(
           page, "IntDir", @"$(Platform)\$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "ToolchainName", "newlib", true);

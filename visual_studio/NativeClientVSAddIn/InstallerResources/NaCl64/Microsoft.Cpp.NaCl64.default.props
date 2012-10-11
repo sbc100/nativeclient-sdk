@@ -9,7 +9,7 @@
 
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'!=''">$(IntermediateOutputPath)</IntDir>
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(Platform)\$(ToolchainName)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(OutDir)'==''">$(SolutionDir)$(Platform)\$(ToolchainName)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(OutDir)'==''">$(ProjectDir)$(Platform)\$(ToolchainName)\$(Configuration)\</OutDir>
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>

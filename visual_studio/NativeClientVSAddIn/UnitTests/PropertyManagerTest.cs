@@ -192,7 +192,7 @@ namespace UnitTests
       string slnDir = Path.GetDirectoryName(naclSolution);
       string projectDir = Path.Combine(
           slnDir, Path.GetDirectoryName(TestUtilities.BlankNaClProjectUniqueName)) + @"\";
-      string outputDir = Path.Combine(slnDir, "NaCl64", "newlib", "Debug") + @"\";
+      string outputDir = Path.Combine(projectDir, "NaCl64", "newlib", "Debug") + @"\";
       string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + "_64.nexe");
 
       Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root.");
