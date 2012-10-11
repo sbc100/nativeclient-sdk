@@ -323,7 +323,7 @@ namespace UnitTests
 
       // General
       page = "ConfigurationGeneral";
-      AllConfigsAssertPropertyEquals(page, "OutDir", @"$(ProjectDir)$(ToolchainName)\", true);
+      AllConfigsAssertPropertyEquals(page, "OutDir", @"$(SolutionDir)$(Platform)\$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(
           page, "IntDir", @"$(Platform)\$(ToolchainName)\$(Configuration)\", true);
       AllConfigsAssertPropertyEquals(page, "ToolchainName", "newlib", true);
@@ -371,7 +371,7 @@ namespace UnitTests
       AllConfigsAssertPropertyEquals(page, "WarningsAsErrors", "false", true);
       AllConfigsAssertPropertyEquals(page, "ConfigurationType", "$(ConfigurationType)", true);
       AllConfigsAssertPropertyEquals(page, "UserHeaderDependenciesOnly", "true", true);
-      AllConfigsAssertPropertyEquals(page, "OutputCommandLine", "true", false);
+      AllConfigsAssertPropertyEquals(page, "OutputCommandLine", "false", false);
 
       // C/C++ Optimization
       TestUtilities.AssertPropertyEquals(debug_, page, "OptimizationLevel", "O0", false);

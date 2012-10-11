@@ -77,11 +77,16 @@ namespace NaCl.Build.CPPTasks
         {
             StringBuilder responseFileCmds = new StringBuilder(GCCUtilities.s_CommandLineLength);
 
+            // We want GCC to behave more like visual studio in term of library dependencies
+            // so we wrap all the inputs (libraries and object) into one group so they are
+            // searched iteratively.
+            responseFileCmds.Append("-Wl,--start-group ");
             foreach (ITaskItem sourceFile in Sources)
             {
                 responseFileCmds.Append(GCCUtilities.ConvertPathWindowsToPosix(sourceFile.GetMetadata("Identity")));
                 responseFileCmds.Append(" ");
             }
+            responseFileCmds.Append("-Wl,--end-group ");
 
             responseFileCmds.Append(m_XamlParser.Parse(Sources[0], false));
 
