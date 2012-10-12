@@ -269,6 +269,7 @@ namespace UnitTests
       // VC++ Directories
       page = "ConfigurationDirectories";
       AllConfigsAssertPropertyContains(page, "IncludePath", @"$(VSNaClSDKRoot)include;", true);
+      AllConfigsAssertPropertyContains(page, "IncludePath", @"$(VSNaClSDKRoot)include\win;", true);
       AllConfigsAssertPropertyContains(page, "IncludePath", @"$(VCInstallDir)include", true);
       AllConfigsAssertPropertyContains(
           page, "LibraryPath", @"$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);", true);

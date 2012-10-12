@@ -5,14 +5,14 @@
   <PatchAdd>
     <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v100\ImportBefore')" />
   </PatchAdd>
-    
-  <PropertyGroup>    
+
+  <PropertyGroup>
     <!-- added NaCl include and lib information -->
     <PatchRemove>
       <IncludePath Condition="'$(IncludePath)' == ''">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     </PatchRemove>
     <PatchAdd>
-      <IncludePath Condition="'$(IncludePath)' == ''">$(VSNaClSDKRoot)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+      <IncludePath Condition="'$(IncludePath)' == ''">$(VSNaClSDKRoot)include;$(VSNaClSDKRoot)include\win;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
     </PatchAdd>
     <PatchRemove>
       <LibraryPath Condition="'$(LibraryPath)' == ''">$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
