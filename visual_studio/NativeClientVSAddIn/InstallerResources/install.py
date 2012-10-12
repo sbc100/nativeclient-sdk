@@ -45,6 +45,9 @@ def UninstallDirectory(directory):
 
 def UninstallFile(file_path):
   if os.path.exists(file_path):
+    if not os.access(file_path, os.W_OK):
+      raise InstallError("File is marked as read-only: %s.\n"
+                         "Please correct and try again." % file_path)
     os.remove(file_path)
     print 'Removed: %s' % (file_path)
 
@@ -249,8 +252,13 @@ if __name__ == '__main__':
     print e
   except WindowsError as e:
     if e.winerror == 5:
-      print "Access denied error.  Please ensure Visual Studio and MSBuild"
-      print "processes are closed."
+      print e
+      print("The install script failed to write to the files mentioned above")
+      if ctypes.windll.shell32.IsUserAnAdmin() != 1:
+        print("Please try running as administrator.")
+      else:
+        print("Please check for any running programs that might "
+              "have them locked.")
     else:
       raise
   sys.exit(rtn)
