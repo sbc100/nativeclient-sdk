@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_nacl_cpp", "hello_nacl_cpp\hello_nacl_cpp.vcxproj", "{821C2C52-B4A2-407A-9800-B2A5633FB097}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|NaCl64 = Debug|NaCl64
+		Debug|PPAPI = Debug|PPAPI
+		Debug|Win32 = Debug|Win32
+		Release|NaCl64 = Release|NaCl64
+		Release|PPAPI = Release|PPAPI
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Debug|NaCl64.ActiveCfg = Debug|NaCl64
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Debug|NaCl64.Build.0 = Debug|NaCl64
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Debug|PPAPI.ActiveCfg = Debug|PPAPI
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Debug|PPAPI.Build.0 = Debug|PPAPI
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Debug|Win32.ActiveCfg = Debug|Win32
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Debug|Win32.Build.0 = Debug|Win32
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Release|NaCl64.ActiveCfg = Release|NaCl64
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Release|NaCl64.Build.0 = Release|NaCl64
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Release|PPAPI.ActiveCfg = Release|PPAPI
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Release|PPAPI.Build.0 = Release|PPAPI
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Release|Win32.ActiveCfg = Release|Win32
+		{821C2C52-B4A2-407A-9800-B2A5633FB097}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

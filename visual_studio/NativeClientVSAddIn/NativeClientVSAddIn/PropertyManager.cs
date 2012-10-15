@@ -233,12 +233,18 @@ namespace NativeClientVSAddIn
       }
     }
 
+    /// <summary>
+    /// Return true if the given platform is a NaCl platform.
+    /// </summary>
     public static bool IsNaClPlatform(string platformName)
     {
         return platformName.Equals(Strings.NaCl32PlatformName, StringComparison.OrdinalIgnoreCase) ||
                platformName.Equals(Strings.NaCl64PlatformName, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Return true if the given platform is a PPAPI platform.
+    /// </summary>
     public static bool IsPepperPlatform(string platformName)
     {
         return platformName.Equals(Strings.PepperPlatformName, StringComparison.OrdinalIgnoreCase);

@@ -5,7 +5,6 @@
 *.cmd
 *.gz
 *.nexe
-*.nmf
 *.o
 *.pyc
 *.pyo
@@ -42,13 +41,15 @@ toolchain/
 /visual_studio/NativeClientVSAddIn/UnitTests/obj/
 /visual_studio/NativeClientVSAddIn/TestResults/
 
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/chrome_data
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/newlib
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/win
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/ipch
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/Debug
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/Release
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/NaCl64
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles/NaCl32
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles.sdf
-/visual_studio/NativeClientVSAddIn/InstallerResources/examples/hello_world_gles/hello_world_gles.opensdf
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/ipch
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*.sdf
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*.opensdf
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/Debug
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/Release
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/Debug
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/Release
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaCl64
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaCl32
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/chrome_data
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/newlib
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/win
