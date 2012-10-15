@@ -23,6 +23,10 @@ namespace NativeClientVSAddIn
     /// <returns>True if project is a Visual C/C++ project.</returns>
     public static bool IsVisualCProject(Project proj)
     {
+      if (proj.Properties == null)
+      {
+        return false;
+      }
       foreach (Property prop in proj.Properties)
       {
         if (prop.Name == "Kind")

@@ -13,6 +13,7 @@ namespace NativeClientVSAddIn
   using Microsoft.VisualStudio.VCProjectEngine;
   using System.Collections.Generic;
   using System.Diagnostics;
+  using System.Reflection;
 
   /// <summary>The object for implementing an Add-in.</summary>
   /// <seealso class='IDTExtensibility2' />
@@ -167,7 +168,7 @@ namespace NativeClientVSAddIn
     /// </summary>
     private void PerformPropertyModifications()
     {
-      string naclAddInVersion = GetAddInVersionFromDescription();
+      string naclAddInVersion = GetAddInMajorVersion().ToString();
 
       var configs = Utility.GetPlatformVCConfigurations(dte_, Strings.PepperPlatformName);
       configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl64PlatformName));
@@ -225,8 +226,6 @@ namespace NativeClientVSAddIn
     private void PerformPropertyFixes(VCConfiguration config)
     {
       IVCRulePropertyStorage debugger = config.Rules.Item("WindowsLocalDebugger");
-      string arguments = debugger.GetUnevaluatedPropertyValue("LocalDebuggerCommandArguments");
-      debugger.SetPropertyValue("LocalDebuggerCommandArguments", arguments);
 
       // NaCl Platform Specific:
       if (PropertyManager.IsNaClPlatform(config.Platform.Name))
@@ -263,29 +262,14 @@ namespace NativeClientVSAddIn
     }
 
     /// <summary>
-    /// During the build process we dynamically put the add-in version number into the add-in
-    /// description.  This function extracts that version number.
+    /// Get the major version of the AddIn.
     /// </summary>
-    /// <returns>The add-in version number.</returns>
-    private string GetAddInVersionFromDescription()
+    /// <returns>The add-in major version number.</returns>
+    private int GetAddInMajorVersion()
     {
-      string naclAddinVersion = "missing";
-      foreach (AddIn addin in dte_.AddIns)
-      {
-        if (addin.Name.Equals(Strings.AddInName))
-        {
-          string identifier = "Version: [";
-          int start = addin.Description.IndexOf(identifier) + identifier.Length;
-          int end = addin.Description.LastIndexOf(']');
-          if (start >= 0 && end >= 0)
-          {
-            naclAddinVersion = addin.Description.Substring(start, end - start);
-            break;
-          }
-        }
-      }
-
-      return naclAddinVersion;
+      Assembly assem = Assembly.GetExecutingAssembly();
+      AssemblyName assemName = assem.GetName();
+      return assemName.Version.Major;
     }
 
     /// <summary>

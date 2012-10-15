@@ -28,7 +28,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  
+
   <!-- Add the Pepper static libraries, change output file -->
   <ItemDefinitionGroup>
     <Link>
@@ -37,9 +37,10 @@
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
-  
+
   <!-- setup default debugging parameters -->
   <PropertyGroup>
+    <TargetPath Condition="'$(TargetPath)' == ''">$([System.IO.Path]::Combine($(ProjectDir),$(OutDir)$(TargetName)$(TargetExt)))</TargetPath>
     <LocalDebuggerCommand>$(CHROME_PATH)</LocalDebuggerCommand>
     <LocalDebuggerCommandArguments Condition="$(Configuration) == 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort) --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl --wait-for-debugger-children --no-sandbox</LocalDebuggerCommandArguments>
     <LocalDebuggerCommandArguments Condition="$(Configuration) != 'Debug'">--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort) --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
