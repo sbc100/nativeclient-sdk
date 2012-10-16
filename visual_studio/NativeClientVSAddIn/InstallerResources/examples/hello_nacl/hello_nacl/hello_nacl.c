@@ -1,3 +1,8 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 // This project demonstrates how to migrate a Windows desktop app to Native
 // Client, running first as a Win32 application (define STEP1), then as a PPAPI
 // plugin (define STEP2 through STEP6), and finally as a Native Client module.
@@ -25,19 +30,19 @@
 
 //#define STEP3
 // What changed: Replace WinMain with WndProc, and call it from
-// Instance_DidCreate, launching HelloNaCl in its own window.
+// Instance_DidCreate, launching hello_nacl in its own window.
 // Since WndProc spins in its message loop, the call to Instance_DidCreate
 // never returns.
-// Close the HelloNaCl window and the module initialization will finish.
+// Close the hello_nacl window and the module initialization will finish.
 
 //#define STEP4
 // What changed: In WndProc replace the message loop with a callback function.
 // Now the app window and the Native Client module are running concurrently.
 
 //#define STEP5
-// What changed: Instance_DidCreate calls initInstanceInBrowserWindow rather
-// than initInstanceInPCWindow.
-// The initInstanceInBrowserWindow uses postMessage to place text (now "Hello,
+// What changed: Instance_DidCreate calls InitInstanceInBrowserWindow rather
+// than InitInstanceInPCWindow.
+// The InitInstanceInBrowserWindow uses postMessage to place text (now "Hello,
 // Native Client") in the web page instead of opening and writing to a window.
 
 //#define STEP6
@@ -53,14 +58,14 @@
 // *** RUN YOUR MODULE IN THE WILD ***
 // You can run your nexe outside of Visual Studio, directly from Chrome by
 // following these steps:
-// - Build STEP6 and verify the file <project
-//   directory>/newlib/HelloNaCl/HelloNaCl.nexe exists
-// - Copy the folder <project directory>/HelloNaCl into your NaCl SDK's example
+// - Build STEP6 and verify the file
+//   <project directory>/NaCl64/newlib/Debug/hello_nacl_64.nexe exists
+// - Copy the folder <project directory> into your NaCl SDK's example
 //   directory.
 // - Go to the NaCl SDK directory and launch the httpd.py server.
 // - Launch Chrome, go to about:flags and enable the Native Client flag and
 //   relaunch Chrome
-// - Point Chrome at localhost:5103/HelloNaCl
+// - Point Chrome at localhost:5103/hello_nacl
 
 
 #ifdef STEP6
@@ -98,18 +103,15 @@ static PPB_Var* ppb_var_interface = NULL;
 static PPB_Core* ppb_core_interface = NULL;
 PP_Instance myInstance;
 
-int initInstanceInPCWindow();
-void initInstanceInBrowserWindow();
+int InitInstanceInPCWindow();
+void InitInstanceInBrowserWindow();
 
 #endif
 
 
 #ifdef STEP4
 // Implements message handling in a callback function.
-void HelloWorldCallbackFun(void* user_data, int32_t result);
-struct PP_CompletionCallback HelloWorldCallback = { HelloWorldCallbackFun, NULL };
-
-void HelloWorldCallbackFun(void* user_data, int32_t result) {
+void HelloWorldCallback(void* user_data, int32_t result) {
   MSG uMsg;
   if (PeekMessage(&uMsg, NULL, 0, 0, PM_REMOVE)) {
     TranslateMessage(&uMsg);
@@ -118,6 +120,7 @@ void HelloWorldCallbackFun(void* user_data, int32_t result) {
   ppb_core_interface->CallOnMainThread(100, HelloWorldCallback, 0);
 }
 
+struct PP_CompletionCallback HelloWorldCallback = { HelloWorldCallback, NULL };
 #endif
 
 #ifdef STEP2
@@ -132,12 +135,13 @@ NULL) { return ppb_var_interface->VarFromUtf8(str, strlen(str)); } return
 PP_MakeUndefined(); }
 
 
-void initInstanceInBrowserWindow() {
+void InitInstanceInBrowserWindow() {
   // Pass the text to the browser page, there is no separate app window
   // anymore.  The text is added as a new element to the page, it does not
   // appear in the module's embed view.
-  ppb_messaging_interface->PostMessage(myInstance, CStrToVar("Hello, Native
-  Client!")); }
+  ppb_messaging_interface->PostMessage(myInstance,
+                                       CStrToVar("Hello, Native Client!"));
+}
 
 /**
  * Called when the NaCl module is instantiated on the web page.
@@ -152,12 +156,12 @@ static PP_Bool Instance_DidCreate(PP_Instance instance,
 #ifdef STEP5
   // Will be included in STEP5 and STEP6
   // Uses messaging to relay text to the module's view on the web page
-  initInstanceInBrowserWindow();
+  InitInstanceInBrowserWindow();
 #else
 #ifdef STEP3
   // Will be included in STEP3 and STEP4 only
   // Uses WndProc to place text in a window separate from the browser.
-  initInstanceInPCWindow();
+  InitInstanceInPCWindow();
 #endif
 #endif
 
@@ -199,8 +203,6 @@ static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
   return PP_FALSE;
 }
 
-
-
 /**
  * Entry points for the module.
  * Initialize needed interfaces: PPB_Core, PPB_Messaging and PPB_Var.
@@ -213,7 +215,6 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
   ppb_core_interface = (PPB_Core*)get_browser(PPB_CORE_INTERFACE);
   return PP_OK;
 }
-
 
 /**
  * Returns an interface pointer for the interface of the given name, or NULL
@@ -233,7 +234,6 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
   return NULL;
 }
 
-
 /**
  * Called before the plugin module is unloaded.
  */
@@ -241,15 +241,13 @@ PP_EXPORT void PPP_ShutdownModule() {
 }
 #endif
 
-
-
 // **** Application Code ****
 
 #ifdef STEP1
 // Desktop Windows Hello World app. Native Client agnostic.
 
 static TCHAR szWindowClass[] = _T("win32app");
-static TCHAR szTitle[] = _T("HelloNaCl");
+static TCHAR szTitle[] = _T("hello_nacl");
 HINSTANCE hInst;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -278,9 +276,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
   if (!RegisterClassEx(&wcex)) {
     MessageBox(NULL,
-        _T("Call to RegisterClassEx failed!"),
-        _T("HelloNaCl"),
-        0);
+               _T("Call to RegisterClassEx failed!"),
+               _T("hello_nacl"),
+               0);
 
     return 1;
   }
@@ -296,14 +294,13 @@ int WINAPI WinMain(HINSTANCE hInstance,
       NULL,
       NULL,
       hInstance,
-      NULL
-      );
+      NULL);
 
   if (!hWnd) {
     MessageBox(NULL,
-        _T("Call to CreateWindow failed!"),
-        _T("HelloNaCl"),
-        0);
+               _T("Call to CreateWindow failed!"),
+               _T("hello_nacl"),
+               0);
 
     return 1;
   }
@@ -322,8 +319,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 }
 
 // WndProc
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
+                         WPARAM wParam, LPARAM lParam) {
   PAINTSTRUCT ps;
   HDC hdc;
   TCHAR greeting[] = _T("Hello, World!");
@@ -347,11 +344,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 
 #ifdef STEP3
-// Replace WinMain with initInstanceInPCWindow so the Native Client Module can
+// Replace WinMain with InitInstanceInPCWindow so the Native Client Module can
 // launch the original application.  Note the inclusion of a message-handling
 // loop. STEP4 will replace the loop with a callback.
-HINSTANCE g_hInstance = NULL; HWND g_hWnd = NULL; int initInstanceInPCWindow()
-{ WNDCLASSEX winClass; MSG        uMsg;
+HINSTANCE g_hInstance = NULL;
+HWND g_hWnd = NULL;
+
+int InitInstanceInPCWindow() {
+  WNDCLASSEX winClass; MSG        uMsg;
 
   memset(&uMsg,0,sizeof(uMsg));
 
@@ -371,10 +371,10 @@ HINSTANCE g_hInstance = NULL; HWND g_hWnd = NULL; int initInstanceInPCWindow()
   if (!RegisterClassEx(&winClass))
     return E_FAIL;
 
-  g_hWnd = CreateWindowEx(NULL, _T("MY_WINDOWS_CLASS"),
-      _T("HelloNaCl"),
-      WS_OVERLAPPEDWINDOW,
-      0, 0, 640,480, NULL, NULL, g_hInstance, NULL);
+  g_hWnd = CreateWindowEx(
+      NULL, _T("MY_WINDOWS_CLASS"),
+      _T("hello_nacl"), WS_OVERLAPPEDWINDOW,
+      0, 0, 640, 480, NULL, NULL, g_hInstance, NULL);
 
   if (g_hWnd == NULL)
     return E_FAIL;

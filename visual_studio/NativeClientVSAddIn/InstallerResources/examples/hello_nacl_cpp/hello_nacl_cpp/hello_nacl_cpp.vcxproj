@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|NaCl32">
+      <Configuration>Debug</Configuration>
+      <Platform>NaCl32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|NaCl64">
       <Configuration>Debug</Configuration>
       <Platform>NaCl64</Platform>
@@ -12,6 +16,10 @@
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|NaCl32">
+      <Configuration>Release</Configuration>
+      <Platform>NaCl32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|NaCl64">
       <Configuration>Release</Configuration>
@@ -77,7 +85,19 @@
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
+    <NaClAddInVersion>1</NaClAddInVersion>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
+    <NaClAddInVersion>1</NaClAddInVersion>
+    <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
+    <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
+    <LibraryPath>$(VSNaClSDKRoot)lib;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
     <NaClAddInVersion>1</NaClAddInVersion>
     <VSNaClSDKRoot>$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <IncludePath>$(VSNaClSDKRoot)include;</IncludePath>
@@ -127,18 +147,51 @@
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>set PATH=$(Path)
+mkdir $(ToolchainName)
+python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
+      <Message>Running 'create_nmf'</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
+    <Link>
+      <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>set PATH=$(Path)
+mkdir $(ToolchainName)
+python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
+      <Message>Running 'create_nmf'</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>set PATH=$(Path)
+mkdir $(ToolchainName)
+python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
+      <Message>Running 'create_nmf'</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
+    <Link>
+      <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>set PATH=$(Path)
+mkdir $(ToolchainName)
+python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
+      <Message>Running 'create_nmf'</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="hello_nacl_cpp.nmf" />
     <None Include="index.html" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hello_nacl_cpp.cpp" />
+    <ClCompile Include="hello_nacl_cpp.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

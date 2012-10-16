@@ -5,20 +5,26 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_nacl", "hello_nacl\he
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|NaCl32 = Debug|NaCl32
 		Debug|NaCl64 = Debug|NaCl64
 		Debug|PPAPI = Debug|PPAPI
 		Debug|Win32 = Debug|Win32
+		Release|NaCl32 = Release|NaCl32
 		Release|NaCl64 = Release|NaCl64
 		Release|PPAPI = Release|PPAPI
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl32.ActiveCfg = Debug|NaCl32
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl32.Build.0 = Debug|NaCl32
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl64.ActiveCfg = Debug|NaCl64
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl64.Build.0 = Debug|NaCl64
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|PPAPI.ActiveCfg = Debug|PPAPI
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|PPAPI.Build.0 = Debug|PPAPI
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|Win32.Build.0 = Debug|Win32
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl32.ActiveCfg = Release|NaCl32
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl32.Build.0 = Release|NaCl32
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl64.ActiveCfg = Release|NaCl64
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl64.Build.0 = Release|NaCl64
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|PPAPI.ActiveCfg = Release|PPAPI

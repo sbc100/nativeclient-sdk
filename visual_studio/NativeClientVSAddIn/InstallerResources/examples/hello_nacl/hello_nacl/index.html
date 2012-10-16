@@ -9,44 +9,22 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="-1">
   <script type="text/javascript">
-      function pageDidLoad() {
-          appendStatus('Page loaded');
+    function pageDidLoad() {
+      appendStatus('Page loaded');
+    }
+
+    function appendStatus(opt_message) {
+      var statusField = document.getElementById('statusField');
+      if (statusField) {
+        var newElt = document.createElement("opt_message");
+        newElt.innerHTML = "<br>" + opt_message;
+        statusField.appendChild(newElt);
       }
+    }
 
-      var forceRedraw = function (element) {
-
-          if (!element) { return; }
-
-          var n = document.createTextNode(' ');
-          var disp = element.style.display;  // don't worry about previous display style
-
-          element.appendChild(n);
-          element.style.display = 'none';
-
-          setTimeout(function () {
-              element.style.display = disp;
-              n.parentNode.removeChild(n);
-          }, 50);
-      }
-
-      function appendStatus(opt_message) {
-          var statusField = document.getElementById('statusField');
-          console.log("hi");
-          if (statusField) {
-              var newElt = document.createElement("opt_message");
-              newElt.innerHTML = "<br>" + opt_message;
-              statusField.appendChild(newElt);
-              forceRedraw(newElt);
-          }
-      }
-
-
-
-      function handleMessage(message_event) {
-           appendStatus(message_event.data);
-         
-      }
-
+    function handleMessage(message_event) {
+     appendStatus(message_event.data);
+    }
  </script>
 </head>
 <body onload="pageDidLoad()">
@@ -61,7 +39,7 @@
       style="border-style: solid;"
       width=200
       height=200
-      src="hello_nacl.nmf"
+      src="newlib/hello_nacl.nmf"
       type="application/x-nacl"/>
   </div>
   <div>
