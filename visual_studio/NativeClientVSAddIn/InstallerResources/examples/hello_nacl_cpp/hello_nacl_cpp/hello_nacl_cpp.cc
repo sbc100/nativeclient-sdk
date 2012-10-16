@@ -22,7 +22,7 @@
 // *** SELECT THE PPAPI PLATFORM ***
 
 //#define STEP2
-
+// What Changed: The platform launches Chrome, which will then load a Native
 // Client Module.  STEP2 encloses the Native Client module APIs needed to link
 // any app to the browser.  The module does nothing except report
 // starting/ending the function Instance_DidCreate.  The Windows app does not
@@ -30,8 +30,8 @@
 
 //#define STEP3
 // What changed: Replace WinMain with WndProc, and call it from
-// Instance_DidCreate, launching hello_nacl_plus in its own window. Since
-// WndProc spins in its message loop, the call to Instance_DidCreate never
+// NaClProjectInstance:Init, launching hello_nacl_plus in its own window. Since
+// WndProc spins in its message loop, the call to Init never
 // returns. Close the hello_nacl_plus window and the module initialization will
 // finish.
 
@@ -40,8 +40,8 @@
 // Now the app window and the Native Client module are running concurrently.
 
 //#define STEP5
-// What changed: Instance_DidCreate calls InitInstanceInBrowserWindow rather
-// than InitInstanceInPCWindow. The InitInstanceInBrowserWindow uses
+// What changed: NaClProjectInstance:Init calls initInstanceInBrowserWindow
+// rather than initInstanceInPCWindow. The initInstanceInBrowserWindow uses
 // postMessage to place text (now "Hello, Native Client") in the web page
 // instead of opening and writing to a window.
 
