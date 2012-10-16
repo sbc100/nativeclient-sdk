@@ -111,7 +111,11 @@ void InitInstanceInBrowserWindow();
 
 #ifdef STEP4
 // Implements message handling in a callback function.
-void HelloWorldCallback(void* user_data, int32_t result) {
+void HelloWorldCallbackFun(void* user_data, int32_t result);
+struct PP_CompletionCallback HelloWorldCallback = {
+   HelloWorldCallbackFun, NULL };
+
+void HelloWorldCallbackFun(void* user_data, int32_t result) {
   MSG uMsg;
   if (PeekMessage(&uMsg, NULL, 0, 0, PM_REMOVE)) {
     TranslateMessage(&uMsg);
@@ -119,8 +123,6 @@ void HelloWorldCallback(void* user_data, int32_t result) {
   }
   ppb_core_interface->CallOnMainThread(100, HelloWorldCallback, 0);
 }
-
-struct PP_CompletionCallback HelloWorldCallback = { HelloWorldCallback, NULL };
 #endif
 
 #ifdef STEP2
@@ -372,7 +374,7 @@ int InitInstanceInPCWindow() {
     return E_FAIL;
 
   g_hWnd = CreateWindowEx(
-      NULL, _T("MY_WINDOWS_CLASS"),
+      0, _T("MY_WINDOWS_CLASS"),
       _T("hello_nacl"), WS_OVERLAPPEDWINDOW,
       0, 0, 640, 480, NULL, NULL, g_hInstance, NULL);
 
