@@ -174,11 +174,19 @@ namespace NativeClientVSAddIn
       configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl64PlatformName));
       configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl32PlatformName));
 
+
       var properties = new PropertyManager();
       foreach (VCConfiguration config in configs)
       {
         properties.SetTarget(config);
-        if (properties.NaClAddInVersion != naclAddInVersion)
+
+        IVCRulePropertyStorage debugger = config.Rules.Item("WindowsLocalDebugger");
+        string executable = debugger.GetUnevaluatedPropertyValue("LocalDebuggerCommand");
+
+        // Perform project modifications of the NaClAddInVersion in the project file
+        // is out of date, or if the WindowsLocalDebugger contains CHROME_PATH.  The
+        // later can happen if the developer deletes the .user file.
+        if (executable.Contains("$(CHROME_PATH)") || properties.NaClAddInVersion != naclAddInVersion)
         {
           Debug.WriteLine("Modifying Config: " + config.Name);
 
@@ -225,8 +233,6 @@ namespace NativeClientVSAddIn
     /// <param name="config">A configuration that needs modification.</param>
     private void PerformPropertyFixes(VCConfiguration config)
     {
-      IVCRulePropertyStorage debugger = config.Rules.Item("WindowsLocalDebugger");
-
       // NaCl Platform Specific:
       if (PropertyManager.IsNaClPlatform(config.Platform.Name))
       {
