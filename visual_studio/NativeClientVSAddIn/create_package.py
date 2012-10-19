@@ -53,6 +53,9 @@ EXCLUDES = [
     r'examples\\.*\\Debug',
     r'examples\\.*\\newlib',
     r'examples\\.*\\win',
+    r'examples\\.*\\ipch',
+    r'examples\\.*\\*.sdf',
+    r'examples\\.*\\*.suo',
     # Exclude .AddIn file for now since we need to modify it with version info.
     re.escape(ADDIN_METADATA)]
 

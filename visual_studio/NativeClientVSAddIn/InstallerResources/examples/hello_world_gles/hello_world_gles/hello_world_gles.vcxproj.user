@@ -7,9 +7,9 @@
     <LocalDebuggerCommandArguments>localhost:$(NaClWebServerPort)/index_$(ToolchainName).html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PPAPI'">
-    <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort)/index_win.html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl --wait-for-debugger-children --no-sandbox</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort)/index_win.html --user-data-dir="$(ProjectDir)/chrome_data" --wait-for-debugger-children</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
-    <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort)/index_win.html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort)/index_win.html --user-data-dir="$(ProjectDir)/chrome_data"</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

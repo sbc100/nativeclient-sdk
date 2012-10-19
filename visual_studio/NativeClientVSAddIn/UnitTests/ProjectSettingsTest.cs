@@ -255,16 +255,12 @@ namespace UnitTests
       string propName = "LocalDebuggerCommandArguments";
       string dataDir = "--user-data-dir=\"$(ProjectDir)/chrome_data\"";
       string address = "localhost:$(NaClWebServerPort)";
-      string naclFlag = "--enable-nacl";
       string targetFlag = "--register-pepper-plugins=\"$(TargetPath)\";application/x-nacl";
-      string noSandBoxFlag = "--no-sandbox";
       string debugChildrenFlag = "--wait-for-debugger-children";
       AllConfigsAssertPropertyContains(page, propName, dataDir, true);
       AllConfigsAssertPropertyContains(page, propName, address, true);
-      AllConfigsAssertPropertyContains(page, propName, naclFlag, true);
       AllConfigsAssertPropertyContains(page, propName, targetFlag, true);
       TestUtilities.AssertPropertyContains(debug_, page, propName, debugChildrenFlag, true);
-      TestUtilities.AssertPropertyContains(debug_, page, propName, noSandBoxFlag, true);
 
       // VC++ Directories
       page = "ConfigurationDirectories";
