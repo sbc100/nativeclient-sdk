@@ -219,51 +219,7 @@ namespace NativeClientVSAddIn
           }
 
           properties.SetProperty("Link", "AdditionalDependencies", libs);
-
-          // Work around for issue 140162. Forces some properties to save to the project file.
-          PerformPropertyFixes(config);
         }
-      }
-    }
-
-    /// <summary>
-    /// Takes a project configuration and sets values in the project file to work around some
-    /// problems in Visual Studio. This is a work around for issue 140162.
-    /// </summary>
-    /// <param name="config">A configuration that needs modification.</param>
-    private void PerformPropertyFixes(VCConfiguration config)
-    {
-      // NaCl Platform Specific:
-      if (PropertyManager.IsNaClPlatform(config.Platform.Name))
-      {
-        IVCRulePropertyStorage general = config.Rules.Item("ConfigurationGeneral");
-        string[] keys = {"VSNaClSDKRoot"};
-        Dictionary<string, string> values = new Dictionary<string, string>();
-        foreach (var key in keys)
-        {
-          values[key] = general.GetUnevaluatedPropertyValue(key);
-          general.DeleteProperty(key);
-        }
-
-        foreach (var key in keys)
-        {
-          general.SetPropertyValue(key, values[key]);
-        }
-      }
-
-      IVCRulePropertyStorage directories = config.Rules.Item("ConfigurationDirectories");
-      string includePath = directories.GetUnevaluatedPropertyValue("IncludePath");
-      string libraryPath = directories.GetUnevaluatedPropertyValue("LibraryPath");
-      directories.DeleteProperty("IncludePath");
-      directories.DeleteProperty("LibraryPath");
-      directories.SetPropertyValue("IncludePath", includePath);
-      directories.SetPropertyValue("LibraryPath", libraryPath);
-
-      // Pepper specific:
-      if (config.Platform.Name == Strings.PepperPlatformName)
-      {
-        string executablePath = directories.GetUnevaluatedPropertyValue("ExecutablePath");
-        directories.SetPropertyValue("ExecutablePath", executablePath);
       }
     }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -327,13 +327,19 @@ namespace UnitTests
         string pageName,
         string propertyName,
         string expectedValue,
-        bool ignoreCase)
+        bool ignoreCase,
+        bool expand=false)
     {
       StringComparison caseSensitive = ignoreCase ?
           StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 
       IVCRulePropertyStorage rule = configuration.Rules.Item(pageName);
-      string propertyValue = rule.GetUnevaluatedPropertyValue(propertyName);
+      string propertyValue;
+      if (expand)
+        propertyValue = rule.GetEvaluatedPropertyValue(propertyName);
+      else
+        propertyValue = rule.GetUnevaluatedPropertyValue(propertyName);
+
 
       string message = string.Format(
           "{0} should be contained in {1}. Page: {2}, Property: {3}, Configuration: {4}",

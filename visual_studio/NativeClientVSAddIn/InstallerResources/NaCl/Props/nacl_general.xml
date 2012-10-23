@@ -26,9 +26,6 @@
                   Description="Specifies the path to the Native Client SDK root directory."
                   Category="NativeClient" Default=""
                   Subtype="folder" F1Keyword="VC.Project.VCConfiguration.NaClSDKRoot">
-    <StringProperty.DataSource>
-      <DataSource Persistence="ProjectFile" Label="" />
-    </StringProperty.DataSource>
   </StringProperty>
 
   <StringProperty Name="NaClManifestPath" DisplayName="Manifest File Path"

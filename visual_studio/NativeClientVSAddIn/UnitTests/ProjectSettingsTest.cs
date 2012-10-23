@@ -190,6 +190,69 @@ namespace UnitTests
     }
 
     /// <summary>
+    /// Test that setting a custom NaClSDKRoot correctly effects the default values for
+    /// things like IncludePath.  This test is needed to protect against regressions where
+    /// the order of the properties could cause NaClSDKRoot to not effect the defaults.
+    /// </summary>
+    [TestMethod]
+    public void OverrideSDKRootPepper()
+    {
+        string slnName = TestUtilities.CreateBlankValidNaClSolution(
+            dte_,
+            "OverrideSDKRootPepper",
+            NativeClientVSAddIn.Strings.PepperPlatformName,
+            NativeClientVSAddIn.Strings.PepperPlatformName,
+            TestContext);
+
+        OpenSolutionAndGetProperties(slnName, NativeClientVSAddIn.Strings.PepperPlatformName);
+
+        // VC++ Directories
+        string page = "ConfigurationGeneral";
+        IVCRulePropertyStorage pageStorage = debug_.Rules.Item(page);
+        pageStorage.SetPropertyValue("VSNaClSDKRoot", @"foo\");
+
+        page = "ConfigurationDirectories";
+        TestUtilities.AssertPropertyContains(debug_, page, "IncludePath", @"foo\include;", true, true);
+        TestUtilities.AssertPropertyContains(debug_, page, "IncludePath", @"foo\include\win;", true, true);
+        TestUtilities.AssertPropertyContains(debug_, page, "IncludePath", @"foo\include", true, true);
+        TestUtilities.AssertPropertyContains(debug_,
+            page, "LibraryPath", @"foo\lib\win_x86_32_host", true, true);
+        TestUtilities.AssertPropertyContains(debug_, page, "LibraryPath", @"foo\lib", true, true);
+
+        dte_.Solution.Close();
+    }
+
+    /// <summary>
+    /// Test that setting a custom NaClSDKRoot correctly effects the default values for
+    /// things like IncludePath.  This test is needed to protect against regressions where
+    /// the order of the properties could cause NaClSDKRoot to not effect the defaults.
+    /// </summary>
+    [TestMethod]
+    public void OverrideSDKRootNaCl()
+    {
+        string slnName = TestUtilities.CreateBlankValidNaClSolution(
+            dte_,
+            "OverrideSDKRootNaCl",
+            NativeClientVSAddIn.Strings.NaCl64PlatformName,
+            NativeClientVSAddIn.Strings.NaCl64PlatformName,
+            TestContext);
+
+        OpenSolutionAndGetProperties(slnName, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+
+        // VC++ Directories
+        string page = "ConfigurationGeneral";
+        IVCRulePropertyStorage pageStorage = debug_.Rules.Item(page);
+        pageStorage.SetPropertyValue("VSNaClSDKRoot", @"foo\");
+
+        page = "ConfigurationDirectories";
+        TestUtilities.AssertPropertyContains(debug_, page, "IncludePath", @"foo\include;", true, true);
+        TestUtilities.AssertPropertyContains(debug_, page, "LibraryPath", @"foo\lib", true, true);
+
+        dte_.Solution.Close();
+    }
+
+
+    /// <summary>
     /// Test method which verifies that the Pepper platform has correct default properties
     /// when initialized from the NaCl platform. And that the NaCl platform has the correct
     /// settings when initialized from the 'empty' settings.
