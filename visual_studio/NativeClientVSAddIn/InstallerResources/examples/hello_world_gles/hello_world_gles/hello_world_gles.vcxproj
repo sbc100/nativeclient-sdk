@@ -32,18 +32,6 @@
     <RootNamespace>hello_world_gles</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
-    <ToolchainName>newlib</ToolchainName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'" Label="Configuration">
-    <ToolchainName>newlib</ToolchainName>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
-    <ToolchainName>newlib</ToolchainName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'" Label="Configuration">
-    <ToolchainName>newlib</ToolchainName>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
