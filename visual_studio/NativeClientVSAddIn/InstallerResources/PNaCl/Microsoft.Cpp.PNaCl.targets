@@ -60,6 +60,7 @@
               PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\pnacl_link.xml"
               TLogReadFiles                  ="@(LinkTLogReadFiles)"
               TLogWriteFiles                 ="@(LinkTLogWriteFiles)"
+              ToolchainName                  ="$(ToolchainName)"
               Platform                       ="$(Platform)"
               TranslateX86                   ="%(Link.TranslateX86)"
               TranslateX64                   ="%(Link.TranslateX64)"

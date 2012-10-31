@@ -19,28 +19,40 @@ namespace NaCl.Build.CPPTasks
         /// Property set only in PNaCl builds to signal that the translator
         /// should be run post-link.
         /// </summary>
-        public string TranslateARM { get; set; }
+        public bool TranslateARM { get; set; }
 
         /// <summary>
         /// Property set only in PNaCl builds to signal that the translator
         /// should be run post-link.
         /// </summary>
-        public string TranslateX86 { get; set; }
+        public bool TranslateX86 { get; set; }
 
         /// <summary>
         /// Property set only in PNaCl builds to signal that the translator
         /// should be run post-link.
         /// </summary>
-        public string TranslateX64 { get; set; }
+        public bool TranslateX64 { get; set; }
 
         [Required]
-        public string OutputCommandLine { get; set; }
+        public bool OutputCommandLine { get; set; }
+
+        [Required]
+        public bool CreateNMF { get; set; }
 
         [Required]
         public string NaClLinkerPath { get; set; }
 
         [Required]
+        public string ProjectName { get; set; }
+
+        [Required]
+        public string ToolchainName { get; set; }
+
+        [Required]
         public string Platform { get; set; }
+
+        [Required]
+        public string CreateNMFPath { get; set; }
 
         [Required]
         public virtual string OutputFile { get; set; }
@@ -146,18 +158,26 @@ namespace NaCl.Build.CPPTasks
             return responseFileCmds.ToString();
         }
 
-        private bool Translate(string arch)
+        private static string PexeToNexe(string pexe, string arch)
         {
-            string nexeBase = Path.GetFileNameWithoutExtension(OutputFile) + "_" + arch + ".nexe";
-            string outfile = Path.Combine(Path.GetDirectoryName(OutputFile), nexeBase);
+            string basename = Path.GetFileNameWithoutExtension(pexe) + "_" + arch + ".nexe";
+            return Path.Combine(Path.GetDirectoryName(pexe), basename);
+        }
 
-            string commandLineCommands = String.Format("-arch {0} \"{1}\" -o \"{2}\"", arch, OutputFile, outfile);
+        private bool Translate(string arch, string pnacl_arch=null)
+        {
+            if (pnacl_arch == null)
+                pnacl_arch = arch;
+            string outfile = PexeToNexe(OutputFile, arch);
+            string cmd = String.Format("-arch {0} \"{1}\" -o \"{2}\"",
+                                       pnacl_arch, OutputFile, outfile);
 
-            string translateTool = Path.Combine(Path.GetDirectoryName(GenerateFullPathToTool()), "pnacl-translate.bat");
-            if (OutputCommandLine != "true")
-                Log.LogMessage("pnacl-translate {0}", Path.GetFileName(nexeBase));
+            string dirname = Path.GetDirectoryName(GenerateFullPathToTool());
+            string translateTool = Path.Combine(dirname, "pnacl-translate.bat");
+            if (!OutputCommandLine)
+                Log.LogMessage("pnacl-translate {0}", Path.GetFileName(outfile));
 
-            if (ExecuteTool(translateTool, commandLineCommands, string.Empty) != 0)
+            if (ExecuteTool(translateTool, cmd, string.Empty) != 0)
             {
                 return false;
             }
@@ -165,9 +185,14 @@ namespace NaCl.Build.CPPTasks
             return true;
         }
 
+        private bool IsPNaCl()
+        {
+            return Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase);
+        }
+
         public override bool Execute()
         {
-            if (Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase))
+            if (IsPNaCl())
             {
                 if (!SDKUtilities.FindPython())
                 {
@@ -176,37 +201,99 @@ namespace NaCl.Build.CPPTasks
                 }
             }
 
-            bool returnResult = false;
+            xamlParser = new XamlParser(PropertiesFile);
+            if (!Setup())
+                return false;
 
-            try
+            if (!OutputCommandLine)
+                Log.LogMessage("Linking: {0}", Path.GetFileName(OutputFile));
+
+            if (!base.Execute())
+                return false;
+
+            if (!PostLink())
+                return false;
+
+            return true;
+        }
+
+        protected bool PostLink()
+        {
+            if (IsPNaCl())
             {
-                xamlParser = new XamlParser(PropertiesFile);
-                if (!Setup())
-                    return false;
-                returnResult = base.Execute();
-
-                if (TranslateX64 == "true" && !Translate("x86_64"))
+                if (TranslateX64 && !Translate("64", "x86-64"))
                     return false;
 
-                if (TranslateX86 == "true" && !Translate("i686"))
+                if (TranslateX86 && !Translate("32", "i686"))
                     return false;
 
-                if (TranslateARM == "true" && !Translate("arm"))
+                if (TranslateARM && !Translate("arm"))
                     return false;
             }
-            finally
-            {
 
+            if (CreateNMF)
+            {
+                if (!SDKUtilities.FindPython())
+                {
+                    Log.LogError("Automatic NMF creation requires python in your executable path.");
+                    return false;
+                }
+
+                string outputRoot = ToolchainName;
+                if (IsPNaCl())
+                    outputRoot = "PNaCl";
+
+                if (!Directory.Exists(outputRoot))
+                    Directory.CreateDirectory(outputRoot);
+
+                string nmfPath = Path.Combine(outputRoot, Path.ChangeExtension(ProjectName, ".nmf"));
+
+                string cmd = "\"" + CreateNMFPath + "\" -o \"" + nmfPath + "\"";
+                cmd += " -t " + ToolchainName + " -s " + ToolchainName;
+
+                if (IsPNaCl())
+                {
+                    if (!TranslateARM && !TranslateX64 && !TranslateX86)
+                        // Don't run create_nmf unless we actaully produced a nexe file.
+                        return true;
+
+                    foreach (var arch in new string []{ "arm", "32", "64" })
+                    {
+                        string nexe = PexeToNexe(OutputFile, arch);
+                        if (File.Exists(nexe))
+                            cmd += " \"" + nexe + "\"";
+                    }
+                }
+                else
+                {
+                    if (ToolchainName == "glibc")
+                    {
+                        string bindir = Path.GetDirectoryName(NaClLinkerPath);
+                        string tcroot = Path.GetDirectoryName(bindir);
+                        cmd += " -D \"" + Path.Combine(bindir, "x86_64-nacl-objdump.exe") + "\"";
+                        cmd += " -L \"" + Path.Combine(tcroot, "x86_64-nacl", "lib") + "\"";
+                        cmd += " -L \"" + Path.Combine(tcroot, "x86_64-nacl", "lib32") + "\"";
+                    }
+                    cmd += " \"" + OutputFile + "\"";
+                }
+
+                if (!OutputCommandLine)
+                    Log.LogMessage("CreateNMF");
+
+                if (ExecuteTool("python", string.Empty, cmd) != 0)
+                {
+                    return false;
+                }
             }
 
-            return returnResult;
+            return true;
         }
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (OutputCommandLine == "true")
+            if (OutputCommandLine)
             {
-                Log.LogMessage(MessageImportance.High, pathToTool + "  " + responseFileCommands);
+                Log.LogMessage(MessageImportance.High, pathToTool + "  " + responseFileCommands + " " + commandLineCommands);
             }
 
             return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);

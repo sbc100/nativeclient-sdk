@@ -43,6 +43,14 @@ namespace NaCl.Build.CPPTasks
         [Required]
         public virtual ITaskItem[] Sources { get; set; }
 
+
+        // Override default StandardOutputLoggingImportance so that we see the stdout from the
+        // toolchain from within visual studio.
+        protected override MessageImportance StandardOutputLoggingImportance
+        {
+            get { return MessageImportance.Normal; }
+        }
+
         protected bool ForcedRebuildRequired()
         {
             string tlogCommandPath = null;

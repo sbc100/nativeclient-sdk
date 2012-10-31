@@ -41,6 +41,7 @@
       <TranslateX86               Condition="'%(Link.TranslateX86)'                   == ''">true</TranslateX86>
       <TranslateX64               Condition="'%(Link.TranslateX64)'                   == ''">true</TranslateX64>
       <TranslateARM               Condition="'%(Link.TranslateARM)'                   == ''">true</TranslateARM>
+      <CreateNMF                  Condition="'%(Link.CreateNMF)'                      == ''">true</CreateNMF>
   </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>

@@ -1,8 +1,0 @@
-{
-  "files": {},
-  "program": {
-    "x86-64": {
-      "url": "hello_world_gles_x86_64.nexe"
-    }
-  }
-}

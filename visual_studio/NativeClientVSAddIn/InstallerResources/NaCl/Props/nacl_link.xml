@@ -36,6 +36,8 @@
   <BoolProperty Name="ReportUndefinedSymbols" DisplayName="Report Undefined Symbols" Category="Advanced" Switch="Wl,--no-undefined">
   </BoolProperty>
 
+  <BoolProperty Name="CreateNMF" DisplayName="Create NMF Automatically" Category="General">
+  </BoolProperty>
 
   <StringProperty Name="AdditionalOptions" DisplayName="Additional Options" Description="Additional Options" Category="Command Line">
   </StringProperty>

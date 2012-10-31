@@ -54,16 +54,20 @@
     <NaClLink BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
               Sources                        ="@(Link)"
               OutputCommandLine              ="%(Link.OutputCommandLine)"
-              NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
+              NaClLinkerPath                 ="$(VSNaClSDKRoot)toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
+              CreateNMFPath                  ="$(VSNaClSDKRoot)tools\create_nmf.py"
               MinimalRebuildFromTracking     ="$(Link_MinimalRebuildFromTracking)"
               OutputFile                     ="%(Link.OutputFile)"
               PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\nacl_link.xml"
               TLogReadFiles                  ="@(LinkTLogReadFiles)"
               TLogWriteFiles                 ="@(LinkTLogWriteFiles)"
               Platform                       ="$(Platform)"
+              ToolchainName                  ="$(ToolchainName)"
               TrackFileAccess                ="$(TrackFileAccess)"
               TrackerLogDirectory            ="%(Link.TrackerLogDirectory)"
-        ConfigurationType              ="$(ConfigurationType)">
+              CreateNMF                      ="%(Link.CreateNMF)"
+              ProjectName                    ="$(ProjectName)"
+              ConfigurationType              ="$(ConfigurationType)">
       <Output TaskParameter="SkippedExecution" PropertyName="LinkSkippedExecution" />
     </NaClLink>
 
