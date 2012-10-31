@@ -7,23 +7,23 @@
       <Warnings                 Condition="'%(ClCompile.Warnings)'                  == ''">NormalWarnings</Warnings>
       <WarningsAsErrors         Condition="'%(ClCompile.WarningsAsErrors)'          == ''">false</WarningsAsErrors>
       <SystemIncludeDirectories Condition="'%(ClCompile.SystemIncludeDirectories)'  == ''">$(IncludePath)</SystemIncludeDirectories>
+      <OutputCommandLine        Condition="'%(ClCompile.OutputCommandLine)'         == ''">false</OutputCommandLine>
+      <ExceptionHandling        Condition="'%(ClCompile.ExceptionHandling)'         == ''">true</ExceptionHandling>
+      <ConfigurationType        Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
       <SystemPreprocessorDefinitions  Condition="'%(ClCompile.SystemPreprocessorDefinitions)' == ''">$(NaClDefines)</SystemPreprocessorDefinitions>
       <UserHeaderDependenciesOnly     Condition="'%(ClCompile.UserHeaderDependenciesOnly)' == ''">true</UserHeaderDependenciesOnly>
-      <ConfigurationType        Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
-      <ExceptionHandling>true</ExceptionHandling>
-      <OutputCommandLine>false</OutputCommandLine>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="$(Configuration) == 'Debug'">
     <ClCompile>
       <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">true</GenerateDebuggingInformation>
-      <OptimizationLevel        Condition="'%(ClCompile.OptimizationLevel)'         == ''">O0</OptimizationLevel>
+      <OptimizationLevel            Condition="'%(ClCompile.OptimizationLevel)'             == ''">O0</OptimizationLevel>
     </ClCompile>
   </ItemDefinitionGroup>
   <!-- Default compile release options -->
   <ItemDefinitionGroup Condition="$(Configuration) != 'Debug'">
     <ClCompile>
-      <OptimizationLevel            Condition="'%(ClCompile.OptimizationLevel)'         == ''">O3</OptimizationLevel>
+      <OptimizationLevel            Condition="'%(ClCompile.OptimizationLevel)'             == ''">O3</OptimizationLevel>
       <GenerateDebuggingInformation Condition="'%(ClCompile.GenerateDebuggingInformation)'  == ''">false</GenerateDebuggingInformation>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -36,14 +36,18 @@
       <NaClSystemLibs             Condition="'%(Link.NaClSystemLibs)'                 == ''">c;m;log;gcc</NaClSystemLibs>
       <ReportUndefinedSymbols     Condition="'%(Link.ReportUndefinedSymbols)'         == ''">true</ReportUndefinedSymbols>
       <SystemLibraryDirectories   Condition="'%(Link.SystemLibraryDirectories)'       == ''">$(LibraryPath)</SystemLibraryDirectories>
-      <ConfigurationType          Condition="'%(Link.ConfigurationType)'            == ''">$(ConfigurationType)</ConfigurationType>
-      <OutputCommandLine>false</OutputCommandLine>
+      <ConfigurationType          Condition="'%(Link.ConfigurationType)'              == ''">$(ConfigurationType)</ConfigurationType>
+      <OutputCommandLine          Condition="'%(Link.OutputCommandLine)'              == ''">false</OutputCommandLine>
+      <TranslateX86               Condition="'%(Link.TranslateX86)'                   == ''">true</TranslateX86>
+      <TranslateX64               Condition="'%(Link.TranslateX64)'                   == ''">true</TranslateX64>
+      <TranslateARM               Condition="'%(Link.TranslateARM)'                   == ''">true</TranslateARM>
   </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <Lib>
       <OutputFile                 Condition="'%(Lib.OutputFile)'                    == ''">$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <OutputCommandLine>false</OutputCommandLine>
+      <OutputCommandLine          Condition="'%(Lib.OutputCommandLine)'             == ''">false</OutputCommandLine>
     </Lib>
   </ItemDefinitionGroup>
+
 </Project>

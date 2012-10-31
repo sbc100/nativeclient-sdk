@@ -22,7 +22,7 @@ namespace UnitTests
   {
     /// <summary>
     /// This holds the path to the NaCl solution used in these tests.
-    /// The NaCl solution is a valid nacl/pepper plug-in VS solution.
+    /// The NaCl solution is a valid NaCl/pepper plug-in VS solution.
     /// It is copied into the testing deployment directory and opened in some tests.
     /// Because unit-tests run in any order, the solution should not be written to
     /// in any tests.
@@ -112,27 +112,34 @@ namespace UnitTests
       target.SetTarget(notNacl, Strings.PepperPlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.Other,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTarget should not succeed with non-nacl/pepper project.");
 
       // Try valid project with different platforms.
       target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTarget did not succeed with nacl platform on valid project.");
       Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
       
       target.SetTarget(naclProject, "Win32", "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.Other,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTarget did not set 'other' platform on when Win32 platform of valid project.");
+
+      target.SetTarget(naclProject, Strings.PNaClPlatformName, "Debug");
+      Assert.AreEqual(
+          PropertyManager.ProjectPlatformType.NaCl,
+          target.PlatformType,
+          "SetTarget did not succeed with nacl platform on valid project.");
+      Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
 
       target.SetTarget(naclProject, Strings.PepperPlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.Pepper,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTarget did not succeed with pepper platform on valid project.");
       Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
 
@@ -142,7 +149,7 @@ namespace UnitTests
       target.SetTargetToActive(dte_);
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.Other,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTargetToActive should not succeed with non-nacl/pepper project.");
 
       // Setting the start-up project to correct C++ project, but also setting the platform
@@ -154,7 +161,7 @@ namespace UnitTests
       target.SetTargetToActive(dte_);
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.Other,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTargetToActive should not succeed with Win32 platform.");
 
       // Now setting the platform to NaCl should make this succeed.
@@ -163,7 +170,7 @@ namespace UnitTests
       target.SetTargetToActive(dte_);
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTargetToActive should succeed with NaCl platform and valid project.");
       Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
     }
@@ -186,7 +193,7 @@ namespace UnitTests
       target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTarget did not succeed with nacl platform on valid project.");
 
       string slnDir = Path.GetDirectoryName(naclSolution);
@@ -203,6 +210,43 @@ namespace UnitTests
           @"newlib",
           target.GetProperty("ConfigurationGeneral", "ToolchainName"),
           "GetProperty() with ToolchainName incorrect.");
+    }
+
+    /// <summary>
+    /// A test for GetProperty. Checks some non-trivial C# properties and the GetProperty method.
+    /// </summary>
+    [TestMethod]
+    public void GetPropertyPNaClTest()
+    {
+        string expectedSDKRootDir =
+            Environment.GetEnvironmentVariable(Strings.SDKPathEnvironmentVariable);
+        Assert.IsNotNull(expectedSDKRootDir, "SDK Path environment variable not set!");
+        expectedSDKRootDir = expectedSDKRootDir.TrimEnd(new char[] { '/', '\\' });
+
+        // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
+        PropertyManager target = new PropertyManager();
+        dte_.Solution.Open(naclSolution);
+        Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
+        target.SetTarget(naclProject, Strings.PNaClPlatformName, "Debug");
+        Assert.AreEqual(
+            PropertyManager.ProjectPlatformType.NaCl,
+            target.PlatformType,
+            "SetTarget did not succeed with nacl platform on valid project.");
+
+        string slnDir = Path.GetDirectoryName(naclSolution);
+        string projectDir = Path.Combine(
+            slnDir, Path.GetDirectoryName(TestUtilities.BlankNaClProjectUniqueName)) + @"\";
+        string outputDir = Path.Combine(projectDir, "PNaCl", "newlib", "Debug") + @"\";
+        string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + ".pexe");
+
+        Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root.");
+        Assert.AreEqual(projectDir, target.ProjectDirectory, "ProjectDirectory.");
+        Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
+        Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
+        Assert.AreEqual(
+            @"newlib",
+            target.GetProperty("ConfigurationGeneral", "ToolchainName"),
+            "GetProperty() with ToolchainName incorrect.");
     }
 
     /// <summary>
@@ -225,7 +269,7 @@ namespace UnitTests
       target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
-          target.ProjectPlatform,
+          target.PlatformType,
           "SetTarget did not succeed with nacl platform on valid project.");
 
       string newValue = "ThisIsNew";

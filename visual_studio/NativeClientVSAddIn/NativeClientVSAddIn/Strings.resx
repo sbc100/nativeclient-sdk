@@ -154,6 +154,9 @@
     <value>--register-pepper-plugins="{0};application/x-nacl"</value>
     <comment>Argument is plug-in assembly's path</comment>
   </data>
+  <data name="PNaClPlatformName" xml:space="preserve">
+    <value>PNaCl</value>
+  </data>
   <data name="SDKPathEnvironmentVariable" xml:space="preserve">
     <value>NACL_SDK_ROOT</value>
   </data>

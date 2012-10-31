@@ -7,9 +7,11 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|NaCl32 = Debug|NaCl32
 		Debug|NaCl64 = Debug|NaCl64
+		Debug|PNaCl = Debug|PNaCl
 		Debug|PPAPI = Debug|PPAPI
 		Release|NaCl32 = Release|NaCl32
 		Release|NaCl64 = Release|NaCl64
+		Release|PNaCl = Release|PNaCl
 		Release|PPAPI = Release|PPAPI
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
@@ -17,12 +19,16 @@ Global
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl32.Build.0 = Debug|NaCl32
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl64.ActiveCfg = Debug|NaCl64
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl64.Build.0 = Debug|NaCl64
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PNaCl.ActiveCfg = Debug|PNaCl
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PNaCl.Build.0 = Debug|PNaCl
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PPAPI.ActiveCfg = Debug|PPAPI
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PPAPI.Build.0 = Debug|PPAPI
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl32.ActiveCfg = Release|NaCl32
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl32.Build.0 = Release|NaCl32
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl64.ActiveCfg = Release|NaCl64
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl64.Build.0 = Release|NaCl64
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PNaCl.ActiveCfg = Release|PNaCl
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PNaCl.Build.0 = Release|PNaCl
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PPAPI.ActiveCfg = Release|PPAPI
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PPAPI.Build.0 = Release|PPAPI
 	EndGlobalSection

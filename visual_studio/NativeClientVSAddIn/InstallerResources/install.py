@@ -21,6 +21,7 @@ import time
 
 NACL32_PLATFORM = 'NaCl32'
 NACL64_PLATFORM = 'NaCl64'
+PNACL_PLATFORM = 'PNaCl'
 NACL_PLATFORM_OLD = 'NaCl'
 PEPPER_PLATFORM = 'PPAPI'
 
@@ -162,11 +163,12 @@ def main():
 
   nacl_directory32 = os.path.join(platform_root, NACL32_PLATFORM)
   nacl_directory64 = os.path.join(platform_root, NACL64_PLATFORM)
+  pnacl_directory = os.path.join(platform_root, PNACL_PLATFORM)
   nacl_directoryold = os.path.join(platform_root, NACL_PLATFORM_OLD)
   nacl_common = os.path.join(os.path.dirname(platform_root), 'NaCl')
   pepper_directory = os.path.join(platform_root, PEPPER_PLATFORM)
-  remove_dirs = (nacl_directory32, nacl_directory64,
-                   nacl_directoryold, pepper_directory, nacl_common)
+  remove_dirs = (nacl_directory32, nacl_directory64, pnacl_directory,
+                 nacl_directoryold, pepper_directory, nacl_common)
   # If uninstalling then redirect to uninstall program.
   if options.uninstall:
     Uninstall(remove_dirs, addin_directory)
@@ -227,6 +229,9 @@ def main():
 
     shutil.copytree(os.path.join(SCRIPT_DIR, NACL64_PLATFORM), nacl_directory64)
     print "NaCl64 platform installed."
+
+    shutil.copytree(os.path.join(SCRIPT_DIR, PNACL_PLATFORM), pnacl_directory)
+    print "PNaCl platform installed."
 
     if options.install_ppapi:
       create_ppapi_platform.CreatePPAPI(options.msbuild_path)

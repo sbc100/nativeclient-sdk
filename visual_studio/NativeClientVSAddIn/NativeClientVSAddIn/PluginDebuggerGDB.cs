@@ -19,14 +19,14 @@ namespace NativeClientVSAddIn
   public class PluginDebuggerGDB : PluginDebuggerBase
   {
     /// <summary>
-    /// Path to the actual plug-in assembly.
+    /// Path to the actual nexe.
     /// </summary>
-    private string pluginAssembly_;
+    private string targetNexe_;
 
     /// <summary>
-    /// Directory of the plug-in project we are debugging.
+    /// Directory of the project we are debugging.
     /// </summary>
-    private string pluginProjectDirectory_;
+    private string projectDirectory_;
 
     /// <summary>
     /// Path to the NaCl IRT.
@@ -61,17 +61,20 @@ namespace NativeClientVSAddIn
     public PluginDebuggerGDB(DTE2 dte, PropertyManager properties)
         : base(dte, properties)
     {
-      string arch = "i686";
-      if (Environment.Is64BitOperatingSystem)
-      {
-        arch = "x86_64";
-      }
+        string arch = "i686";
+        if (Environment.Is64BitOperatingSystem)
+        {
+            arch = "x86_64";
+        }
 
-      if (properties.TargetArchitecture != arch)
-      {
-        MessageBox.Show(string.Format("Debugging of {0} NaCl modules is not possible on this system ({1}).", 
-                                      properties.TargetArchitecture, arch));
-      }
+        if (!properties.IsPNaCl())
+        {
+            if (properties.TargetArchitecture != arch)
+            {
+                MessageBox.Show(string.Format("Debugging of {0} NaCl modules is not possible on this system ({1}).",
+                                              properties.TargetArchitecture, arch));
+            }
+        }
 
       // check chrome version
       string chrome_path = properties.LocalDebuggerCommand;
@@ -127,8 +130,22 @@ namespace NativeClientVSAddIn
       }
 
       manifestPath_ = properties.ManifestPath;
-      pluginAssembly_ = properties.PluginAssembly;
-      pluginProjectDirectory_ = properties.ProjectDirectory;
+      targetNexe_ = properties.PluginAssembly;
+
+      if (properties.IsPNaCl())
+      {
+          string basename = Path.GetFileNameWithoutExtension(targetNexe_);
+          targetNexe_ = Path.Combine(Path.GetDirectoryName(targetNexe_),
+                                     basename + "_" + arch + ".nexe");
+
+          if (!File.Exists(targetNexe_))
+          {
+              MessageBox.Show(
+                string.Format("Failed to find nexe to debug: {0}", targetNexe_));
+          }
+      }
+
+      projectDirectory_ = properties.ProjectDirectory;
       gdbPath_ = Path.Combine(
           properties.SDKRootDirectory,
           "toolchain",
@@ -224,7 +241,7 @@ namespace NativeClientVSAddIn
       }
       else
       {
-        string pluginAssemblyEscaped = pluginAssembly_.Replace("\\", "\\\\");
+        string pluginAssemblyEscaped = targetNexe_.Replace("\\", "\\\\");
         contents.AppendFormat("file \"{0}\"\n", pluginAssemblyEscaped);
       }
 
@@ -275,7 +292,7 @@ namespace NativeClientVSAddIn
         gdbProcess_.StartInfo.UseShellExecute = true;
         gdbProcess_.StartInfo.FileName = gdbPath_;
         gdbProcess_.StartInfo.Arguments = string.Format("-x {0}", gdbInitFileName_);
-        gdbProcess_.StartInfo.WorkingDirectory = pluginProjectDirectory_;
+        gdbProcess_.StartInfo.WorkingDirectory = projectDirectory_;
         gdbProcess_.Start();
       }
       catch (Exception e)

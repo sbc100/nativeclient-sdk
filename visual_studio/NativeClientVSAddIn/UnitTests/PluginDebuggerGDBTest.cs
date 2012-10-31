@@ -395,7 +395,7 @@ namespace UnitTests
       
       string goodMainChromeFlags = Strings.NaClDebugFlag;
       string badMainChromeFlags = string.Format(
-          Strings.PepperProcessPluginFlagFormat, target.pluginAssembly_);
+          Strings.PepperProcessPluginFlagFormat, target.targetNexe_);
 
       Assert.IsTrue(target.IsPluginProcess(goodProc, goodMainChromeFlags));
       Assert.IsFalse(target.IsPluginProcess(goodProc, badMainChromeFlags));

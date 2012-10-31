@@ -34,7 +34,7 @@ namespace NativeClientVSAddIn
     /// </summary>
     public PropertyManager()
     {
-      ProjectPlatform = ProjectPlatformType.Other;
+      PlatformType = ProjectPlatformType.Other;
     }
 
     /// <summary>
@@ -62,7 +62,12 @@ namespace NativeClientVSAddIn
     /// Gets or sets the current project platform type. This indicates Pepper, NaCl, or Other type
     /// of project. If this is set to Other then it is invalid to read the properties.
     /// </summary>
-    public ProjectPlatformType ProjectPlatform { get; protected set; }
+    public ProjectPlatformType PlatformType { get; protected set; }
+
+    /// <summary>
+    /// Gets or sets the current project platform name.
+    /// </summary>
+    public string PlatformName { get; protected set; }
 
     /// <summary>
     /// Gets or sets the full path to the output assembly.
@@ -239,7 +244,16 @@ namespace NativeClientVSAddIn
     public static bool IsNaClPlatform(string platformName)
     {
         return platformName.Equals(Strings.NaCl32PlatformName, StringComparison.OrdinalIgnoreCase) ||
-               platformName.Equals(Strings.NaCl64PlatformName, StringComparison.OrdinalIgnoreCase);
+               platformName.Equals(Strings.NaCl64PlatformName, StringComparison.OrdinalIgnoreCase) ||
+               platformName.Equals(Strings.PNaClPlatformName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Return true if the given platform is the PNaCl platform.
+    /// </summary>
+    public bool IsPNaCl()
+    {
+        return PlatformName.Equals(Strings.PNaClPlatformName, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -259,24 +273,14 @@ namespace NativeClientVSAddIn
     public void SetTarget(Project proj, string targetPlatformName, string targetConfigName)
     {
       // Set the project platform.  If it is set to Other then no settings are valid to be read.
-      if (IsPepperPlatform(targetPlatformName))
-      {
-        ProjectPlatform = ProjectPlatformType.Pepper;
-      }
-      else if (IsNaClPlatform(targetPlatformName))
-      {
-        ProjectPlatform = ProjectPlatformType.NaCl;
-      }
-      else
-      {
-        ProjectPlatform = ProjectPlatformType.Other;
+      SetPlatform(targetPlatformName);
+      if (!IsPepperPlatform(targetPlatformName) && !IsNaClPlatform(targetPlatformName))
         return;
-      }
 
       // We don't support non-visual C/C++ projects.
       if (!Utility.IsVisualCProject(proj))
       {
-        ProjectPlatform = ProjectPlatformType.Other;
+        PlatformType = ProjectPlatformType.Other;
         return;
       }
 
@@ -307,17 +311,24 @@ namespace NativeClientVSAddIn
       configuration_ = config;
       project_ = config.project;
 
-      if (IsPepperPlatform(config.Platform.Name))
+      SetPlatform(config.Platform.Name);
+    }
+
+    private void SetPlatform(string platform)
+    {
+      PlatformName = platform;
+
+      if (IsPepperPlatform(PlatformName))
       {
-        ProjectPlatform = ProjectPlatformType.Pepper;
+        PlatformType = ProjectPlatformType.Pepper;
       }
-      else if (IsNaClPlatform(config.Platform.Name))
+      else if (IsNaClPlatform(PlatformName))
       {
-        ProjectPlatform = ProjectPlatformType.NaCl;
+        PlatformType = ProjectPlatformType.NaCl;
       }
       else
       {
-        ProjectPlatform = ProjectPlatformType.Other;
+        PlatformType = ProjectPlatformType.Other;
       }
     }
 
@@ -359,7 +370,7 @@ namespace NativeClientVSAddIn
       // GetActiveVCConfiguration will return null if not a VC project.
       if (activeConfig == null)
       {
-        ProjectPlatform = ProjectPlatformType.Other;
+        PlatformType = ProjectPlatformType.Other;
         return;
       }
 
@@ -395,7 +406,7 @@ namespace NativeClientVSAddIn
     /// </summary>
     private void AssertNaCl()
     {
-      if (ProjectPlatform != ProjectPlatformType.NaCl)
+      if (PlatformType != ProjectPlatformType.NaCl)
       {
         throw new Exception(string.Format(
           "Cannot read NaCl only property on {0} platform", configuration_.Platform.Name));
@@ -407,7 +418,7 @@ namespace NativeClientVSAddIn
     /// </summary>
     private void AssertPepper()
     {
-      if (ProjectPlatform != ProjectPlatformType.Pepper)
+      if (PlatformType != ProjectPlatformType.Pepper)
       {
         throw new Exception(string.Format(
           "Cannot read Pepper only property on {0} platform", configuration_.Platform.Name));
@@ -419,7 +430,7 @@ namespace NativeClientVSAddIn
     /// </summary>
     private void AssertValidPlatform()
     {
-      if (ProjectPlatform == ProjectPlatformType.Other)
+      if (PlatformType == ProjectPlatformType.Other)
       {
         throw new Exception(string.Format(
           "Unsupported platform type: {0} platform", configuration_.Platform.Name));

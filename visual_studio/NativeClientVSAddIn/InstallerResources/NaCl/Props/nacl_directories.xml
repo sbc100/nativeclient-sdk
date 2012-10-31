@@ -10,19 +10,19 @@
   <Rule.Categories>
     <Category Name="VC++" DisplayName="General" Description="Visual C++ Directories" />
   </Rule.Categories>
-
   <Rule.DataSource>
     <DataSource Persistence="ProjectFile" />
   </Rule.DataSource>
-
+  <StringListProperty Name="ExecutablePath" DisplayName="Executable Directories"
+                      Description="Path to use when searching for executable files while building a VC++ project.  Corresponds to environment variable PATH."
+                      F1Keyword="VC.Project.VCDirectories.ExecutablePath"
+                      Category="VC++" Separator=";" Subtype="folder" />
   <StringListProperty Name="LibraryPath" DisplayName="Library Directories"
                       Description="Path to use when searching for library files while building a VC++ project.  Corresponds to environment variable LIB."
                       F1Keyword="VC.Project.VCDirectories.LibraryPath"
                       Category="VC++" Separator=";" Subtype="folder" />
-
   <StringListProperty Name="IncludePath" DisplayName="Include Directories"
                       Description="Path to use when searching for include files while building a VC++ project.  Corresponds to environment variable INCLUDE."
                       F1Keyword="VC.Project.VCDirectories.IncludePath"
                       Category="VC++" Separator=";" Subtype="folder" />
-
 </Rule>

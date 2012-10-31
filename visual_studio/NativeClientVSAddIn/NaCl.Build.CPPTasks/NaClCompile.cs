@@ -16,27 +16,12 @@ using System.Diagnostics;
 
 namespace NaCl.Build.CPPTasks
 {
-    public class NaClCompile : ToolTask
+    public class NaClCompile : NaClToolTask
     {
-        private XamlParser m_XamlParser;
-        private ITaskItem[] excludedInputPaths;
-        private ITaskItem[] tlogReadFiles;
-        private ITaskItem tlogCommandFile;
-        private ITaskItem[] tlogWriteFiles;
-        private CanonicalTrackedInputFiles trackedInputFiles;
-        private bool skippedExecution;
-        private ITaskItem[] compileSourceList;
         public bool BuildingInIDE { get; set; }
-        private string m_toolname;
-        private bool trackFileAccess;
-        private bool minimalRebuildFromTracking;
-        private string pathToLog;
 
         [Required]
         public string PropertiesFile { get; set; }
-
-        [Required]
-        public ITaskItem[] Sources { get; set; }
 
         [Required]
         public string NaCLCompilerPath { get; set; }
@@ -44,13 +29,14 @@ namespace NaCl.Build.CPPTasks
         [Required]
         public bool OutputCommandLine { get; set; }
 
+        [Required]
+        public string Platform { get; set; }
+
         public int ProcessorNumber { get; set; }
 
         public bool MultiProcessorCompilation { get; set; }
 
-        [Required]
-        public string TrackerLogDirectory { get; set; }
-
+        [Obsolete]
         protected override StringDictionary EnvironmentOverride
         {
             get {
@@ -63,12 +49,14 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        protected override string GenerateFullPathToTool() { return ToolName; }
+        protected override string GenerateFullPathToTool()
+        {
+            return ToolName;
+        }
 
         public NaClCompile()
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
         {
-            this.pathToLog = string.Empty;
             this.EnvironmentVariables = new string[] { "CYGWIN=nodosfilewarning", "LC_CTYPE=C" };
         }
 
@@ -122,7 +110,7 @@ namespace NaCl.Build.CPPTasks
             return objectFilePath;
         }
 
-        private void ConstructReadTLog(ITaskItem[] compiledSources, CanonicalTrackedOutputFiles outputs)
+        protected override void OutputReadTLog(ITaskItem[] compiledSources, CanonicalTrackedOutputFiles outputs)
         {
             string trackerPath = Path.GetFullPath(TlogDirectory + ReadTLogFilenames[0]);
 
@@ -186,7 +174,7 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        private CanonicalTrackedOutputFiles OutputWriteTrackerLog(ITaskItem[] compiledSources)
+        protected override CanonicalTrackedOutputFiles OutputWriteTLog(ITaskItem[] compiledSources)
         {
             string path = Path.Combine(TlogDirectory, WriteTLogFilename);
             TaskItem item = new TaskItem(path);
@@ -208,7 +196,7 @@ namespace NaCl.Build.CPPTasks
             return trackedFiles;
         }
 
-        private void OutputCommandTrackerLog(ITaskItem[] compiledSources)
+        protected override void OutputCommandTLog(ITaskItem[] compiledSources)
         {
             IDictionary<string, string> commandLines = GenerateCommandLinesFromTlog();
 
@@ -248,9 +236,9 @@ namespace NaCl.Build.CPPTasks
                 }
 
                 //build command line from components and add required switches
-                string props = m_XamlParser.Parse(sourceFile, fullOutputName);
+                string props = xamlParser.Parse(sourceFile, fullOutputName);
                 commandLine.Append(props);
-                commandLine.Append(" -MD -c ");
+                commandLine.Append(" -c ");
             }
 
             return commandLine.ToString();
@@ -271,73 +259,34 @@ namespace NaCl.Build.CPPTasks
             return mergedSources.ToArray();
         }
 
-        protected bool ForcedRebuildRequired()
-        {
-            string tlogCommandPath = null;
-
-            try
-            {
-                tlogCommandPath = this.TLogCommandFile.GetMetadata("FullPath");
-            }
-            catch (Exception exception)
-            {
-                if (exception is InvalidOperationException || exception is NullReferenceException)
-                    return true;
-                else
-                    throw;
-            }
-
-            //if command tlog file does not exist then force rebuild is required
-            if (File.Exists(tlogCommandPath) == false)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         private int Compile(string pathToTool)
         {
+            if (Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!GCCUtilities.FindPython())
+                {
+                    Log.LogError("PNaCl compilation requires python in your executable path.");
+                    return -1;
+                }
+            }
+
             // If multiprocess complication is enabled (not the VS default)
             // and the number of processors to use is not 1, then use the
             // compiler_wrapper python script to run multiple instances of
             // gcc
             if (MultiProcessorCompilation && ProcessorNumber != 1)
             {
-
-                string envvar = (string)Registry.GetValue("HKEY_CURRENT_USER\\Environment", "PATH", "");
-                List<string> pathList = new List<string>(envvar.Split(';'));
-                envvar = (string)Registry.GetValue("HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment", "PATH", "");
-                pathList.AddRange(new List<string>(envvar.Split(';')));
-                string pythonExe = null;
-                foreach (string path in pathList)
+                if (!GCCUtilities.FindPython())
                 {
-                    string testPath = Path.Combine(path, "python.bat");
-                    if (File.Exists(testPath))
-                    {
-                        pythonExe = testPath;
-                        break;
-                    }
-                    testPath = Path.Combine(path, "python.exe");
-                    if (File.Exists(testPath))
-                    {
-                        pythonExe = testPath;
-                        break;
-                    }
-                }
-
-                if (pythonExe == null)
-                {
-                    MessageBox.Show("Multi-processor Compilation with NaCl requires that python available in the PATH.\n" +
-                                    "Please disable Multi-processor Compilation in the project properties or add python " +
-                                    "to the your PATH\n" +
+                    MessageBox.Show("Multi-processor Compilation with NaCl requires that python " +
+                                    "be available in the visual studio executable path.\n" +
+                                    "Please disable Multi-processor Compilation in the project " +
+                                    "properties or add python to the your executable path.\n" +
                                     "Falling back to serial compilation.\n");
                 }
                 else
                 {
-                    return CompileParallel(pathToTool, pythonExe);
+                    return CompileParallel(pathToTool);
                 }
             }
             return CompileSerial(pathToTool);
@@ -346,7 +295,6 @@ namespace NaCl.Build.CPPTasks
         private int CompileSerial(string pathToTool)
         {
             int returnCode = 0;
-
             foreach (ITaskItem sourceItem in CompileSourceList)
             {
                 try
@@ -363,7 +311,6 @@ namespace NaCl.Build.CPPTasks
                     {
                         base.Log.LogMessage(Path.GetFileName(sourceItem.ToString()));
                     }
-
 
                     // compile
                     returnCode = base.ExecuteTool(pathToTool, commandLine, string.Empty);
@@ -382,7 +329,7 @@ namespace NaCl.Build.CPPTasks
             return returnCode;
         }
 
-        private int CompileParallel(string pathToTool, string pythonExe)
+        private int CompileParallel(string pathToTool)
         {
             int returnCode = 0;
 
@@ -421,7 +368,7 @@ namespace NaCl.Build.CPPTasks
                 try
                 {
                     // compile this group of sources
-                    returnCode = base.ExecuteTool(pythonExe, cmd, "\"" + pythonScript + "\"");
+                    returnCode = base.ExecuteTool("python", cmd, "\"" + pythonScript + "\"");
                 }
                 catch (Exception e)
                 {
@@ -459,55 +406,43 @@ namespace NaCl.Build.CPPTasks
             return returnCode;
         }
 
-        protected override bool SkipTaskExecution()
-        {
-            return this.skippedExecution;
-        }
-
         protected void CalcSourcesToCompile()
         {
-            if (this.TrackFileAccess || this.MinimalRebuildFromTracking)
-            {
-                this.SetTrackerLogPaths();
-            }
-
             //check if full recompile is required otherwise perform incremental
             if (this.ForcedRebuildRequired() || this.MinimalRebuildFromTracking == false)
             {
                 this.CompileSourceList = this.Sources;
-                if (this.CompileSourceList == null || this.CompileSourceList.Length == 0)
-                {
-                    this.SkippedExecution = true;
-                }
+                return;
             }
-            else
+
+            //retrieve list of sources out of date due to command line changes
+            List<ITaskItem> outOfDateSourcesFromCommandLine = GetOutOfDateSourcesFromCmdLineChanges();
+
+            //retrieve sources out of date due to tracking
+            CanonicalTrackedOutputFiles trackedOutputFiles = new CanonicalTrackedOutputFiles(this, this.TLogWriteFiles);
+            this.TrackedInputFiles = new CanonicalTrackedInputFiles(this,
+                                                                    this.TLogReadFiles,
+                                                                    this.Sources,
+                                                                    this.ExcludedInputPaths,
+                                                                    trackedOutputFiles,
+                                                                    true,
+                                                                    false);
+            ITaskItem[] outOfDateSourcesFromTracking = this.TrackedInputFiles.ComputeSourcesNeedingCompilation();
+
+            //merge out of date lists
+            CompileSourceList = MergeOutOfDateSources(outOfDateSourcesFromTracking, outOfDateSourcesFromCommandLine);
+
+            if (this.CompileSourceList.Length == 0)
             {
-                //retrieve list of sources out of date due to command line changes
-                List<ITaskItem> outOfDateSourcesFromCommandLineChanges = this.GetOutOfDateSourcesFromCommandLineChanges();
-
-                //retrieve sources out of date due to tracking
-                CanonicalTrackedOutputFiles trackedOutputFiles = new CanonicalTrackedOutputFiles(this, this.TLogWriteFiles);
-                this.TrackedInputFiles = new CanonicalTrackedInputFiles(this, this.TLogReadFiles, this.Sources, this.ExcludedInputPaths, trackedOutputFiles, true, false);
-                ITaskItem[] outOfDateSourcesFromTracking = this.TrackedInputFiles.ComputeSourcesNeedingCompilation();
-
-                //merge out of date lists
-                this.CompileSourceList = this.MergeOutOfDateSources(outOfDateSourcesFromTracking, outOfDateSourcesFromCommandLineChanges);
-
-                if (this.CompileSourceList.Length == 0)
-                {
-                    this.SkippedExecution = true;
-                }
-                else
-                {
-                    //remove sources to compile from tracked file list
-                    this.TrackedInputFiles.RemoveEntriesForSource(this.CompileSourceList);
-                    trackedOutputFiles.RemoveEntriesForSource(this.CompileSourceList);
-                    this.TrackedInputFiles.SaveTlog();
-                    trackedOutputFiles.SaveTlog();
-
-                    this.SkippedExecution = false;
-                }
+                this.SkippedExecution = true;
+                return;
             }
+
+            //remove sources to compile from tracked file list
+            this.TrackedInputFiles.RemoveEntriesForSource(this.CompileSourceList);
+            trackedOutputFiles.RemoveEntriesForSource(this.CompileSourceList);
+            this.TrackedInputFiles.SaveTlog();
+            trackedOutputFiles.SaveTlog();
         }
 
         protected bool SourceIsC(string sourceFilename)
@@ -526,20 +461,11 @@ namespace NaCl.Build.CPPTasks
 
             try
             {
-                m_XamlParser = new XamlParser(PropertiesFile);
-                m_toolname = Path.GetFileNameWithoutExtension(ToolName);
-                ValidateParameters();
+                xamlParser = new XamlParser(PropertiesFile);
+                if (!Setup())
+                    return false;
                 CalcSourcesToCompile();
-
                 returnResult = base.Execute();
-
-                // Update tracker log files if execution occurred
-                //if (this.skippedExecution == false)
-                {
-                    CanonicalTrackedOutputFiles outputs = OutputWriteTrackerLog(CompileSourceList);
-                    ConstructReadTLog(CompileSourceList, outputs);
-                    OutputCommandTrackerLog(CompileSourceList);
-                }
             }
             finally
             {
@@ -549,7 +475,7 @@ namespace NaCl.Build.CPPTasks
             return returnResult;
         }
 
-        protected List<ITaskItem> GetOutOfDateSourcesFromCommandLineChanges()
+        protected List<ITaskItem> GetOutOfDateSourcesFromCmdLineChanges()
         {
             //get dictionary of source + command lines
             IDictionary<string, string> dictionary = this.GenerateCommandLinesFromTlog();
@@ -581,169 +507,6 @@ namespace NaCl.Build.CPPTasks
             return outOfDateSources;
         }
 
-        protected virtual void SetTrackerLogPaths()
-        {
-            if (this.TLogCommandFile == null)
-            {
-                string commandFile = Path.Combine(this.TlogDirectory, this.CommandTLogFilename);
-                this.TLogCommandFile = new TaskItem(commandFile);
-            }
-
-            if (this.TLogReadFiles == null)
-            {
-                this.TLogReadFiles = new ITaskItem[this.ReadTLogFilenames.Length];
-                for (int n = 0; n < this.ReadTLogFilenames.Length; n++)
-                {
-                    string readFile = Path.Combine(this.TlogDirectory, this.ReadTLogFilenames[n]);
-                    this.TLogReadFiles[n] = new TaskItem(readFile);
-                }
-            }
-
-            if (this.TLogWriteFiles == null)
-            {
-                this.TLogWriteFiles = new ITaskItem[1];
-                string writeFile = Path.Combine(this.TlogDirectory, this.WriteTLogFilename);
-                this.TLogWriteFiles[0] = new TaskItem(writeFile);
-            }
-        }
-
-
-        //props
-        protected string CommandTLogFilename
-        {
-            get
-            {
-                return m_toolname + ".compile.command.1.tlog";
-            }
-        }
-
-        protected string[] ReadTLogFilenames
-        {
-            get
-            {
-                return new string[] { m_toolname + ".compile.read.1.tlog" };
-            }
-        }
-
-        [Output]
-        public bool SkippedExecution
-        {
-            get
-            {
-                return this.skippedExecution;
-            }
-            set
-            {
-                this.skippedExecution = value;
-            }
-        }
-
-        public ITaskItem TLogCommandFile
-        {
-            get
-            {
-                return this.tlogCommandFile;
-            }
-            set
-            {
-                this.tlogCommandFile = value;
-            }
-        }
-
-        protected string TlogDirectory
-        {
-            get
-            {
-                if (this.TrackerLogDirectory != null)
-                {
-                    return this.TrackerLogDirectory;
-                }
-                return string.Empty;
-            }
-        }
-
-        public bool MinimalRebuildFromTracking
-        {
-            get
-            {
-                return this.minimalRebuildFromTracking;
-            }
-            set
-            {
-                this.minimalRebuildFromTracking = value;
-            }
-        }
-
-
-        public ITaskItem[] TLogReadFiles
-        {
-            get
-            {
-                return this.tlogReadFiles;
-            }
-            set
-            {
-                this.tlogReadFiles = value;
-            }
-        }
-
-        public ITaskItem[] ExcludedInputPaths
-        {
-            get
-            {
-                return this.excludedInputPaths;
-            }
-            set
-            {
-                this.excludedInputPaths = value;
-            }
-        }
-
-
-        public ITaskItem[] TLogWriteFiles
-        {
-            get
-            {
-                return this.tlogWriteFiles;
-            }
-            set
-            {
-                this.tlogWriteFiles = value;
-            }
-        }
-
-        protected string WriteTLogFilename
-        {
-            get
-            {
-                return m_toolname + ".compile.write.1.tlog";
-            }
-        }
-
-        public bool TrackFileAccess
-        {
-            get
-            {
-                return this.trackFileAccess;
-            }
-            set
-            {
-                this.trackFileAccess = value;
-            }
-        }
-
-        protected CanonicalTrackedInputFiles TrackedInputFiles
-        {
-            get
-            {
-                return this.trackedInputFiles;
-            }
-            set
-            {
-                this.trackedInputFiles = value;
-            }
-        }
-
         [Output]
         public ITaskItem[] CompileSourceList
         {
@@ -765,12 +528,5 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        protected override Encoding ResponseFileEncoding
-        {
-            get
-            {
-                return Encoding.ASCII;
-            }
-        }
     }
 }

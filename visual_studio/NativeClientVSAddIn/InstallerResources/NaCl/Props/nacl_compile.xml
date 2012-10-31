@@ -34,7 +34,7 @@
     <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.so)" Switch="shared"/>
     <EnumValue Name="StaticLibrary" DisplayName="Static library (.a)" />
   </EnumProperty>
-  <BoolProperty Name="UserHeaderDependenciesOnly" Category="General" Visible="true" Switch="MMD">
+  <BoolProperty Name="UserHeaderDependenciesOnly" Category="General" Visible="true" Switch="MMD" ReverseSwitch="MD">
   </BoolProperty>
 
   <BoolProperty Name="PositionIndependentCode" DisplayName="Generate Position-Independent Code" Category="Code Generation" Switch="fpic">

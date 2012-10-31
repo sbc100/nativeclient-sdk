@@ -12,6 +12,30 @@ namespace NaCl.Build.CPPTasks
     {
         public const int s_CommandLineLength = 256;
 
+        /// <summary>
+        /// Find python executable in user's PATH.
+        /// </summary>
+        public static bool FindPython()
+        {
+            string envvar = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Process);
+            List<string> pathList = new List<string>(envvar.Split(';'));
+            foreach (string path in pathList)
+            {
+                string testPath = Path.Combine(path, "python.bat");
+                if (File.Exists(testPath))
+                {
+                    return true;
+                }
+                testPath = Path.Combine(path, "python.exe");
+                if (File.Exists(testPath))
+                {
+                    return true;
+
+                }
+            }
+            return false;
+        }
+
         public static string ConvertPathWindowsToPosix(string path)
         {
             return path.Replace('\\', '/');

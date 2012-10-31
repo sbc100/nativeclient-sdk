@@ -11,7 +11,7 @@ using Microsoft.Build.Utilities;
 
 namespace NaCl.Build.CPPTasks
 {
-    class XamlParser
+    public class XamlParser
     {
         public XamlParser(string path)
         {

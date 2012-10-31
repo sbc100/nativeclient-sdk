@@ -200,11 +200,11 @@ namespace NativeClientVSAddIn
 
           // Change the library includes to have the appropriate extension.
           string libs = properties.GetProperty("Link", "AdditionalDependencies");
-          if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.NaCl)
+          if (properties.PlatformType == PropertyManager.ProjectPlatformType.NaCl)
           {
             libs = libs.Replace(".lib", string.Empty);
           }
-          else if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.Pepper)
+          else if (properties.PlatformType == PropertyManager.ProjectPlatformType.Pepper)
           {
             string[] libsList = libs.Split(';');
             libs = string.Empty;
@@ -267,12 +267,12 @@ namespace NativeClientVSAddIn
       {
         PropertyManager properties = new PropertyManager();
         properties.SetTargetToActive(dte_);
-        if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.NaCl)
+        if (properties.PlatformType == PropertyManager.ProjectPlatformType.NaCl)
         {
           debugger_ = new PluginDebuggerGDB(dte_, properties);
           webServer_ = new WebServer(webServerOutputPane_, properties);
         }
-        else if (properties.ProjectPlatform == PropertyManager.ProjectPlatformType.Pepper)
+        else if (properties.PlatformType == PropertyManager.ProjectPlatformType.Pepper)
         {
           debugger_ = new PluginDebuggerVS(dte_, properties);
           webServer_ = new WebServer(webServerOutputPane_, properties);

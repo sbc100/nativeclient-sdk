@@ -9,6 +9,10 @@
       <Configuration>Debug</Configuration>
       <Platform>NaCl64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|PNaCl">
+      <Configuration>Debug</Configuration>
+      <Platform>PNaCl</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|PPAPI">
       <Configuration>Debug</Configuration>
       <Platform>PPAPI</Platform>
@@ -20,6 +24,10 @@
     <ProjectConfiguration Include="Release|NaCl64">
       <Configuration>Release</Configuration>
       <Platform>NaCl64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|PNaCl">
+      <Configuration>Release</Configuration>
+      <Platform>PNaCl</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|PPAPI">
       <Configuration>Release</Configuration>
@@ -53,6 +61,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
     <NaClAddInVersion>1</NaClAddInVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PNaCl'">
+    <OutDir>$(ProjectDir)pnacl\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
     <Link>
@@ -94,6 +105,16 @@ python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
     <Link>
       <AdditionalDependencies>ppapi.lib;ppapi_gles2.lib;</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PNaCl'">
+    <Link>
+      <AdditionalDependencies>ppapi_cpp;ppapi;ppapi_gles2</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PNaCl'">
+    <Link>
+      <AdditionalDependencies>ppapi_cpp;ppapi;ppapi_gles2</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

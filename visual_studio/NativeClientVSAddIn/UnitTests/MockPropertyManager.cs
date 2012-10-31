@@ -30,7 +30,11 @@ namespace NativeClientVSAddIn
     public MockPropertyManager(
         ProjectPlatformType platformType, PropertyGetter getter, PropertySetter setter)
     {
-      this.ProjectPlatform = platformType;
+      this.PlatformType = platformType;
+      if (platformType == ProjectPlatformType.NaCl)
+        this.PlatformName = Strings.NaCl64PlatformName;
+      else
+        this.PlatformName = Strings.PepperPlatformName;
       getter_ = getter;
       setter_ = setter;
     }

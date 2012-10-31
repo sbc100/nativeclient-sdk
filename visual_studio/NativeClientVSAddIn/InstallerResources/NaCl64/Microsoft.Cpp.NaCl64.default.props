@@ -1,4 +1,5 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup>
     <PlatformShortName>NaCl64</PlatformShortName>
     <PlatformArchitecture>64</PlatformArchitecture>
@@ -15,4 +16,7 @@
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
     <NaClManifestPath Condition="'$(NaClManifestPath)'==''"></NaClManifestPath>
   </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\NaCl\NaCl.Toolset.default.props" />
+
 </Project>

@@ -110,6 +110,17 @@ namespace UnitTests
     }
 
     /// <summary>
+    /// Test method to check that the NaCl platform compiles a test project.
+    /// </summary>
+    [TestMethod]
+    public void CheckPNaClCompile()
+    {
+        string naclPlatform = NativeClientVSAddIn.Strings.PNaClPlatformName;
+        TryCompile(naclSolutionEmptyInitialization, "Debug", naclPlatform);
+        TryCompile(naclSolutionEmptyInitialization, "Release", naclPlatform);
+    }
+
+    /// <summary>
     /// Test method to check that the Pepper platform compiles a test project.
     /// </summary>
     [TestMethod]

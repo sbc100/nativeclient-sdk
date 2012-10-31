@@ -28,7 +28,7 @@
                  ProcessorNumber                    ="%(ClCompile.ProcessorNumber)"
                  MultiProcessorCompilation          ="%(ClCompile.MultiProcessorCompilation)"
                  MinimalRebuildFromTracking         ="%(ClCompile.MinimalRebuildFromTracking)"
-                 NaCLCompilerPath                   ="$(VSNaClSDKRoot)toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-gcc.exe"
+                 NaCLCompilerPath                   ="$(VSNaClSDKRoot)toolchain\win_x86_pnacl\newlib\bin\pnacl-clang.bat"
                  PropertiesFile                     ="$(VCTargetsPath)\NaCl\Props\nacl_compile.xml"
                  TLogReadFiles                      ="@(CLTLogReadFiles)"
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
@@ -54,16 +54,19 @@
     <NaClLink BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
               Sources                        ="@(Link)"
               OutputCommandLine              ="%(Link.OutputCommandLine)"
-              NaClLinkerPath                 ="$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-g++.exe"
+              NaClLinkerPath                 ="$(VSNaClSDKRoot)toolchain\win_x86_pnacl\newlib\bin\pnacl-clang++.bat"
               MinimalRebuildFromTracking     ="$(Link_MinimalRebuildFromTracking)"
               OutputFile                     ="%(Link.OutputFile)"
-              PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\nacl_link.xml"
+              PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\pnacl_link.xml"
               TLogReadFiles                  ="@(LinkTLogReadFiles)"
               TLogWriteFiles                 ="@(LinkTLogWriteFiles)"
               Platform                       ="$(Platform)"
+              TranslateX86                   ="%(Link.TranslateX86)"
+              TranslateX64                   ="%(Link.TranslateX64)"
+              TranslateARM                   ="%(Link.TranslateARM)"
               TrackFileAccess                ="$(TrackFileAccess)"
               TrackerLogDirectory            ="%(Link.TrackerLogDirectory)"
-        ConfigurationType              ="$(ConfigurationType)">
+              ConfigurationType              ="$(ConfigurationType)">
       <Output TaskParameter="SkippedExecution" PropertyName="LinkSkippedExecution" />
     </NaClLink>
 
@@ -90,7 +93,7 @@
     <NaClLib BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
              Sources                        ="@(Lib)"
              OutputCommandLine              ="%(Lib.OutputCommandLine)"
-             LibrarianToolPath              ="$(VSNaClSDKRoot)toolchain\win_x86_$(ToolchainName)\bin\$(TargetArchitecture)-nacl-ar.exe"
+             LibrarianToolPath              ="$(VSNaClSDKRoot)toolchain\win_x86_pnacl\newlib\bin\pnacl-ar.bat"
              MinimalRebuildFromTracking     ="%(Lib.MinimalRebuildFromTracking)"
              OutputFile                     ="%(Lib.OutputFile)"
              PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\nacl_lib.xml"
@@ -108,7 +111,7 @@
 
   <!-- Imports -->
   <Import Project="$(VCTargetsPath)\NaCl\NaCl.CppBuild.targets" />
-  <Import Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets" Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets'))" />
+  <Import Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets" Condition="'pnacl' == 'newlib' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.targets'))" />
   <Import Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets" Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.targets'))" />
 
 </Project>

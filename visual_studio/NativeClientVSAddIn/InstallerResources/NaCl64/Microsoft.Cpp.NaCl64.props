@@ -7,8 +7,6 @@
     <DebuggerFlavor Condition="'$(DebuggerFlavor)'==''">WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 
-  <Import Project="$(VCTargetsPath)\NaCl\NaCl.Toolset.default.props" />
-
   <PropertyGroup>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <GenerateManifest>false</GenerateManifest>

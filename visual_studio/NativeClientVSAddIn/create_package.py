@@ -49,6 +49,7 @@ ADDIN_ASSEMBLY = join(ASSEMBLY_DIRECTORY, 'NativeClientVSAddIn.dll')
 # archive file.
 EXCLUDES = [
     r'\.svn', # Exclude .svn directories.
+    r'\.swp', # Exclude .swp files.
     r'examples\\.*\\chrome_data',
     r'examples\\.*\\Debug',
     r'examples\\.*\\newlib',
@@ -127,9 +128,32 @@ def Error(msg):
 
 
 def WriteFileToArchive(archive, filename, archive_name):
-  print 'Adding: %s' % archive_name
   archive_name = join('vs_addin', archive_name)
+  if archive_name.replace('\\', '/') in archive.getnames():
+    print 'Skipping: %s' % archive_name
+    return
+  print 'Adding: %s' % archive_name
   archive.add(filename, archive_name)
+
+
+def CopyWithReplacement(src, dest, replacements):
+  if os.path.exists(dest):
+    shutil.rmtree(dest)
+  os.makedirs(dest)
+  src_basename = os.path.basename(src)
+  dest_basename = os.path.basename(dest)
+  for filename in os.listdir(src):
+    srcfile = join(src, filename)
+    # skip non-files, in particular .svn folders.
+    if not os.path.isfile(srcfile):
+      continue
+    destfile = join(dest, filename.replace(src_basename, dest_basename))
+    with open(srcfile, "rb") as f:
+      data = f.read()
+      for pat, subst in replacements.iteritems():
+        data = data.replace(pat, subst)
+    with open(destfile, "wb") as f:
+      f.write(data)
 
 
 def main():
@@ -146,22 +170,23 @@ def main():
 
   # Duplicate the NaCl64 platform but rename it to NaCl32
   src64 = join(RESOURCE_DIRECTORY, 'NaCl64')
-  dest32 = join(BUILD_DIR, 'NaCl32')
-  if os.path.exists(dest32):
-    shutil.rmtree(dest32)
-  os.makedirs(dest32)
-  for filename in os.listdir(src64):
-    srcfile = join(src64, filename)
-    # skip non-files, in particular .svn folders.
-    if not os.path.isfile(srcfile):
-      continue
-    destfile = join(dest32, filename.replace('NaCl64', 'NaCl32'))
-    data = open(srcfile, "rb").read()
-    data = data.replace("x86_64", "i686")
-    data = data.replace("64", "32")
-    open(destfile, "wb").write(data)
 
-  AddFolderToArchive(join(BUILD_DIR, "NaCl32"), archive, "NaCl32")
+  dest = join(BUILD_DIR, 'NaCl32')
+  CopyWithReplacement(src64, dest, {'x86_64': 'i686', '64': '32'})
+  AddFolderToArchive(dest, archive, "NaCl32")
+
+  replacements = {
+      'NaCl64': 'PNaCl',
+      'x86_64': 'i686',
+      '64': '32',
+      '.nexe': '.pexe',
+      'nacl_link.xml': 'pnacl_link.xml',
+      '$(ProjectName)_$(PlatformArchitecture)': '$(ProjectName)',
+  }
+
+  dest = join(BUILD_DIR, 'PNaCl')
+  CopyWithReplacement(src64, dest, replacements)
+  AddFolderToArchive(dest, archive, "PNaCl")
 
   AddVersionModifiedAddinFile(archive)
   archive.close()
