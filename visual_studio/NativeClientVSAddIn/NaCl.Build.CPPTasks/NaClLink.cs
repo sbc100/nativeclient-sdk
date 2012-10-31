@@ -169,7 +169,7 @@ namespace NaCl.Build.CPPTasks
         {
             if (Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase))
             {
-                if (!GCCUtilities.FindPython())
+                if (!SDKUtilities.FindPython())
                 {
                     Log.LogError("PNaCl linking requires python in your executable path.");
                     return false;

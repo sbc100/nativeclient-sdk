@@ -263,26 +263,42 @@ namespace NaCl.Build.CPPTasks
         {
             if (Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase))
             {
-                if (!GCCUtilities.FindPython())
+                if (!SDKUtilities.FindPython())
                 {
                     Log.LogError("PNaCl compilation requires python in your executable path.");
                     return -1;
                 }
+
+                // The SDK root is five levels up from the compiler binary.
+                string sdkroot = Path.GetDirectoryName(Path.GetDirectoryName(pathToTool));
+                sdkroot = Path.GetDirectoryName(Path.GetDirectoryName(sdkroot));
+                sdkroot = Path.GetDirectoryName(sdkroot);
+
+                int revision;
+                int version = SDKUtilities.GetSDKVersion(sdkroot, out revision);
+                if (revision < SDKUtilities.MinPNaCLSDKVersion)
+                {
+                    Log.LogError("The configured version of the NaCl SDK ({0} r{1}) is too old " +
+                                 "for building PNaCl projects.\n" +
+                                 "Please install at least 24 r{2} using the naclsdk command " +
+                                 "line tool.", version, revision, SDKUtilities.MinPNaCLSDKVersion);
+                    return -1;
+                }
             }
 
-            // If multiprocess complication is enabled (not the VS default)
+            // If multiprocess compilation is enabled (not the VS default)
             // and the number of processors to use is not 1, then use the
             // compiler_wrapper python script to run multiple instances of
             // gcc
             if (MultiProcessorCompilation && ProcessorNumber != 1)
             {
-                if (!GCCUtilities.FindPython())
+                if (!SDKUtilities.FindPython())
                 {
-                    MessageBox.Show("Multi-processor Compilation with NaCl requires that python " +
-                                    "be available in the visual studio executable path.\n" +
-                                    "Please disable Multi-processor Compilation in the project " +
-                                    "properties or add python to the your executable path.\n" +
-                                    "Falling back to serial compilation.\n");
+                    Log.LogWarning("Multi-processor Compilation with NaCl requires that python " +
+                                   "be available in the visual studio executable path.\n" +
+                                   "Please disable Multi-processor Compilation in the project " +
+                                   "properties or add python to the your executable path.\n" +
+                                   "Falling back to serial compilation.\n");
                 }
                 else
                 {

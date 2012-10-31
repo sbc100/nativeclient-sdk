@@ -90,6 +90,10 @@
     <Shadow Include="Test References\NativeClientVSAddIn.accessor" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NaCl.Build.CPPTasks\NaCl.Build.CPPTasks.csproj">
+      <Project>{FCD6F8FE-DF89-4232-A138-42C97826712A}</Project>
+      <Name>NaCl.Build.CPPTasks</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NativeClientVSAddIn\NativeClientVSAddIn.csproj">
       <Project>{16A0B3E3-6E53-430B-B388-3811E09FC7B8}</Project>
       <Name>NativeClientVSAddIn</Name>

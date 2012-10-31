@@ -54,6 +54,7 @@
     <Compile Include="DependencyParser.cs" />
     <Compile Include="GCCUtilities.cs" />
     <Compile Include="NaClToolTask.cs" />
+    <Compile Include="SDKUtilities.cs" />
     <Compile Include="XamlParser.cs" />
     <Compile Include="NaClCompile.cs" />
     <Compile Include="NaClLib.cs" />

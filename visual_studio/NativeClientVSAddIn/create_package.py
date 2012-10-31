@@ -53,6 +53,8 @@ EXCLUDES = [
     r'examples\\.*\\chrome_data',
     r'examples\\.*\\Debug',
     r'examples\\.*\\newlib',
+    r'examples\\.*\\glibc',
+    r'examples\\.*\\PNaCl',
     r'examples\\.*\\win',
     r'examples\\.*\\ipch',
     r'examples\\.*\\*.sdf',

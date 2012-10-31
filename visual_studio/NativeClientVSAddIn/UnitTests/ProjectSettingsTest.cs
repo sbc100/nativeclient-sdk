@@ -5,11 +5,13 @@
 namespace UnitTests
 {
   using System;
+  using System.IO;
 
   using EnvDTE;
   using EnvDTE80;
   using Microsoft.VisualStudio.TestTools.UnitTesting;
   using Microsoft.VisualStudio.VCProjectEngine;
+  using NaCl.Build.CPPTasks;
 
   /// <summary>
   /// This test class contains tests related to the custom project settings
@@ -109,12 +111,21 @@ namespace UnitTests
       TryCompile(naclSolutionEmptyInitialization, "Release", naclPlatform);
     }
 
+
+
     /// <summary>
     /// Test method to check that the NaCl platform compiles a test project.
     /// </summary>
     [TestMethod]
     public void CheckPNaClCompile()
     {
+        int revision;
+        string root = System.Environment.GetEnvironmentVariable("NACL_SDK_ROOT");
+        SDKUtilities.GetSDKVersion(root, out revision);
+        if (revision < SDKUtilities.MinPNaCLSDKVersion)
+        {
+            Assert.Inconclusive();
+        }
         string naclPlatform = NativeClientVSAddIn.Strings.PNaClPlatformName;
         TryCompile(naclSolutionEmptyInitialization, "Debug", naclPlatform);
         TryCompile(naclSolutionEmptyInitialization, "Release", naclPlatform);
