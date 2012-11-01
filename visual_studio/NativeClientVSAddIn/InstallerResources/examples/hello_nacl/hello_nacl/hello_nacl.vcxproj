@@ -9,6 +9,10 @@
       <Configuration>Debug</Configuration>
       <Platform>NaCl64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|PNaCl">
+      <Configuration>Debug</Configuration>
+      <Platform>PNaCl</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|PPAPI">
       <Configuration>Debug</Configuration>
       <Platform>PPAPI</Platform>
@@ -24,6 +28,10 @@
     <ProjectConfiguration Include="Release|NaCl64">
       <Configuration>Release</Configuration>
       <Platform>NaCl64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|PNaCl">
+      <Configuration>Release</Configuration>
+      <Platform>PNaCl</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|PPAPI">
       <Configuration>Release</Configuration>

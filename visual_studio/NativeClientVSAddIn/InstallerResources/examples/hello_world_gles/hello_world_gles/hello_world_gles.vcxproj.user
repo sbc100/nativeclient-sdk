@@ -12,4 +12,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
     <LocalDebuggerCommandArguments>--register-pepper-plugins="$(TargetPath)";application/x-nacl localhost:$(NaClWebServerPort)/index_win.html --user-data-dir="$(ProjectDir)/chrome_data"</LocalDebuggerCommandArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
+    <LocalDebuggerCommandArguments>--enable-nacl-debug --no-sandbox localhost:$(NaClWebServerPort)/index_$(ToolchainName).html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
+    <LocalDebuggerCommandArguments>localhost:$(NaClWebServerPort)/index_$(ToolchainName).html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PNaCl'">
+    <LocalDebuggerCommandArguments>--enable-nacl-debug --no-sandbox localhost:$(NaClWebServerPort)/index_pnacl.html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PNaCl'">
+    <LocalDebuggerCommandArguments>localhost:$(NaClWebServerPort)/index_pnacl.html --user-data-dir="$(ProjectDir)/chrome_data" --enable-nacl</LocalDebuggerCommandArguments>
+  </PropertyGroup>
 </Project>

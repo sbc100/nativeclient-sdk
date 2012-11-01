@@ -175,7 +175,7 @@ namespace NaCl.Build.CPPTasks
             string dirname = Path.GetDirectoryName(GenerateFullPathToTool());
             string translateTool = Path.Combine(dirname, "pnacl-translate.bat");
             if (!OutputCommandLine)
-                Log.LogMessage("pnacl-translate {0}", Path.GetFileName(outfile));
+                Log.LogMessage("pnacl-translate -> {0}", Path.GetFileName(outfile));
 
             if (ExecuteTool(translateTool, cmd, string.Empty) != 0)
             {
@@ -278,7 +278,7 @@ namespace NaCl.Build.CPPTasks
                 }
 
                 if (!OutputCommandLine)
-                    Log.LogMessage("CreateNMF");
+                    Log.LogMessage("CreateNMF -> {0}", Path.GetFileName(nmfPath));
 
                 if (ExecuteTool("python", string.Empty, cmd) != 0)
                 {

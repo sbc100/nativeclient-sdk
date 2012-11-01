@@ -7,10 +7,12 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|NaCl32 = Debug|NaCl32
 		Debug|NaCl64 = Debug|NaCl64
+		Debug|PNaCl = Debug|PNaCl
 		Debug|PPAPI = Debug|PPAPI
 		Debug|Win32 = Debug|Win32
 		Release|NaCl32 = Release|NaCl32
 		Release|NaCl64 = Release|NaCl64
+		Release|PNaCl = Release|PNaCl
 		Release|PPAPI = Release|PPAPI
 		Release|Win32 = Release|Win32
 	EndGlobalSection
@@ -19,6 +21,8 @@ Global
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl32.Build.0 = Debug|NaCl32
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl64.ActiveCfg = Debug|NaCl64
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|NaCl64.Build.0 = Debug|NaCl64
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|PNaCl.ActiveCfg = Debug|PNaCl
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|PNaCl.Build.0 = Debug|PNaCl
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|PPAPI.ActiveCfg = Debug|PPAPI
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|PPAPI.Build.0 = Debug|PPAPI
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Debug|Win32.ActiveCfg = Debug|Win32
@@ -27,6 +31,8 @@ Global
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl32.Build.0 = Release|NaCl32
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl64.ActiveCfg = Release|NaCl64
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|NaCl64.Build.0 = Release|NaCl64
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|PNaCl.ActiveCfg = Release|PNaCl
+		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|PNaCl.Build.0 = Release|PNaCl
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|PPAPI.ActiveCfg = Release|PPAPI
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|PPAPI.Build.0 = Release|PPAPI
 		{0A0BEABE-8F63-46EA-A60B-AE7DAC7A689D}.Release|Win32.ActiveCfg = Release|Win32

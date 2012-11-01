@@ -9,6 +9,10 @@
       <Configuration>Debug</Configuration>
       <Platform>NaCl64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|PNaCl">
+      <Configuration>Debug</Configuration>
+      <Platform>PNaCl</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|PPAPI">
       <Configuration>Debug</Configuration>
       <Platform>PPAPI</Platform>
@@ -24,6 +28,10 @@
     <ProjectConfiguration Include="Release|NaCl64">
       <Configuration>Release</Configuration>
       <Platform>NaCl64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|PNaCl">
+      <Configuration>Release</Configuration>
+      <Platform>PNaCl</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|PPAPI">
       <Configuration>Release</Configuration>
@@ -147,45 +155,21 @@
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>set PATH=$(Path)
-mkdir $(ToolchainName)
-python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
-      <Message>Running 'create_nmf'</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>set PATH=$(Path)
-mkdir $(ToolchainName)
-python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
-      <Message>Running 'create_nmf'</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>set PATH=$(Path)
-mkdir $(ToolchainName)
-python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
-      <Message>Running 'create_nmf'</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>set PATH=$(Path)
-mkdir $(ToolchainName)
-python.exe "$(VSNaClSDKRoot)\tools\create_nmf.py" -D "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\bin\x86_64-nacl-objdump.exe" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib" -L "$(VSNaClSDKRoot)\toolchain\win_x86_$(ToolchainName)\x86_64-nacl\lib32" -o $(ToolchainName)\$(ProjectName).nmf -t $(ToolchainName) -s $(ToolchainName) "$(TargetPath)"</Command>
-      <Message>Running 'create_nmf'</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="index.html" />

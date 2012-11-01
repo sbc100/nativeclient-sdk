@@ -173,6 +173,7 @@ namespace NativeClientVSAddIn
       var configs = Utility.GetPlatformVCConfigurations(dte_, Strings.PepperPlatformName);
       configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl64PlatformName));
       configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.NaCl32PlatformName));
+      configs.AddRange(Utility.GetPlatformVCConfigurations(dte_, Strings.PNaClPlatformName));
 
 
       var properties = new PropertyManager();

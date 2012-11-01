@@ -63,9 +63,7 @@ namespace NativeClientVSAddIn
     {
         string arch = "i686";
         if (Environment.Is64BitOperatingSystem)
-        {
             arch = "x86_64";
-        }
 
         if (!properties.IsPNaCl())
         {
@@ -135,8 +133,11 @@ namespace NativeClientVSAddIn
       if (properties.IsPNaCl())
       {
           string basename = Path.GetFileNameWithoutExtension(targetNexe_);
+          string suffix = "32";
+          if (Environment.Is64BitOperatingSystem)
+              suffix = "64";
           targetNexe_ = Path.Combine(Path.GetDirectoryName(targetNexe_),
-                                     basename + "_" + arch + ".nexe");
+                                     basename + "_" + suffix + ".nexe");
 
           if (!File.Exists(targetNexe_))
           {

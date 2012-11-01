@@ -13,7 +13,7 @@ namespace UnitTests
   using Microsoft.VisualStudio.TestTools.UnitTesting;
 
   using NativeClientVSAddIn;
-    
+
   /// <summary>
   /// This is a test class for PluginDebuggerGDBTest and is intended
   /// to contain all PluginDebuggerGDB Unit Tests
@@ -296,7 +296,7 @@ namespace UnitTests
         Assert.IsTrue(
             gdbCommands.Exists(s => s.Contains(functionName)),
             "Function breakpoint not properly set");
-        
+
         // Note fake assembly string should be double escaped when passed to gdb.
         Assert.IsTrue(
           gdbCommands.Exists(s => s.Contains(functionName)),
@@ -392,7 +392,7 @@ namespace UnitTests
           1, 1, string.Empty, Strings.ChromeRendererFlag, Strings.NaClProcessName);
       ProcessInfo goodProc = new ProcessInfo(
           1, 1, string.Empty, Strings.NaClLoaderFlag, Strings.NaClProcessName);
-      
+
       string goodMainChromeFlags = Strings.NaClDebugFlag;
       string badMainChromeFlags = string.Format(
           Strings.PepperProcessPluginFlagFormat, target.targetNexe_);
