@@ -5,6 +5,8 @@
 
   <PropertyGroup>
     <DebuggerFlavor Condition="'$(DebuggerFlavor)'==''">WindowsLocalDebugger</DebuggerFlavor>
+    <IntDir Condition="'$(IntDir)'=='DUMMY'">$(Platform)\$(ToolchainName)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(OutDir)'=='DUMMY'">$(ProjectDir)$(Platform)\$(ToolchainName)\$(Configuration)\</OutDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,6 +28,7 @@
     <LibCompiled>true</LibCompiled>
     <TargetExt>.a</TargetExt>
   </PropertyGroup>
+
 
   <Import Project="$(VCTargetsPath)\NaCl\NaCl.Paths.default.props" />
   <Import Project="$(VCTargetsPath)\NaCl\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\NaCl\ImportAfter')" />

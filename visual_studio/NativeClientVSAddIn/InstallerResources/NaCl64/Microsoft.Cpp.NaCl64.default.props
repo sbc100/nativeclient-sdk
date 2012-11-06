@@ -7,10 +7,15 @@
     <ProjectName Condition=" '$(ProjectName)' == '' ">$(MSBuildProjectName)</ProjectName>
     <TargetName Condition="'$(TargetName)'==''">$(ProjectName)_$(PlatformArchitecture)</TargetName>
     <ToolchainName Condition="'$(ToolchainName)' == ''">newlib</ToolchainName>
-
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'!=''">$(IntermediateOutputPath)</IntDir>
-    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">$(Platform)\$(ToolchainName)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(OutDir)'==''">$(ProjectDir)$(Platform)\$(ToolchainName)\$(Configuration)\</OutDir>
+
+    <!-- Set IntDir and OutDir to a dummy value here to stop the builtin Default.props file
+         from setting them.  This allows us to set them to their real default values in the
+         .props file. By which time the user settings for ToolchainName in the vcproj file
+         will have been set.  If we try to use $(ToolchainName) here it will always evaluate
+         to newlib. -->
+    <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">DUMMY</IntDir>
+    <OutDir Condition="'$(OutDir)'==''">DUMMY</OutDir>
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
