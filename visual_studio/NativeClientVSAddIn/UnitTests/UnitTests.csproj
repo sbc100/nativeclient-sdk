@@ -84,6 +84,7 @@
     <Compile Include="MockPropertyManager.cs" />
     <Compile Include="PropertyManagerTest.cs" />
     <Compile Include="TestUtilities.cs" />
+    <Compile Include="CompileTest.cs" />
     <Compile Include="WebServerTest.cs" />
   </ItemGroup>
   <ItemGroup>

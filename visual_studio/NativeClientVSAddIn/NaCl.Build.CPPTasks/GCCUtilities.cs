@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,13 +11,34 @@ using System.Text.RegularExpressions;
 
 namespace NaCl.Build.CPPTasks
 {
+    /// <summary>
+    /// Utility functions for dealing with gcc toolchain on windows.
+    /// </summary>
     class GCCUtilities
     {
         public const int s_CommandLineLength = 256;
 
+        /// <summary>
+        /// Add quotes around a string, if they are needed.
+        /// </summary>
+        /// <returns>The input arg surrounded by quotes as appropriate.</returns>
+        public static string QuoteIfNeeded(string arg)
+        {
+            var match = arg.IndexOfAny(new char[] { ' ', '\t', ';', '&' }) != -1;
+            if (!match)
+                return arg;
+            return "\"" + arg + "\"";
+        }
+
+        /// <summary>
+        /// Convert windows path in to a cygwin path suitable for passing to gcc
+        /// command line.
+        /// </summary>
         public static string ConvertPathWindowsToPosix(string path)
         {
-            return path.Replace('\\', '/');
+            string rtn = path.Replace('\\', '/');
+            rtn = QuoteIfNeeded(rtn);
+            return rtn;
         }
 
         public static string ConvertPathPosixToWindows(string path)
@@ -25,7 +49,10 @@ namespace NaCl.Build.CPPTasks
             return path.Replace("\\\\", "\\");
         }
 
-        // replace GCC error are warning output to Visual Studio format to support going to source code from error output.
+        /// <summary>
+        /// Replace GCC error are warning output to Visual Studio format to
+        /// support going to source code from error output.
+        /// </summary>
         public static string ConvertGCCOutput(string line)
         {
             string result;

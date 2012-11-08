@@ -34,7 +34,8 @@
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
                  Platform                           ="$(Platform)"
                  TrackFileAccess                    ="$(TrackFileAccess)"
-                 TrackerLogDirectory                ="%(ClCompile.TrackerLogDirectory)">
+                 TrackerLogDirectory                ="%(ClCompile.TrackerLogDirectory)"
+                 ConfigurationType                  ="$(ConfigurationType)">
     </NaClCompile>
   </Target>
 
@@ -101,7 +102,6 @@
              TrackerLogDirectory            ="%(Lib.TrackerLogDirectory)"
              TLogReadFiles                  ="@(LIBTLogReadFiles)"
              TLogWriteFiles                 ="@(LIBTLogWriteFiles)"
-             Platform                       ="$(Platform)"
              TrackFileAccess                ="$(TrackFileAccess)">
         <Output TaskParameter="SkippedExecution" PropertyName="LibSkippedExecution" />
     </NaClLib>

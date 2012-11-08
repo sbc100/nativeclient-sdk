@@ -101,48 +101,6 @@ namespace UnitTests
     }
 
     /// <summary>
-    /// Test method to check that the NaCl platform compiles a test project.
-    /// </summary>
-    [TestMethod]
-    public void CheckNaClCompile()
-    {
-      string naclPlatform = NativeClientVSAddIn.Strings.NaCl64PlatformName;
-      TryCompile(naclSolutionEmptyInitialization, "Debug", naclPlatform);
-      TryCompile(naclSolutionEmptyInitialization, "Release", naclPlatform);
-    }
-
-
-
-    /// <summary>
-    /// Test method to check that the NaCl platform compiles a test project.
-    /// </summary>
-    [TestMethod]
-    public void CheckPNaClCompile()
-    {
-        int revision;
-        string root = System.Environment.GetEnvironmentVariable("NACL_SDK_ROOT");
-        SDKUtilities.GetSDKVersion(root, out revision);
-        if (revision < SDKUtilities.MinPNaCLSDKVersion)
-        {
-            Assert.Inconclusive();
-        }
-        string naclPlatform = NativeClientVSAddIn.Strings.PNaClPlatformName;
-        TryCompile(naclSolutionEmptyInitialization, "Debug", naclPlatform);
-        TryCompile(naclSolutionEmptyInitialization, "Release", naclPlatform);
-    }
-
-    /// <summary>
-    /// Test method to check that the Pepper platform compiles a test project.
-    /// </summary>
-    [TestMethod]
-    public void CheckPepperCompile()
-    {
-      string pepperPlatform = NativeClientVSAddIn.Strings.PepperPlatformName;
-      TryCompile(naclSolutionEmptyInitialization, "Debug", pepperPlatform);
-      TryCompile(naclSolutionEmptyInitialization, "Release", pepperPlatform);
-    }
-
-    /// <summary>
     /// Test method which verifies that NaCl and pepper platforms have correct default properties
     /// when initialized from the Win32 platform.
     /// </summary>
@@ -474,38 +432,6 @@ namespace UnitTests
       // Linker Input
       page = "Link";
       AllConfigsAssertPropertyContains(page, "AdditionalDependencies", "ppapi_cpp;ppapi", true);
-      dte_.Solution.Close();
-    }
-
-    /// <summary>
-    /// Helper function which opens the given solution, sets the configuration and platform and
-    /// tries to compile, failing the test if the build does not succeed.
-    /// </summary>
-    /// <param name="solutionPath">Path to the solution to open.</param>
-    /// <param name="configName">Solution Configuration name (Debug or Release).</param>
-    /// <param name="platformName">Platform name.</param>
-    private void TryCompile(string solutionPath, string configName, string platformName)
-    {
-      string failFormat = "Project compile failed for {0} platform {1} config. Build output: {2}";
-      string cygwinWarningFormat = "Did not pass cygwin nodosfilewarning environment var to tools"
-                                 + " Platform: {0}, configuration: {1}";
-      StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
-
-      // Open Debug configuration and build.
-      dte_.Solution.Open(solutionPath);
-      TestUtilities.SetSolutionConfiguration(
-          dte_, TestUtilities.BlankNaClProjectUniqueName, configName, platformName);
-      dte_.Solution.SolutionBuild.Build(true);
-
-      string compileOutput = TestUtilities.GetPaneText(
-          dte_.ToolWindows.OutputWindow.OutputWindowPanes.Item("Build"));
-      Assert.IsTrue(
-          compileOutput.Contains("Build succeeded.", ignoreCase),
-          string.Format(failFormat, platformName, configName, compileOutput));
-      Assert.IsFalse(
-          compileOutput.Contains("MS-DOS style path detected", ignoreCase),
-          string.Format(cygwinWarningFormat, platformName, configName));
-
       dte_.Solution.Close();
     }
 

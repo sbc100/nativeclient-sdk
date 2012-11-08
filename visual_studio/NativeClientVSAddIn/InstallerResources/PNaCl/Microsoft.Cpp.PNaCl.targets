@@ -34,7 +34,8 @@
                  TLogWriteFiles                     ="@(CLTLogWriteFiles)"
                  Platform                           ="$(Platform)"
                  TrackFileAccess                    ="$(TrackFileAccess)"
-                 TrackerLogDirectory                ="%(ClCompile.TrackerLogDirectory)">
+                 TrackerLogDirectory                ="%(ClCompile.TrackerLogDirectory)"
+                 ConfigurationType                  ="$(ConfigurationType)">
     </NaClCompile>
   </Target>
 

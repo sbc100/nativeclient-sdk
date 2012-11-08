@@ -1,5 +1,6 @@
-﻿
-using System;
+﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,7 +35,6 @@ namespace NaCl.Build.CPPTasks
 
         [Required]
         public virtual ITaskItem[] Sources { get; set; }
-        
 
         public NaClLib()
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
@@ -64,7 +64,7 @@ namespace NaCl.Build.CPPTasks
             }
 
             return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-        }         
+        }
 
 
 
@@ -136,8 +136,8 @@ namespace NaCl.Build.CPPTasks
         {
             get
             {
-                return new string[] 
-                { 
+                return new string[]
+                {
                     "default.link.read.tlog"
                 };
             }
@@ -147,8 +147,8 @@ namespace NaCl.Build.CPPTasks
         {
             get
             {
-                return new string[] 
-                { 
+                return new string[]
+                {
                     "default.link.write.tlog"
                 };
             }

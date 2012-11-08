@@ -1,4 +1,6 @@
-
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -35,6 +37,9 @@ namespace NaCl.Build.CPPTasks
         public int ProcessorNumber { get; set; }
 
         public bool MultiProcessorCompilation { get; set; }
+
+        [Required]
+        public string ConfigurationType { get; set; }
 
         [Obsolete]
         protected override StringDictionary EnvironmentOverride
@@ -222,29 +227,37 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        protected string GenerateCommandLineFromProps(ITaskItem sourceFile, bool fullOutputName=false)
+        protected string GenerateCommandLineFromProps(ITaskItem sourceFile,
+                                                      bool fullOutputName=false)
         {
             StringBuilder commandLine = new StringBuilder(GCCUtilities.s_CommandLineLength);
 
             if (sourceFile != null)
             {
-                // Remove rtti items as they are not relevant in C compilation and will produce warnings
+                //build command line from components and add required switches
+                string props = xamlParser.Parse(sourceFile, fullOutputName);
+                commandLine.Append(props);
+                commandLine.Append(" -c ");
+
+                // Remove rtti items as they are not relevant in C compilation and will 
+                // produce warnings
                 if (SourceIsC(sourceFile.ToString()))
                 {
                     commandLine.Replace("-fno-rtti", "");
                     commandLine.Replace("-frtti", "");
                 }
 
-                //build command line from components and add required switches
-                string props = xamlParser.Parse(sourceFile, fullOutputName);
-                commandLine.Append(props);
-                commandLine.Append(" -c ");
+                if (ConfigurationType == "DynamicLibrary")
+                {
+                    commandLine.Append(" -fPIC ");
+                }
             }
 
             return commandLine.ToString();
         }
 
-        protected ITaskItem[] MergeOutOfDateSources(ITaskItem[] outOfDateSourcesFromTracking, List<ITaskItem> outOfDateSourcesFromCommandLineChanges)
+        protected ITaskItem[] MergeOutOfDateSources(ITaskItem[] outOfDateSourcesFromTracking,
+                List<ITaskItem> outOfDateSourcesFromCommandLineChanges)
         {
             List<ITaskItem> mergedSources = new List<ITaskItem>(outOfDateSourcesFromTracking);
 
@@ -316,7 +329,7 @@ namespace NaCl.Build.CPPTasks
                 try
                 {
                     string commandLine = GenerateCommandLineFromProps(sourceItem, true);
-                    commandLine += "\"" + GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString()) + "\"";
+                    commandLine += GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
 
                     if (OutputCommandLine)
                     {
@@ -377,8 +390,7 @@ namespace NaCl.Build.CPPTasks
 
                 foreach (ITaskItem sourceItem in sources)
                 {
-                    string src = GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
-                    cmd += " \"" + src + "\"";
+                    cmd += GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
                 }
 
                 try
