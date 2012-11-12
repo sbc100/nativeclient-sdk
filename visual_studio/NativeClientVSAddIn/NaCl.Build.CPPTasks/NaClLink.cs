@@ -15,8 +15,6 @@ namespace NaCl.Build.CPPTasks
 {
     public class NaClLink : NaClToolTask
     {
-        public bool BuildingInIDE { get; set; }
-
         /// <summary>
         /// Property set only in PNaCl builds to signal that the translator
         /// should be run post-link.
@@ -36,9 +34,6 @@ namespace NaCl.Build.CPPTasks
         public bool TranslateX64 { get; set; }
 
         [Required]
-        public bool OutputCommandLine { get; set; }
-
-        [Required]
         public bool CreateNMF { get; set; }
 
         [Required]
@@ -51,83 +46,13 @@ namespace NaCl.Build.CPPTasks
         public string ToolchainName { get; set; }
 
         [Required]
-        public string Platform { get; set; }
-
-        [Required]
         public string CreateNMFPath { get; set; }
-
-        [Required]
-        public virtual string OutputFile { get; set; }
 
         [Required]
         public string PropertiesFile { get; set; }
 
         [Required]
         public string ConfigurationType { get; set; }
-
-        protected override CanonicalTrackedOutputFiles OutputWriteTLog(ITaskItem[] inputs)
-        {
-            string path = Path.Combine(TlogDirectory, WriteTLogFilename);
-            TaskItem item = new TaskItem(path);
-            CanonicalTrackedOutputFiles trackedFiles =
-                new CanonicalTrackedOutputFiles(new TaskItem[] { item });
-
-            foreach (ITaskItem sourceItem in Sources)
-            {
-                //remove this entry associated with compiled source which is about to be recomputed
-                trackedFiles.RemoveEntriesForSource(sourceItem);
-
-                //add entry with updated information
-                string upper = Path.GetFullPath(sourceItem.ItemSpec).ToUpperInvariant();
-                trackedFiles.AddComputedOutputForSourceRoot(upper, OutputFile);
-            }
-
-            //output tlog
-            trackedFiles.SaveTlog();
-
-            return trackedFiles;
-        }
-
-        protected override void OutputReadTLog(ITaskItem[] compiledSources, CanonicalTrackedOutputFiles outputs)
-        {
-            string trackerPath = Path.GetFullPath(TlogDirectory + ReadTLogFilenames[0]);
-
-            using (StreamWriter writer = new StreamWriter(trackerPath, false, Encoding.Unicode))
-            {
-                string sourcePath = "";
-                foreach (ITaskItem source in Sources)
-                {
-                    if (sourcePath != "")
-                        sourcePath += "|";
-                    sourcePath += Path.GetFullPath(source.ItemSpec).ToUpperInvariant();
-                }
-
-                writer.WriteLine("^" + sourcePath);
-                foreach (ITaskItem source in Sources)
-                {
-                    writer.WriteLine(Path.GetFullPath(source.ItemSpec).ToUpperInvariant());
-                }
-                writer.WriteLine(Path.GetFullPath(OutputFile).ToUpperInvariant());
-            }
-        }
-
-        protected override void OutputCommandTLog(ITaskItem[] compiledSources)
-        {
-            using (StreamWriter writer = new StreamWriter(TLogCommandFile.GetMetadata("FullPath"), false, Encoding.Unicode))
-            {
-                string cmds = GenerateResponseFileCommands();
-                string sourcePath = "";
-                foreach (ITaskItem source in Sources)
-                {
-                    if (sourcePath != "")
-                        sourcePath += "|";
-                    sourcePath += Path.GetFullPath(source.ItemSpec).ToUpperInvariant();
-                }
-
-                writer.WriteLine("^" + sourcePath);
-                writer.WriteLine(cmds);
-            }
-        }
 
         public NaClLink()
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
@@ -187,22 +112,8 @@ namespace NaCl.Build.CPPTasks
             return true;
         }
 
-        private bool IsPNaCl()
-        {
-            return Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase);
-        }
-
         public override bool Execute()
         {
-            if (IsPNaCl())
-            {
-                if (!SDKUtilities.FindPython())
-                {
-                    Log.LogError("PNaCl linking requires python in your executable path.");
-                    return false;
-                }
-            }
-
             xamlParser = new XamlParser(PropertiesFile);
             if (!Setup())
                 return false;
@@ -301,11 +212,6 @@ namespace NaCl.Build.CPPTasks
             return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
 
-        protected override string GenerateFullPathToTool()
-        {
-            return this.ToolName;
-        }
-
         protected override Encoding ResponseFileEncoding
         {
             get
@@ -344,16 +250,6 @@ namespace NaCl.Build.CPPTasks
             {
                 return BaseTool() + ".link.write.1.tlog";
             }
-        }
-
-        public virtual string PlatformToolset
-        {
-            get
-            {
-                return "GCC";
-            }
-            set
-            {}
         }
     }
 }

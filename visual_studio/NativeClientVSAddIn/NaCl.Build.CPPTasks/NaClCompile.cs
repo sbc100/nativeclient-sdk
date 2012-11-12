@@ -20,19 +20,11 @@ namespace NaCl.Build.CPPTasks
 {
     public class NaClCompile : NaClToolTask
     {
-        public bool BuildingInIDE { get; set; }
-
         [Required]
         public string PropertiesFile { get; set; }
 
         [Required]
         public string NaCLCompilerPath { get; set; }
-
-        [Required]
-        public bool OutputCommandLine { get; set; }
-
-        [Required]
-        public string Platform { get; set; }
 
         public int ProcessorNumber { get; set; }
 
@@ -52,11 +44,6 @@ namespace NaCl.Build.CPPTasks
                       {"NACL_GCC_SHOW_COMMANDS", show }
                 };
             }
-        }
-
-        protected override string GenerateFullPathToTool()
-        {
-            return ToolName;
         }
 
         public NaClCompile()

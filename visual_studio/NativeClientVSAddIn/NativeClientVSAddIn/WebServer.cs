@@ -5,7 +5,7 @@
 namespace NativeClientVSAddIn
 {
   using System;
-
+  using System.IO;
   using EnvDTE;
   using Microsoft.VisualStudio.VCProjectEngine;
 
@@ -62,8 +62,10 @@ namespace NativeClientVSAddIn
       }
 
       string webServerExecutable = "python.exe";
-      string webServerArguments = string.Format(
-          "{0}\\examples\\httpd.py --no_dir_check {1}", properties.SDKRootDirectory, webServerPort);
+      string httpd = Path.Combine(properties.SDKRootDirectory, "examples", "httpd.py");
+      if (!File.Exists(httpd))
+          httpd = Path.Combine(properties.SDKRootDirectory, "tools", "httpd.py");
+      string webServerArguments = httpd + " --no_dir_check " + webServerPort;
 
       // Start the web server process.
       try

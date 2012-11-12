@@ -21,6 +21,7 @@ namespace NaCl.Build.CPPTasks
     public abstract class NaClToolTask : ToolTask
     {
         protected NaClToolTask(ResourceManager taskResources) : base(taskResources) { }
+        public bool BuildingInIDE { get; set; }
         protected ITaskItem[] excludedInputPaths;
         private ITaskItem[] tlogReadFiles;
         private ITaskItem tlogCommandFile;
@@ -32,16 +33,19 @@ namespace NaCl.Build.CPPTasks
         protected ITaskItem[] compileSourceList;
         protected XamlParser xamlParser;
 
-        protected abstract CanonicalTrackedOutputFiles OutputWriteTLog(ITaskItem[] compiledSources);
-        protected abstract void OutputReadTLog(ITaskItem[] compiledSources, CanonicalTrackedOutputFiles outputs);
-        protected abstract void OutputCommandTLog(ITaskItem[] compiledSources);
-
         [Required]
         public string TrackerLogDirectory { get; set; }
 
         [Required]
         public virtual ITaskItem[] Sources { get; set; }
 
+        [Required]
+        public bool OutputCommandLine { get; set; }
+
+        [Required]
+        public string Platform { get; set; }
+
+        public virtual string OutputFile { get; set; }
 
         // Override default StandardOutputLoggingImportance so that we see the stdout from the
         // toolchain from within visual studio.
@@ -87,6 +91,11 @@ namespace NaCl.Build.CPPTasks
             return Path.GetFileNameWithoutExtension(ToolName);
         }
 
+        protected bool IsPNaCl()
+        {
+            return Platform.Equals("pnacl", StringComparison.OrdinalIgnoreCase);
+        }
+
         protected bool Setup()
         {
             this.SkippedExecution = false;
@@ -94,6 +103,15 @@ namespace NaCl.Build.CPPTasks
             if (!ValidateParameters())
             {
                 return false;
+            }
+
+            if (IsPNaCl())
+            {
+                if (!SDKUtilities.FindPython())
+                {
+                    Log.LogError("PNaCl linking requires python in your executable path.");
+                    return false;
+                }
             }
 
             if (this.TrackFileAccess || this.MinimalRebuildFromTracking)
@@ -110,6 +128,72 @@ namespace NaCl.Build.CPPTasks
             }
 
             return true;
+        }
+
+        protected virtual CanonicalTrackedOutputFiles OutputWriteTLog(ITaskItem[] inputs)
+        {
+            string path = Path.Combine(TlogDirectory, WriteTLogFilename);
+            TaskItem item = new TaskItem(path);
+            CanonicalTrackedOutputFiles trackedFiles =
+                new CanonicalTrackedOutputFiles(new TaskItem[] { item });
+
+            foreach (ITaskItem sourceItem in Sources)
+            {
+                //remove this entry associated with compiled source which is about to be recomputed
+                trackedFiles.RemoveEntriesForSource(sourceItem);
+
+                //add entry with updated information
+                string upper = Path.GetFullPath(sourceItem.ItemSpec).ToUpperInvariant();
+                trackedFiles.AddComputedOutputForSourceRoot(upper, OutputFile);
+            }
+
+            //output tlog
+            trackedFiles.SaveTlog();
+
+            return trackedFiles;
+        }
+
+        protected virtual void OutputReadTLog(ITaskItem[] compiledSources,
+                                              CanonicalTrackedOutputFiles outputs)
+        {
+            string trackerPath = Path.GetFullPath(TlogDirectory + ReadTLogFilenames[0]);
+
+            using (var writer = new StreamWriter(trackerPath, false, Encoding.Unicode))
+            {
+                string sourcePath = "";
+                foreach (ITaskItem source in Sources)
+                {
+                    if (sourcePath != "")
+                        sourcePath += "|";
+                    sourcePath += Path.GetFullPath(source.ItemSpec).ToUpperInvariant();
+                }
+
+                writer.WriteLine("^" + sourcePath);
+                foreach (ITaskItem source in Sources)
+                {
+                    writer.WriteLine(Path.GetFullPath(source.ItemSpec).ToUpperInvariant());
+                }
+                writer.WriteLine(Path.GetFullPath(OutputFile).ToUpperInvariant());
+            }
+        }
+
+        protected virtual void OutputCommandTLog(ITaskItem[] compiledSources)
+        {
+            string fullpath = TLogCommandFile.GetMetadata("FullPath");
+            using (var writer = new StreamWriter(fullpath, false, Encoding.Unicode))
+            {
+                string cmds = GenerateResponseFileCommands();
+                string sourcePath = "";
+                foreach (ITaskItem source in Sources)
+                {
+                    if (sourcePath != "")
+                        sourcePath += "|";
+                    sourcePath += Path.GetFullPath(source.ItemSpec).ToUpperInvariant();
+                }
+
+                writer.WriteLine("^" + sourcePath);
+                writer.WriteLine(cmds);
+            }
         }
 
         public override bool Execute()
@@ -293,6 +377,19 @@ namespace NaCl.Build.CPPTasks
             {
                 return BaseTool() + ".compile.write.1.tlog";
             }
+        }
+
+        public virtual string PlatformToolset
+        {
+            get
+            {
+                return "GCC";
+            }
+        }
+
+        protected override string GenerateFullPathToTool()
+        {
+            return this.ToolName;
         }
     }
 }

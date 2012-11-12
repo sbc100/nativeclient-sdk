@@ -13,9 +13,8 @@ namespace NaCl.Build.CPPTasks
     /// </summary>
     public class SDKUtilities
     {
-        // No known SDK version has working PNaC toolchain yet
-        // TODO(sbc): update this value once we release one.
-        public const int MinPNaCLSDKVersion = 999999;
+        // The first version of pepper with a known working PNaCl toolchain
+        public const int MinPNaCLSDKVersion = 166868;
 
         /// <summary>
         /// Find python executable in user's PATH.

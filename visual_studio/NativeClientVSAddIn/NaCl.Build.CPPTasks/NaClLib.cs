@@ -17,24 +17,13 @@ using Microsoft.Build.Utilities;
 
 namespace NaCl.Build.CPPTasks
 {
-    public class NaClLib : TrackedVCToolTask
+    public class NaClLib : NaClToolTask
     {
-        public bool BuildingInIDE { get; set; }
-
         [Required]
         public string LibrarianToolPath { get; set; }
 
         [Required]
         public string PropertiesFile { get; set; }
-
-        [Required]
-        public virtual string OutputFile { get; set; }
-
-        [Required]
-        public string OutputCommandLine { get; set; }
-
-        [Required]
-        public virtual ITaskItem[] Sources { get; set; }
 
         public NaClLib()
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
@@ -56,42 +45,21 @@ namespace NaCl.Build.CPPTasks
             return responseFileCmds.ToString();
         }
 
+        public override bool Execute()
+        {
+            if (!Setup())
+                return false;
+
+            return base.Execute();
+        }
+
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (OutputCommandLine == "true")
-            {
+            if (OutputCommandLine)
                 Log.LogMessage(MessageImportance.High, pathToTool + "  " + responseFileCommands);
-            }
 
             return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
-
-
-
-        public virtual string PlatformToolset
-        {
-            get
-            {
-                return "GCC";
-            }
-        }
-
-        protected override bool MaintainCompositeRootingMarkers
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        protected override ITaskItem[] TrackedInputFiles
-        {
-            get
-            {
-                return Sources;
-            }
-        }
-
 
         protected override Encoding ResponseFileEncoding
         {
@@ -108,54 +76,5 @@ namespace NaCl.Build.CPPTasks
                 return LibrarianToolPath;
             }
         }
-
-        protected override string TrackerIntermediateDirectory
-        {
-            get
-            {
-                if (this.TrackerLogDirectory != null)
-                {
-                    return this.TrackerLogDirectory;
-                }
-                else
-                {
-                    return string.Empty;
-                }
-            }
-        }
-
-        protected override string CommandTLogName
-        {
-            get
-            {
-                return "default.link.command.tlog";
-            }
-        }
-
-        protected override string[] ReadTLogNames
-        {
-            get
-            {
-                return new string[]
-                {
-                    "default.link.read.tlog"
-                };
-            }
-        }
-
-        protected override string[] WriteTLogNames
-        {
-            get
-            {
-                return new string[]
-                {
-                    "default.link.write.tlog"
-                };
-            }
-        }
-
-        public string TrackerLogDirectory { get; set; }
     }
-
-
 }

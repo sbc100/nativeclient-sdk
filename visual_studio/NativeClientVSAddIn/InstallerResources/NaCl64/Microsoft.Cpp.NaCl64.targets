@@ -99,6 +99,7 @@
              MinimalRebuildFromTracking     ="%(Lib.MinimalRebuildFromTracking)"
              OutputFile                     ="%(Lib.OutputFile)"
              PropertiesFile                 ="$(VCTargetsPath)\NaCl\Props\nacl_lib.xml"
+             Platform                       ="$(Platform)"
              TrackerLogDirectory            ="%(Lib.TrackerLogDirectory)"
              TLogReadFiles                  ="@(LIBTLogReadFiles)"
              TLogWriteFiles                 ="@(LIBTLogWriteFiles)"
