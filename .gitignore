@@ -32,6 +32,7 @@ toolchain/
 /site_scons/
 /staging/
 /out
+StyleCop.Cache
 
 /visual_studio/NativeClientVSAddIn/NaCl.Build.CPPTasks/obj/
 /visual_studio/NativeClientVSAddIn/NativeClientVSAddIn.vsmdi
@@ -49,7 +50,10 @@ toolchain/
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/Debug
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/Release
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaCl64
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/PNaCl
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaCl32
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/chrome_data
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/newlib
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/glibc
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/win
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/*.user

@@ -19,6 +19,7 @@
 
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
+    <NaClIndexHTML Condition="'$(NaClIndexHTML)'==''">index.html</NaClIndexHTML>
     <NaClManifestPath Condition="'$(NaClManifestPath)'==''"></NaClManifestPath>
   </PropertyGroup>
 

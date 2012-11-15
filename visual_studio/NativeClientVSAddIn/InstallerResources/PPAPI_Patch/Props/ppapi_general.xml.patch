@@ -37,6 +37,13 @@
         <DataSource Persistence="ProjectFile" Label="" />
       </StringProperty.DataSource>
     </StringProperty>
+
+    <StringProperty Name="NaClIndexHTML" DisplayName="Index page of NaCl Application"
+                  Description="Specifies the name of the web page that hosts the NaCl content"
+                  Category="NativeClient" Default=""
+                  F1Keyword="VC.Project.VCConfiguration.NaClIndexHTML">
+    </StringProperty>
+
   </PatchAdd>
 
   <EnumProperty Name="ConfigurationType" DisplayName="Configuration Type"

@@ -46,6 +46,12 @@
     </StringProperty.DataSource>
   </StringProperty>
 
+  <StringProperty Name="NaClIndexHTML" DisplayName="Index page of NaCl Application"
+                  Description="Specifies the name of the web page that hosts the NaCl content"
+                  Category="NativeClient" Default=""
+                  F1Keyword="VC.Project.VCConfiguration.NaClIndexHTML">
+  </StringProperty>
+
   <EnumProperty Name="ToolchainName" DisplayName="Toolchain" Category="NativeClient">
     <EnumValue Name="newlib" DisplayName="newlib" />
     <EnumValue Name="glibc" DisplayName="glibc" />

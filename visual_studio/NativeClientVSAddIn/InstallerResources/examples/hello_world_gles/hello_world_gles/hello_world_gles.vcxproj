@@ -40,6 +40,30 @@
     <RootNamespace>hello_world_gles</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|NaCl32'">
+    <NaClIndexHTML>index_newlib.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl32'">
+    <NaClIndexHTML>index_newlib.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|NaCl64'">
+    <NaClIndexHTML>index_newlib.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|NaCl64'">
+    <NaClIndexHTML>index_newlib.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|PNaCl'">
+    <NaClIndexHTML>index_pnacl.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|PNaCl'">
+    <NaClIndexHTML>index_pnacl.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|PPAPI'">
+    <NaClIndexHTML>index_win.html</NaClIndexHTML>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|PPAPI'">
+    <NaClIndexHTML>index_win.html</NaClIndexHTML>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
