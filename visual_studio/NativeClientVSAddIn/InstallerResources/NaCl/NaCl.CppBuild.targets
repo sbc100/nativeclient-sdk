@@ -49,7 +49,16 @@
     <PropertyPageSchema Include="$(VCTargetsPath)\NaCl\Props\nacl_lib.xml" Condition="'$(ConfigurationType)' == 'StaticLibrary'" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Platform)' == 'PNaCl'">
+    <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\PNaCl\Props\pnacl_general.xml">
+      <Context>Project</Context>
+    </PropertyPageSchema>
+    <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\PNaCl\Props\pnacl_general_ps.xml">
+      <Context>PropertySheet</Context>
+    </PropertyPageSchema>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Platform)' != 'PNaCl'">
     <PropertyPageSchema Include="$(VCTargetsPath)\NaCl\Props\nacl_general.xml">
       <Context>Project</Context>
     </PropertyPageSchema>

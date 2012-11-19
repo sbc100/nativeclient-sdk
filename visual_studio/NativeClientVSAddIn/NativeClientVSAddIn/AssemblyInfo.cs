@@ -24,9 +24,9 @@ using System.Runtime.CompilerServices;
 //    Revision
 //    Build Number
 //
-[assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("1.1.*")]
 
 // The following version is what we display as the version within visual studio
-[assembly: AssemblyInformationalVersion("1.0.svn")]
+[assembly: AssemblyInformationalVersion("1.1.svn")]
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("UnitTests")]
