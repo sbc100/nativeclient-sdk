@@ -2,7 +2,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <!-- add PPAPI preprocessor -->
-      <PreprocessorDefinitions>PPAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;PPAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
 
