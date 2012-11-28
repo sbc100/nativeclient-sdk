@@ -198,6 +198,8 @@ namespace NativeClientVSAddIn
       get
       {
         AssertNaCl();
+        if (IsPNaCl())
+            return "newlib";
         return GetProperty("ConfigurationGeneral", "ToolchainName");
       }
 
