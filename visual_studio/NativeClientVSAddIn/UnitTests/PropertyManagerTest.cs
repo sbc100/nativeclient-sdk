@@ -243,10 +243,6 @@ namespace UnitTests
         Assert.AreEqual(projectDir, target.ProjectDirectory, "ProjectDirectory.");
         Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
         Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
-        Assert.AreEqual(
-            @"newlib",
-            target.GetProperty("ConfigurationGeneral", "ToolchainName"),
-            "GetProperty() with ToolchainName incorrect.");
     }
 
     /// <summary>
