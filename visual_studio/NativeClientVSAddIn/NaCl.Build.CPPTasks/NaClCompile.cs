@@ -274,14 +274,15 @@ namespace NaCl.Build.CPPTasks
                 sdkroot = Path.GetDirectoryName(Path.GetDirectoryName(sdkroot));
                 sdkroot = Path.GetDirectoryName(sdkroot);
 
-                int revision;
-                int version = SDKUtilities.GetSDKVersion(sdkroot, out revision);
-                if (revision < SDKUtilities.MinPNaCLSDKVersion)
+                if (!SDKUtilities.SupportsPNaCl(sdkroot))
                 {
+                    int revision;
+                    int version = SDKUtilities.GetSDKVersion(sdkroot, out revision);
                     Log.LogError("The configured version of the NaCl SDK ({0} r{1}) is too old " +
                                  "for building PNaCl projects.\n" +
                                  "Please install at least 24 r{2} using the naclsdk command " +
-                                 "line tool.", version, revision, SDKUtilities.MinPNaCLSDKVersion);
+                                 "line tool.", version, revision, SDKUtilities.MinPNaCLSDKVersion,
+                                 SDKUtilities.MinPNaCLSDKRevision);
                     return -1;
                 }
             }

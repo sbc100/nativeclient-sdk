@@ -14,7 +14,8 @@ namespace NaCl.Build.CPPTasks
     public class SDKUtilities
     {
         // The first version of pepper with a known working PNaCl toolchain
-        public const int MinPNaCLSDKVersion = 166868;
+        public const int MinPNaCLSDKVersion = 24;
+        public const int MinPNaCLSDKRevision = 166868;
 
         /// <summary>
         /// Find python executable in user's PATH.
@@ -41,8 +42,7 @@ namespace NaCl.Build.CPPTasks
         }
 
         /// <summary>
-        /// Retrieve the version and revsion of the current NaCl SDK located
-        /// at $NACL_SDK_ROOT.
+        /// Retrieve the version and revsion of the given NaCl SDK root.
         /// </summary>
         public static int GetSDKVersion(string root, out int revision)
         {
@@ -58,6 +58,21 @@ namespace NaCl.Build.CPPTasks
                     version = Convert.ToInt32(line.Split(':')[1]);
             }
             return version;
+        }
+
+        /// <summary>
+        /// Retrun true if the NaCl SDK at the given location supports
+        /// the PNaCl toolchain.
+        /// </summary>
+        public static bool SupportsPNaCl(string root)
+        {
+            int revision;
+            int version = GetSDKVersion(root, out revision);
+            if (version > MinPNaCLSDKVersion)
+                return true;
+            if (version == MinPNaCLSDKVersion && revision >= MinPNaCLSDKRevision)
+                return true;
+            return false;
         }
     }
 }

@@ -153,10 +153,8 @@ namespace UnitTests
         [TestMethod]
         public void CheckPNaClCompile()
         {
-            int revision;
             string root = System.Environment.GetEnvironmentVariable("NACL_SDK_ROOT");
-            SDKUtilities.GetSDKVersion(root, out revision);
-            if (revision < SDKUtilities.MinPNaCLSDKVersion)
+            if (!SDKUtilities.SupportsPNaCl(root))
             {
                 Assert.Inconclusive();
             }
