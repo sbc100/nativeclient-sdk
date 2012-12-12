@@ -21,6 +21,7 @@ import time
 
 NACL32_PLATFORM = 'NaCl32'
 NACL64_PLATFORM = 'NaCl64'
+NACLARM_PLATFORM = 'NaClARM'
 PNACL_PLATFORM = 'PNaCl'
 NACL_PLATFORM_OLD = 'NaCl'
 PEPPER_PLATFORM = 'PPAPI'
@@ -53,11 +54,11 @@ def UninstallFile(file_path):
     print 'Removed: %s' % (file_path)
 
 
-def Uninstall(platform_dirs, addin_directory):
+def Uninstall(platform_dirs, addin_dir):
   for dirname in platform_dirs:
     UninstallDirectory(dirname)
   for file_name in ADDIN_FILES:
-    UninstallFile(os.path.join(addin_directory, file_name))
+    UninstallFile(os.path.join(addin_dir, file_name))
 
 
 def CheckForRunningProgams():
@@ -146,7 +147,7 @@ def main():
     raise InstallError("Could not find MS Build directory: %s" % (
         options.msbuild_path))
 
-  addin_directory = os.path.join(options.vsuser_path, 'Addins')
+  addin_dir = os.path.join(options.vsuser_path, 'Addins')
   platform_root = os.path.join(options.msbuild_path,
                                'Microsoft.Cpp', 'v4.0', 'Platforms')
   if not os.path.exists(platform_root):
@@ -161,24 +162,26 @@ def main():
     raise InstallError("install script needs write access to: %s"
                        % platform_root)
 
-  nacl_directory32 = os.path.join(platform_root, NACL32_PLATFORM)
-  nacl_directory64 = os.path.join(platform_root, NACL64_PLATFORM)
-  pnacl_directory = os.path.join(platform_root, PNACL_PLATFORM)
-  nacl_directoryold = os.path.join(platform_root, NACL_PLATFORM_OLD)
+  nacl_dir_32 = os.path.join(platform_root, NACL32_PLATFORM)
+  nacl_dir_64 = os.path.join(platform_root, NACL64_PLATFORM)
+  nacl_dir_arm = os.path.join(platform_root, NACLARM_PLATFORM)
+  pnacl_dir = os.path.join(platform_root, PNACL_PLATFORM)
+  nacl_dir_old = os.path.join(platform_root, NACL_PLATFORM_OLD)
   nacl_common = os.path.join(os.path.dirname(platform_root), 'NaCl')
-  pepper_directory = os.path.join(platform_root, PEPPER_PLATFORM)
-  remove_dirs = (nacl_directory32, nacl_directory64, pnacl_directory,
-                 nacl_directoryold, pepper_directory, nacl_common)
+  pepper_dir = os.path.join(platform_root, PEPPER_PLATFORM)
+  remove_dirs = (nacl_dir_32, nacl_dir_64, nacl_dir_arm,
+                 pnacl_dir, nacl_dir_old, pepper_dir,
+                 nacl_common)
   # If uninstalling then redirect to uninstall program.
   if options.uninstall:
-    Uninstall(remove_dirs, addin_directory)
+    Uninstall(remove_dirs, addin_dir)
     print "\nUninstall complete!\n"
     sys.exit(0)
 
   if not os.path.exists(platform_root):
     raise InstallError("Could not find path: %s" % platform_root)
-  if not os.path.exists(addin_directory):
-    os.makedirs(addin_directory)
+  if not os.path.exists(addin_dir):
+    os.makedirs(addin_dir)
 
   # Ensure environment variables are set.
   if not options.force:
@@ -197,7 +200,7 @@ def main():
                  "will be overwritten."):
         raise InstallError('User did not allow overwrite of existing install.')
     print "Removing existing install..."
-    Uninstall(remove_dirs, addin_directory)
+    Uninstall(remove_dirs, addin_dir)
 
   # Ask user before installing PPAPI template.
   if options.install_ppapi is None:
@@ -218,19 +221,22 @@ def main():
   try:
     # Copy the necessary files into place.
     for file_name in ADDIN_FILES:
-      shutil.copy(os.path.join(SCRIPT_DIR, file_name), addin_directory)
+      shutil.copy(os.path.join(SCRIPT_DIR, file_name), addin_dir)
     print "Add-in installed."
 
     shutil.copytree(os.path.join(SCRIPT_DIR, 'NaCl'), nacl_common)
     print "NaCl common resources installed."
 
-    shutil.copytree(os.path.join(SCRIPT_DIR, NACL32_PLATFORM), nacl_directory32)
-    print "NaCl32 platform installed."
+    shutil.copytree(os.path.join(SCRIPT_DIR, NACL32_PLATFORM), nacl_dir_32)
+    print "%s platform installed." % NACL32_PLATFORM
 
-    shutil.copytree(os.path.join(SCRIPT_DIR, NACL64_PLATFORM), nacl_directory64)
-    print "NaCl64 platform installed."
+    shutil.copytree(os.path.join(SCRIPT_DIR, NACL64_PLATFORM), nacl_dir_64)
+    print "%s platform installed." % NACL64_PLATFORM
 
-    shutil.copytree(os.path.join(SCRIPT_DIR, PNACL_PLATFORM), pnacl_directory)
+    shutil.copytree(os.path.join(SCRIPT_DIR, NACLARM_PLATFORM), nacl_dir_arm)
+    print "%s platform installed." % NACLARM_PLATFORM
+
+    shutil.copytree(os.path.join(SCRIPT_DIR, PNACL_PLATFORM), pnacl_dir)
     print "PNaCl platform installed."
 
     if options.install_ppapi:
@@ -238,7 +244,7 @@ def main():
       print "PPAPI platform installed."
   except:
     print "\nException occured! Rolling back install...\n"
-    Uninstall(remove_dirs, addin_directory)
+    Uninstall(remove_dirs, addin_dir)
     raise
   else:
     print "\nInstallation complete!\n"

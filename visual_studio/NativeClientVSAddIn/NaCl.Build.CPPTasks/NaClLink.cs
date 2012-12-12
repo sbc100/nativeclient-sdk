@@ -162,7 +162,14 @@ namespace NaCl.Build.CPPTasks
                 string nmfPath = Path.Combine(outputRoot, Path.ChangeExtension(ProjectName, ".nmf"));
 
                 string cmd = "\"" + CreateNMFPath + "\" -o \"" + nmfPath + "\"";
-                cmd += " -t " + ToolchainName + " -s " + ToolchainName;
+
+                // The SDK root is one level up from create_nmf.py
+                // Starting with 25.170267 the -t options to create_nmf is deprecated.
+                string sdkroot = Path.GetDirectoryName(Path.GetDirectoryName(CreateNMFPath));
+                if (!SDKUtilities.CheckVersionAtLeast(sdkroot, 25, 170267))
+                    cmd += " -t " + ToolchainName;
+
+                cmd += " -s " + ToolchainName;
 
                 if (IsPNaCl())
                 {

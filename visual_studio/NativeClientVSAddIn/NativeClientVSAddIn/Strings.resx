@@ -183,4 +183,7 @@
   <data name="WebServerStopMessage" xml:space="preserve">
     <value>Killing web server...</value>
   </data>
+  <data name="NaClARMPlatformName" xml:space="preserve">
+    <value>NaClARM</value>
+  </data>
 </root>

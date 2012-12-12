@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|NaClARM">
+      <Configuration>Debug</Configuration>
+      <Platform>NaClARM</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|NaCl32">
       <Configuration>Debug</Configuration>
       <Platform>NaCl32</Platform>
@@ -16,6 +20,10 @@
     <ProjectConfiguration Include="Debug|PPAPI">
       <Configuration>Debug</Configuration>
       <Platform>PPAPI</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|NaClARM">
+      <Configuration>Release</Configuration>
+      <Platform>NaClARM</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|NaCl32">
       <Configuration>Release</Configuration>
@@ -131,6 +139,16 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PNaCl'">
     <Link>
       <AdditionalDependencies>ppapi_cpp;ppapi;ppapi_gles2</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|NaClARM'">
+    <Link>
+      <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|NaClARM'">
+    <Link>
+      <AdditionalDependencies>ppapi;ppapi_gles2</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

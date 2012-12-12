@@ -14,6 +14,7 @@ namespace UnitTests
   using EnvDTE80;
   using Microsoft.VisualStudio.TestTools.UnitTesting;
   using Microsoft.VisualStudio.VCProjectEngine;
+  using NativeClientVSAddIn;
 
   /// <summary>
   /// This class contains utilities for running tests.
@@ -28,7 +29,7 @@ namespace UnitTests
     /// <summary>
     /// Uniquename of the NaCl project in BlankValidSolution.
     /// </summary>
-    public const string BlankNaClProjectUniqueName = @"NaClProject\NaClProject.vcxproj";
+    public const string NaClProjectUniqueName = @"NaClProject\NaClProject.vcxproj";
 
     /// <summary>
     /// Uniquename of the non-NaCl project in BlankValidSolution.
@@ -103,31 +104,30 @@ namespace UnitTests
       try
       {
         dte.Solution.Open(newSolution);
-        Project proj = dte.Solution.Projects.Item(BlankNaClProjectUniqueName);
+        Project proj = dte.Solution.Projects.Item(NaClProjectUniqueName);
 
         // Order matters if copying from the other Native Client type.
-        if (pepperCopyFrom == NativeClientVSAddIn.Strings.NaCl64PlatformName)
+        if (PropertyManager.IsNaClPlatform(pepperCopyFrom))
         {
-          proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.NaCl64PlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.PNaClPlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.PepperPlatformName, pepperCopyFrom, true);
+          // create nacl platforms first
+          proj.ConfigurationManager.AddPlatform(Strings.NaCl64PlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.NaCl32PlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.NaClARMPlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.PNaClPlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.PepperPlatformName, pepperCopyFrom, true);
         }
         else
         {
-          proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.PepperPlatformName, pepperCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.NaCl64PlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(
-            NativeClientVSAddIn.Strings.PNaClPlatformName, naclCopyFrom, true);
+          // create pepper platform first
+          proj.ConfigurationManager.AddPlatform(Strings.PepperPlatformName, pepperCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.NaCl64PlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.NaCl32PlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.NaClARMPlatformName, naclCopyFrom, true);
+          proj.ConfigurationManager.AddPlatform(Strings.PNaClPlatformName, naclCopyFrom, true);
         }
 
         // Set the active solution configuration to Debug|NaCl64.
-        SetSolutionConfiguration(
-            dte, BlankNaClProjectUniqueName, "Debug", NativeClientVSAddIn.Strings.NaCl64PlatformName);
+        SetSolutionConfiguration(dte, NaClProjectUniqueName, "Debug", Strings.NaCl64PlatformName);
 
         proj.Save();
         dte.Solution.SaveAs(newSolution);

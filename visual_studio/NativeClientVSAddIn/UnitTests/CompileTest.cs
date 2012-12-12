@@ -9,6 +9,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
 using NaCl.Build.CPPTasks;
+using NativeClientVSAddIn;
 
 namespace UnitTests
 {
@@ -39,8 +40,8 @@ namespace UnitTests
                 SolutionName_ = TestUtilities.CreateBlankValidNaClSolution(
                     dte,
                     "CompileTest",
-                    NativeClientVSAddIn.Strings.PepperPlatformName,
-                    NativeClientVSAddIn.Strings.NaCl64PlatformName,
+                    Strings.PepperPlatformName,
+                    Strings.NaCl64PlatformName,
                     testContext);
             }
             finally
@@ -67,7 +68,7 @@ namespace UnitTests
             dte_ = TestUtilities.StartVisualStudioInstance();
             try
             {
-                TestUtilities.AssertAddinLoaded(dte_, NativeClientVSAddIn.Strings.AddInName);
+                TestUtilities.AssertAddinLoaded(dte_, Strings.AddInName);
             }
             catch
             {
@@ -94,7 +95,7 @@ namespace UnitTests
             // Open Debug configuration and build.
             dte_.Solution.Open(SolutionName_);
             TestUtilities.SetSolutionConfiguration(
-                dte_, TestUtilities.BlankNaClProjectUniqueName, configName, platformName);
+                dte_, TestUtilities.NaClProjectUniqueName, configName, platformName);
             dte_.Solution.SolutionBuild.Build(true);
 
             string compileOutput = TestUtilities.GetPaneText(
@@ -115,7 +116,7 @@ namespace UnitTests
         private void SetProjectType(string projectType, string platformName)
         {
             dte_.Solution.Open(SolutionName_);
-            Project project = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
+            Project project = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
             VCConfiguration config;
             IVCRulePropertyStorage rule;
 
@@ -133,9 +134,23 @@ namespace UnitTests
         /// Test method to check that the NaCl platform compiles a test project.
         /// </summary>
         [TestMethod]
-        public void CheckNaClCompile()
+        public void CheckNaCl64Compile()
         {
-            CheckCompile(NativeClientVSAddIn.Strings.NaCl64PlatformName, false);
+            CheckCompile(Strings.NaCl64PlatformName, false);
+        }
+
+        /// <summary>
+        /// Test method to check that the NaCl platform compiles a test project.
+        /// </summary>
+        [TestMethod]
+        public void CheckNaClARMCompile()
+        {
+            string root = System.Environment.GetEnvironmentVariable("NACL_SDK_ROOT");
+            if (!SDKUtilities.SupportsARM(root))
+            {
+                Assert.Inconclusive();
+            }
+            CheckCompile(Strings.NaClARMPlatformName, false);
         }
 
         /// <summary>
@@ -144,7 +159,7 @@ namespace UnitTests
         [TestMethod]
         public void CheckPepperCompile()
         {
-            CheckCompile(NativeClientVSAddIn.Strings.PepperPlatformName, true);
+            CheckCompile(Strings.PepperPlatformName, true);
         }
 
         /// <summary>
@@ -158,7 +173,7 @@ namespace UnitTests
             {
                 Assert.Inconclusive();
             }
-            CheckCompile(NativeClientVSAddIn.Strings.PNaClPlatformName, false);
+            CheckCompile(Strings.PNaClPlatformName, false);
         }
 
         private void CheckCompile(string platform, bool dll)

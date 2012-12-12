@@ -66,11 +66,29 @@ namespace NaCl.Build.CPPTasks
         /// </summary>
         public static bool SupportsPNaCl(string root)
         {
-            int revision;
-            int version = GetSDKVersion(root, out revision);
-            if (version > MinPNaCLSDKVersion)
+            return CheckVersionAtLeast(root, MinPNaCLSDKVersion, MinPNaCLSDKRevision);
+        }
+
+        /// <summary>
+        /// Retrun true if the NaCl SDK at the given location supports
+        /// the native arm untrusted toolchain.
+        /// </summary>
+        public static bool SupportsARM(string root)
+        {
+            return CheckVersionAtLeast(root, 25, 172272);
+        }
+
+        /// <summary>
+        /// Return true if the NaCl SDK at the given location is at the given
+        /// version or higher.
+        /// </summary>
+        public static bool CheckVersionAtLeast(string root, int version, int revision)
+        {
+            int sdkRevision;
+            int sdkVersion = GetSDKVersion(root, out sdkRevision);
+            if (sdkVersion > version)
                 return true;
-            if (version == MinPNaCLSDKVersion && revision >= MinPNaCLSDKRevision)
+            if (sdkVersion == version && sdkRevision >= revision)
                 return true;
             return false;
         }

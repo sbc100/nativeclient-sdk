@@ -105,7 +105,7 @@ namespace UnitTests
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(naclSolution);
 
-      Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
+      Project naclProject = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
       Project notNacl = dte_.Solution.Projects.Item(TestUtilities.NotNaClProjectUniqueName);
 
       // Invalid project.
@@ -120,14 +120,15 @@ namespace UnitTests
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
           target.PlatformType,
-          "SetTarget did not succeed with nacl platform on valid project.");
+          "SetTarget did not succeed with NaCl64 platform on valid project.");
       Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
-      
-      target.SetTarget(naclProject, "Win32", "Debug");
+
+      target.SetTarget(naclProject, Strings.NaClARMPlatformName, "Debug");
       Assert.AreEqual(
-          PropertyManager.ProjectPlatformType.Other,
+          PropertyManager.ProjectPlatformType.NaCl,
           target.PlatformType,
-          "SetTarget did not set 'other' platform on when Win32 platform of valid project.");
+          "SetTarget did not succeed with NaClARM platform on valid project.");
+      Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
 
       target.SetTarget(naclProject, Strings.PNaClPlatformName, "Debug");
       Assert.AreEqual(
@@ -143,6 +144,12 @@ namespace UnitTests
           "SetTarget did not succeed with pepper platform on valid project.");
       Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root incorrect.");
 
+      target.SetTarget(naclProject, "Win32", "Debug");
+      Assert.AreEqual(
+          PropertyManager.ProjectPlatformType.Other,
+          target.PlatformType,
+          "SetTarget did not set 'other' platform on when Win32 platform of valid project.");
+
       // Setting the start-up project to a non-cpp project should make loading fail.
       object[] badStartupProj = { TestUtilities.NotNaClProjectUniqueName };
       dte_.Solution.SolutionBuild.StartupProjects = badStartupProj;
@@ -154,19 +161,19 @@ namespace UnitTests
 
       // Setting the start-up project to correct C++ project, but also setting the platform
       // to non-nacl/pepper should make loading fail.
-      object[] startupProj = { TestUtilities.BlankNaClProjectUniqueName };
+      object[] startupProj = { TestUtilities.NaClProjectUniqueName };
       dte_.Solution.SolutionBuild.StartupProjects = startupProj;
-      TestUtilities.SetSolutionConfiguration(
-          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", "Win32");
+      TestUtilities.SetSolutionConfiguration(dte_, TestUtilities.NaClProjectUniqueName,
+                                             "Debug", "Win32");
       target.SetTargetToActive(dte_);
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.Other,
           target.PlatformType,
           "SetTargetToActive should not succeed with Win32 platform.");
 
-      // Now setting the platform to NaCl should make this succeed.
-      TestUtilities.SetSolutionConfiguration(
-          dte_, TestUtilities.BlankNaClProjectUniqueName, "Debug", Strings.NaCl64PlatformName);
+      // Now setting the platform to NaCl64 should make this succeed.
+      TestUtilities.SetSolutionConfiguration(dte_, TestUtilities.NaClProjectUniqueName,
+                                             "Debug", Strings.NaCl64PlatformName);
       target.SetTargetToActive(dte_);
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
@@ -189,7 +196,7 @@ namespace UnitTests
       // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(naclSolution);
-      Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
+      Project naclProject = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
       target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
       Assert.AreEqual(
           PropertyManager.ProjectPlatformType.NaCl,
@@ -198,7 +205,7 @@ namespace UnitTests
 
       string slnDir = Path.GetDirectoryName(naclSolution);
       string projectDir = Path.Combine(
-          slnDir, Path.GetDirectoryName(TestUtilities.BlankNaClProjectUniqueName)) + @"\";
+          slnDir, Path.GetDirectoryName(TestUtilities.NaClProjectUniqueName)) + @"\";
       string outputDir = Path.Combine(projectDir, "NaCl64", "newlib", "Debug") + @"\";
       string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + "_64.nexe");
 
@@ -226,7 +233,7 @@ namespace UnitTests
         // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
         PropertyManager target = new PropertyManager();
         dte_.Solution.Open(naclSolution);
-        Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
+        Project naclProject = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
         target.SetTarget(naclProject, Strings.PNaClPlatformName, "Debug");
         Assert.AreEqual(
             PropertyManager.ProjectPlatformType.NaCl,
@@ -235,7 +242,7 @@ namespace UnitTests
 
         string slnDir = Path.GetDirectoryName(naclSolution);
         string projectDir = Path.Combine(
-            slnDir, Path.GetDirectoryName(TestUtilities.BlankNaClProjectUniqueName)) + @"\";
+            slnDir, Path.GetDirectoryName(TestUtilities.NaClProjectUniqueName)) + @"\";
         string outputDir = Path.Combine(projectDir, "PNaCl", "newlib", "Debug") + @"\";
         string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + ".pexe");
 
@@ -243,6 +250,15 @@ namespace UnitTests
         Assert.AreEqual(projectDir, target.ProjectDirectory, "ProjectDirectory.");
         Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
         Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
+    }
+
+    /// <summary>
+    /// Return a list of all nacl platform names.
+    /// </summary>
+    public static string[] NaClPlatformNames()
+    {
+        return new string[] { Strings.NaCl32PlatformName, Strings.NaCl64PlatformName,
+                              Strings.NaClARMPlatformName, Strings.PNaClPlatformName };
     }
 
     /// <summary>
@@ -261,19 +277,23 @@ namespace UnitTests
       // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(setTargetSolution);
-      Project naclProject = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
-      target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
-      Assert.AreEqual(
-          PropertyManager.ProjectPlatformType.NaCl,
-          target.PlatformType,
-          "SetTarget did not succeed with nacl platform on valid project.");
+      Project naclProject = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
 
-      string newValue = "ThisIsNew";
-      target.SetProperty("ConfigurationGeneral", "VSNaClSDKRoot", newValue);
-      Assert.AreEqual(
-          newValue,
-          target.GetProperty("ConfigurationGeneral", "VSNaClSDKRoot"),
-          "SetProperty() did not set property VSNaClSDKRoot.");
+      foreach (string platform in NaClPlatformNames())
+      {
+          target.SetTarget(naclProject, platform, "Debug");
+          Assert.AreEqual(
+              PropertyManager.ProjectPlatformType.NaCl,
+              target.PlatformType,
+              "SetTarget did not succeed with nacl platform on valid project.");
+
+          string newValue = "ThisIsNew";
+          target.SetProperty("ConfigurationGeneral", "VSNaClSDKRoot", newValue);
+          Assert.AreEqual(
+              newValue,
+              target.GetProperty("ConfigurationGeneral", "VSNaClSDKRoot"),
+              "SetProperty() did not set property VSNaClSDKRoot.");
+      }
     }
   }
 }

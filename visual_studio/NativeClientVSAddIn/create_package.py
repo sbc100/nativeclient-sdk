@@ -171,13 +171,26 @@ def main():
   AddFolderToArchive(RESOURCE_DIRECTORY, archive)
 
   # Duplicate the NaCl64 platform but rename it to NaCl32
-  src64 = join(RESOURCE_DIRECTORY, 'NaCl64')
+  src = join(RESOURCE_DIRECTORY, 'NaCl64')
 
+  # Create NaCl32
   dest = join(BUILD_DIR, 'NaCl32')
-  CopyWithReplacement(src64, dest, {'x86_64': 'i686', '64': '32'})
+  CopyWithReplacement(src, dest, {'x86_64': 'i686', '64': '32'})
   AddFolderToArchive(dest, archive, "NaCl32")
 
-  replacements = {
+  # Create NaClARM
+  arm_replacements = {
+      'x86_64': 'arm',
+      '64': 'arm',
+      'win_x86': 'win_arm'
+  }
+
+  dest = join(BUILD_DIR, 'NaClARM')
+  CopyWithReplacement(src, dest, arm_replacements)
+  AddFolderToArchive(dest, archive, "NaClARM")
+
+  # Create PNaCl
+  pnacl_replacements = {
       'NaCl64': 'PNaCl',
       'x86_64': 'i686',
       '64': '32',
@@ -187,7 +200,7 @@ def main():
   }
 
   dest = join(BUILD_DIR, 'PNaCl')
-  CopyWithReplacement(src64, dest, replacements)
+  CopyWithReplacement(src, dest, pnacl_replacements)
   AddFolderToArchive(dest, archive, "PNaCl")
 
   AddVersionModifiedAddinFile(archive)

@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world_gles", "hello_world_gles\hello_world_gles.vcxproj", "{F82336A6-3A85-45E2-9A96-26DEA54280C5}"
@@ -7,10 +7,12 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|NaCl32 = Debug|NaCl32
 		Debug|NaCl64 = Debug|NaCl64
+		Debug|NaClARM = Debug|NaClARM
 		Debug|PNaCl = Debug|PNaCl
 		Debug|PPAPI = Debug|PPAPI
 		Release|NaCl32 = Release|NaCl32
 		Release|NaCl64 = Release|NaCl64
+		Release|NaClARM = Release|NaClARM
 		Release|PNaCl = Release|PNaCl
 		Release|PPAPI = Release|PPAPI
 	EndGlobalSection
@@ -19,6 +21,8 @@ Global
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl32.Build.0 = Debug|NaCl32
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl64.ActiveCfg = Debug|NaCl64
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaCl64.Build.0 = Debug|NaCl64
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaClARM.ActiveCfg = Debug|NaClARM
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|NaClARM.Build.0 = Debug|NaClARM
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PNaCl.ActiveCfg = Debug|PNaCl
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PNaCl.Build.0 = Debug|PNaCl
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Debug|PPAPI.ActiveCfg = Debug|PPAPI
@@ -27,6 +31,8 @@ Global
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl32.Build.0 = Release|NaCl32
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl64.ActiveCfg = Release|NaCl64
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaCl64.Build.0 = Release|NaCl64
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaClARM.ActiveCfg = Release|NaClARM
+		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|NaClARM.Build.0 = Release|NaClARM
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PNaCl.ActiveCfg = Release|PNaCl
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PNaCl.Build.0 = Release|PNaCl
 		{F82336A6-3A85-45E2-9A96-26DEA54280C5}.Release|PPAPI.ActiveCfg = Release|PPAPI

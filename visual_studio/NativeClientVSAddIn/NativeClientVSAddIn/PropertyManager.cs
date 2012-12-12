@@ -247,6 +247,7 @@ namespace NativeClientVSAddIn
     {
         return platformName.Equals(Strings.NaCl32PlatformName, StringComparison.OrdinalIgnoreCase) ||
                platformName.Equals(Strings.NaCl64PlatformName, StringComparison.OrdinalIgnoreCase) ||
+               platformName.Equals(Strings.NaClARMPlatformName, StringComparison.OrdinalIgnoreCase) ||
                platformName.Equals(Strings.PNaClPlatformName, StringComparison.OrdinalIgnoreCase);
     }
 

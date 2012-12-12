@@ -12,6 +12,7 @@ namespace UnitTests
   using Microsoft.VisualStudio.TestTools.UnitTesting;
   using Microsoft.VisualStudio.VCProjectEngine;
   using NaCl.Build.CPPTasks;
+  using NativeClientVSAddIn;
 
   /// <summary>
   /// This test class contains tests related to the custom project settings
@@ -63,8 +64,8 @@ namespace UnitTests
         naclSolutionEmptyInitialization = TestUtilities.CreateBlankValidNaClSolution(
             dte,
             "ProjectSettingsTestEmptyInit",
-            NativeClientVSAddIn.Strings.PepperPlatformName,
-            NativeClientVSAddIn.Strings.NaCl64PlatformName,
+            Strings.PepperPlatformName,
+            Strings.NaCl64PlatformName,
             testContext);
       }
       finally
@@ -82,7 +83,7 @@ namespace UnitTests
       dte_ = TestUtilities.StartVisualStudioInstance();
       try
       {
-        TestUtilities.AssertAddinLoaded(dte_, NativeClientVSAddIn.Strings.AddInName);
+        TestUtilities.AssertAddinLoaded(dte_, Strings.AddInName);
       }
       catch
       {
@@ -107,28 +108,26 @@ namespace UnitTests
     [TestMethod]
     public void VerifySettingsWin32Initialization()
     {
-      string naclSolutionWin32Initialization = TestUtilities.CreateBlankValidNaClSolution(
+      string solutionWin32Initialization = TestUtilities.CreateBlankValidNaClSolution(
             dte_, "ProjectSettingsTestWin32Init", "Win32", "Win32", TestContext);
-      VerifyDefaultPepperSettings(naclSolutionWin32Initialization);
-      VerifyDefaultNaClSettings(naclSolutionWin32Initialization);
+      VerifyDefaultPepperSettings(solutionWin32Initialization);
+      VerifyDefaultNaClSettings(solutionWin32Initialization);
 
       // Win32 inherit specific checks on the Pepper platform.
-      OpenSolutionAndGetProperties(
-          naclSolutionWin32Initialization, NativeClientVSAddIn.Strings.PepperPlatformName);
+      OpenSolutionAndGetProperties(solutionWin32Initialization, Strings.PepperPlatformName);
 
       // When inheriting from Win32 preprocessor the PPAPI preprocessor definition gets grouped
       // into the inherited %(PreprocessorDefinitions) variable. It still exists but doesn't appear
       // in the property page, thus we can't check for it here.
 
-      //// TODO(tysand): When inheriting from Win32 this won't set and the Win32 platform
-      //// incorrectly(?) sets this to true in the Release config even for regular win32 projects.
-      ////TestUtilities.AssertPropertyEquals(
-      ////    release_, "Link", "GenerateDebugInformation", "false", false);
+      // TODO(tysand): When inheriting from Win32 this won't set and the Win32 platform
+      // incorrectly(?) sets this to true in the Release config even for regular win32 projects.
+      //TestUtilities.AssertPropertyEquals(
+      //    release_, "Link", "GenerateDebugInformation", "false", false);
       dte_.Solution.Close();
 
       // NaCl inherit specific checks on the NaCl platform.
-      OpenSolutionAndGetProperties(
-          naclSolutionWin32Initialization, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+      OpenSolutionAndGetProperties(solutionWin32Initialization, Strings.NaCl64PlatformName);
       AllConfigsAssertPropertyEquals("ConfigurationGeneral", "TargetExt", ".so", true);
       AllConfigsAssertPropertyEquals(
           "ConfigurationGeneral", "ConfigurationType", "DynamicLibrary", true);
@@ -143,26 +142,24 @@ namespace UnitTests
     [TestMethod]
     public void VerifySettingsPepperInitialization()
     {
-      string naclSolutionPepperInitialization = TestUtilities.CreateBlankValidNaClSolution(
+      string solutionPepperInitialization = TestUtilities.CreateBlankValidNaClSolution(
           dte_,
           "ProjectSettingsTestPepperInit",
-          NativeClientVSAddIn.Strings.PepperPlatformName,
-          NativeClientVSAddIn.Strings.PepperPlatformName,
+          Strings.PepperPlatformName,
+          Strings.PepperPlatformName,
           TestContext);
-      VerifyDefaultPepperSettings(naclSolutionPepperInitialization);
-      VerifyDefaultNaClSettings(naclSolutionPepperInitialization);
+      VerifyDefaultPepperSettings(solutionPepperInitialization);
+      VerifyDefaultNaClSettings(solutionPepperInitialization);
 
       // Pepper inherit specific checks on the Pepper platform.
-      OpenSolutionAndGetProperties(
-          naclSolutionPepperInitialization, NativeClientVSAddIn.Strings.PepperPlatformName);
+      OpenSolutionAndGetProperties(solutionPepperInitialization, Strings.PepperPlatformName);
       AllConfigsAssertPropertyContains("CL", "PreprocessorDefinitions", "PPAPI", false);
       TestUtilities.AssertPropertyEquals(
           release_, "Link", "GenerateDebugInformation", "false", false);
       dte_.Solution.Close();
 
       // NaCl inherit specific checks on the NaCl platform.
-      OpenSolutionAndGetProperties(
-          naclSolutionPepperInitialization, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+      OpenSolutionAndGetProperties(solutionPepperInitialization, Strings.NaCl64PlatformName);
       AllConfigsAssertPropertyEquals("ConfigurationGeneral", "TargetExt", ".nexe", true);
       AllConfigsAssertPropertyEquals(
           "ConfigurationGeneral", "ConfigurationType", "Application", true);
@@ -180,11 +177,11 @@ namespace UnitTests
         string slnName = TestUtilities.CreateBlankValidNaClSolution(
             dte_,
             "OverrideSDKRootPepper",
-            NativeClientVSAddIn.Strings.PepperPlatformName,
-            NativeClientVSAddIn.Strings.PepperPlatformName,
+            Strings.PepperPlatformName,
+            Strings.PepperPlatformName,
             TestContext);
 
-        OpenSolutionAndGetProperties(slnName, NativeClientVSAddIn.Strings.PepperPlatformName);
+        OpenSolutionAndGetProperties(slnName, Strings.PepperPlatformName);
 
         // VC++ Directories
         string page = "ConfigurationGeneral";
@@ -213,11 +210,11 @@ namespace UnitTests
         string slnName = TestUtilities.CreateBlankValidNaClSolution(
             dte_,
             "OverrideSDKRootNaCl",
-            NativeClientVSAddIn.Strings.NaCl64PlatformName,
-            NativeClientVSAddIn.Strings.NaCl64PlatformName,
+            Strings.NaCl64PlatformName,
+            Strings.NaCl64PlatformName,
             TestContext);
 
-        OpenSolutionAndGetProperties(slnName, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+        OpenSolutionAndGetProperties(slnName, Strings.NaCl64PlatformName);
 
         // VC++ Directories
         string page = "ConfigurationGeneral";
@@ -240,26 +237,24 @@ namespace UnitTests
     [TestMethod]
     public void VerifySettingsNaClInitialization()
     {
-      string naclSolutionNaClInitialization = TestUtilities.CreateBlankValidNaClSolution(
+      string solutionNaClInitialization = TestUtilities.CreateBlankValidNaClSolution(
           dte_,
           "ProjectSettingsTestNaClInit",
-          NativeClientVSAddIn.Strings.NaCl64PlatformName,
-          NativeClientVSAddIn.Strings.NaCl64PlatformName,
+          Strings.NaCl64PlatformName,
+          Strings.NaCl64PlatformName,
           TestContext);
-      VerifyDefaultPepperSettings(naclSolutionNaClInitialization);
-      VerifyDefaultNaClSettings(naclSolutionNaClInitialization);
+      VerifyDefaultPepperSettings(solutionNaClInitialization);
+      VerifyDefaultNaClSettings(solutionNaClInitialization);
 
       // NaCl inherit specific checks on the Pepper platform.
-      OpenSolutionAndGetProperties(
-          naclSolutionNaClInitialization, NativeClientVSAddIn.Strings.PepperPlatformName);
+      OpenSolutionAndGetProperties(solutionNaClInitialization, Strings.PepperPlatformName);
       AllConfigsAssertPropertyContains("CL", "PreprocessorDefinitions", "PPAPI", false);
       TestUtilities.AssertPropertyEquals(
           release_, "Link", "GenerateDebugInformation", "false", false);
       dte_.Solution.Close();
 
       // NaCl inherit specific checks on the NaCl platform.
-      OpenSolutionAndGetProperties(
-          naclSolutionNaClInitialization, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+      OpenSolutionAndGetProperties(solutionNaClInitialization, Strings.NaCl64PlatformName);
       AllConfigsAssertPropertyEquals("ConfigurationGeneral", "TargetExt", ".nexe", true);
       AllConfigsAssertPropertyEquals(
           "ConfigurationGeneral", "ConfigurationType", "Application", true);
@@ -273,7 +268,7 @@ namespace UnitTests
     /// <param name="naclSolution">Path to the solution file to verify.</param>
     private void VerifyDefaultPepperSettings(string naclSolution)
     {
-      OpenSolutionAndGetProperties(naclSolution, NativeClientVSAddIn.Strings.PepperPlatformName);
+      OpenSolutionAndGetProperties(naclSolution, Strings.PepperPlatformName);
 
       string page;
 
@@ -291,7 +286,7 @@ namespace UnitTests
       // Debugging
       page = "WindowsLocalDebugger";
       string chromePath = System.Environment.GetEnvironmentVariable(
-          NativeClientVSAddIn.Strings.ChromePathEnvironmentVariable);
+          Strings.ChromePathEnvironmentVariable);
       AllConfigsAssertPropertyEquals(
           page, "LocalDebuggerCommand", chromePath, true);
 
@@ -357,7 +352,7 @@ namespace UnitTests
     /// <param name="naclSolution">Path to the solution file to verify.</param>
     private void VerifyDefaultNaClSettings(string naclSolution)
     {
-      OpenSolutionAndGetProperties(naclSolution, NativeClientVSAddIn.Strings.NaCl64PlatformName);
+      OpenSolutionAndGetProperties(naclSolution, Strings.NaCl64PlatformName);
 
       string page;
 
@@ -376,7 +371,7 @@ namespace UnitTests
       // Debugging
       page = "WindowsLocalDebugger";
       string chromePath = System.Environment.GetEnvironmentVariable(
-          NativeClientVSAddIn.Strings.ChromePathEnvironmentVariable);
+          Strings.ChromePathEnvironmentVariable);
       AllConfigsAssertPropertyEquals(
           page, "LocalDebuggerCommand", chromePath, true);
 
@@ -445,7 +440,7 @@ namespace UnitTests
     {
       // Extract the debug and release configurations for Pepper from the project.
       dte_.Solution.Open(solutionPath);
-      Project project = dte_.Solution.Projects.Item(TestUtilities.BlankNaClProjectUniqueName);
+      Project project = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
       Assert.IsNotNull(project, "Testing project was not found");
       debug_ = TestUtilities.GetVCConfiguration(project, "Debug", platformName);
       release_ = TestUtilities.GetVCConfiguration(project, "Release", platformName);

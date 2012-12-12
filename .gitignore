@@ -52,6 +52,7 @@ StyleCop.Cache
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaCl64
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/PNaCl
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaCl32
+/visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/NaClARM
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/chrome_data
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/newlib
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/glibc
