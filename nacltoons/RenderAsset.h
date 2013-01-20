@@ -50,40 +50,4 @@ protected:
 };
 
 
-class RenderAssetShader : public RenderAsset {
- public:
-  virtual void ReleaseID();
-  virtual bool Update();
-};
-
-class RenderAssetVertexShader : public RenderAssetShader {
- public:
-  virtual GLuint AcquireID();
-};
-
-class RenderAssetFragmentShader : public RenderAssetShader {
- public:
-  virtual GLuint AcquireID();
-};
-
-class RenderAssetTexture : public RenderAsset {
- public:
-  explicit RenderAssetTexture(GLenum format);
-
-  // For use with RAW
-  explicit RenderAssetTexture(GLenum format, uint32_t width,
-                              uint32_t height, uint32_t channels);
-
-  virtual GLuint AcquireID();
-  virtual void ReleaseID();
-  virtual bool Update();
-
- protected:
-  uint32_t width_;
-  uint32_t height_;
-  uint32_t channels_;
-  GLenum format_;
-};
-
-
-#endif  // RENDER_ASSET
+#endif  // RENDER_ASSET_

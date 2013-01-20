@@ -46,7 +46,9 @@
 
 #include <GLES2/gl2.h>
 
-#include "RenderAsset.h"
+#include "RenderAssetProgram.h"
+#include "RenderAssetShader.h"
+#include "RenderAssetTexture.h"
 #include "matrix.h"
 
 
