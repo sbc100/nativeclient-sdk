@@ -19,7 +19,7 @@ var common = (function () {
    * @param {string} path Directory name where .nmf file can be found.
    * @param {number} width The width to create the plugin.
    * @param {number} height The height to create the plugin.
-   * @param {args} optional dictionary of args to send to DidCreateInstance
+   * @param {Object} optional dictionary of args to send to DidCreateInstance
    */
   function createNaClModule(name, tool, path, width, height, args) {
     var moduleEl = document.createElement('embed');

@@ -14,9 +14,19 @@
 #
 # By default we will build a Debug configuration using the GCC newlib toolcahin
 # to override this, specify TOOLCHAIN=newlib|glibc or CONFIG=Debug|Release on
-# the make command-line or in this file prior to including common.mk
+# the make command-line or in this file prior to including common.mk.  The
+# toolchain we use by default will be the first valid one listed
+VALID_TOOLCHAINS:=newlib glibc
+
+
 #
-include common.mk
+# Get pepper directory for toolchain and includes.
+#
+# If NACL_SDK_ROOT is not set, then assume it can be found relative to
+# to this Makefile.
+#
+NACL_SDK_ROOT?=$(abspath $(CURDIR)/../..)
+include $(NACL_SDK_ROOT)/tools/common.mk
 
 
 #
@@ -25,12 +35,13 @@ include common.mk
 # The base name of the final NEXE, also the name of the NMF file containing
 # the mapping between architecture and actual NEXE.
 #
-TARGET=hello_world_instance3d
+TARGET=hello_world_gles
 
 #
 # List of sources to compile
 #
 SOURCES=hello_world.cc matrix.cc
+SOURCES+=RenderAsset.cc RenderAssetShader.cc RenderAssetTexture.cc
 
 
 #
@@ -43,16 +54,12 @@ SOURCES=hello_world.cc matrix.cc
 # switches.
 #
 # We break this list down into two parts, the set we need to rebuild (DEPS)
-# and the set we do not.
+# and the set we do not. This  example does not have any additional library
+# dependencies.
 #
-PORTS=vorbis openal
-DEPS=ppapi_main nacl_mounts
-LIBS=$(DEPS) ppapi_cpp ppapi_gles2 ppapi pthread
+DEPS=ppapi_main nacl_mounts ppapi_cpp ppapi_gles2
+LIBS=$(DEPS) ppapi pthread
 
-.PHONY : PORTDEPS
-
-PORTDEPS:
-	make -C $(NACL_PORTS)/make $(PORTS)
 
 #
 # Use the library dependency macro for each dependency
@@ -67,7 +74,7 @@ $(foreach src,$(SOURCES),$(eval $(call COMPILE_RULE,$(src))))
 #
 # Use the link macro for this target on the list of sources.
 #
-$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS)))
+$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
 
 #
 # Specify the NMF to be created with no additional arugments.

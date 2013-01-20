@@ -13,6 +13,7 @@
 //---------------------------------------------------------------------------
 
 #define _USE_MATH_DEFINES 1
+#include <fcntl.h>
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
@@ -20,6 +21,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "nacl_mounts/nacl_mounts.h"
 
 #include "ppapi/c/pp_completion_callback.h"
 #include "ppapi/c/pp_errors.h"
@@ -28,10 +34,7 @@
 #include "ppapi/c/pp_stdint.h"
 #include "ppapi/c/pp_var.h"
 #include "ppapi/c/ppb.h"
-#include "ppapi/c/ppb_core.h"
 #include "ppapi/c/ppb_opengles2.h"
-#include "ppapi/c/ppb_url_loader.h"
-#include "ppapi/c/ppb_url_request_info.h"
 #include "ppapi/c/ppb_var.h"
 #include "ppapi/c/ppp.h"
 #include "ppapi/c/ppp_graphics_3d.h"
@@ -42,16 +45,16 @@
 #include "ppapi_main/ppapi_main.h"
 
 #include <GLES2/gl2.h>
+
+#include "RenderAsset.h"
 #include "matrix.h"
 
+
+RenderAssetTexture g_Texture(GL_RGB, 128, 128, 3);
+RenderAssetVertexShader g_vShader;
+RenderAssetFragmentShader g_fShader;
+
 static PP_Instance s_instance = 0;
-
-static PPB_Core* ppb_core_interface = NULL;
-static PPB_URLLoader* ppb_urlloader_interface = NULL;
-static PPB_URLRequestInfo* ppb_urlrequestinfo_interface = NULL;
-static PPB_Var* ppb_var_interface = NULL;
-
-static PP_Instance g_instance;
 
 GLuint  g_positionLoc;
 GLuint  g_texCoordLoc;
@@ -90,9 +93,6 @@ int g_LoadCnt = 0;
 //----------------------------------------------------------------------------
 // PROTOTYPES
 //----------------------------------------------------------------------------
-void PostMessage(const char *fmt, ...);
-char* LoadFile(const char *fileName);
-
 void BuildQuad(Vertex* verts, int axis[3], float depth, float color[3]);
 Vertex* BuildCube(void);
 
@@ -100,13 +100,6 @@ void InitGL(void);
 void InitProgram(void);
 void Render(void);
 
-
-static struct PP_Var CStrToVar(const char* str) {
-  if (ppb_var_interface != NULL) {
-    return ppb_var_interface->VarFromUtf8(str, strlen(str));
-  }
-  return PP_MakeUndefined();
-}
 
 GLuint compileShader(GLenum type, const char *data) {
   const char *shaderStrings[1];
@@ -121,12 +114,9 @@ GLuint compileShader(GLenum type, const char *data) {
 
 void InitProgram( void )
 {
-  g_vertexShader = compileShader(GL_VERTEX_SHADER, g_VShaderData);
-  g_fragmentShader = compileShader(GL_FRAGMENT_SHADER, g_FShaderData);
-
   g_programObj = glCreateProgram();
-  glAttachShader(g_programObj, g_vertexShader);
-  glAttachShader(g_programObj, g_fragmentShader);
+  glAttachShader(g_programObj, g_vShader.GetID());
+  glAttachShader(g_programObj, g_fShader.GetID());
   glLinkProgram(g_programObj);
 
   glGenBuffers(1, &g_vboID);
@@ -139,20 +129,13 @@ void InitProgram( void )
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(char),
                (void*)&g_Indices[0], GL_STATIC_DRAW);
 
-  //
-  // Create a texture to test out our fragment shader...
-  //
-  glGenTextures(1, &g_textureID);
-  glBindTexture(GL_TEXTURE_2D, g_textureID);
+  glBindTexture(GL_TEXTURE_2D, g_Texture.GetID());
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 128, 0, GL_RGB,
-               GL_UNSIGNED_BYTE, g_TextureData);
-
   //
   // Locate some parameters by name so we can set them later...
   //
-  g_textureLoc = glGetUniformLocation(g_programObj, "arrowTexture");
+  g_textureLoc = glGetUniformLocation(g_programObj, "s_texture");
   g_positionLoc = glGetAttribLocation(g_programObj, "a_position");
   g_texCoordLoc = glGetAttribLocation(g_programObj, "a_texCoord");
   g_colorLoc = glGetAttribLocation(g_programObj, "a_color");
@@ -232,10 +215,10 @@ void PPAPIRender( uint32_t width, uint32_t height )
   glEnable(GL_DEPTH_TEST);
 
   //set what program to use
-  glUseProgram( g_programObj );
-  glActiveTexture ( GL_TEXTURE0 );
-  glBindTexture ( GL_TEXTURE_2D,g_textureID );
-  glUniform1i ( g_textureLoc, 0 );
+  glUseProgram(g_programObj);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, g_Texture.GetID());
+  glUniform1i(g_textureLoc, 0);
 
   //create our perspective matrix
   float mpv[16];
@@ -268,89 +251,22 @@ void PPAPIRender( uint32_t width, uint32_t height )
 }
 
 
-const char *LoadURL(const char *url) {
-  PP_Bool res;
-  int val;
 
-  PP_Resource loader = 0;
-  loader = ppb_urlloader_interface->Create(s_instance);
-  if (0 == loader) {
-    printf("Failed to get loader.\n");
-    return NULL;
-  }
-  printf("Got loader.\n");
-
-  PP_Resource request = 0;
-  request = ppb_urlrequestinfo_interface->Create(s_instance);
-  if (0 == loader) {
-    printf("Failed to get request.\n");
-    return NULL;
-  }
-
-  ppb_urlrequestinfo_interface->SetProperty(request,
-      PP_URLREQUESTPROPERTY_URL, CStrToVar(url));
-
-  ppb_urlrequestinfo_interface->SetProperty(request,
-      PP_URLREQUESTPROPERTY_METHOD, CStrToVar("GET"));
-
-  ppb_urlrequestinfo_interface->SetProperty(request,
-      PP_URLREQUESTPROPERTY_RECORDDOWNLOADPROGRESS, PP_MakeBool(PP_TRUE));
-
-  val = ppb_urlloader_interface->Open(loader, request, PP_BlockUntilComplete());
-  if (val != PP_OK) {
-    printf("Got error number %d on Open.\n", val);
-    return NULL;
-  }
-
-  int64_t avail, cur, total;
-  res = ppb_urlloader_interface->GetDownloadProgress(loader, &cur, &total);
-  if (!res || (total <= 0)) {
-    printf("GetDownloadProgress = %s and cur=%d total=%d.\n",
-        res ? "true" : "false", (int) cur, (int) total);
-    return NULL;
-  }
-
-  char *buf = new char[total+1];
-  avail = 0;
-  while (avail < total) {
-    int32_t cnt = (total > LONG_MAX) ? LONG_MAX : (int32_t) total;
-    int32_t bytes = ppb_urlloader_interface->ReadResponseBody(loader,
-        (void *) &buf[avail], cnt, PP_BlockUntilComplete());
-    avail += bytes;
-  }
-
-  ppb_core_interface->ReleaseResource(request);
-  ppb_core_interface->ReleaseResource(loader);
-  printf("Done loading %s.\n", url);
-
-  return buf;
-}
-
-
-
-PPAPI_MAIN_3D_WITH_DEFAULT_ARGS
+PPAPI_MAIN_USE(PPAPI_CreateInstance3D, PPAPI_MAIN_DEFAULT_ARGS)
 int ppapi_main(int argc, const char *argv[]) {
-  g_instance = PPAPI_GetInstanceId();
-  s_instance = g_instance;
+  s_instance = PPAPI_GetInstanceId();
 
   printf("Started main.\n");
 
-  ppb_core_interface =
-      (PPB_Core*)(PPAPI_GetInterface(PPB_CORE_INTERFACE));
-  ppb_urlloader_interface =
-      (PPB_URLLoader*)(PPAPI_GetInterface(PPB_URLLOADER_INTERFACE));
-  ppb_urlrequestinfo_interface =
-      (PPB_URLRequestInfo*)(PPAPI_GetInterface(PPB_URLREQUESTINFO_INTERFACE));
-  ppb_var_interface =
-      (PPB_Var*)(PPAPI_GetInterface(PPB_VAR_INTERFACE));
+  // Mount URL loads to /http
+  mount("", "/http", "httpfs", 0, "");
 
-  g_TextureData = LoadURL("hello.raw");
-  g_VShaderData = LoadURL("vertex_shader_es2.vert");
-  g_FShaderData = LoadURL("fragment_shader_es2.frag");
+  g_vShader.Load("/http/vertex_shader_es2.vert");
+  g_fShader.Load("/http/fragment_shader_es2.frag");
+  g_Texture.Load("/http/hello.raw");
   g_quadVertices = BuildCube();
 
   g_LoadCnt = 3;
-
   printf("Setting Load Count to %d.\n", g_LoadCnt);
   return 0;
 }
