@@ -58,3 +58,4 @@ StyleCop.Cache
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/glibc
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/win
 /visual_studio/NativeClientVSAddIn/InstallerResources/examples/*/*/*.user
+/nacltoons/out
