@@ -1,9 +1,9 @@
-#!/usr/bin/evn python
+#!/usr/bin/env python
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Entry point for the AddIn build bot.
+"""Entry point for the Game build bot.
 
 Perform build steps and output results using the buildbot
 annootator syntax
@@ -19,7 +19,7 @@ import zipfile
 
 GSURL = 'https://commondatastorage.googleapis.com'
 GSPATH = 'nativeclient-mirror/nacl/nacl_sdk/sdk'
-SDKROOT = os.path.join('..', '..', 'out', 'sdk')
+SDKROOT = os.path.abspath(os.path.join('out', 'sdk'))
 
 
 def Log(msg):
@@ -46,24 +46,35 @@ def RunCommand(cmd, env=None):
     sys.exit(1)
 
 
+def StepInstallSDK():
+  Log('@@@BUILD_STEP Install SDK@@@')
+  naclsdk = os.path.join(SDKROOT, 'nacl_sdk', 'naclsdk')
+  if not os.path.exists(naclsdk):
+    if not os.path.exists(SDKROOT):
+      os.makedirs(SDKROOT)
+    filename = os.path.join(SDKROOT, 'nacl_sdk.zip')
+    url = GSURL + "/nativeclient-mirror/nacl/nacl_sdk/nacl_sdk.zip"
+    contents = urllib2.urlopen(url).read()
+    with open(filename, 'wb') as zfileout:
+      zfileout.write(contents)
+    zfile = zipfile.ZipFile(filename)
+    zfile.extractall(SDKROOT)
+
+  os.chmod(naclsdk, 0750)
+  RunCommand([naclsdk, 'update', '--force', 'pepper_canary'])
+
+
 def StepBuild():
-  Log('@@@BUILD_STEP build AddIn@@@')
-
-  rev = os.environ.get('BUILDBOT_GOT_REVISION')
-  if not rev:
-    Log('No BUILDBOT_GOT_REVISION found in environ')
-    Log('@@@STEP_FAILURE@@@')
-    sys.exit(1)
-
-  if rev[0] == 'r':
-    rev = rev[1:]
-
-  RunCommand('make -j8')
-  return 0
+  Log('@@@BUILD_STEP build game@@@')
+  env = dict(os.environ)
+  env['NACL_SDK_ROOT'] = os.path.join(SDKROOT, 'nacl_sdk', 'pepper_canary')
+  RunCommand('make -j8', env)
 
 
 def main():
-  return StepBuild()
+  StepInstallSDK()
+  StepBuild()
+  return 0
 
 
 if __name__ == '__main__':
