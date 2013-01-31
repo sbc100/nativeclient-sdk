@@ -13,3 +13,6 @@ cocos2dx $(COCOS2DX_STAMP): build/build-cocos2dx.sh
 	touch $(COCOS2DX_STAMP)
 
 include game.mk
+
+clean::
+	rm -f $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)

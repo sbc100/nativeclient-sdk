@@ -74,7 +74,7 @@ $(TARGET): $(OBJECTS)
 %.o: %.c
 	$(CC) $(CCFLAGS) $(INCLUDES) $(DEFINES) $(VISIBILITY) -c $< -o $@
 
-clean:
+clean::
 	rm -f $(OBJECTS) $(TARGET) core
 
 
