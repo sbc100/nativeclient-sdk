@@ -77,12 +77,12 @@ MoveLibs() {
 
 PACKAGES="fontconfig xml2 png jpeg tiff nacl-mounts openal freealut ogg vorbis"
 
-echo "Building packages..."
+echo '@@@BUILD_STEP Building naclports packages@@@'
+export NACLPORTS_NO_ANNOTATE=1
 for package in $PACKAGES; do
   BuildPackageAll $package
 done
 
-echo "Moving results..."
+echo '@@@BUILD_STEP Moving results@@@'
 MoveLibs
 
-echo "Done!"

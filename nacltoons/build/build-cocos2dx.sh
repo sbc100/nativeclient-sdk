@@ -68,17 +68,21 @@ BuildTargetArchLibcConfig() {
   export COCOS2DX_PATH=${COCOS2DX_ROOT}/cocos2dx
   export NACLPORTS_INCLUDE
 
+  set -x
   mkdir -p ${LIB_DIR}/Debug
   mkdir -p ${LIB_DIR}/Release
   make -C $1 clean
   make -j ${OS_JOBS} -C $1
+  set +x
 }
+
 
 # $1=Dir $2=Arch
 BuildTargetArch() {
   BuildTargetArchLibcConfig $1 $2 newlib Release
   BuildTargetArchLibcConfig $1 $2 newlib Debug
 }
+
 
 # $1=Dir
 BuildTarget() {
@@ -87,11 +91,13 @@ BuildTarget() {
   BuildTargetArch $1 arm
 }
 
+
 # $1=Dir
 CopyHeaderDir() {
   mkdir -p ${OUT_DIR}/$1
   cp ${COCOS2DX_ROOT}/cocos2dx/$1/*.h ${OUT_DIR}/$1
 }
+
 
 CopyHeaders() {
   CopyHeaderDir .
@@ -123,9 +129,14 @@ CopyHeaders() {
   cp ${COCOS2DX_ROOT}/CocosDenshion/include/*.h ${OUT_DIR}
 }
 
-echo "Building cocos2dx..."
+echo '@@@BUILD_STEP Building cocos2dx@@@'
 BuildTarget cocos2dx/proj.nacl
+
+echo 'Copying headers'
+CopyHeaders
+
+echo '@@@BUILD_STEP Building CocosDenshion@@@'
 BuildTarget CocosDenshion/proj.nacl
 
-echo "Copying headers..."
-CopyHeaders
+echo '@@@BUILD_STEP Building Box2D@@@'
+BuildTarget external/Box2D/proj.nacl
