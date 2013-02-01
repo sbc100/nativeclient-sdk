@@ -1,25 +1,52 @@
-NACL_ARCH = x86_64
-NACL_LIBC = newlib
-OS ?= linux
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
-ifeq ($(NACL_ARCH),arm)
-TOOLCHAIN_DIR=$(OS)_arm_newlib
-else
-TOOLCHAIN_DIR=$(OS)_x86_newlib
-endif
+#
+# GNU Make based build file.  For details on GNU Make see:
+#   http://www.gnu.org/software/make/manual/make.html
+#
+#
 
-NACL_TOOLCHAIN_ROOT=$(NACL_SDK_ROOT)/toolchain/$(TOOLCHAIN_DIR)
-NACL_BIN_PATH=$(NACL_TOOLCHAIN_ROOT)/bin
+#
+# Default configuration
+#
+# By default we will build a Debug configuration using the GCC newlib toolcahin
+# to override this, specify TOOLCHAIN=newlib|glibc or CONFIG=Debug|Release on
+# the make command-line or in this file prior to including common.mk.  The
+# toolchain we use by default will be the first valid one listed
+VALID_TOOLCHAINS:=newlib
 
-CC      = $(NACL_BIN_PATH)/$(NACL_ARCH)-nacl-gcc
-CXX     = $(NACL_BIN_PATH)/$(NACL_ARCH)-nacl-g++
-CCFLAGS = -Wall
-CXXFLAGS = -Wall
-VISIBILITY =
+OUTDIR:=out
 
+#
+# Target Name
+#
+# The base name of the final NEXE, also the name of the NMF file containing
+# the mapping between architecture and actual NEXE.
+#
+TARGET:=nacltoons
+
+#
+# List of sources to compile
+#
+SOURCES:=main.cpp Classes/AppDelegate.cpp Classes/HelloWorldScene.cpp
+SOURCES+=Classes/GameOverScene.cpp
+
+#
+# Get pepper directory for toolchain and includes.
+#
+# If NACL_SDK_ROOT is not set, then assume it can be found relative to
+# to this Makefile.
+#
+NACL_SDK_ROOT?=$(abspath $(CURDIR)/../..)
+include build/common.mk
+
+
+CFLAGS=
 COCOS2DX_PATH = out/cocos2dx
 NACLPORTS_PATH = out/naclports
-INCLUDES =		-IClasses \
+CINCLUDE=-IClasses \
 			-I$(COCOS2DX_PATH) \
 			-I$(COCOS2DX_PATH)/cocoa \
 			-I$(COCOS2DX_PATH)/include \
@@ -28,62 +55,45 @@ INCLUDES =		-IClasses \
 			-I$(NACL_SDK_ROOT)/include \
 			-I$(NACLPORTS_PATH)/include
 
+LIB_PATHS = $(COCOS2DX_PATH)/lib
+LIB_PATHS += $(NACLPORTS_PATH)/lib
 
-OBJECTS = ./main.o \
-        Classes/AppDelegate.o \
-        Classes/HelloWorldScene.o \
-        Classes/GameOverScene.o
-
-SHAREDLIBS = -pthread
-
-ifdef DEBUG
-BIN_DIR = bin/debug
-CCFLAGS += -g3 -O0
-CXXFLAGS += -g3 -O0
-SHAREDLIBS += -L$(COCOS2DX_PATH)/lib/newlib_$(NACL_ARCH)/Debug
-SHAREDLIBS += -L$(NACLPORTS_PATH)/lib/newlib_$(NACL_ARCH)/Debug
-DEFINES += -DDEBUG -DCOCOS2D_DEBUG=1
-STATICLIBS = -L$(NACL_SDK_ROOT)/lib/$(NACL_LIBC)_$(NACL_ARCH)/Debug
-else
-BIN_DIR = bin/release
-CCFLAGS += -O3
-CXXFLAGS += -O3
-SHAREDLIBS += -L$(COCOS2DX_PATH)/lib/newlib_$(NACL_ARCH)/Release
-SHAREDLIBS += -L$(NACLPORTS_PATH)/lib/newlib_$(NACL_ARCH)/Release
-DEFINES += -DNDEBUG
-STATICLIBS = -L$(NACL_SDK_ROOT)/lib/$(NACL_LIBC)_$(NACL_ARCH)/Release
-endif
-
-SOUNDLIBS = -lcocosdenshion -lalut -lopenal -lvorbisfile -lvorbis -logg
-FONTLIBS = -lfontconfig -lfreetype -lexpat
-STATICLIBS += $(SOUNDLIBS) $(FONTLIBS) -lxml2 -lpng12 -ljpeg -ltiff -lppapi_gles2 -lnacl-mounts -lppapi -lppapi_cpp
-SHAREDLIBS += -lcocos2d -lz
-
-TARGET = $(BIN_DIR)/HelloCpp.nexe
-NMF = $(basename $(TARGET)).nmf
-
-game: $(TARGET) $(NMF)
-
-####### Build rules
-$(TARGET): $(OBJECTS)
-	mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $(OBJECTS) -o $@ $(SHAREDLIBS) $(STATICLIBS)
-
-####### Compile
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $(VISIBILITY) -c $< -o $@
-
-%.o: %.c
-	$(CC) $(CCFLAGS) $(INCLUDES) $(DEFINES) $(VISIBILITY) -c $< -o $@
-
-clean::
-	rm -f $(OBJECTS) $(TARGET) core
+#
+# List of libraries to link against.  Unlike some tools, the GCC and LLVM
+# based tools require libraries to be specified in the correct order.  The
+# order should be symbol reference followed by symbol definition, with direct
+# sources to the link (object files) are left most.  In this case:
+#    hello_world -> ppapi_main -> ppapi_cpp -> ppapi -> pthread -> libc
+# Notice that libc is implied and come last through standard compiler/link
+# switches.
+#
+# We break this list down into two parts, the set we need to rebuild (DEPS)
+# and the set we do not.  This example does not havea any additional library
+# dependencies.
+#
+DEPS=
+SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
+FONTLIBS=fontconfig freetype expat
+LIBS=$(DEPS) cocos2d $(SOUNDLIBS) $(FONTLIBS) xml2 png12 jpeg tiff ppapi_gles2 nacl-mounts ppapi ppapi_cpp z
 
 
-$(NMF): $(TARGET)
-	$(NACL_SDK_ROOT)/tools/create_nmf.py -o $(NMF) $(TARGET) --objdump=i686-nacl-objdump -L$(NACL_SDK_ROOT)/toolchain/linux_x86_newlib/x86_64-nacl/lib/ -s $(BIN_DIR)
+#
+# Use the library dependency macro for each dependency
+#
+$(foreach dep,$(DEPS),$(eval $(call DEPEND_RULE,$(dep))))
 
-run: all
-	$(NACL_SDK_ROOT)/tools/httpd.py --no_dir_check
+#
+# Use the compile macro for each source.
+#
+$(foreach src,$(SOURCES),$(eval $(call COMPILE_RULE,$(src),$(CFLAGS),$(CINCLUDE))))
 
-.PHONY: run clean nmf game
+#
+# Use the link macro for this target on the list of sources.
+#
+$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
+
+#
+# Specify the NMF to be created with no additional arugments.
+#
+$(eval $(call NMF_RULE,$(TARGET),))
+
