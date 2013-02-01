@@ -8,11 +8,19 @@
 #
 #
 
+NACL_ARCH?=x86_64
+DEBUG?=1
+ifeq ($(DEBUG),1)
+  CONFIG=Debug
+else
+  CONFIG=Release
+endif
+
 NACLPORTS_STAMP=out/naclports.stamp
 COCOS2DX_STAMP=out/cocos2dx.stamp
 
 all: $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
-	$(MAKE) -f game.mk
+	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
 
 naclports $(NACLPORTS_STAMP): build/build-naclports.sh
 	build/build-naclports.sh
@@ -25,3 +33,14 @@ cocos2dx $(COCOS2DX_STAMP): $(NACLPORTS_STAMP) build/build-cocos2dx.sh
 clean:
 	$(MAKE) -f game.mk clean
 	$(RM) $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
+
+publish:
+	mkdir -p out/publish
+	cp out/newlib/$(CONFIG)/*.nexe out/publish
+	cp out/newlib/$(CONFIG)/*.nmf out/publish
+	cp -r data/* out/publish
+
+run: publish
+	$(MAKE) -f game.mk RUN
+
+.PHONY: all naclports cocos2dx clean publish run

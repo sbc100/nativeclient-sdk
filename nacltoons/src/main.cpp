@@ -25,7 +25,7 @@ void downloadFiles(MainThreadRunner* runner, const char** filenames, int num_fil
     {
         std::vector<char> data;
         const char* filename = filenames[i];
-        std::string url = "Resources/";
+        std::string url = "res/";
         url += filename;
 
         CCLOG("Downloading: %s -> %s", url.c_str(), filename);

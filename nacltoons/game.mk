@@ -33,6 +33,8 @@ TARGET:=nacltoons
 SOURCES:=src/main.cpp src/AppDelegate.cpp src/HelloWorldScene.cpp
 SOURCES+=src/GameOverScene.cpp
 
+PAGE:=out/publish/index.html
+
 #
 # Get pepper directory for toolchain and includes.
 #
