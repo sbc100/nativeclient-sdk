@@ -30,8 +30,8 @@ TARGET:=nacltoons
 #
 # List of sources to compile
 #
-SOURCES:=main.cpp Classes/AppDelegate.cpp Classes/HelloWorldScene.cpp
-SOURCES+=Classes/GameOverScene.cpp
+SOURCES:=src/main.cpp src/AppDelegate.cpp src/HelloWorldScene.cpp
+SOURCES+=src/GameOverScene.cpp
 
 #
 # Get pepper directory for toolchain and includes.
@@ -46,14 +46,15 @@ include build/common.mk
 CFLAGS=
 COCOS2DX_PATH = out/cocos2dx
 NACLPORTS_PATH = out/naclports
-CINCLUDE=-IClasses \
-			-I$(COCOS2DX_PATH) \
-			-I$(COCOS2DX_PATH)/cocoa \
-			-I$(COCOS2DX_PATH)/include \
-			-I$(COCOS2DX_PATH)/platform/nacl \
-			-I$(COCOS2DX_PATH)/kazmath/include \
-			-I$(NACL_SDK_ROOT)/include \
-			-I$(NACLPORTS_PATH)/include
+CINCLUDE= \
+  -IClasses \
+  -I$(COCOS2DX_PATH) \
+  -I$(COCOS2DX_PATH)/cocoa \
+  -I$(COCOS2DX_PATH)/include \
+  -I$(COCOS2DX_PATH)/platform/nacl \
+  -I$(COCOS2DX_PATH)/kazmath/include \
+  -I$(NACL_SDK_ROOT)/include \
+  -I$(NACLPORTS_PATH)/include
 
 LIB_PATHS = $(COCOS2DX_PATH)/lib
 LIB_PATHS += $(NACLPORTS_PATH)/lib
