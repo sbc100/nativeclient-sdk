@@ -8,6 +8,7 @@
 #
 #
 
+CHROME_PATH?=google-chrome
 NACL_ARCH?=x86_64
 DEBUG?=1
 ifeq ($(DEBUG),1)
@@ -43,4 +44,7 @@ publish:
 run: publish
 	$(MAKE) -f game.mk RUN
 
-.PHONY: all naclports cocos2dx clean publish run
+run-app: publish
+	$(CHROME_PATH) --no-first-run --user-data-dir=out/user-data-dir --load-extension=out/publish chrome://newtab
+
+.PHONY: all naclports cocos2dx clean publish run run-app
