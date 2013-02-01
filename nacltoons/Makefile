@@ -18,7 +18,7 @@ naclports $(NACLPORTS_STAMP): build/build-naclports.sh
 	build/build-naclports.sh
 	touch $(NACLPORTS_STAMP)
 
-cocos2dx $(COCOS2DX_STAMP): build/build-cocos2dx.sh
+cocos2dx $(COCOS2DX_STAMP): $(NACLPORTS_STAMP) build/build-cocos2dx.sh
 	build/build-cocos2dx.sh
 	touch $(COCOS2DX_STAMP)
 
