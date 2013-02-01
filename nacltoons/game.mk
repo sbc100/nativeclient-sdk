@@ -31,7 +31,8 @@ INCLUDES =		-IClasses \
 
 OBJECTS = ./main.o \
         Classes/AppDelegate.o \
-        Classes/HelloWorldScene.o
+        Classes/HelloWorldScene.o \
+        Classes/GameOverScene.o
 
 SHAREDLIBS = -pthread
 
