@@ -53,13 +53,14 @@ DEFINES += -DNDEBUG
 STATICLIBS = -L$(NACL_SDK_ROOT)/lib/$(NACL_LIBC)_$(NACL_ARCH)/Release
 endif
 
-STATICLIBS += -lfontconfig -lfreetype -lexpat -lxml2 -lpng12 -ljpeg -ltiff -lppapi_gles2 -lnacl-mounts -lppapi -lppapi_cpp
+SOUNDLIBS = -lcocosdenshion -lalut -lopenal -lvorbisfile -lvorbis -logg
+FONTLIBS = -lfontconfig -lfreetype -lexpat
+STATICLIBS += $(SOUNDLIBS) $(FONTLIBS) -lxml2 -lpng12 -ljpeg -ltiff -lppapi_gles2 -lnacl-mounts -lppapi -lppapi_cpp
 SHAREDLIBS += -lcocos2d -lz
 
 TARGET = $(BIN_DIR)/HelloCpp.nexe
 NMF = $(basename $(TARGET)).nmf
 
-.PHONY: game
 game: $(TARGET) $(NMF)
 
 ####### Build rules
@@ -84,4 +85,4 @@ $(NMF): $(TARGET)
 run: all
 	$(NACL_SDK_ROOT)/tools/httpd.py --no_dir_check
 
-.PHONY: run clean nmf
+.PHONY: run clean nmf game

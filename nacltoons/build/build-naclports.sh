@@ -6,11 +6,11 @@
 set -e
 
 SCRIPT_DIR="$(cd $(dirname $0) && pwd)"
-NACLPORTS_ROOT=${SCRIPT_DIR}/../../third_party/naclports/src
+NACLPORTS_ROOT=$(dirname $(dirname ${SCRIPT_DIR}))/third_party/naclports/src
 
 source ${NACLPORTS_ROOT}/build_tools/bots/bot_common.sh
 
-OUT_DIR=${SCRIPT_DIR}/../out/naclports
+OUT_DIR=$(dirname ${SCRIPT_DIR})/out/naclports
 OUT_BUNDLE_DIR=${OUT_DIR}
 
 cd ${NACLPORTS_ROOT}
@@ -27,6 +27,9 @@ CustomBuildPackage() {
   fi
 
   BuildPackage $1
+  if [ $RESULT != 0 ]; then
+    exit $RESULT
+  fi
 }
 
 BuildPackageArchAll() {
@@ -35,8 +38,8 @@ BuildPackageArchAll() {
 }
 
 BuildPackageAll() {
-  BuildPackageArchAll $1 i686
   BuildPackageArchAll $1 x86_64
+  BuildPackageArchAll $1 i686
   BuildPackageArchAll $1 arm
 }
 
@@ -55,7 +58,12 @@ MoveLibs() {
         ARCH_LIB_DIR=${OUT_BUNDLE_DIR}/lib/${LIBC}_${ARCH_DIR}/${CONFIG}
 
         mkdir -p ${ARCH_LIB_DIR}
-        cp -f -d -r ${SRC_DIR}/* ${OUT_BUNDLE_DIR}
+        if [ -e ${SRC_DIR}/include ]; then
+            cp -f -d -r ${SRC_DIR}/include ${OUT_BUNDLE_DIR}
+        fi
+        if [ -e ${SRC_DIR}/lib ]; then
+            cp -f -d -r ${SRC_DIR}/lib ${OUT_BUNDLE_DIR}
+        fi
 
         for FILE in ${OUT_BUNDLE_DIR}/lib/* ; do
           if [ -f "$FILE" ]; then
@@ -67,7 +75,7 @@ MoveLibs() {
   done
 }
 
-PACKAGES="fontconfig xml2 png jpeg tiff nacl-mounts"
+PACKAGES="fontconfig xml2 png jpeg tiff nacl-mounts openal freealut ogg vorbis"
 
 echo "Building packages..."
 for package in $PACKAGES; do
@@ -75,11 +83,6 @@ for package in $PACKAGES; do
 done
 
 echo "Moving results..."
-for package in $PACKAGES; do
-  MoveLibs $package
-done
+MoveLibs
 
 echo "Done!"
-echo -e "$MESSAGES"
-
-exit $RESULT

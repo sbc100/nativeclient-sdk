@@ -1,9 +1,8 @@
 NACLPORTS_STAMP=out/naclports.stamp
 COCOS2DX_STAMP=out/cocos2dx.stamp
 
-all: $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
+all: $(NACLPORTS_STAMP) $(COCOS2DX_STAMP) game
 
-.PHONY: naclports cocos2dx game
 naclports $(NACLPORTS_STAMP): build/build-naclports.sh
 	build/build-naclports.sh
 	touch $(NACLPORTS_STAMP)
@@ -16,3 +15,5 @@ include game.mk
 
 clean::
 	rm -f $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
+
+.PHONY: naclports cocos2dx

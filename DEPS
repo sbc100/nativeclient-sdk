@@ -4,9 +4,9 @@ vars = {
   "gtest_trunk": "http://googletest.googlecode.com/svn/trunk/",
   "gtest_version": "570",
   "naclports_trunk": "http://naclports.googlecode.com/svn/trunk/",
-  "naclports_version": "693",
+  "naclports_version": "700",
   "cocos2dx_trunk": "https://github.com/samclegg/cocos2d-x.git",
-  "cocos2dx_version": "16e80d571413b565dc3a25503d5d8f8f689ee346",
+  "cocos2dx_version": "0438f1cc",
 }
 
 deps = {

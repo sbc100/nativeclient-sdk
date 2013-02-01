@@ -36,7 +36,7 @@ BuildTargetArchLibcConfig() {
     ARCH_DIR=$2
   fi
 
-  export LIB_DIR_ROOT=${OUT_DIR}/lib/$3_${ARCH_DIR}
+  export LIB_DIR=${OUT_DIR}/lib/$3_${ARCH_DIR}
   export NACL_ARCH=$2
 
   if [ "$4" = "Debug" ]; then
@@ -62,14 +62,14 @@ BuildTargetArchLibcConfig() {
   export NACLCXX=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-g++
   export NACLAR=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-ar
 
-  export CC=${NACLCC}
-  export CXX=${NACLCXX}
-  export AR=${NACLAR}
+  export NACL_CC=${NACLCC}
+  export NACL_CXX=${NACLCXX}
+  export NACL_AR=${NACLAR}
   export COCOS2DX_PATH=${COCOS2DX_ROOT}/cocos2dx
   export NACLPORTS_INCLUDE
 
-  mkdir -p ${LIB_DIR_ROOT}/Debug
-  mkdir -p ${LIB_DIR_ROOT}/Release
+  mkdir -p ${LIB_DIR}/Debug
+  mkdir -p ${LIB_DIR}/Release
   make -C $1 clean
   make -j ${OS_JOBS} -C $1
 }
@@ -120,10 +120,12 @@ CopyHeaders() {
   CopyHeaderDir textures
   CopyHeaderDir tilemap_parallax_nodes
   CopyHeaderDir touch_dispatcher
+  cp ${COCOS2DX_ROOT}/CocosDenshion/include/*.h ${OUT_DIR}
 }
 
 echo "Building cocos2dx..."
 BuildTarget cocos2dx/proj.nacl
+BuildTarget CocosDenshion/proj.nacl
 
 echo "Copying headers..."
 CopyHeaders
