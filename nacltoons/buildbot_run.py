@@ -65,7 +65,6 @@ def StepInstallSDK():
 
 
 def StepBuild():
-  Log('@@@BUILD_STEP build game@@@')
   env = dict(os.environ)
   env['NACL_SDK_ROOT'] = os.path.join(SDKROOT, 'nacl_sdk', 'pepper_canary')
   RunCommand('make -j8', env)

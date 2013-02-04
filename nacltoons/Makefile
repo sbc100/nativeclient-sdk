@@ -21,6 +21,7 @@ NACLPORTS_STAMP=out/naclports.stamp
 COCOS2DX_STAMP=out/cocos2dx.stamp
 
 all: $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
+	@echo '@@@BUILD_STEP build game@@@'
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
 
 naclports $(NACLPORTS_STAMP): build/build-naclports.sh

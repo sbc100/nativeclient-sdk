@@ -129,14 +129,14 @@ CopyHeaders() {
   cp ${COCOS2DX_ROOT}/CocosDenshion/include/*.h ${OUT_DIR}
 }
 
-echo '@@@BUILD_STEP Building cocos2dx@@@'
+echo '@@@BUILD_STEP build cocos2dx@@@'
 BuildTarget cocos2dx/proj.nacl
 
 echo 'Copying headers'
 CopyHeaders
 
-echo '@@@BUILD_STEP Building CocosDenshion@@@'
+echo '@@@BUILD_STEP build CocosDenshion@@@'
 BuildTarget CocosDenshion/proj.nacl
 
-echo '@@@BUILD_STEP Building Box2D@@@'
+echo '@@@BUILD_STEP build Box2D@@@'
 BuildTarget external/Box2D/proj.nacl
