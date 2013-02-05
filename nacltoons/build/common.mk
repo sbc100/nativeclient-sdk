@@ -237,6 +237,7 @@ CHROME_ENV?=
 
 # Additional arguments to pass to Chrome.
 CHROME_ARGS+=--enable-nacl --enable-pnacl --incognito --ppapi-out-of-process
+CHROME_ARGS+=--user-data-dir=out/chrome-data
 
 
 # Paths to Debug and Release versions of the Host Pepper plugins
@@ -257,4 +258,3 @@ endif
 	$(RUN_PY) -C $(CURDIR) -P $(PAGE) $(addprefix -E ,$(CHROME_ENV)) -- \
 	    $(CHROME_PATH) $(CHROME_ARGS) \
 	    --register-pepper-plugins="$(PPAPI_DEBUG),$(PPAPI_RELEASE)"
-

@@ -1,4 +1,8 @@
-#include "main.h"
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "CCStdC.h"
 #include "AppDelegate.h"
 #include "cocos2d.h"
 #include "CCInstance.h"
@@ -69,7 +73,8 @@ void* cocos_main(void* arg)
                                 "hd/Projectile.png",
                                 "sd/Projectile.png",
                                 "pew-pew-lei.wav",
-                                "fonts/Marker Felt.ttf" };
+                                "fonts/Marker Felt.ttf",
+                                "blocks.png" };
 
     downloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
 

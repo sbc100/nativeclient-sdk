@@ -36,7 +36,7 @@ clean:
 	$(MAKE) -f game.mk clean
 	$(RM) $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
 
-publish:
+publish: all
 	mkdir -p out/publish
 	cp out/newlib/$(CONFIG)/*.nexe out/publish
 	cp out/newlib/$(CONFIG)/*.nmf out/publish

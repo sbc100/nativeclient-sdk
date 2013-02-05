@@ -30,8 +30,12 @@ TARGET:=nacltoons
 #
 # List of sources to compile
 #
-SOURCES:=src/main.cpp src/AppDelegate.cpp src/HelloWorldScene.cpp
-SOURCES+=src/GameOverScene.cpp
+SOURCES := src/main.cc \
+           src/AppDelegate.cc \
+	   src/GameplayScene.cc \
+           src/GameOverScene.cc \
+	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
+	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsSprite.cpp
 
 PAGE:=out/publish/index.html
 
@@ -45,18 +49,21 @@ NACL_SDK_ROOT?=$(abspath $(CURDIR)/../..)
 include build/common.mk
 
 
-CFLAGS=
+CFLAGS = -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
 COCOS2DX_PATH = out/cocos2dx
 NACLPORTS_PATH = out/naclports
 CINCLUDE= \
   -IClasses \
   -I$(COCOS2DX_PATH) \
   -I$(COCOS2DX_PATH)/cocoa \
+  -I$(COCOS2DX_PATH)/external \
   -I$(COCOS2DX_PATH)/include \
   -I$(COCOS2DX_PATH)/platform/nacl \
   -I$(COCOS2DX_PATH)/kazmath/include \
   -I$(NACL_SDK_ROOT)/include \
-  -I$(NACLPORTS_PATH)/include
+  -I$(NACLPORTS_PATH)/include \
+  -I../third_party/cocos2d-x/external \
+  -I../third_party/cocos2d-x/extensions
 
 LIB_PATHS = $(COCOS2DX_PATH)/lib
 LIB_PATHS += $(NACLPORTS_PATH)/lib
@@ -77,7 +84,7 @@ LIB_PATHS += $(NACLPORTS_PATH)/lib
 DEPS=
 SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
 FONTLIBS=fontconfig freetype expat
-LIBS=$(DEPS) cocos2d $(SOUNDLIBS) $(FONTLIBS) xml2 png12 jpeg tiff ppapi_gles2 nacl-mounts ppapi ppapi_cpp z
+LIBS=$(DEPS) cocos2d $(SOUNDLIBS) $(FONTLIBS) box2d xml2 png12 jpeg tiff ppapi_gles2 nacl-mounts ppapi ppapi_cpp z
 
 
 #

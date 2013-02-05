@@ -1,38 +1,23 @@
-#ifndef  _APP_DELEGATE_H_
-#define  _APP_DELEGATE_H_
+// Copyright (c) 2013 The Native Client Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+#ifndef APP_DELEGATE_H
+#define APP_DELEGATE_H
 
 #include "cocos2d.h"
 
 /**
-@brief    The cocos2d Application.
-
-The reason for implement as private inheritance is to hide some interface call by CCDirector.
-*/
-class  AppDelegate : private cocos2d::CCApplication
+ * The cocos2d-x application entry point.
+ */
+class AppDelegate : private cocos2d::CCApplication
 {
-public:
-    AppDelegate();
-    virtual ~AppDelegate();
+ public:
+  AppDelegate();
+  virtual ~AppDelegate();
 
-    /**
-    @brief    Implement CCDirector and CCScene init code here.
-    @return true    Initialize success, app continue.
-    @return false   Initialize failed, app terminate.
-    */
-    virtual bool applicationDidFinishLaunching();
-
-    /**
-    @brief  The function be called when the application enter background
-    @param  the pointer of the application
-    */
-    virtual void applicationDidEnterBackground();
-
-    /**
-    @brief  The function be called when the application enter foreground
-    @param  the pointer of the application
-    */
-    virtual void applicationWillEnterForeground();
+  virtual bool applicationDidFinishLaunching();
+  virtual void applicationDidEnterBackground();
+  virtual void applicationWillEnterForeground();
 };
 
-#endif // _APP_DELEGATE_H_
-
+#endif // !APP_DELEGATE_H
