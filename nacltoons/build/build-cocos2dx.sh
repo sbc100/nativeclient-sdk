@@ -140,3 +140,6 @@ BuildTarget CocosDenshion/proj.nacl
 
 echo '@@@BUILD_STEP build Box2D@@@'
 BuildTarget external/Box2D/proj.nacl
+
+echo '@@@BUILD_STEP build lua@@@'
+BuildTarget scripting/lua/proj.nacl
