@@ -1,4 +1,4 @@
-#!/usr/bin/evn python
+#!/usr/bin/env python
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -20,6 +20,7 @@ import zipfile
 GSURL = 'https://commondatastorage.googleapis.com'
 GSPATH = 'nativeclient-mirror/nacl/nacl_sdk/sdk'
 SDKROOT = os.path.join('..', '..', 'out', 'sdk')
+SDK_VERSIONS = ['pepper_23', 'pepper_24', 'pepper_canary']
 
 
 def Log(msg):
@@ -47,7 +48,7 @@ def RunCommand(cmd, env=None):
 
 
 def StepBuild():
-  Log('@@@BUILD_STEP build AddIn@@@')
+  Log('@@@BUILD_STEP build addin@@@')
 
   rev = os.environ.get('BUILDBOT_GOT_REVISION')
   if not rev:
@@ -85,12 +86,12 @@ def StepBuild():
 
 
 def StepInstall():
-  Log('@@@BUILD_STEP Install AddIn@@@')
+  Log('@@@BUILD_STEP install addin@@@')
   RunCommand('developer_deploy.bat')
 
 
 def StepInstallSDK():
-  Log('@@@BUILD_STEP Install SDK@@@')
+  Log('@@@BUILD_STEP install sdk@@@')
   naclsdk = os.path.join(SDKROOT, 'nacl_sdk', 'naclsdk.bat')
   if not os.path.exists(naclsdk):
     if not os.path.exists(SDKROOT):
@@ -103,12 +104,11 @@ def StepInstallSDK():
     zfile = zipfile.ZipFile(filename)
     zfile.extractall(SDKROOT)
 
-  RunCommand([naclsdk, 'update', '--force', 'pepper_23'])
-  RunCommand([naclsdk, 'update', '--force', 'pepper_canary'])
+  for version in SDK_VERSIONS:
+    RunCommand([naclsdk, 'update', '--force', version])
 
 
 def StepTest():
-  Log('@@@BUILD_STEP Testing AddIn@@@')
   # Don't actually test yet
   env = dict(os.environ)
   sdkroot = os.path.abspath(os.path.join(SDKROOT, 'nacl_sdk'))
@@ -125,10 +125,10 @@ def StepTest():
       Log('@@@STEP_FAILURE@@@')
       sys.exit(1)
     env['CHROME_PATH'] = chrome
-  env['NACL_SDK_ROOT'] = os.path.join(sdkroot, 'pepper_23')
-  RunCommand('test.bat', env)
-  env['NACL_SDK_ROOT'] = os.path.join(sdkroot, 'pepper_canary')
-  RunCommand('test.bat', env)
+  for version in SDK_VERSIONS:
+    Log('@@@BUILD_STEP test against %s@@@' % version)
+    env['NACL_SDK_ROOT'] = os.path.join(sdkroot, version)
+    RunCommand('test.bat', env)
 
 
 def _FindInPath(filename):
@@ -167,7 +167,7 @@ def StepArchive():
     Log('No BUILDBOT_GOT_REVISION found in environ')
     Log('@@@STEP_FAILURE@@@')
     sys.exit(1)
-  Log('@@@BUILD_STEP Archiving %s@@@' % rev)
+  Log('@@@BUILD_STEP archive build [r%s]@@@' % rev)
   basename = 'vs_addin.tgz'
   remote_name = '%s/%s/%s' % (GSPATH, rev, basename)
   local_filename = os.path.join('..', '..', 'out',
