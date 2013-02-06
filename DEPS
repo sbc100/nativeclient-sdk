@@ -6,7 +6,7 @@ vars = {
   "naclports_trunk": "http://naclports.googlecode.com/svn/trunk/",
   "naclports_version": "700",
   "cocos2dx_trunk": "https://github.com/samclegg/cocos2d-x.git",
-  "cocos2dx_version": "9493192",
+  "cocos2dx_version": "96a8b1a",
 }
 
 deps = {

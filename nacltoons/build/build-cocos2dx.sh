@@ -30,25 +30,16 @@ cd ${COCOS2DX_ROOT}
 
 # $1=Dir $2=Arch $3=Libc $4=Config
 BuildTargetArchLibcConfig() {
-  if [ "$2" = "i686" ]; then
+  ARCH=$2
+  if [ "${ARCH}" = "i686" ]; then
     ARCH_DIR=x86_32
   else
-    ARCH_DIR=$2
+    ARCH_DIR=${ARCH}
   fi
 
-  export LIB_DIR=${OUT_DIR}/lib/$3_${ARCH_DIR}
-  export NACL_ARCH=$2
+  NACL_CROSS_PREFIX=${ARCH}-nacl
 
-  if [ "$4" = "Debug" ]; then
-    export DEBUG=1
-  else
-    export DEBUG=0
-  fi
-
-  NACL_ARCH=$2
-  NACL_CROSS_PREFIX=${NACL_ARCH}-nacl
-
-  if [ $NACL_ARCH = "arm" ]; then
+  if [ $ARCH = "arm" ]; then
     local TOOLCHAIN_DIR=${OS_SUBDIR_SHORT}_arm_newlib
   else
     local TOOLCHAIN_DIR=${OS_SUBDIR_SHORT}_x86_newlib
@@ -58,20 +49,25 @@ BuildTargetArchLibcConfig() {
   NACL_BIN_PATH=${NACL_TOOLCHAIN_ROOT}/bin
 
   # export nacl tools for direct use in patches.
+  set -x
+  if [ "$4" = "Debug" ]; then
+    export DEBUG=1
+  else
+    export DEBUG=0
+  fi
+  export LIB_DIR=${OUT_DIR}/lib/$3_${ARCH_DIR}
+  export OBJ_DIR=${OUT_DIR}/obj/${ARCH_DIR}
   export NACLCC=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-gcc
   export NACLCXX=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-g++
   export NACLAR=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-ar
 
+  export NACL_ARCH=${ARCH}
   export NACL_CC=${NACLCC}
   export NACL_CXX=${NACLCXX}
   export NACL_AR=${NACLAR}
   export COCOS2DX_PATH=${COCOS2DX_ROOT}/cocos2dx
   export NACLPORTS_INCLUDE
 
-  set -x
-  mkdir -p ${LIB_DIR}/Debug
-  mkdir -p ${LIB_DIR}/Release
-  make -C $1 clean
   make -j ${OS_JOBS} -C $1
   set +x
 }
