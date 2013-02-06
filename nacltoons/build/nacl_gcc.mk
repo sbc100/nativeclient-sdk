@@ -21,17 +21,22 @@ LD_ARM:=-L$(NACL_SDK_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)
 #
 # Macros for TOOLS
 #
-# We use the C++ compiler for everything and then use the -Wl,-as-needed flag
-# in the linker to drop libc++ unless it's actually needed.
+# We always link with the C++ compiler but include -Wl,-as-needed flag
+# in LD_FLAGS so the linker should drop libc++ unless it's actually needed.
 #
 X86_CC?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/i686-nacl-gcc
 X86_CXX?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/i686-nacl-g++
-X86_LINK?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/i686-nacl-g++ -Wl,-as-needed
+X86_LINK?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/i686-nacl-g++
 X86_LIB?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/i686-nacl-ar r
+
+X64_CC?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/x86_64-nacl-gcc
+X64_CXX?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/x86_64-nacl-g++
+X64_LINK?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/x86_64-nacl-g++
+X64_LIB?=$(TC_PATH)/$(OSNAME)_x86_$(TOOLCHAIN)/bin/x86_64-nacl-ar r
 
 ARM_CC?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-gcc
 ARM_CXX?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-g++
-ARM_LINK?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-g++ -Wl,-as-needed
+ARM_LINK?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-g++
 ARM_LIB?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-ar r
 
 
@@ -41,26 +46,37 @@ ARM_LIB?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-ar r
 # $1 = Source Name
 # $2 = Compile Flags
 #
+
+ifdef V
+define LOG
+$(2)
+endef
+else
+define LOG
+@echo "  $(1) $(2)"; $(3)
+endef
+endif
+
 define C_COMPILER_RULE
 $(OUTDIR)/$(basename $(1))_x86_32.o : $(1) $(TOP_MAKE) | $(OBJ_DIRS)
-	$(X86_CC) -o $$@ -c $$< -m32 $(POSIX_OPT_FLAGS) $(2) $(NACL_CFLAGS)
+	$(call LOG,CC,$$@,$(X86_CC) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CFLAGS))
 
 $(OUTDIR)/$(basename $(1))_x86_64.o : $(1) $(TOP_MAKE) | $(OBJ_DIRS)
-	$(X86_CC) -o $$@ -c $$< -m64 $(POSIX_OPT_FLAGS) $(2) $(NACL_CFLAGS)
+	$(call LOG,CC,$$@,$(X64_CC) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CFLAGS))
 
 $(OUTDIR)/$(basename $(1))_arm.o : $(1) $(TOP_MAKE) | $(OBJ_DIRS)
-	$(ARM_CC) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CFLAGS)
+	$(call LOG,CC,$$@,$(ARM_CC) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CFLAGS))
 endef
 
 define CXX_COMPILER_RULE
 $(OUTDIR)/$(basename $(1))_x86_32.o : $(1) $(TOP_MAKE) | $(OBJ_DIRS)
-	$(X86_CXX) -o $$@ -c $$< -m32 $(POSIX_OPT_FLAGS) $(2) $(NACL_CXXFLAGS)
+	$(call LOG,CXX,$$@,$(X86_CXX) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CXXFLAGS))
 
 $(OUTDIR)/$(basename $(1))_x86_64.o : $(1) $(TOP_MAKE) | $(OBJ_DIRS)
-	$(X86_CXX) -o $$@ -c $$< -m64 $(POSIX_OPT_FLAGS) $(2) $(NACL_CXXFLAGS)
+	$(call LOG,CXX,$$@,$(X64_CXX) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CXXFLAGS))
 
 $(OUTDIR)/$(basename $(1))_arm.o : $(1) $(TOP_MAKE) | $(OBJ_DIRS)
-	$(ARM_CXX) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CXXFLAGS)
+	$(call LOG,CXX,$$@,$(ARM_CXX) -o $$@ -c $$< $(POSIX_OPT_FLAGS) $(2) $(NACL_CXXFLAGS))
 endef
 
 
@@ -127,7 +143,6 @@ $(NACL_SDK_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/lib$(1).a : $(foreach src,$(2),$
 	$(ARM_LIB) $$@ $$^
 endef
 
-
 #
 # Specific Link Macro
 #
@@ -140,13 +155,13 @@ endef
 #
 define LINKER_RULE
 $(OUTDIR)/$(1)_x86_32.nexe : $(foreach src,$(2),$(OUTDIR)/$(basename $(src))_x86_32.o) $(4)
-	$(X86_LINK) -o $$@ $$(filter-out $(4),$$^) -m32 $(foreach path,$(6),-L$(path)/$(TOOLCHAIN)_x86_32/$(CONFIG)) $(foreach lib,$(3),-l$(lib)) $(5)
+	$(call LOG,LINK,$$@,$(X86_LINK) -o $$@ $$(filter-out $(4),$$^) $(NACL_LDFLAGS) $(foreach path,$(6),-L$(path)/$(TOOLCHAIN)_x86_32/$(CONFIG)) $(foreach lib,$(3),-l$(lib)) $(5))
 
 $(OUTDIR)/$(1)_x86_64.nexe : $(foreach src,$(2),$$(OUTDIR)/$(basename $(src))_x86_64.o) $(4)
-	$(X86_LINK) -o $$@ $$(filter-out $(4),$$^) -m64 $(foreach path,$(6),-L$(path)/$(TOOLCHAIN)_x86_64/$(CONFIG)) $(foreach lib,$(3),-l$(lib)) $(5)
+	$(call LOG,LINK,$$@,$(X64_LINK) -o $$@ $$(filter-out $(4),$$^) $(NACL_LDFLAGS) $(foreach path,$(6),-L$(path)/$(TOOLCHAIN)_x86_64/$(CONFIG)) $(foreach lib,$(3),-l$(lib)) $(5))
 
 $(OUTDIR)/$(1)_arm.nexe : $(foreach src,$(2),$(OUTDIR)/$(basename $(src))_arm.o) $(4)
-	$(ARM_LINK) -o $$@ $$(filter-out $(4),$$^) $(foreach path,$(6),-L$(path)/$(TOOLCHAIN)_arm/$(CONFIG)) $(foreach lib,$(3),-l$(lib)) $(5)
+	$(call LOG,LINK,$$@,$(ARM_LINK) -o $$@ $$(filter-out $(4),$$^) $(NACL_LDFLAGS) $(foreach path,$(6),-L$(path)/$(TOOLCHAIN)_arm/$(CONFIG)) $(foreach lib,$(3),-l$(lib)) $(5))
 endef
 
 
@@ -197,7 +212,5 @@ all:$(OUTDIR)/$(1).nmf
 BIN_TARGETS+=$(foreach arch,$(NMF_ARCHES),$(OUTDIR)/$(1)$(arch)) $(GLIBC_SO_LIST)
 
 $(OUTDIR)/$(1).nmf : $(foreach arch,$(NMF_ARCHES),$(OUTDIR)/$(1)$(arch)) $(GLIBC_SO_LIST)
-	$(NMF) -o $$@ $$^ -D $(GLIBC_DUMP) $(GLIBC_PATHS) -s $(OUTDIR) $(2) $(GLIBC_REMAP)
+	$(call LOG,NMF,$$@,$(NMF) -o $$@ $$^ -D $(GLIBC_DUMP) $(GLIBC_PATHS) -s $(OUTDIR) $(2) $(GLIBC_REMAP))
 endef
-
-

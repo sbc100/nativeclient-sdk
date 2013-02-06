@@ -43,6 +43,11 @@ endif
 #
 CONFIG?=Debug
 
+#
+# Compute path to requested NaCl Toolchain
+#
+OSNAME:=$(shell python $(NACL_SDK_ROOT)/tools/getos.py)
+TC_PATH:=$(abspath $(NACL_SDK_ROOT)/toolchain)
 
 
 # Note for Windows:
@@ -58,25 +63,32 @@ CONFIG?=Debug
 #
 # Disable DOS PATH warning when using Cygwin based NaCl tools on Windows.
 #
+ifeq ($(OSNAME),win)
 CYGWIN?=nodosfilewarning
 export CYGWIN
+endif
 
+ifneq ($(OSNAME),win)
+ifndef CHROME_PATH
+CHROME_PATH = $(shell which google-chrome)
+endif
+endif
 
 #
 # Alias for standard POSIX file system commands
 #
-CP:=python $(NACL_SDK_ROOT)/tools/oshelpers.py cp
-MKDIR:=python $(NACL_SDK_ROOT)/tools/oshelpers.py mkdir
-MV:=python $(NACL_SDK_ROOT)/tools/oshelpers.py mv
-RM:=python $(NACL_SDK_ROOT)/tools/oshelpers.py rm
-
-
-#
-# Compute path to requested NaCl Toolchain
-#
-OSNAME:=$(shell python $(NACL_SDK_ROOT)/tools/getos.py)
-TC_PATH:=$(abspath $(NACL_SDK_ROOT)/toolchain)
-
+OSHELPERS=python $(NACL_SDK_ROOT)/tools/oshelpers.py
+ifdef V
+CP:=$(OSHELPERS) cp
+MKDIR:=$(OSHELPERS) mkdir
+MV:=$(OSHELPERS) mv
+RM:=$(OSHELPERS) rm
+else
+CP:=@$(OSHELPERS) cp
+MKDIR:=@$(OSHELPERS) mkdir
+MV:=@$(OSHELPERS) mv
+RM:=@$(OSHELPERS) rm
+endif
 
 
 
@@ -176,6 +188,7 @@ endif
 
 NACL_CFLAGS?=-Wno-long-long -Werror
 NACL_CXXFLAGS?=-Wno-long-long -Werror
+NACL_LDFLAGS?=-Wl,-as-needed
 
 #
 # Default Paths
