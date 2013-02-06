@@ -20,7 +20,7 @@ endif
 NACLPORTS_STAMP=out/naclports.stamp
 COCOS2DX_STAMP=out/cocos2dx.stamp
 
-all: $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
+all: $(NACLPORTS_STAMP) cocos2dx
 	@echo '@@@BUILD_STEP build game@@@'
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
 
@@ -28,15 +28,15 @@ naclports $(NACLPORTS_STAMP): build/build-naclports.sh
 	build/build-naclports.sh
 	touch $(NACLPORTS_STAMP)
 
-cocos2dx $(COCOS2DX_STAMP): $(NACLPORTS_STAMP) build/build-cocos2dx.sh
+cocos2dx : $(NACLPORTS_STAMP) build/build-cocos2dx.sh
 	build/build-cocos2dx.sh
-	touch $(COCOS2DX_STAMP)
 
 clean:
 	$(MAKE) -f game.mk clean
 	$(RM) $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
 
 publish: all
+	rm -fr out/publish
 	mkdir -p out/publish
 	cp out/newlib/$(CONFIG)/*.nexe out/publish
 	cp out/newlib/$(CONFIG)/*.nmf out/publish
