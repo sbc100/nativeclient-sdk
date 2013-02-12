@@ -78,6 +78,7 @@
     <Compile Include="ComMessageFilter.cs" />
     <Compile Include="CompileParallelTest.cs" />
     <Compile Include="CompileTest.cs" />
+    <Compile Include="DependencyParserTest.cs" />
     <Compile Include="MockProcessSearcher.cs" />
     <Compile Include="PluginDebuggerGDBTest.cs" />
     <Compile Include="PluginDebuggerVSTest.cs" />
