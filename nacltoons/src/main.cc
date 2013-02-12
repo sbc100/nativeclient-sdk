@@ -1,9 +1,7 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
 #include "CCStdC.h"
-#include "AppDelegate.h"
 #include "cocos2d.h"
 #include "CCInstance.h"
 #include "CCModule.h"
@@ -16,13 +14,15 @@
 #include <sys/stat.h>
 #include <AL/alc.h>
 
+#include "app_delegate.h"
+
 #include "nacl-mounts/base/UrlLoaderJob.h"
 
 USING_NS_CC;
 
 AppDelegate g_app;
 
-void downloadFiles(MainThreadRunner* runner,
+void DownloadFiles(MainThreadRunner* runner,
                    const char** filenames, int num_files) {
   CCLOG("Downloading %d files...", num_files);
   for (int i = 0; i < num_files; i++) {
@@ -59,12 +59,10 @@ void* cocos_main(void* arg) {
                  pp::Module::Get()->get_browser_interface());
 
   // TODO(sbc): remove this hack an replace with some kind of URL mount
-  mkdir("hd", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  mkdir("sd", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   mkdir("fonts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  const char* filenames[] = { "fonts/Marker Felt.ttf" };
+  const char* filenames[] = { "fonts/Marker Felt.ttf", "blocks.png" };
 
-  downloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
+  DownloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
 
   CCEGLView::g_instance = instance;
   CCEGLView* eglView = CCEGLView::sharedOpenGLView();

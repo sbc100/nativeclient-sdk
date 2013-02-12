@@ -31,8 +31,10 @@ TARGET:=nacltoons
 # List of sources to compile
 #
 SOURCES := src/main.cc \
-	   src/AppDelegate.cc \
-	   src/GameplayScene.cc \
+	   src/app_delegate.cc \
+	   src/frontend.cc \
+	   src/gameplay_scene.cc \
+	   src/physics_layer.cc \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsSprite.cpp
 

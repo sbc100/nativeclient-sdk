@@ -1,9 +1,8 @@
-// Copyright (c) 2013 The Native Client Authors. All rights reserved.
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#include "AppDelegate.h"
-#include "GameplayScene.h"
-#include "SimpleAudioEngine.h"
+#include "app_delegate.h"
+#include "frontend.h"
 
 USING_NS_CC;
 
@@ -14,7 +13,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
   director->setOpenGLView(view);
   director->setDisplayStats(true);
 
-  CCScene* scene = Gameplay::scene();
+  CCScene* scene = FrontEnd::scene();
   director->runWithScene(scene);
   return true;
 }

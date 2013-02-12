@@ -1,16 +1,15 @@
-// Copyright (c) 2013 The Native Client Authors. All rights reserved.
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#ifndef APP_DELEGATE_H
-#define APP_DELEGATE_H
+#ifndef APP_DELEGATE_H_
+#define APP_DELEGATE_H_
 
 #include "cocos2d.h"
 
 /**
  * The cocos2d-x application entry point.
  */
-class AppDelegate : private cocos2d::CCApplication
-{
+class AppDelegate : private cocos2d::CCApplication {
  public:
   AppDelegate() {}
 
@@ -19,4 +18,4 @@ class AppDelegate : private cocos2d::CCApplication
   virtual void applicationWillEnterForeground() {}
 };
 
-#endif // !APP_DELEGATE_H
+#endif // !APP_DELEGATE_H_

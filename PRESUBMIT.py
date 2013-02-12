@@ -16,10 +16,9 @@ def CheckChangeOnUpload(input_api, output_api):
 
 def CheckChangeOnCommit(input_api, output_api):
   report = []
+  report.extend(CheckChangeOnUpload(input_api, output_api))
 
 # Disable presubmit until we fix tree status
-
-# report.extend(CheckChangeOnUpload(input_api, output_api))
 #  report.extend(input_api.canned_checks.CheckTreeIsOpen(
 #      input_api, output_api,
 #      json_url='http://naclsdk-status.appspot.com/current?format=json'))
