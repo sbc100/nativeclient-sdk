@@ -31,9 +31,8 @@ TARGET:=nacltoons
 # List of sources to compile
 #
 SOURCES := src/main.cc \
-           src/AppDelegate.cc \
+	   src/AppDelegate.cc \
 	   src/GameplayScene.cc \
-           src/GameOverScene.cc \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsSprite.cpp
 
@@ -45,7 +44,10 @@ PAGE:=out/publish/index.html
 # If NACL_SDK_ROOT is not set, then assume it can be found relative to
 # to this Makefile.
 #
-NACL_SDK_ROOT?=$(abspath $(CURDIR)/../..)
+ifndef NACL_SDK_ROOT
+  $(error NACL_SDK_ROOT not set)
+endif
+
 include build/common.mk
 
 
