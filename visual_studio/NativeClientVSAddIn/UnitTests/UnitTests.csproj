@@ -76,6 +76,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComMessageFilter.cs" />
+    <Compile Include="CompileParallelTest.cs" />
+    <Compile Include="CompileTest.cs" />
     <Compile Include="MockProcessSearcher.cs" />
     <Compile Include="PluginDebuggerGDBTest.cs" />
     <Compile Include="PluginDebuggerVSTest.cs" />
@@ -84,7 +86,7 @@
     <Compile Include="MockPropertyManager.cs" />
     <Compile Include="PropertyManagerTest.cs" />
     <Compile Include="TestUtilities.cs" />
-    <Compile Include="CompileTest.cs" />
+    <Compile Include="BaseCompileTest.cs" />
     <Compile Include="WebServerTest.cs" />
   </ItemGroup>
   <ItemGroup>

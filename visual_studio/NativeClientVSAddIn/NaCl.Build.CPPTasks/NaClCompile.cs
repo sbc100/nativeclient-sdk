@@ -373,11 +373,12 @@ namespace NaCl.Build.CPPTasks
             foreach (KeyValuePair<string, List<ITaskItem>> entry in srcGroups)
             {
                 string commandLine = entry.Key;
-                string cmd = "\"" + pathToTool + "\" " + commandLine + "--";
+                string cmd = "\"" + pathToTool + "\" " + commandLine + " --";
                 List<ITaskItem> sources = entry.Value;
 
                 foreach (ITaskItem sourceItem in sources)
                 {
+                    cmd += " ";
                     cmd += GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
                 }
 
