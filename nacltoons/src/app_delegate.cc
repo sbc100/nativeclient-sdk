@@ -13,7 +13,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
   director->setOpenGLView(view);
   director->setDisplayStats(true);
 
-  CCScene* scene = FrontEnd::scene();
+  // Create the initial (autorelease) scene and run with it.
+  CCScene* scene = FrontEndScene::create();
   director->runWithScene(scene);
   return true;
 }

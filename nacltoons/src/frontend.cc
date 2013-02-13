@@ -6,26 +6,29 @@
 
 USING_NS_CC;
 
-CCScene* FrontEnd::scene() {
-  CCScene* scene = CCScene::create();
-  CCLayer* frontend = FrontEnd::create();
-  scene->addChild(frontend);
-  return scene;
+bool FrontEndScene::init() {
+  if (!CCScene::init())
+    return false;
+
+  // Create new (autorelease) layer and add it as child.
+  CCLayer* frontend = FrontEndLayer::create();
+  addChild(frontend);
+  return true;
 }
 
-void FrontEnd::StartGame(CCObject* sender) {
+void FrontEndLayer::StartGame(CCObject* sender) {
   CCLog("StartGame pressed");
   CCTransitionScene* transition;
   CCDirector* director = CCDirector::sharedDirector();
 
-  // transition to a new Gameplay scene.
-  CCScene* scene = Gameplay::scene();
+  // transition to a new (autorelease) GameplayScene.
+  CCScene* scene = GameplayScene::create();
   director->setDepthTest(true);
   transition = CCTransitionPageTurn::create(1.0f, scene, false);
   director->pushScene(transition);
 }
 
-bool FrontEnd::init() {
+bool FrontEndLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0, 0xD8, 0x8F, 0xD8)))
     return false;
 
@@ -35,7 +38,7 @@ bool FrontEnd::init() {
   CCLabelTTF* start_label = CCLabelTTF::create("Start Game", "Arial.ttf", 24);
 
   CCMenuItemLabel* start = CCMenuItemLabel::create(start_label,
-      this, menu_selector(FrontEnd::StartGame));
+      this, menu_selector(FrontEndLayer::StartGame));
 
   CCMenu* menu = CCMenu::create(start, NULL);
   addChild(menu);

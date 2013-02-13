@@ -18,4 +18,4 @@ class AppDelegate : private cocos2d::CCApplication {
   virtual void applicationWillEnterForeground() {}
 };
 
-#endif // !APP_DELEGATE_H_
+#endif  // APP_DELEGATE_H_

@@ -13,23 +13,25 @@ USING_NS_CC;
  * that the user can interact with and a UI layer over
  * the top for menus.
  */
-class Gameplay : public CCScene {
+class GameplayScene : public CCScene {
  public:
-  Gameplay() {}
-  ~Gameplay() {}
-  CREATE_FUNC(Gameplay);
+  GameplayScene() {}
+  ~GameplayScene() {}
+  // add static create() method which encapsulates new + init
+  CREATE_FUNC(GameplayScene);
   virtual bool init();
   void Restart();
-  static CCScene* scene();
 };
 
 /**
- * UI layer for menus.
+ * UI layer for displaying menu and information overlays on
+ * top of the running game.
  */
 class UILayer : public CCLayer {
  public:
   UILayer() {}
   ~UILayer() {}
+  // add static create() method which encapsulates new + init
   CREATE_FUNC(UILayer);
   virtual bool init();
 
@@ -39,4 +41,4 @@ class UILayer : public CCLayer {
   void Exit(CCObject* sender);
 };
 
-#endif  // !GAMEPLAY_SCENE_H_
+#endif  // GAMEPLAY_SCENE_H_

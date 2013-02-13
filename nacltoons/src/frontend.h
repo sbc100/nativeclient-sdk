@@ -9,19 +9,32 @@
 USING_NS_CC;
 
 /**
- * Front end scene and layer.
+ * Scene for displaying the frontend menu system.
+ * From here the user can start a new game, view achviements, etc.
  */
-class FrontEnd : public CCLayerColor {
+class FrontEndScene : public CCScene {
  public:
-  FrontEnd() {}
-  ~FrontEnd() {}
-  CREATE_FUNC(FrontEnd);
+  FrontEndScene() {}
+  // add static create() method which encapsulates new + init
+  CREATE_FUNC(FrontEndScene);
   virtual bool init();
-  static CCScene* scene();
+};
+
+/**
+ * Layer that displays the frontend menu for the game.
+ */
+class FrontEndLayer : public CCLayerColor {
+ public:
+  FrontEndLayer() {}
+  ~FrontEndLayer() {}
+
+  // add static create() method which encapsulates new + init
+  CREATE_FUNC(FrontEndLayer);
+  virtual bool init();
 
  private:
   // menu callbacks
   void StartGame(CCObject* sender);
 };
 
-#endif // !FRONTEND_H_
+#endif  // FRONTEND_H_

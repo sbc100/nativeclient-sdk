@@ -16,6 +16,7 @@ class PhysicsLayer : public CCLayerColor {
  public:
   PhysicsLayer() {}
   ~PhysicsLayer();
+  // add static create() method which encapsulates new + init
   CREATE_FUNC(PhysicsLayer);
   virtual bool init();
   virtual void ccTouchesEnded(CCSet* touches, CCEvent* event);
@@ -29,4 +30,4 @@ class PhysicsLayer : public CCLayerColor {
   b2World* world_;
 };
 
-#endif // !PHYSICS_LAYER_H_
+#endif  // PHYSICS_LAYER_H_

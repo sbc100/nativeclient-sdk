@@ -4,35 +4,38 @@
 #include "gameplay_scene.h"
 #include "physics_layer.h"
 
-#define PHYSICS_TAG 101
-#define UI_TAG 102
+/**
+ * Tags used by the GameplayScene to identify child elements. Actual values
+ * here are not important as long as they are unique within the scene.
+ */
+enum ObjectTags {
+  NODE_TAG_PHYSICS = 100,
+  NODE_TAG_UI
+};
 
 USING_NS_CC;
 
-CCScene* Gameplay::scene() {
-  return Gameplay::create();
-}
-
-void Gameplay::Restart() {
-  removeChild(getChildByTag(PHYSICS_TAG));
+void GameplayScene::Restart() {
+  removeChild(getChildByTag(NODE_TAG_PHYSICS));
   CCLayer* physics = PhysicsLayer::create();
-  addChild(physics, 2, PHYSICS_TAG);
+  addChild(physics, 2, NODE_TAG_PHYSICS);
 }
 
-bool Gameplay::init() {
+bool GameplayScene::init() {
   if (!CCScene::init())
     return false;
   CCLayer* ui = UILayer::create();
-  addChild(ui, 1, UI_TAG);
+  addChild(ui, 1, NODE_TAG_UI);
 
   CCLayer* physics = PhysicsLayer::create();
-  addChild(physics, 2, PHYSICS_TAG);
+  addChild(physics, 2, NODE_TAG_PHYSICS);
   return true;
 }
 
 void UILayer::Restart(CCObject* sender) {
   CCLog("Restart pressed");
-  ((Gameplay*)getParent())->Restart();
+  GameplayScene* scene = static_cast<GameplayScene*>(getParent());
+  scene->Restart();
 }
 
 void UILayer::Exit(CCObject* sender) {
@@ -63,8 +66,8 @@ bool UILayer::init() {
   CCSize label_size = restart_label->getContentSize();
   CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
   menu->alignItemsVertically();
-  float xpos = origin.x + visibleSize.width*0.05 + label_size.width/2;
-  float ypos = origin.y + visibleSize.height*0.95 - label_size.height;
+  float xpos = origin.x + visibleSize.width * 0.05 + label_size.width/2;
+  float ypos = origin.y + visibleSize.height * 0.95 - label_size.height;
   menu->setPosition(ccp(xpos, ypos));
   return true;
 }
