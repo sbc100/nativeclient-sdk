@@ -39,9 +39,9 @@ namespace UnitTests
         [TestMethod]
         public void CheckParallelCompile()
         {
-            string platform = TestUtilities.NaClProjectUniqueName;
+            string platform = Strings.NaCl64PlatformName;
             dte_.Solution.Open(SolutionName_);
-            Project project = dte_.Solution.Projects.Item(platform);
+            Project project = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
 
             // Add property sheet that enables multiprocessing
             VCConfiguration config;
@@ -56,7 +56,7 @@ namespace UnitTests
 
             dte_.Solution.Close(true);
 
-            CheckCompile(Strings.NaCl64PlatformName, false);
+            CheckCompile(platform, false);
         }
     }
 }
