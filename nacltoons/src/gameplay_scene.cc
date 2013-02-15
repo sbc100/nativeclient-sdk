@@ -43,6 +43,15 @@ void UILayer::Exit(CCObject* sender) {
   CCDirector::sharedDirector()->popScene();
 }
 
+#ifdef COCOS2D_DEBUG
+void UILayer::ToggleDebug(CCObject* sender) {
+  CCLog("ToggleDebug pressed");
+  GameplayScene* scene = static_cast<GameplayScene*>(getParent());
+  CCNode* physics = scene->getChildByTag(NODE_TAG_PHYSICS);
+  static_cast<PhysicsLayer*>(physics)->ToggleDebug();
+}
+#endif
+
 bool UILayer::init() {
   if (!CCLayer::init())
     return false;
@@ -58,16 +67,29 @@ bool UILayer::init() {
   CCMenuItemLabel* exit = CCMenuItemLabel::create(
       exit_label, this, menu_selector(UILayer::Exit));
 
+#ifdef COCOS2D_DEBUG
+  CCLabelTTF* debug_label = CCLabelTTF::create("Toggle Debug", "Arial.ttf", 24);
+  CCMenuItemLabel* debug = CCMenuItemLabel::create(
+      debug_label, this, menu_selector(UILayer::ToggleDebug));
+  CCMenu* menu = CCMenu::create(restart, exit, debug, NULL);
+#else
   CCMenu* menu = CCMenu::create(restart, exit, NULL);
+#endif
+
+  menu->alignItemsVertically();
+#ifdef COCOS2D_DEBUG
+  debug->setPositionX(debug->getContentSize().width / 2);
+#endif
+  restart->setPositionX(restart->getContentSize().width / 2);
+  exit->setPositionX(exit->getContentSize().width / 2);
+
   addChild(menu);
 
   // Position the menu
   CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-  CCSize label_size = restart_label->getContentSize();
   CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
-  menu->alignItemsVertically();
-  float xpos = origin.x + visibleSize.width * 0.05 + label_size.width/2;
-  float ypos = origin.y + visibleSize.height * 0.95 - label_size.height;
+  float xpos = origin.x + visibleSize.width * 0.01f;
+  float ypos = origin.y + visibleSize.height / 2;
   menu->setPosition(ccp(xpos, ypos));
   return true;
 }

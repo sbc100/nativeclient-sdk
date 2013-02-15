@@ -49,7 +49,7 @@ ARM_LIB?=$(TC_PATH)/$(OSNAME)_arm_$(TOOLCHAIN)/bin/arm-nacl-ar r
 
 ifdef V
 define LOG
-$(2)
+$(3)
 endef
 else
 define LOG

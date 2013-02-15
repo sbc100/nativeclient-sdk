@@ -37,6 +37,7 @@ class UILayer : public CCLayer {
 
  private:
   // menu callbacks
+  void ToggleDebug(CCObject* sender);
   void Restart(CCObject* sender);
   void Exit(CCObject* sender);
 };

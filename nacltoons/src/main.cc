@@ -60,7 +60,7 @@ void* cocos_main(void* arg) {
 
   // TODO(sbc): remove this hack an replace with some kind of URL mount
   mkdir("fonts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  const char* filenames[] = { "fonts/Marker Felt.ttf", "blocks.png" };
+  const char* filenames[] = { "fonts/Marker Felt.ttf", "brush.png" };
 
   DownloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
 

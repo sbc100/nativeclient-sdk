@@ -35,6 +35,7 @@ SOURCES := src/main.cc \
 	   src/frontend.cc \
 	   src/gameplay_scene.cc \
 	   src/physics_layer.cc \
+	   ../third_party/cocos2d-x/samples/Cpp/TestCpp/Classes/Box2DTestBed/GLES-Render.cpp \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsSprite.cpp
 
@@ -67,7 +68,8 @@ CINCLUDE= \
   -I$(NACL_SDK_ROOT)/include \
   -I$(NACLPORTS_PATH)/include \
   -I../third_party/cocos2d-x/external \
-  -I../third_party/cocos2d-x/extensions
+  -I../third_party/cocos2d-x/extensions \
+  -I../third_party/cocos2d-x/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
 LIB_PATHS = $(COCOS2DX_PATH)/lib
 LIB_PATHS += $(NACLPORTS_PATH)/lib
