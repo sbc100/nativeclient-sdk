@@ -53,8 +53,10 @@ endif
 
 include build/common.mk
 
-
-CFLAGS = -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
+ifdef NACL_MOUNTS
+CFLAGS += -DOLD_NACL_MOUNTS
+endif
+CFLAGS += -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
 COCOS2DX_PATH = out/cocos2dx
 NACLPORTS_PATH = out/naclports
 CINCLUDE= \
@@ -89,8 +91,13 @@ LIB_PATHS += $(NACLPORTS_PATH)/lib
 #
 DEPS=
 SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
-FONTLIBS=fontconfig freetype expat
-LIBS=$(DEPS) cocos2d $(SOUNDLIBS) $(FONTLIBS) box2d xml2 png12 jpeg tiff ppapi_gles2 nacl-mounts ppapi ppapi_cpp z
+LIBS=$(DEPS) cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff
+ifdef NACL_MOUNTS
+LIBS+=nacl-mounts
+else
+LIBS+=nacl_io
+endif
+LIBS+=ppapi_gles2 ppapi ppapi_cpp z
 
 
 #

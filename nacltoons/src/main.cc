@@ -22,6 +22,7 @@ USING_NS_CC;
 
 AppDelegate g_app;
 
+#ifdef OLD_NACL_MOUNTS
 void DownloadFiles(MainThreadRunner* runner,
                    const char** filenames, int num_files) {
   CCLOG("Downloading %d files...", num_files);
@@ -48,6 +49,7 @@ void DownloadFiles(MainThreadRunner* runner,
     close(fd);
   }
 }
+#endif
 
 void* cocos_main(void* arg) {
   CocosPepperInstance* instance = (CocosPepperInstance*)arg;
@@ -62,7 +64,9 @@ void* cocos_main(void* arg) {
   mkdir("fonts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   const char* filenames[] = { "fonts/Marker Felt.ttf", "brush.png" };
 
+#ifdef OLD_NACL_MOUNTS
   DownloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
+#endif
 
   CCEGLView::g_instance = instance;
   CCEGLView* eglView = CCEGLView::sharedOpenGLView();

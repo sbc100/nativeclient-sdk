@@ -10,6 +10,12 @@
 
 CHROME_PATH?=google-chrome
 NACL_ARCH?=x86_64
+
+# Comment out this line to distable nacl_mounts and use nacl_io instead.
+# when you do this you will also want to clean the cocos build using:
+# to run "build/build_cocos2dx.sh clean"
+NACL_MOUNTS=1
+
 DEBUG?=1
 ifeq ($(DEBUG),1)
   CONFIG=Debug
@@ -22,14 +28,22 @@ COCOS2DX_STAMP=out/cocos2dx.stamp
 
 all: $(NACLPORTS_STAMP) cocos2dx
 	@echo '@@@BUILD_STEP build game@@@'
+ifdef NACL_MOUNTS
+	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG) NACL_MOUNTS=$(NACL_MOUNTS)
+else
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
+endif
 
 naclports $(NACLPORTS_STAMP): build/build-naclports.sh
 	build/build-naclports.sh
 	touch $(NACLPORTS_STAMP)
 
 cocos2dx : $(NACLPORTS_STAMP) build/build-cocos2dx.sh
+ifdef NACL_MOUNTS
+	NACL_MOUNTS=$(NACL_MOUNTS) build/build-cocos2dx.sh
+else
 	build/build-cocos2dx.sh
+endif
 
 clean:
 	$(MAKE) -f game.mk clean
@@ -41,6 +55,9 @@ publish: all
 	cp out/newlib/$(CONFIG)/*.nexe out/publish
 	cp out/newlib/$(CONFIG)/*.nmf out/publish
 	cp -r data/* out/publish
+ifndef NACL_MOUNTS
+	cp -r data/res out/publish/Resources
+endif
 
 run: publish
 	$(MAKE) -f game.mk RUN

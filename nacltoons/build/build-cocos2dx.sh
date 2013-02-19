@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2012 The Native Client Authors. All rights reserved.
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -25,6 +25,9 @@ else
   readonly OS_JOBS=1
 fi
 
+if [ $# -eq 1 ]; then
+  TARGET=$1
+fi
 
 cd ${COCOS2DX_ROOT}
 
@@ -49,7 +52,6 @@ BuildTargetArchLibcConfig() {
   NACL_BIN_PATH=${NACL_TOOLCHAIN_ROOT}/bin
 
   # export nacl tools for direct use in patches.
-  set -x
   if [ "$4" = "Debug" ]; then
     export DEBUG=1
   else
@@ -68,7 +70,8 @@ BuildTargetArchLibcConfig() {
   export COCOS2DX_PATH=${COCOS2DX_ROOT}/cocos2dx
   export NACLPORTS_INCLUDE
 
-  make -j ${OS_JOBS} -C $1
+  set -x
+  make -j ${OS_JOBS} -C $1 ${TARGET}
   set +x
 }
 
