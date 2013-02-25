@@ -17,7 +17,7 @@
 # toolchain we use by default will be the first valid one listed
 VALID_TOOLCHAINS:=newlib
 
-OUTDIR:=out
+OUTBASE:=out
 
 #
 # Target Name
@@ -39,7 +39,7 @@ SOURCES := src/main.cc \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
 	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsSprite.cpp
 
-PAGE:=out/publish/index.html
+PAGE:=$(OUTBASE)/publish/index.html
 
 #
 # Get pepper directory for toolchain and includes.
@@ -51,14 +51,14 @@ ifndef NACL_SDK_ROOT
   $(error NACL_SDK_ROOT not set)
 endif
 
-include build/common.mk
+include $(NACL_SDK_ROOT)/tools/common.mk
 
 ifdef NACL_MOUNTS
 CFLAGS += -DOLD_NACL_MOUNTS
 endif
 CFLAGS += -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
-COCOS2DX_PATH = out/cocos2dx
-NACLPORTS_PATH = out/naclports
+COCOS2DX_PATH = $(OUTBASE)/cocos2dx
+NACLPORTS_PATH = $(OUTBASE)/naclports
 CINCLUDE= \
   -IClasses \
   -I$(COCOS2DX_PATH) \
@@ -73,7 +73,7 @@ CINCLUDE= \
   -I../third_party/cocos2d-x/extensions \
   -I../third_party/cocos2d-x/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
-LIB_PATHS = $(COCOS2DX_PATH)/lib
+LIB_PATHS += $(COCOS2DX_PATH)/lib
 LIB_PATHS += $(NACLPORTS_PATH)/lib
 
 #

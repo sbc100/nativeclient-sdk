@@ -70,9 +70,9 @@ BuildTargetArchLibcConfig() {
   export COCOS2DX_PATH=${COCOS2DX_ROOT}/cocos2dx
   export NACLPORTS_INCLUDE
 
-  set -x
-  make -j ${OS_JOBS} -C $1 ${TARGET}
-  set +x
+  local CMD="make -j ${OS_JOBS} -C $1 ${TARGET}"
+  echo ${CMD}
+  ${CMD}
 }
 
 
@@ -94,7 +94,7 @@ BuildTarget() {
 # $1=Dir
 CopyHeaderDir() {
   mkdir -p ${OUT_DIR}/$1
-  cp ${COCOS2DX_ROOT}/cocos2dx/$1/*.h ${OUT_DIR}/$1
+  cp -u ${COCOS2DX_ROOT}/cocos2dx/$1/*.h ${OUT_DIR}/$1
 }
 
 
@@ -125,7 +125,7 @@ CopyHeaders() {
   CopyHeaderDir textures
   CopyHeaderDir tilemap_parallax_nodes
   CopyHeaderDir touch_dispatcher
-  cp ${COCOS2DX_ROOT}/CocosDenshion/include/*.h ${OUT_DIR}
+  cp -u ${COCOS2DX_ROOT}/CocosDenshion/include/*.h ${OUT_DIR}
 }
 
 echo '@@@BUILD_STEP build cocos2dx@@@'

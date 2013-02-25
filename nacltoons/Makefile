@@ -59,10 +59,12 @@ ifndef NACL_MOUNTS
 	cp -r data/res out/publish/Resources
 endif
 
+CHROME_ARGS += --no-first-run --user-data-dir=out/user-data-dir
+
 run: publish
-	$(MAKE) -f game.mk RUN
+	CHROME_ARGS="$(CHROME_ARGS)" $(MAKE) -f game.mk RUN
 
 run-app: publish
-	$(CHROME_PATH) --no-first-run --user-data-dir=out/user-data-dir --load-extension=out/publish chrome://newtab
+	$(CHROME_PATH) $(CHROME_ARGS) --load-extension=out/publish chrome://newtab
 
 .PHONY: all naclports cocos2dx clean publish run run-app
