@@ -41,11 +41,11 @@ bool PhysicsLayer::init() {
 }
 
 PhysicsLayer::PhysicsLayer() :
-   box2d_density_(DEFAULT_DENSITY),
-   box2d_friction_(DEFAULT_FRICTION),
-   box2d_restitution_(DEFAULT_RESTITUTION),
-   render_target_(NULL),
    current_touch_id_(-1),
+   render_target_(NULL),
+   box2d_density_(DEFAULT_DENSITY),
+   box2d_restitution_(DEFAULT_RESTITUTION),
+   box2d_friction_(DEFAULT_FRICTION),
 #ifdef COCOS2D_DEBUG
    debug_enabled_(false)
 #endif
@@ -120,6 +120,7 @@ bool PhysicsLayer::InitPhysics() {
   //flags += b2Draw::e_pairBit;
   box2d_debug_draw_->SetFlags(flags);
 #endif
+  return true;
 }
 
 void PhysicsLayer::ToggleDebug() {
@@ -129,7 +130,7 @@ void PhysicsLayer::ToggleDebug() {
   CCArray* children = getChildren();
   if (!children)
     return;
-  for (int i = 0; i < children->count(); i++)
+  for (uint i = 0; i < children->count(); i++)
   {
     CCNode* child = static_cast<CCNode*>(children->objectAtIndex(i));
     if (child == render_target_)

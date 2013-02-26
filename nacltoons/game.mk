@@ -16,6 +16,7 @@
 # the make command-line or in this file prior to including common.mk.  The
 # toolchain we use by default will be the first valid one listed
 VALID_TOOLCHAINS:=newlib
+TOOLCHAIN:=newlib
 
 OUTBASE:=out
 
@@ -27,6 +28,8 @@ OUTBASE:=out
 #
 TARGET:=nacltoons
 
+COCOS_ROOT = ../third_party/cocos2d-x
+
 #
 # List of sources to compile
 #
@@ -35,9 +38,15 @@ SOURCES := src/main.cc \
 	   src/frontend.cc \
 	   src/gameplay_scene.cc \
 	   src/physics_layer.cc \
-	   ../third_party/cocos2d-x/samples/Cpp/TestCpp/Classes/Box2DTestBed/GLES-Render.cpp \
-	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
-	   ../third_party/cocos2d-x/extensions/physics_nodes/CCPhysicsSprite.cpp
+	   $(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed/GLES-Render.cpp \
+	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
+	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsSprite.cpp \
+	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/CCLuaEngine.cpp \
+	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/CCLuaStack.cpp \
+	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/Cocos2dxLuaLoader.cpp \
+	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/LuaCocos2d.cpp \
+	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/tolua_fix.c
+
 
 PAGE:=$(OUTBASE)/publish/index.html
 
@@ -51,14 +60,33 @@ ifndef NACL_SDK_ROOT
   $(error NACL_SDK_ROOT not set)
 endif
 
+NACL_SDK_VERSION_MIN := 27.184438
 include $(NACL_SDK_ROOT)/tools/common.mk
+
+# In recent SDK versions defining NACL_SDK_VERSION_MIN is enough to trigger and error
+# but older SDKs didn't know about this so we check for older versions that don't
+# support --sdk-version
+SDK_VERSION := $(shell $(GETOS) --sdk-version)
+ifndef SDK_VERSION
+  $(error You need a more recent version of the NaCl SDK (>= $(NACL_SDK_VERSION_MIN)))
+endif
 
 ifdef NACL_MOUNTS
 CFLAGS += -DOLD_NACL_MOUNTS
 endif
 CFLAGS += -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
+CFLAGS += -Wall -Wno-unknown-pragmas
+
 COCOS2DX_PATH = $(OUTBASE)/cocos2dx
-NACLPORTS_PATH = $(OUTBASE)/naclports
+
+# By default we pull naclports from the installed SDK, but we can
+# build and use them locally by defining LOCAL_PORTS
+ifdef LOCAL_PORTS
+NACLPORTS_ROOT = $(OUTBASE)/naclports
+else
+NACLPORTS_ROOT = $(NACL_SDK_ROOT)/ports
+endif
+
 CINCLUDE= \
   -IClasses \
   -I$(COCOS2DX_PATH) \
@@ -68,13 +96,13 @@ CINCLUDE= \
   -I$(COCOS2DX_PATH)/platform/nacl \
   -I$(COCOS2DX_PATH)/kazmath/include \
   -I$(NACL_SDK_ROOT)/include \
-  -I$(NACLPORTS_PATH)/include \
+  -I$(NACLPORTS_ROOT)/include \
   -I../third_party/cocos2d-x/external \
   -I../third_party/cocos2d-x/extensions \
   -I../third_party/cocos2d-x/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
 LIB_PATHS += $(COCOS2DX_PATH)/lib
-LIB_PATHS += $(NACLPORTS_PATH)/lib
+LIB_PATHS += $(NACLPORTS_ROOT)/lib
 
 #
 # List of libraries to link against.  Unlike some tools, the GCC and LLVM
@@ -91,13 +119,13 @@ LIB_PATHS += $(NACLPORTS_PATH)/lib
 #
 DEPS=
 SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
-LIBS=$(DEPS) cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff
+LIBS=$(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
 ifdef NACL_MOUNTS
 LIBS+=nacl-mounts
 else
 LIBS+=nacl_io
 endif
-LIBS+=ppapi_gles2 ppapi ppapi_cpp z
+LIBS+=ppapi_gles2 ppapi ppapi_cpp z nosys
 
 
 #

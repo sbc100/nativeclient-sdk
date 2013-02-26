@@ -3,6 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# This script will build all the naclports packages needed by nacltoons.
+# Now that the ports exist as part of the SDK this should not be necessary
+# unless you want to modify the naclports sources.
+
 set -e
 
 SCRIPT_DIR="$(cd $(dirname $0) && pwd)"
@@ -75,7 +79,8 @@ MoveLibs() {
   done
 }
 
-PACKAGES="fontconfig xml2 png jpeg tiff nacl-mounts openal freealut ogg vorbis"
+PACKAGES="fontconfig xml2 png jpeg tiff openal freealut ogg vorbis webp"
+PACKAGES="${PACKAGES} nacl-mounts"
 
 echo '@@@BUILD_STEP build naclports packages@@@'
 export NACLPORTS_NO_ANNOTATE=1

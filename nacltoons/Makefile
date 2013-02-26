@@ -8,25 +8,28 @@
 #
 #
 
-CHROME_PATH?=google-chrome
-NACL_ARCH?=x86_64
-
-# Comment out this line to distable nacl_mounts and use nacl_io instead.
-# when you do this you will also want to clean the cocos build using:
-# to run "build/build_cocos2dx.sh clean"
-NACL_MOUNTS=1
-
-DEBUG?=1
-ifeq ($(DEBUG),1)
-  CONFIG=Debug
-else
-  CONFIG=Release
+ifndef BUILDBOT_BUILDERNAME
+# By default, unless we are building on the buildbot set NACL_ARCH to so that
+# we only build for a single architecture.
+NACL_ARCH ?= x86_64
 endif
 
-NACLPORTS_STAMP=out/naclports.stamp
-COCOS2DX_STAMP=out/cocos2dx.stamp
+# Use this variable to enable/disable nacl_mounts an an alternative to
+# nacl_io.  When you do this you will also want to clean the cocos build using:
+# "build/build_cocos2dx.sh clean"
+NACL_MOUNTS = 1
 
-all: $(NACLPORTS_STAMP) cocos2dx
+DEBUG ?= 1
+ifeq ($(DEBUG),1)
+  CONFIG := Debug
+else
+  CONFIG := Release
+endif
+
+OUT_DIR := out
+PUBLISH_DIR := $(OUT_DIR)/publish
+
+all: cocos2dx
 	@echo '@@@BUILD_STEP build game@@@'
 ifdef NACL_MOUNTS
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG) NACL_MOUNTS=$(NACL_MOUNTS)
@@ -34,37 +37,31 @@ else
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
 endif
 
-naclports $(NACLPORTS_STAMP): build/build-naclports.sh
-	build/build-naclports.sh
-	touch $(NACLPORTS_STAMP)
+cocos2dx : build/build-cocos2dx.sh
+	NACL_MOUNTS=$(NACL_MOUNTS) NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
 
-cocos2dx : $(NACLPORTS_STAMP) build/build-cocos2dx.sh
-ifdef NACL_MOUNTS
-	NACL_MOUNTS=$(NACL_MOUNTS) build/build-cocos2dx.sh
-else
-	build/build-cocos2dx.sh
-endif
+really-clean: clean
+	$(RM) -r $(OUT_DIR)
 
 clean:
 	$(MAKE) -f game.mk clean
-	$(RM) $(NACLPORTS_STAMP) $(COCOS2DX_STAMP)
 
 publish: all
-	rm -fr out/publish
-	mkdir -p out/publish
-	cp out/newlib/$(CONFIG)/*.nexe out/publish
-	cp out/newlib/$(CONFIG)/*.nmf out/publish
-	cp -r data/* out/publish
+	rm -fr $(PUBLISH_DIR)
+	mkdir -p $(PUBLISH_DIR)
+	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nexe $(PUBLISH_DIR)
+	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nmf $(PUBLISH_DIR)
+	cp -r data/* $(PUBLISH_DIR)
 ifndef NACL_MOUNTS
-	cp -r data/res out/publish/Resources
+	cp -r data/res $(PUBLISH_DIR)/Resources
 endif
 
-CHROME_ARGS += --no-first-run --user-data-dir=out/user-data-dir
+CHROME_ARGS += --no-first-run --user-data-dir=$(OUT_DIR)/user-data-dir
 
 run: publish
-	CHROME_ARGS="$(CHROME_ARGS)" $(MAKE) -f game.mk RUN
+	NACL_ARCH=$(NACL_ARCH) CHROME_ARGS="$(CHROME_ARGS)" $(MAKE) -f game.mk RUN
 
 run-app: publish
-	$(CHROME_PATH) $(CHROME_ARGS) --load-extension=out/publish chrome://newtab
+	$(CHROME_PATH) $(CHROME_ARGS) --load-extension=$(PUBLISH_DIR) chrome://newtab
 
-.PHONY: all naclports cocos2dx clean publish run run-app
+.PHONY: all naclports cocos2dx clean publish run run-app really-clean

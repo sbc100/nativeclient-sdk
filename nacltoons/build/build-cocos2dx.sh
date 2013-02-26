@@ -6,11 +6,13 @@
 set -e
 
 SCRIPT_DIR="$(cd $(dirname $0) && pwd)"
-OUT_DIR=${SCRIPT_DIR}/../out/cocos2dx
-COCOS2DX_ROOT=${SCRIPT_DIR}/../../third_party/cocos2d-x
 
-NACLPORTS_PREFIX=${SCRIPT_DIR}/../out/naclports
-NACLPORTS_INCLUDE=${NACLPORTS_PREFIX}/include
+OUT_ROOT=${SCRIPT_DIR}/../out
+mkdir -p ${OUT_ROOT}
+OUT_ROOT="$(cd ${OUT_ROOT} && pwd)"
+
+OUT_DIR=${OUT_ROOT}/cocos2dx
+COCOS2DX_ROOT="$(cd ${SCRIPT_DIR}/../../third_party/cocos2d-x && pwd)"
 
 # Pick platform directory for compiler.
 readonly OS_NAME=$(uname -s)
@@ -35,9 +37,9 @@ cd ${COCOS2DX_ROOT}
 BuildTargetArchLibcConfig() {
   ARCH=$2
   if [ "${ARCH}" = "i686" ]; then
-    ARCH_DIR=x86_32
+    local ARCH_DIR=x86_32
   else
-    ARCH_DIR=${ARCH}
+    local ARCH_DIR=${ARCH}
   fi
 
   NACL_CROSS_PREFIX=${ARCH}-nacl
@@ -53,9 +55,9 @@ BuildTargetArchLibcConfig() {
 
   # export nacl tools for direct use in patches.
   if [ "$4" = "Debug" ]; then
-    export DEBUG=1
+    local DEBUG=1
   else
-    export DEBUG=0
+    local DEBUG=0
   fi
   export LIB_DIR=${OUT_DIR}/lib/$3_${ARCH_DIR}
   export OBJ_DIR=${OUT_DIR}/obj/${ARCH_DIR}
@@ -63,12 +65,16 @@ BuildTargetArchLibcConfig() {
   export NACLCXX=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-g++
   export NACLAR=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-ar
 
-  export NACL_ARCH=${ARCH}
+  local NACL_ARCH=${ARCH}
+  export NACL_ARCH
+  export DEBUG
   export NACL_CC=${NACLCC}
   export NACL_CXX=${NACLCXX}
   export NACL_AR=${NACLAR}
   export COCOS2DX_PATH=${COCOS2DX_ROOT}/cocos2dx
-  export NACLPORTS_INCLUDE
+  if [ -n "$NACLPORTS_ROOT" ]; then
+      export NACLPORTS_ROOT
+  fi
 
   local CMD="make -j ${OS_JOBS} -C $1 ${TARGET}"
   echo ${CMD}
@@ -85,9 +91,13 @@ BuildTargetArch() {
 
 # $1=Dir
 BuildTarget() {
-  BuildTargetArch $1 i686
-  BuildTargetArch $1 x86_64
-  BuildTargetArch $1 arm
+  if [ -n "${NACL_ARCH}" ]; then
+    BuildTargetArch $1 ${NACL_ARCH}
+  else
+    BuildTargetArch $1 i686
+    BuildTargetArch $1 x86_64
+    BuildTargetArch $1 arm
+  fi
 }
 
 
@@ -121,18 +131,18 @@ CopyHeaders() {
   CopyHeaderDir sprite_nodes
   CopyHeaderDir support
   CopyHeaderDir support/data_support
+  CopyHeaderDir support/tinyxml2
   CopyHeaderDir text_input_node
   CopyHeaderDir textures
   CopyHeaderDir tilemap_parallax_nodes
   CopyHeaderDir touch_dispatcher
   cp -u ${COCOS2DX_ROOT}/CocosDenshion/include/*.h ${OUT_DIR}
+  cp -u ${COCOS2DX_ROOT}/scripting/lua/cocos2dx_support/*.h ${OUT_DIR}
+  cp -u ${COCOS2DX_ROOT}/scripting/lua/tolua/tolua++.h ${OUT_DIR}
 }
 
 echo '@@@BUILD_STEP build cocos2dx@@@'
 BuildTarget cocos2dx/proj.nacl
-
-echo 'Copying headers'
-CopyHeaders
 
 echo '@@@BUILD_STEP build CocosDenshion@@@'
 BuildTarget CocosDenshion/proj.nacl
@@ -142,3 +152,6 @@ BuildTarget external/Box2D/proj.nacl
 
 echo '@@@BUILD_STEP build lua@@@'
 BuildTarget scripting/lua/proj.nacl
+
+echo 'Copying headers'
+CopyHeaders
