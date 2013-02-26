@@ -17,7 +17,7 @@ endif
 # Use this variable to enable/disable nacl_mounts an an alternative to
 # nacl_io.  When you do this you will also want to clean the cocos build using:
 # "build/build_cocos2dx.sh clean"
-NACL_MOUNTS = 1
+#NACL_MOUNTS = 1
 
 DEBUG ?= 1
 ifeq ($(DEBUG),1)
