@@ -33,6 +33,14 @@ class PhysicsLayer : public CCLayerColor {
   virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
   virtual void registerWithTouchDispatcher();
 
+  b2World* GetWorld() { return box2d_world_; }
+
+  // Add the current (most recently created) instance.
+  // Unfortunately this is needed by the lua bindings so the it can access the
+  // GetWorld method.
+  // TODO(sbc): find a way to do without this.
+  static PhysicsLayer* GetCurrent() { return current_instance_; }
+
 #ifdef COCOS2D_DEBUG
   void ToggleDebug();
 #endif
@@ -55,12 +63,17 @@ class PhysicsLayer : public CCLayerColor {
   CCSprite* CreatePhysicsSprite(b2Body* body);
   void UpdateWorld(float dt);
   bool InitPhysics();
+  bool LoadLua();
+  void LevelComplete(CCNode* sender);
 
  private:
+  static PhysicsLayer* current_instance_;
+
   // Brush texture used for drawing shapes
   CCSprite* brush_;
-
   float brush_radius_;
+  bool stars_collected_[3];
+  bool goal_reached_;
 
   // The touch ID that is drawing the current shape.  Events from
   // other touches are ignored while this has a valid value.

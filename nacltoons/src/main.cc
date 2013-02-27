@@ -16,7 +16,9 @@
 
 #include "app_delegate.h"
 
+#ifdef OLD_NACL_MOUNTS
 #include "nacl-mounts/base/UrlLoaderJob.h"
+#endif
 
 USING_NS_CC;
 
@@ -60,11 +62,20 @@ void* cocos_main(void* arg) {
   alSetPpapiInfo(instance->pp_instance(),
                  pp::Module::Get()->get_browser_interface());
 
+#ifdef OLD_NACL_MOUNTS
   // TODO(sbc): remove this hack an replace with some kind of URL mount
   mkdir("fonts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  const char* filenames[] = { "fonts/Marker Felt.ttf", "brush.png" };
+  mkdir("sample_game", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mkdir("sample_game/images", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  const char* filenames[] = { "fonts/Marker Felt.ttf", "brush.png",
+                              "loader.lua",
+                              "sample_game/images/ball.png",
+                              "sample_game/images/goal.png",
+                              "sample_game/images/star.png",
+                              "sample_game/game.lua",
+                              "sample_game/level1.lua",
+                              "sample_game/level2.lua" };
 
-#ifdef OLD_NACL_MOUNTS
   DownloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
 #endif
 

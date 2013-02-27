@@ -9,26 +9,43 @@
  * here are not important as long as they are unique within the scene.
  */
 enum ObjectTags {
-  NODE_TAG_PHYSICS = 100,
-  NODE_TAG_UI
+  TAG_LAYER_PHYSICS = 100,
+  TAG_LAYER_UI = 101,
+  TAG_LAYER_OVERLAY = 102,
 };
 
 USING_NS_CC;
 
 void GameplayScene::Restart() {
-  removeChild(getChildByTag(NODE_TAG_PHYSICS));
+  removeChild(getChildByTag(TAG_LAYER_PHYSICS));
+  removeChild(getChildByTag(TAG_LAYER_OVERLAY));
   CCLayer* physics = PhysicsLayer::create();
-  addChild(physics, 2, NODE_TAG_PHYSICS);
+  addChild(physics, 1, TAG_LAYER_PHYSICS);
+}
+
+void GameplayScene::GameOver(bool success) {
+  CCSize visible_size = CCDirector::sharedDirector()->getVisibleSize();
+
+  // Create a black overlay layer with success/failure message
+  CCLayer* overlay = CCLayerColor::create(ccc4(0x0, 0x0, 0x0, 0x0));
+  const char* text = success ? "Success!" : "Failure!";
+  CCLabelTTF* label = CCLabelTTF::create(text, "Arial.ttf", 24);
+  label->setPosition(ccp(visible_size.width/2, visible_size.height/2));
+  overlay->addChild(label);
+  addChild(overlay, 2, TAG_LAYER_OVERLAY);
+
+  // Face the overlay layer into to 50%
+  CCActionInterval* fadein = CCFadeTo::create(0.5f, 0x7F);
+  overlay->runAction(fadein);
 }
 
 bool GameplayScene::init() {
   if (!CCScene::init())
     return false;
   CCLayer* ui = UILayer::create();
-  addChild(ui, 1, NODE_TAG_UI);
+  addChild(ui, 3, TAG_LAYER_UI);
 
-  CCLayer* physics = PhysicsLayer::create();
-  addChild(physics, 2, NODE_TAG_PHYSICS);
+  Restart();
   return true;
 }
 
@@ -47,7 +64,7 @@ void UILayer::Exit(CCObject* sender) {
 void UILayer::ToggleDebug(CCObject* sender) {
   CCLog("ToggleDebug pressed");
   GameplayScene* scene = static_cast<GameplayScene*>(getParent());
-  CCNode* physics = scene->getChildByTag(NODE_TAG_PHYSICS);
+  CCNode* physics = scene->getChildByTag(TAG_LAYER_PHYSICS);
   static_cast<PhysicsLayer*>(physics)->ToggleDebug();
 }
 #endif

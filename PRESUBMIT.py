@@ -5,12 +5,15 @@
 # Documentation on PRESUBMIT.py can be found at:
 # http://www.chromium.org/developers/how-tos/depottools/presubmit-scripts
 
+EXCLUDED_PATHS = (
+    r"nacltoons/bindings/.*",
+)
 
 def CheckChangeOnUpload(input_api, output_api):
   report = []
   affected_files = input_api.AffectedFiles(include_deletes=False)
   report.extend(input_api.canned_checks.PanProjectChecks(
-      input_api, output_api))
+      input_api, output_api, excluded_paths=EXCLUDED_PATHS))
   return report
 
 

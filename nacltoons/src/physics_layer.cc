@@ -1,8 +1,15 @@
 // Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
 #include "physics_layer.h"
+#include "gameplay_scene.h"
+
 #include "physics_nodes/CCPhysicsSprite.h"
+#include "CCLuaEngine.h"
+#include "LuaBox2D.h"
+#include "lua_physics_layer.h"
+#include "LuaCocos2dExtensions.h"
 
 // Pixels-to-meters ratio for converting screen coordinates
 // to Box2D "meters".
@@ -12,18 +19,31 @@
 #define VELOCITY_ITERATIONS 8
 #define POS_ITERATIONS 1
 
-#define SPRITE_BATCH_NODE_TAG 99
 #define MAX_SPRITES 100
 
 #define DEFAULT_DENSITY 1.0f
 #define DEFAULT_FRICTION 0.2f
 #define DEFAULT_RESTITUTION 0.1f
 
+
+enum Tags {
+  TAG_BALL = 1,
+  TAG_GOAL = 2,
+  TAG_STAR1 = 3,
+  TAG_STAR2 = 4,
+  TAG_STAR3 = 5,
+};
+
+
 USING_NS_CC_EXT;
+
+PhysicsLayer* PhysicsLayer::current_instance_;
 
 bool PhysicsLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0,0x8F,0xD8,0xD8)))
     return false;
+
+  current_instance_ = this;
 
   setTouchEnabled(true);
 
@@ -35,12 +55,16 @@ bool PhysicsLayer::init() {
   CCSize brush_size = brush_->getContentSize();
   brush_radius_ = MAX(brush_size.height/2, brush_size.width/2);
 
+  // load level from lua file.
+  LoadLua();
+
   // script physics updates each frame
   schedule(schedule_selector(PhysicsLayer::UpdateWorld));
   return true;
 }
 
 PhysicsLayer::PhysicsLayer() :
+   goal_reached_(false),
    current_touch_id_(-1),
    render_target_(NULL),
    box2d_density_(DEFAULT_DENSITY),
@@ -49,11 +73,14 @@ PhysicsLayer::PhysicsLayer() :
 #ifdef COCOS2D_DEBUG
    debug_enabled_(false)
 #endif
-   {
+{
+  memset(stars_collected_, 0, sizeof(stars_collected_));
 }
 
 PhysicsLayer::~PhysicsLayer() {
   brush_->release();
+  if (current_instance_ == this)
+    current_instance_ = NULL;
   delete box2d_world_;
 #ifdef COCOS2D_DEBUG
   delete box2d_debug_draw_;
@@ -76,6 +103,39 @@ void PhysicsLayer::CreateRenderTarget()
                                            kCCTexture2DPixelFormat_RGBA8888);
   render_target_->setPosition(ccp(win_size.width / 2, win_size.height / 2));
   addChild(render_target_);
+}
+
+bool PhysicsLayer::LoadLua() {
+  //lua_loaded_ = true;
+  CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
+  assert(manager);
+  CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
+  assert(engine);
+
+  // Add custom bindings for Box2D and PhysicsLayer.
+  CCLuaStack* stack = engine->getLuaStack();
+  lua_State* lua_state = stack->getLuaState();
+  assert(lua_state);
+  // add box2D bindings
+  tolua_LuaBox2D_open(lua_state);
+  // add PhysicsLayer bindings
+  tolua_physics_layer_open(lua_state);
+  // add cocos2dx extensions bindings
+  tolua_extensions_open(lua_state);
+
+  CCFileUtils* utils = CCFileUtils::sharedFileUtils();
+  std::string path = utils->fullPathForFilename("loader.lua");
+
+  // add the location of the lua file to the search path
+  engine->addSearchPath(path.substr(0, path.find_last_of("/")).c_str());
+
+  // execut load file
+  int rtn = engine->executeScriptFile(path.c_str());
+  assert(!rtn);
+  if (rtn)
+    return false;
+
+  return true;
 }
 
 bool PhysicsLayer::InitPhysics() {
@@ -139,12 +199,69 @@ void PhysicsLayer::ToggleDebug() {
   }
 }
 
-void PhysicsLayer::UpdateWorld(float dt) {
-   box2d_world_->Step(dt, VELOCITY_ITERATIONS, POS_ITERATIONS);
+CCRect CalcBoundingBox(CCSprite* sprite) {
+  CCSize size = sprite->getContentSize();
+  CCPoint pos = sprite->getPosition();
+  return CCRectMake(pos.x - size.width, pos.y - size.height,
+                    size.width, size.height/2);
 }
 
-void PhysicsLayer::DrawPoint(CCPoint& location)
-{
+void PhysicsLayer::UpdateWorld(float dt) {
+  // update physics
+  box2d_world_->Step(dt, VELOCITY_ITERATIONS, POS_ITERATIONS);
+
+  CCSprite* ball = (CCSprite*)getChildByTag(TAG_BALL);
+  assert(ball);
+  CCRect ball_bounds = CalcBoundingBox(ball);
+
+  // TODO(sbc): Investigate using box2d to do collision for us
+  // http://www.iforce2d.net/b2dtut/sensors
+
+  // check for stars being reached by ball
+  int star_tags[] = { TAG_STAR1, TAG_STAR2, TAG_STAR3 };
+  for (uint i = 0; i < sizeof(star_tags)/sizeof(int); i++) {
+    if (stars_collected_[i])
+      continue;
+    CCSprite* star = (CCSprite*)getChildByTag(star_tags[i]);
+    assert(star);
+    CCRect star_bounds = CalcBoundingBox(star);
+
+    if (ball_bounds.intersectsRect(star_bounds)) {
+      CCLog("star %d reached", i);
+      stars_collected_[i] = true;
+      CCAction* action = CCFadeOut::create(0.5f);
+      star->runAction(action);
+    }
+  }
+
+  // check for goal being reached by ball
+  if (!goal_reached_) {
+    CCSprite* goal = (CCSprite*)getChildByTag(TAG_GOAL);
+    assert(goal);
+    CCRect goal_bounds = CalcBoundingBox(goal);
+    if (ball_bounds.intersectsRect(goal_bounds)) {
+      CCLog("goal reached");
+      goal_reached_ = true;
+
+      // fade out the goal and trigger gameover callback when its
+      // done
+      CCActionInterval* fadeout = CCFadeOut::create(0.5f);
+      CCFiniteTimeAction* fadeout_done = CCCallFuncN::create(this,
+           callfuncN_selector(PhysicsLayer::LevelComplete));
+      CCSequence* seq = CCSequence::create(fadeout, fadeout_done, NULL);
+      goal->runAction(seq);
+    }
+  }
+}
+
+void PhysicsLayer::LevelComplete(CCNode* sender) {
+  unschedule(schedule_selector(PhysicsLayer::UpdateWorld));
+  setTouchEnabled(false);
+  GameplayScene* scene = static_cast<GameplayScene*>(getParent());
+  scene->GameOver(true);
+}
+
+void PhysicsLayer::DrawPoint(CCPoint& location) {
   render_target_->begin();
   brush_->setPosition(ccp(location.x, location.y));
   brush_->visit();
@@ -152,8 +269,7 @@ void PhysicsLayer::DrawPoint(CCPoint& location)
   points_being_drawn_.push_back(location);
 }
 
-void PhysicsLayer::draw()
-{
+void PhysicsLayer::draw() {
   CCLayerColor::draw();
 
 #ifdef COCOS2D_DEBUG

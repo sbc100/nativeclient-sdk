@@ -1,0 +1,11 @@
+This folder contains code for binding various C/C++ compontents
+to Lua.  The bindings were created using tolua++ and the build
+script from cocos2dx (tools/tolua++/build.php).
+
+All the sources and headers in this folder are auto-generated.
+
+The box2d bindings were taking from the cocos2dx forum here:
+http://www.cocos2d-x.org/boards/11/topics/3181
+
+The hope is that both the box2d and the cocos2dx extension bindings
+will get including in cocos2dx upstream in the near future.

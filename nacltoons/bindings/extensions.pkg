@@ -1,0 +1,8 @@
+$#include "LuaCocos2dExtensions.h"
+$#include "physics_nodes/CCPhysicsSprite.h"
+$#include "Box2D/Box2D.h"
+
+$USING_NS_CC;
+$USING_NS_CC_EXT;
+
+$pfile "CCPhysicsSprite.pkg"

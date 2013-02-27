@@ -38,6 +38,9 @@ SOURCES := src/main.cc \
 	   src/frontend.cc \
 	   src/gameplay_scene.cc \
 	   src/physics_layer.cc \
+	   bindings/LuaBox2D.cpp \
+	   bindings/lua_physics_layer.cpp \
+	   bindings/LuaCocos2dExtensions.cpp \
 	   $(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed/GLES-Render.cpp \
 	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
 	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsSprite.cpp \
@@ -88,7 +91,8 @@ NACLPORTS_ROOT = $(NACL_SDK_ROOT)/ports
 endif
 
 CINCLUDE= \
-  -IClasses \
+  -Isrc \
+  -Ibindings \
   -I$(COCOS2DX_PATH) \
   -I$(COCOS2DX_PATH)/cocoa \
   -I$(COCOS2DX_PATH)/external \

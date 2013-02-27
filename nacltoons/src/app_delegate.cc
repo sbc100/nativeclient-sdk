@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include "app_delegate.h"
 #include "frontend.h"
+#include "CCLuaEngine.h"
 
 USING_NS_CC;
 
@@ -12,6 +13,10 @@ bool AppDelegate::applicationDidFinishLaunching() {
   CCDirector* director = CCDirector::sharedDirector();
   director->setOpenGLView(view);
   director->setDisplayStats(true);
+
+  // Create lua engine
+  CCLuaEngine* engine = CCLuaEngine::defaultEngine();
+  CCScriptEngineManager::sharedManager()->setScriptEngine(engine);
 
   // Create the initial (autorelease) scene and run with it.
   CCScene* scene = FrontEndScene::create();

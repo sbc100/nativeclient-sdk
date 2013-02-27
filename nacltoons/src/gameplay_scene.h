@@ -21,6 +21,7 @@ class GameplayScene : public CCScene {
   CREATE_FUNC(GameplayScene);
   virtual bool init();
   void Restart();
+  void GameOver(bool success);
 };
 
 /**
