@@ -12,6 +12,13 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
   CCDirector* director = CCDirector::sharedDirector();
   director->setOpenGLView(view);
+
+  // This tells cocos that our application's assets are designed for
+  // native display at 600x800.  If the embed element is not this
+  // size cocos will automatically scale all assets and coordinates
+  // accordingly.
+  view->setDesignResolutionSize(800, 600, kResolutionNoBorder);
+
   director->setDisplayStats(true);
 
   // Create lua engine

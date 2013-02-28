@@ -144,28 +144,23 @@ bool PhysicsLayer::InitPhysics() {
   box2d_world_->SetAllowSleeping(true);
   box2d_world_->SetContinuousPhysics(true);
 
+  // Find visible rect, and convert to box2d space.
+  CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+  CCSize visible_size = CCDirector::sharedDirector()->getVisibleSize();
+  float world_width = SCREEN_TO_WORLD(visible_size.width);
+  b2Vec2 world_origin(SCREEN_TO_WORLD(origin.x), SCREEN_TO_WORLD(origin.y));
+
   // create the ground
   b2BodyDef groundBodyDef;
-  groundBodyDef.position.Set(0, 0);
+  groundBodyDef.position = world_origin;
   b2Body* groundBody = box2d_world_->CreateBody(&groundBodyDef);
 
-  CCSize win_size = CCDirector::sharedDirector()->getWinSize();
-  int world_width = SCREEN_TO_WORLD(win_size.width);
-  int world_height = SCREEN_TO_WORLD(win_size.height);
+  CCLog("origin: %.fx%.f", origin.x, origin.y);
+  CCLog("size: %.fx%f", visible_size.width, visible_size.height);
 
   // Define the ground box shape.
   b2EdgeShape groundBox;
-  // bottom
   groundBox.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
-  groundBody->CreateFixture(&groundBox, 0);
-  // top
-  groundBox.Set(b2Vec2(0, world_height), b2Vec2(world_width, world_height));
-  groundBody->CreateFixture(&groundBox, 0);
-  // left
-  groundBox.Set(b2Vec2(0, world_height), b2Vec2(0,0));
-  groundBody->CreateFixture(&groundBox, 0);
-  // right
-  groundBox.Set(b2Vec2(world_width, world_height), b2Vec2(world_width, 0));
   groundBody->CreateFixture(&groundBox, 0);
 
 #ifdef COCOS2D_DEBUG
@@ -262,6 +257,7 @@ void PhysicsLayer::LevelComplete(CCNode* sender) {
 }
 
 void PhysicsLayer::DrawPoint(CCPoint& location) {
+  ClampBrushLocation(location);
   render_target_->begin();
   brush_->setPosition(ccp(location.x, location.y));
   brush_->visit();
@@ -283,8 +279,26 @@ void PhysicsLayer::draw() {
 #endif
 }
 
+void PhysicsLayer::ClampBrushLocation(CCPoint& point) {
+  CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+  CCSize visible_size = CCDirector::sharedDirector()->getVisibleSize();
+
+  float min_x = origin.x + brush_radius_;
+  float min_y = origin.y + brush_radius_;
+  if (point.x < min_x) point.x = min_x;
+  if (point.y < min_y) point.y = min_y;
+
+  float max_x = origin.x + visible_size.width - brush_radius_;
+  float max_y = origin.y + visible_size.height - brush_radius_;
+  if (point.x > max_x) point.x = max_x;
+  if (point.y > max_y) point.y = max_y;
+}
+
 void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end)
 {
+  ClampBrushLocation(start);
+  ClampBrushLocation(end);
+
   // calculate distance moved
   float distance = ccpDistance(start, end);
 

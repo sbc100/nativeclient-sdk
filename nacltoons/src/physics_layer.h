@@ -50,6 +50,8 @@ class PhysicsLayer : public CCLayerColor {
   void DrawLine(CCPoint& start, CCPoint& end);
   // Called by ccTouchesBegan to draw a single point.
   void DrawPoint(CCPoint& location);
+  // Clamp brush location to within the visible area
+  void ClampBrushLocation(CCPoint& point);
 
   void AddLineToBody(b2Body *body, CCPoint start, CCPoint end);
   void AddSphereToBody(b2Body *body, CCPoint* location);
