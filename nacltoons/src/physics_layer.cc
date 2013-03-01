@@ -32,6 +32,8 @@ enum Tags {
   TAG_STAR1 = 3,
   TAG_STAR2 = 4,
   TAG_STAR3 = 5,
+  TAG_BRUSH = 6,
+  TAG_OBJECTS_START = 256,
 };
 
 
@@ -49,14 +51,14 @@ bool PhysicsLayer::init() {
 
   InitPhysics();
 
-  // create brush texture
-  brush_ = CCSprite::create("brush.png");
-  brush_->retain();
-  CCSize brush_size = brush_->getContentSize();
-  brush_radius_ = MAX(brush_size.height/2, brush_size.width/2);
-
   // load level from lua file.
   LoadLua();
+
+  // calculate brush size
+  brush_ = (CCSprite*)getChildByTag(TAG_BRUSH);
+  assert(brush_);
+  CCSize brush_size = brush_->getContentSize();
+  brush_radius_ = MAX(brush_size.height/2, brush_size.width/2);
 
   // script physics updates each frame
   schedule(schedule_selector(PhysicsLayer::UpdateWorld));
@@ -78,7 +80,6 @@ PhysicsLayer::PhysicsLayer() :
 }
 
 PhysicsLayer::~PhysicsLayer() {
-  brush_->release();
   if (current_instance_ == this)
     current_instance_ = NULL;
   delete box2d_world_;
@@ -151,17 +152,17 @@ bool PhysicsLayer::InitPhysics() {
   b2Vec2 world_origin(SCREEN_TO_WORLD(origin.x), SCREEN_TO_WORLD(origin.y));
 
   // create the ground
-  b2BodyDef groundBodyDef;
-  groundBodyDef.position = world_origin;
-  b2Body* groundBody = box2d_world_->CreateBody(&groundBodyDef);
+  b2BodyDef ground_def;
+  ground_def.position = world_origin;
+  b2Body* ground_body = box2d_world_->CreateBody(&ground_def);
 
   CCLog("origin: %.fx%.f", origin.x, origin.y);
   CCLog("size: %.fx%f", visible_size.width, visible_size.height);
 
   // Define the ground box shape.
-  b2EdgeShape groundBox;
-  groundBox.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
-  groundBody->CreateFixture(&groundBox, 0);
+  b2EdgeShape ground_box;
+  ground_box.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
+  ground_body->CreateFixture(&ground_box, 0);
 
 #ifdef COCOS2D_DEBUG
   box2d_debug_draw_ = new GLESDebugDraw(PTM_RATIO);
@@ -259,8 +260,10 @@ void PhysicsLayer::LevelComplete(CCNode* sender) {
 void PhysicsLayer::DrawPoint(CCPoint& location) {
   ClampBrushLocation(location);
   render_target_->begin();
+  brush_->setVisible(true);
   brush_->setPosition(ccp(location.x, location.y));
   brush_->visit();
+  brush_->setVisible(false);
   render_target_->end();
   points_being_drawn_.push_back(location);
 }
@@ -310,10 +313,12 @@ void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end)
     float difx = end.x - start.x;
     float dify = end.y - start.y;
     float delta = (float)i / distance;
+    brush_->setVisible(true);
     brush_->setPosition(
         ccp(start.x + (difx * delta), start.y + (dify * delta)));
 
     brush_->visit();
+    brush_->setVisible(false);
   }
   render_target_->end();
   points_being_drawn_.push_back(end);

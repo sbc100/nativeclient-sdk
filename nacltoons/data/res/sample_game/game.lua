@@ -10,6 +10,7 @@ local theme = {
    ball_image = root_dir..'/images/ball.png',
    goal_image = root_dir..'/images/goal.png',
    star_image = root_dir..'/images/star.png',
+   brush_image = root_dir..'/images/brush.png',
    levels = {
        dofile(root_dir..'/level1.lua'),
        dofile(root_dir..'/level2.lua'),

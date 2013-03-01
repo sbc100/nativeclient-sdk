@@ -67,8 +67,9 @@ void* cocos_main(void* arg) {
   mkdir("fonts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   mkdir("sample_game", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   mkdir("sample_game/images", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  const char* filenames[] = { "fonts/Marker Felt.ttf", "brush.png",
+  const char* filenames[] = { "fonts/Marker Felt.ttf",
                               "loader.lua",
+                              "sample_game/images/brush.png",
                               "sample_game/images/ball.png",
                               "sample_game/images/goal.png",
                               "sample_game/images/star.png",
