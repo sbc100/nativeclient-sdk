@@ -38,22 +38,23 @@ local function LoadGame(filename)
     return game
 end
 
-local function AddShapeToBody(body, shape)
+local function AddShapeToBody(body, shape, sensor)
     Log('adding fixture')
     local fixture_def = b2FixtureDef:new_local()
     fixture_def.shape = shape
     fixture_def.density = 1.0
     fixture_def.friction = 0.5
     fixture_def.restitution = 0.3
+    fixture_def.isSensor = sensor
     Log('adding fixture 2')
     body:CreateFixture(fixture_def)
     Log('adding fixture done')
 end
 
-local function AddSphereToBody(body, radius)
+local function AddSphereToBody(body, radius, sensor)
     local shape = b2CircleShape:new_local()
     shape.m_radius = ScreenToWorld(radius)
-    AddShapeToBody(body, shape)
+    AddShapeToBody(body, shape, sensor)
 end
 
 --- Create a fix pivot point between the world and the given object.
@@ -91,8 +92,10 @@ local function CreateLine(world, brush, from, to, object)
     end
 
     -- calculate thickness based on brush sprite size
-    local brush_size = brush:getContentSize();
-    local thinkness = math.max(brush_size.height/2, brush_size.width/2);
+    local brush_tex = brush:getTexture()
+    local brush_size = brush_tex:getContentSizeInPixels()
+    local thickness = math.max(brush_size.height/2, brush_size.width/2);
+    Log('thickness: '..thickness)
 
     -- calculate length and angle of line based on start and end points
     local length = ccpDistance(from, to);
@@ -105,7 +108,7 @@ local function CreateLine(world, brush, from, to, object)
     local center = b2Vec2:new_local(ScreenToWorld(dist_x/2),
                                     ScreenToWorld(dist_y/2))
     local shape = b2PolygonShape:new_local()
-    shape:SetAsBox(ScreenToWorld(length/2), ScreenToWorld(thinkness),
+    shape:SetAsBox(ScreenToWorld(length/2), ScreenToWorld(thickness),
                    center, angle)
     local fixture_def = b2FixtureDef:new_local()
     fixture_def.shape = shape
@@ -115,24 +118,22 @@ local function CreateLine(world, brush, from, to, object)
     body:CreateFixture(fixture_def)
 
     -- Now create a visible CCPhysicsSprite that the body is attached to
-    local brush_tex = brush:getTexture()
     local sprite = CCPhysicsSprite:createWithTexture(brush_tex)
     sprite:setB2Body(body)
     sprite:setPTMRatio(PTM_RATIO)
 
     -- And add a sequence of non-physics sprites as children of the first
     local dist = CCPointMake(dist_x, dist_y)
-    local num_children = length / thinkness
+    local num_children = length / thickness
     local inc_x = dist_x / num_children
     local inc_y = dist_y / num_children
-    local child_location = CCPointMake(0, 0)
-    for i = 2,num_children do
+    local child_location = CCPointMake(thickness, thickness)
+    for i = 1,num_children do
         child_location.x = child_location.x + inc_x
         child_location.y = child_location.y + inc_y
 
         local child_sprite = CCSprite:createWithTexture(brush_tex)
         child_sprite:setPosition(child_location)
-        child_sprite:setAnchorPoint(CCPointMake(0, 0))
         sprite:addChild(child_sprite)
     end
 
@@ -145,17 +146,19 @@ local function PointFromLua(origin, point)
     return CCPointMake(point[1] + origin.x, point[2] + origin.y)
 end
 
---- Create ball, a physics object
-local function CreateTheBall(image, location, b2d_world)
+--- Create a physics sprite at a fiven location with a given image
+local function CreatePhysicsSprite(b2d_world, location, image, sensor)
     Log('goal: '..location.x..'x'..location.y)
     local ball = CCPhysicsSprite:create(image)
     local body_def = b2BodyDef:new_local()
-    body_def.type = b2_dynamicBody
+    if not sensor then
+        body_def.type = b2_dynamicBody
+    end
     local body = b2d_world:CreateBody(body_def)
     ball:setB2Body(body)
     ball:setPTMRatio(PTM_RATIO)
     ball:setPosition(location)
-    AddSphereToBody(body, ball:boundingBox().size.height/2)
+    AddSphereToBody(body, ball:boundingBox().size.height/2, sensor)
     return ball
 end
 
@@ -171,31 +174,27 @@ local function LoadLevel(game, level_number)
     local origin = CCDirector:sharedDirector():getVisibleOrigin()
     local layer = PhysicsLayer:GetCurrent()
     local world = layer:GetWorld()
-    local cache = CCTextureCache:sharedTextureCache()
 
-    local ball = CreateTheBall(game.ball_image,
-                               PointFromLua(origin, level.start), world)
+    local ball = CreatePhysicsSprite(world, PointFromLua(origin, level.start),
+                                     game.ball_image, false)
     layer:addChild(ball, 1, tags.BALL)
 
     -- Load brush image
-    game.brush_image = cache:addImage(game.brush_image)
-    local brush = CCSprite:createWithTexture(game.brush_image)
-    brush:setVisible(false)
+    local brush = CCSpriteBatchNode:create(game.brush_image)
     layer:addChild(brush, 1, tags.BRUSH)
 
     -- Create goal and stars
     Log('goal: '..level.goal[1]..'x'..level.goal[2])
-    local goal = CCSprite:create(game.goal_image)
-    goal:setPosition(PointFromLua(origin, level.goal))
+    local goal = CreatePhysicsSprite(world, PointFromLua(origin, level.goal),
+                                     game.goal_image, true)
     layer:addChild(goal, 1, tags.GOAL)
 
-    game.star_image = cache:addImage(game.star_image)
     for i, star in ipairs(level.stars) do
-        local sprite = CCSprite:createWithTexture(game.star_image)
+        local sprite = CreatePhysicsSprite(world, PointFromLua(origin, star),
+                                           game.star_image, true)
         local tag = tags.STAR1 + i - 1
         Log('loading star [tag='..tag..']: '..star[1]..'x'..star[2])
         layer:addChild(sprite, 1, tag)
-        sprite:setPosition(PointFromLua(origin, star))
     end
 
     -- Load fixtures
@@ -206,11 +205,13 @@ local function LoadLevel(game, level_number)
             object.anchor = PointFromLua(origin, object.anchor)
         end
         local line = CreateLine(world, brush, start, finish, object)
-        layer:addChild(line, 1, tags.OBJECTS_START+i-1)
+        brush:addChild(line, 1, tags.OBJECTS_START+i-1)
     end
-
-    game.background = cache:addImage(game.background_image)
 end
 
-game = LoadGame('sample_game/game.lua')
+-- Global variables that can be used in the lua data files.
+height = 600
+width = 800
+
+local game = LoadGame('sample_game/game.lua')
 LoadLevel(game, 1)

@@ -4,19 +4,26 @@
 -- single value which is the table describing the level.
 
 local level = {
-   goal = { 34, 56 },
-   start = { 200, 250 },
-   stars = { { 100, 100 }, { 200, 150}, { 300, 200 } },
+   goal = { 700, 50 },
+   start = { 100, height - 100 },
+   stars = { { 200, 490 }, { 200, 250}, { 420, 100 } },
 
    objects = {
-       -- create four fixed lines in the world forming a box
-       { start = { 100, 100 }, finish = { 100, 200 } },
-       { start = { 100, 200 }, finish = { 200, 200 } },
-       { start = { 200, 200 }, finish = { 200, 100 } },
-       { start = { 200, 100 }, finish = { 100, 100 } },
+       -- create three ramps for the ball to roll down
+       { start = { 20, 450 }, finish = { 550, 400 } },
+
+       { start = { 200, 200}, finish = { 780, 380 } },
+
+       { start = { 20, 240}, finish = { 200, 50 } },
+
+       -- create a box
+       { start = { 500, 200 }, finish = { 500, 300 } },
+       { start = { 500, 300 }, finish = { 600, 300 } },
+       { start = { 600, 300 }, finish = { 600, 200 } },
+       { start = { 600, 200 }, finish = { 500, 200 } },
 
        -- create a dynamic line anchored to the world at a fixed point.
-       { start = { 300, 100 }, finish = { 500, 100 }, type = 'dynamic', anchor = { 400, 100 } },
+       { start = { 220, 50 }, finish = { 620, 50 }, type = 'dynamic', anchor = { 420, 50 } },
    }
 }
 

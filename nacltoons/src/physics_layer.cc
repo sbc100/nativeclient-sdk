@@ -55,8 +55,10 @@ bool PhysicsLayer::init() {
   LoadLua();
 
   // calculate brush size
-  brush_ = (CCSprite*)getChildByTag(TAG_BRUSH);
-  assert(brush_);
+  CCSpriteBatchNode* brush_batch = (CCSpriteBatchNode*)getChildByTag(TAG_BRUSH);
+  assert(brush_batch);
+  brush_ = CCSprite::createWithTexture(brush_batch->getTexture());
+  brush_->retain();
   CCSize brush_size = brush_->getContentSize();
   brush_radius_ = MAX(brush_size.height/2, brush_size.width/2);
 
@@ -80,6 +82,7 @@ PhysicsLayer::PhysicsLayer() :
 }
 
 PhysicsLayer::~PhysicsLayer() {
+  brush_->release();
   if (current_instance_ == this)
     current_instance_ = NULL;
   delete box2d_world_;
@@ -164,6 +167,8 @@ bool PhysicsLayer::InitPhysics() {
   ground_box.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
   ground_body->CreateFixture(&ground_box, 0);
 
+  box2d_world_->SetContactListener(this);
+
 #ifdef COCOS2D_DEBUG
   box2d_debug_draw_ = new GLESDebugDraw(PTM_RATIO);
   box2d_world_->SetDebugDraw(box2d_debug_draw_);
@@ -205,24 +210,28 @@ CCRect CalcBoundingBox(CCSprite* sprite) {
 void PhysicsLayer::UpdateWorld(float dt) {
   // update physics
   box2d_world_->Step(dt, VELOCITY_ITERATIONS, POS_ITERATIONS);
+}
 
-  CCSprite* ball = (CCSprite*)getChildByTag(TAG_BALL);
-  assert(ball);
-  CCRect ball_bounds = CalcBoundingBox(ball);
+void PhysicsLayer::BeginContact(b2Contact* contact) {
+  CCPhysicsSprite* ball = (CCPhysicsSprite*)getChildByTag(TAG_BALL);
+  b2Body* ball_body = ball->getB2Body();
+  b2Body* body1 = contact->GetFixtureA()->GetBody();
+  b2Body* body2 = contact->GetFixtureB()->GetBody();
+  b2Body* body_other = NULL;
 
-  // TODO(sbc): Investigate using box2d to do collision for us
-  // http://www.iforce2d.net/b2dtut/sensors
+  if (body1 == ball_body)
+    body_other = body2;
+  else if (body2 == ball_body)
+    body_other = body1;
+  else // we are only interested in collisions involving the ball
+    return;
 
-  // check for stars being reached by ball
   int star_tags[] = { TAG_STAR1, TAG_STAR2, TAG_STAR3 };
   for (uint i = 0; i < sizeof(star_tags)/sizeof(int); i++) {
     if (stars_collected_[i])
       continue;
-    CCSprite* star = (CCSprite*)getChildByTag(star_tags[i]);
-    assert(star);
-    CCRect star_bounds = CalcBoundingBox(star);
-
-    if (ball_bounds.intersectsRect(star_bounds)) {
+    CCPhysicsSprite* star = (CCPhysicsSprite*)getChildByTag(star_tags[i]);
+    if (body_other == star->getB2Body()) {
       CCLog("star %d reached", i);
       stars_collected_[i] = true;
       CCAction* action = CCFadeOut::create(0.5f);
@@ -230,12 +239,10 @@ void PhysicsLayer::UpdateWorld(float dt) {
     }
   }
 
-  // check for goal being reached by ball
-  if (!goal_reached_) {
-    CCSprite* goal = (CCSprite*)getChildByTag(TAG_GOAL);
-    assert(goal);
-    CCRect goal_bounds = CalcBoundingBox(goal);
-    if (ball_bounds.intersectsRect(goal_bounds)) {
+  if (!goal_reached_)
+  {
+    CCPhysicsSprite* goal = (CCPhysicsSprite*)getChildByTag(TAG_GOAL);
+    if (body_other == goal->getB2Body()) {
       CCLog("goal reached");
       goal_reached_ = true;
 
@@ -243,7 +250,7 @@ void PhysicsLayer::UpdateWorld(float dt) {
       // done
       CCActionInterval* fadeout = CCFadeOut::create(0.5f);
       CCFiniteTimeAction* fadeout_done = CCCallFuncN::create(this,
-           callfuncN_selector(PhysicsLayer::LevelComplete));
+          callfuncN_selector(PhysicsLayer::LevelComplete));
       CCSequence* seq = CCSequence::create(fadeout, fadeout_done, NULL);
       goal->runAction(seq);
     }

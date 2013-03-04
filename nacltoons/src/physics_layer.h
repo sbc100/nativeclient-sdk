@@ -18,7 +18,7 @@ typedef std::vector<cocos2d::CCPoint> PointList;
 /**
  * Physics layer that the user interacts with.
  */
-class PhysicsLayer : public CCLayerColor {
+class PhysicsLayer : public CCLayerColor, public b2ContactListener {
  public:
   PhysicsLayer();
   ~PhysicsLayer();
@@ -45,6 +45,8 @@ class PhysicsLayer : public CCLayerColor {
   void ToggleDebug();
 #endif
 
+  // Called by box2d when contact occurs
+  void BeginContact(b2Contact* contact);
  private:
   // Called by ccTouchesMoved to draw between two points
   void DrawLine(CCPoint& start, CCPoint& end);
