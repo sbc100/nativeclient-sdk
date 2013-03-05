@@ -152,3 +152,21 @@ $(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
 #
 $(eval $(call NMF_RULE,$(TARGET),))
 
+#
+# Add extra dependacies so that our final targets get rebuilt whenever
+# cocos2dx or its dependencies change.
+#
+$(OUTDIR)/$(TARGET)_x86_64.nexe: \
+	$(COCOS2DX_PATH)/lib/newlib_x86_64/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_PATH)/lib/newlib_x86_64/$(CONFIG)/liblua.a \
+	$(COCOS2DX_PATH)/lib/newlib_x86_64/$(CONFIG)/libbox2d.a
+
+$(OUTDIR)/$(TARGET)_arm.nexe: \
+	$(COCOS2DX_PATH)/lib/newlib_arm/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_PATH)/lib/newlib_arm/$(CONFIG)/liblua.a \
+	$(COCOS2DX_PATH)/lib/newlib_arm/$(CONFIG)/libbox2d.a
+
+$(OUTDIR)/$(TARGET)_x86_32.nexe: \
+	$(COCOS2DX_PATH)/lib/newlib_x86_32/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_PATH)/lib/newlib_x86_32/$(CONFIG)/liblua.a \
+	$(COCOS2DX_PATH)/lib/newlib_x86_32/$(CONFIG)/libbox2d.a
