@@ -71,13 +71,12 @@ PhysicsLayer::PhysicsLayer() :
    goal_reached_(false),
    current_touch_id_(-1),
    render_target_(NULL),
+#ifdef COCOS2D_DEBUG
+   debug_enabled_(false),
+#endif
    box2d_density_(DEFAULT_DENSITY),
    box2d_restitution_(DEFAULT_RESTITUTION),
-   box2d_friction_(DEFAULT_FRICTION),
-#ifdef COCOS2D_DEBUG
-   debug_enabled_(false)
-#endif
-{
+   box2d_friction_(DEFAULT_FRICTION) {
   memset(stars_collected_, 0, sizeof(stars_collected_));
 }
 
@@ -91,14 +90,12 @@ PhysicsLayer::~PhysicsLayer() {
 #endif
 }
 
-void PhysicsLayer::registerWithTouchDispatcher()
-{
+void PhysicsLayer::registerWithTouchDispatcher() {
   CCDirector* director = CCDirector::sharedDirector();
   director->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
 }
 
-void PhysicsLayer::CreateRenderTarget()
-{
+void PhysicsLayer::CreateRenderTarget() {
   // create render target for shape drawing
   assert(!render_target_);
   CCSize win_size = CCDirector::sharedDirector()->getWinSize();
@@ -239,8 +236,7 @@ void PhysicsLayer::BeginContact(b2Contact* contact) {
     }
   }
 
-  if (!goal_reached_)
-  {
+  if (!goal_reached_) {
     CCPhysicsSprite* goal = (CCPhysicsSprite*)getChildByTag(TAG_GOAL);
     if (body_other == goal->getB2Body()) {
       CCLog("goal reached");
@@ -279,8 +275,7 @@ void PhysicsLayer::draw() {
   CCLayerColor::draw();
 
 #ifdef COCOS2D_DEBUG
-  if (debug_enabled_)
-  {
+  if (debug_enabled_) {
     ccGLEnableVertexAttribs(kCCVertexAttribFlag_Position);
     kmGLPushMatrix();
     box2d_world_->DrawDebugData();
@@ -304,8 +299,7 @@ void PhysicsLayer::ClampBrushLocation(CCPoint& point) {
   if (point.y > max_y) point.y = max_y;
 }
 
-void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end)
-{
+void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end) {
   ClampBrushLocation(start);
   ClampBrushLocation(end);
 
@@ -315,8 +309,7 @@ void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end)
   // draw the brush sprite into render texture at every point between the old
   // and new cursor positions
   render_target_->begin();
-  for (int i = 0; i < int(distance + 0.5); i++)
-  {
+  for (int i = 0; i < int(distance + 0.5); i++) {
     float difx = end.x - start.x;
     float dify = end.y - start.y;
     float delta = (float)i / distance;
@@ -378,8 +371,7 @@ CCRect CalcBodyBounds(b2Body* body) {
   const b2Transform& xform = body->GetTransform();
   for (b2Fixture* f = body->GetFixtureList(); f; f = f->GetNext()) {
     b2Shape* shape = f->GetShape();
-    if (shape->GetType() == b2Shape::e_circle)
-    {
+    if (shape->GetType() == b2Shape::e_circle) {
       b2CircleShape* c = static_cast<b2CircleShape*>(shape);
       b2Vec2 center = b2Mul(xform, c->m_p);
       if (center.x - c->m_radius < minX)
@@ -390,13 +382,12 @@ CCRect CalcBodyBounds(b2Body* body) {
         minY = center.y - c->m_radius;
       if (center.y + c->m_radius > maxY)
         maxY = center.y + c->m_radius;
-    }
-    else
-    {
+    } else {
       b2PolygonShape* poly = static_cast<b2PolygonShape*>(shape);
-      int32 vertexCount = poly->m_vertexCount;
+      int32 vertex_count = poly->m_vertexCount;
 
-      for (int i = 0; i < vertexCount; ++i) {
+      for (int i = 0; i < vertex_count; ++i)
+      {
         b2Vec2 vertex = b2Mul(xform, poly->m_vertices[i]);
         if (vertex.x < minX)
           minX = vertex.x;
@@ -421,8 +412,7 @@ CCRect CalcBodyBounds(b2Body* body) {
   return CCRectMake(minX, remY, width, height);
 }
 
-CCSprite* PhysicsLayer::CreatePhysicsSprite(b2Body* body)
-{
+CCSprite* PhysicsLayer::CreatePhysicsSprite(b2Body* body) {
   CCPhysicsSprite *sprite;
 
   // create a new texture based on the current contents of the
@@ -461,8 +451,7 @@ CCSprite* PhysicsLayer::CreatePhysicsSprite(b2Body* body)
   return sprite;
 }
 
-b2Body* PhysicsLayer::CreatePhysicsBody()
-{
+b2Body* PhysicsLayer::CreatePhysicsBody() {
   assert(points_being_drawn_.size());
   CCPoint start_point = points_being_drawn_.front();
 
@@ -487,14 +476,12 @@ b2Body* PhysicsLayer::CreatePhysicsBody()
   // and iterate until it points to the final element.
   PointList::iterator iter = points_being_drawn_.begin();
   ++iter;
-  for (; iter != points_being_drawn_.end(); iter++)
-  {
+  for (; iter != points_being_drawn_.end(); iter++) {
     CCPoint end_point = *iter;
     float distance = ccpDistance(start_point, end_point);
     // if the distance between points it too small then
     // skip the current point
-    if (distance < min_box_length)
-    {
+    if (distance < min_box_length) {
       if (iter != points_being_drawn_.end() - 1)
         continue;
     }
@@ -506,8 +493,7 @@ b2Body* PhysicsLayer::CreatePhysicsBody()
   return body;
 }
 
-void PhysicsLayer::AddShapeToBody(b2Body *body, b2Shape* shape)
-{
+void PhysicsLayer::AddShapeToBody(b2Body *body, b2Shape* shape) {
   b2FixtureDef shape_def;
   shape_def.shape = shape;
   shape_def.density = box2d_density_;
@@ -516,8 +502,7 @@ void PhysicsLayer::AddShapeToBody(b2Body *body, b2Shape* shape)
   body->CreateFixture(&shape_def);
 }
 
-void PhysicsLayer::AddSphereToBody(b2Body *body, CCPoint* location)
-{
+void PhysicsLayer::AddSphereToBody(b2Body *body, CCPoint* location) {
   b2CircleShape shape;
   shape.m_radius = SCREEN_TO_WORLD(brush_radius_);
   shape.m_p.x = SCREEN_TO_WORLD(location->x) - body->GetPosition().x;
@@ -525,8 +510,7 @@ void PhysicsLayer::AddSphereToBody(b2Body *body, CCPoint* location)
   AddShapeToBody(body, &shape);
 }
 
-void PhysicsLayer::AddLineToBody(b2Body *body, CCPoint start, CCPoint end)
-{
+void PhysicsLayer::AddLineToBody(b2Body *body, CCPoint start, CCPoint end) {
   float distance = ccpDistance(start, end);
 
   float sx = start.x;

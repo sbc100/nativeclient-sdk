@@ -89,6 +89,13 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
   // Box2D physics world
   b2World* box2d_world_;
 
+#ifdef COCOS2D_DEBUG
+  // Debug drawing support for Box2D.
+  GLESDebugDraw* box2d_debug_draw_;
+  // Flag to enable drawing of Box2D debug data.
+  bool debug_enabled_;
+#endif
+
   // Density given to new physics objects
   float box2d_density_;
   // Restitution given to new physics objects
@@ -98,13 +105,6 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
 
   // The list of points currently being drawn by the user
   PointList points_being_drawn_;
-
-#ifdef COCOS2D_DEBUG
-  // Debug drawing support for Box2D.
-  GLESDebugDraw* box2d_debug_draw_;
-  // Flag to enable drawing of Box2D debug data.
-  bool debug_enabled_;
-#endif
 };
 
 #endif  // PHYSICS_LAYER_H_
