@@ -121,7 +121,7 @@ LIB_PATHS += $(NACLPORTS_ROOT)/lib
 DEPS=
 SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
 LIBS=$(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
-LIBS+=nacl_io ppapi_gles2 ppapi ppapi_cpp z nosys
+LIBS+=nacl_io ppapi_gles2 ppapi ppapi_cpp z
 
 
 #

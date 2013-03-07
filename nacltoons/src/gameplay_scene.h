@@ -15,13 +15,14 @@ USING_NS_CC;
  */
 class GameplayScene : public CCScene {
  public:
-  GameplayScene() {}
+  GameplayScene(int level_number) : level_number_(level_number) {}
   ~GameplayScene() {}
-  // add static create() method which encapsulates new + init
-  CREATE_FUNC(GameplayScene);
+  static GameplayScene* create(int level_number);
   virtual bool init();
   void Restart();
   void GameOver(bool success);
+ private:
+  int level_number_;
 };
 
 /**

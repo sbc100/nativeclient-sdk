@@ -16,10 +16,19 @@ enum ObjectTags {
 
 USING_NS_CC;
 
+GameplayScene* GameplayScene::create(int level_number)
+{
+  GameplayScene* scene = new GameplayScene(level_number);
+  if (!scene)
+    return NULL;
+  scene->init();
+  return scene;
+}
+
 void GameplayScene::Restart() {
   removeChild(getChildByTag(TAG_LAYER_PHYSICS));
   removeChild(getChildByTag(TAG_LAYER_OVERLAY));
-  CCLayer* physics = PhysicsLayer::create();
+  CCLayer* physics = PhysicsLayer::create(level_number_);
   addChild(physics, 1, TAG_LAYER_PHYSICS);
 }
 

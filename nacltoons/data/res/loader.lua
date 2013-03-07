@@ -13,6 +13,8 @@ local tags = {
     STAR2 = 4,
     STAR3 = 5,
     BRUSH = 6,
+    LEVEL_ICON = 7,
+    LEVEL_ICON_SELECTED = 8,
     OBJECTS_START = 256,
 }
 
@@ -212,6 +214,15 @@ end
 -- Global variables that can be used in the lua data files.
 height = 600
 width = 800
+
+function LevelCount(layer, game_name)
+   local game = LoadGame(game_name)
+   local icon = CCSprite:create(game.level_icon)
+   local icon_selected = CCSprite:create(game.level_icon_selected)
+   layer:addChild(icon, 1, tags.LEVEL_ICON)
+   layer:addChild(icon_selected, 1, tags.LEVEL_ICON_SELECTED)
+   return table.getn(game.levels)
+end
 
 function main(game_name, physics_layer, level_number)
    local game = LoadGame(game_name)

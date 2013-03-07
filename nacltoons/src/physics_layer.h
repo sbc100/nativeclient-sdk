@@ -20,11 +20,10 @@ typedef std::vector<cocos2d::CCPoint> PointList;
  */
 class PhysicsLayer : public CCLayerColor, public b2ContactListener {
  public:
-  PhysicsLayer();
+  PhysicsLayer(int level_number);
   ~PhysicsLayer();
 
-  // Add static create() method which encapsulates new + init
-  CREATE_FUNC(PhysicsLayer);
+  static PhysicsLayer* create(int level_number);
 
   virtual bool init();
   virtual void draw();
@@ -61,10 +60,11 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
   CCSprite* CreatePhysicsSprite(b2Body* body);
   void UpdateWorld(float dt);
   bool InitPhysics();
-  bool LoadLua(int level_number);
+  bool LoadLua();
   void LevelComplete(CCNode* sender);
 
  private:
+  int level_number_;
   // Brush texture used for drawing shapes
   CCSprite* brush_;
   float brush_radius_;

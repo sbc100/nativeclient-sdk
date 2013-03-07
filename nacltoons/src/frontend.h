@@ -34,7 +34,10 @@ class FrontEndLayer : public CCLayerColor {
 
  private:
   // menu callbacks
+  void LevelSelected(CCObject* sender);
   void StartGame(CCObject* sender);
+
+  void AddChildAligned(CCNode* node, int height);
 };
 
 #endif  // FRONTEND_H_

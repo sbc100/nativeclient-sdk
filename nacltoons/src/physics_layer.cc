@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "physics_layer.h"
+#include "app_delegate.h"
 #include "gameplay_scene.h"
 
 #include "physics_nodes/CCPhysicsSprite.h"
@@ -23,18 +24,16 @@
 #define DEFAULT_RESTITUTION 0.1f
 
 
-enum Tags {
-  TAG_BALL = 1,
-  TAG_GOAL = 2,
-  TAG_STAR1 = 3,
-  TAG_STAR2 = 4,
-  TAG_STAR3 = 5,
-  TAG_BRUSH = 6,
-  TAG_OBJECTS_START = 256,
-};
-
-
 USING_NS_CC_EXT;
+
+PhysicsLayer* PhysicsLayer::create(int level_number)
+{
+  PhysicsLayer* layer = new PhysicsLayer(level_number);
+  if (!layer)
+    return NULL;
+  layer->init();
+  return layer;
+}
 
 bool PhysicsLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0,0x8F,0xD8,0xD8)))
@@ -45,8 +44,7 @@ bool PhysicsLayer::init() {
   InitPhysics();
 
   // Load level from lua file.  For now we simple load level 1.
-  int level_number = 1;
-  LoadLua(level_number);
+  LoadLua();
 
   // Calculate brush size
   CCSpriteBatchNode* brush_batch = (CCSpriteBatchNode*)getChildByTag(TAG_BRUSH);
@@ -61,7 +59,8 @@ bool PhysicsLayer::init() {
   return true;
 }
 
-PhysicsLayer::PhysicsLayer() :
+PhysicsLayer::PhysicsLayer(int level_number) :
+   level_number_(level_number),
    goal_reached_(false),
    current_touch_id_(-1),
    render_target_(NULL),
@@ -98,14 +97,14 @@ void PhysicsLayer::CreateRenderTarget() {
   addChild(render_target_);
 }
 
-bool PhysicsLayer::LoadLua(int level_number) {
+bool PhysicsLayer::LoadLua() {
   CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
   CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
   CCLuaStack* stack = engine->getLuaStack();
 
   stack->pushString("sample_game/game.lua");
   stack->pushCCObject(this, "PhysicsLayer");
-  stack->pushInt(level_number);
+  stack->pushInt(level_number_);
 
   // Call 'main' with three arguments pushed above
   int rtn = stack->executeFunctionByName("main", 3);

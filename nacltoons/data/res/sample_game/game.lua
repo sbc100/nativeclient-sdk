@@ -11,9 +11,12 @@ local theme = {
    goal_image = root_dir..'/images/goal.png',
    star_image = root_dir..'/images/star.png',
    brush_image = root_dir..'/images/brush.png',
+   level_icon = root_dir..'/images/level.png',
+   level_icon_selected = root_dir..'/images/level_selected.png',
    levels = {
        dofile(root_dir..'/level1.lua'),
        dofile(root_dir..'/level2.lua'),
+       dofile(root_dir..'/level3.lua'),
    }
 }
 
