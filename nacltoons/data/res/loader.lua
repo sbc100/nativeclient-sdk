@@ -28,13 +28,15 @@ local function Log(...)
     print('LUA: '..string.format(...))
 end
 
---- Load game data structure from the given lua file
-local function LoadGame(filename)
+--- Load game data structure from the given lua file.
+-- This is a global function that is called from the C++ code.
+function LoadGame(filename)
     Log('loading game: '..filename)
     local game = dofile(filename)
     Log('loading backgound image: '..game.background_image)
     Log('loading '..table.getn(game.levels)..' level(s)')
     game.filename = filename
+    global_game = game
     return game
 end
 
@@ -165,14 +167,12 @@ end
 --- Load the given level of the given game
 -- @param game lua dictionary containing game data
 -- @param level_number the level to load
-local function LoadLevel(game, level_number)
+local function LoadLevel(layer, game, level_number)
     Log('loading level '..level_number..' from '..game.filename)
     -- Get level descrition object
     local level = game.levels[level_number]
 
-    -- Find the layer into which we want to load objects.
     local origin = CCDirector:sharedDirector():getVisibleOrigin()
-    local layer = PhysicsLayer:GetCurrent()
     local world = layer:GetWorld()
 
     local ball = CreatePhysicsSprite(world, PointFromLua(origin, level.start),
@@ -213,5 +213,8 @@ end
 height = 600
 width = 800
 
-local game = LoadGame('sample_game/game.lua')
-LoadLevel(game, 1)
+function main(game_name, physics_layer, level_number)
+   local game = LoadGame(game_name)
+   LoadLevel(physics_layer, game, level_number)
+   return 1
+end

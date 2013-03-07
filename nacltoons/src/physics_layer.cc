@@ -7,9 +7,6 @@
 
 #include "physics_nodes/CCPhysicsSprite.h"
 #include "CCLuaEngine.h"
-#include "LuaBox2D.h"
-#include "lua_physics_layer.h"
-#include "LuaCocos2dExtensions.h"
 
 // Pixels-to-meters ratio for converting screen coordinates
 // to Box2D "meters".
@@ -39,22 +36,19 @@ enum Tags {
 
 USING_NS_CC_EXT;
 
-PhysicsLayer* PhysicsLayer::current_instance_;
-
 bool PhysicsLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0,0x8F,0xD8,0xD8)))
     return false;
-
-  current_instance_ = this;
 
   setTouchEnabled(true);
 
   InitPhysics();
 
-  // load level from lua file.
-  LoadLua();
+  // Load level from lua file.  For now we simple load level 1.
+  int level_number = 1;
+  LoadLua(level_number);
 
-  // calculate brush size
+  // Calculate brush size
   CCSpriteBatchNode* brush_batch = (CCSpriteBatchNode*)getChildByTag(TAG_BRUSH);
   assert(brush_batch);
   brush_ = CCSprite::createWithTexture(brush_batch->getTexture());
@@ -62,7 +56,7 @@ bool PhysicsLayer::init() {
   CCSize brush_size = brush_->getContentSize();
   brush_radius_ = MAX(brush_size.height/2, brush_size.width/2);
 
-  // script physics updates each frame
+  // Schedule physics updates each frame
   schedule(schedule_selector(PhysicsLayer::UpdateWorld));
   return true;
 }
@@ -82,8 +76,6 @@ PhysicsLayer::PhysicsLayer() :
 
 PhysicsLayer::~PhysicsLayer() {
   brush_->release();
-  if (current_instance_ == this)
-    current_instance_ = NULL;
   delete box2d_world_;
 #ifdef COCOS2D_DEBUG
   delete box2d_debug_draw_;
@@ -106,34 +98,18 @@ void PhysicsLayer::CreateRenderTarget() {
   addChild(render_target_);
 }
 
-bool PhysicsLayer::LoadLua() {
-  //lua_loaded_ = true;
+bool PhysicsLayer::LoadLua(int level_number) {
   CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
-  assert(manager);
   CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
-  assert(engine);
-
-  // Add custom bindings for Box2D and PhysicsLayer.
   CCLuaStack* stack = engine->getLuaStack();
-  lua_State* lua_state = stack->getLuaState();
-  assert(lua_state);
-  // add box2D bindings
-  tolua_LuaBox2D_open(lua_state);
-  // add PhysicsLayer bindings
-  tolua_physics_layer_open(lua_state);
-  // add cocos2dx extensions bindings
-  tolua_extensions_open(lua_state);
 
-  CCFileUtils* utils = CCFileUtils::sharedFileUtils();
-  std::string path = utils->fullPathForFilename("loader.lua");
+  stack->pushString("sample_game/game.lua");
+  stack->pushCCObject(this, "PhysicsLayer");
+  stack->pushInt(level_number);
 
-  // add the location of the lua file to the search path
-  engine->addSearchPath(path.substr(0, path.find_last_of("/")).c_str());
-
-  // execut load file
-  int rtn = engine->executeScriptFile(path.c_str());
-  assert(!rtn);
-  if (rtn)
+  // Call 'main' with three arguments pushed above
+  int rtn = stack->executeFunctionByName("main", 3);
+  if (rtn != 1)
     return false;
 
   return true;
