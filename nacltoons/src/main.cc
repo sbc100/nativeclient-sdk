@@ -16,42 +16,9 @@
 
 #include "app_delegate.h"
 
-#ifdef OLD_NACL_MOUNTS
-#include "nacl-mounts/base/UrlLoaderJob.h"
-#endif
-
 USING_NS_CC;
 
 AppDelegate g_app;
-
-#ifdef OLD_NACL_MOUNTS
-void DownloadFiles(MainThreadRunner* runner,
-                   const char** filenames, int num_files) {
-  CCLOG("Downloading %d files...", num_files);
-  for (int i = 0; i < num_files; i++) {
-    std::vector<char> data;
-    const char* filename = filenames[i];
-    std::string url = "res/";
-    url += filename;
-
-    CCLOG("Downloading: %s -> %s", url.c_str(), filename);
-    UrlLoaderJob *job = new UrlLoaderJob;
-    job->set_url(url);
-    job->set_dst(&data);
-    runner->RunJob(job);
-    CCLOG("Got %d bytes", data.size());
-
-    CCLOG("Writing file: %s", filename);
-    int fd = open(filename, O_CREAT | O_WRONLY);
-    if (fd == -1) {
-      CCLOG("Error writing file: %s", filename);
-      continue;
-    }
-    write(fd, &data[0], data.size());
-    close(fd);
-  }
-}
-#endif
 
 void* cocos_main(void* arg) {
   CocosPepperInstance* instance = (CocosPepperInstance*)arg;
@@ -61,24 +28,6 @@ void* cocos_main(void* arg) {
   // before starting OpenAL.
   alSetPpapiInfo(instance->pp_instance(),
                  pp::Module::Get()->get_browser_interface());
-
-#ifdef OLD_NACL_MOUNTS
-  // TODO(sbc): remove this hack an replace with some kind of URL mount
-  mkdir("fonts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  mkdir("sample_game", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  mkdir("sample_game/images", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  const char* filenames[] = { "fonts/Marker Felt.ttf",
-                              "loader.lua",
-                              "sample_game/images/brush.png",
-                              "sample_game/images/ball.png",
-                              "sample_game/images/goal.png",
-                              "sample_game/images/star.png",
-                              "sample_game/game.lua",
-                              "sample_game/level1.lua",
-                              "sample_game/level2.lua" };
-
-  DownloadFiles(instance->m_runner, filenames, sizeof(filenames)/sizeof(char*));
-#endif
 
   CCEGLView::g_instance = instance;
   CCEGLView* eglView = CCEGLView::sharedOpenGLView();

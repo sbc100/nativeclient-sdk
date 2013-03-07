@@ -63,7 +63,7 @@ ifndef NACL_SDK_ROOT
   $(error NACL_SDK_ROOT not set)
 endif
 
-NACL_SDK_VERSION_MIN := 27.184438
+NACL_SDK_VERSION_MIN := 27.186236
 include $(NACL_SDK_ROOT)/tools/common.mk
 
 # In recent SDK versions defining NACL_SDK_VERSION_MIN is enough to trigger and error
@@ -74,9 +74,6 @@ ifndef SDK_VERSION
   $(error You need a more recent version of the NaCl SDK (>= $(NACL_SDK_VERSION_MIN)))
 endif
 
-ifdef NACL_MOUNTS
-CFLAGS += -DOLD_NACL_MOUNTS
-endif
 CFLAGS += -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
 CFLAGS += -Wall -Wno-unknown-pragmas
 
@@ -124,12 +121,7 @@ LIB_PATHS += $(NACLPORTS_ROOT)/lib
 DEPS=
 SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
 LIBS=$(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
-ifdef NACL_MOUNTS
-LIBS+=nacl-mounts
-else
-LIBS+=nacl_io
-endif
-LIBS+=ppapi_gles2 ppapi ppapi_cpp z nosys
+LIBS+=nacl_io ppapi_gles2 ppapi ppapi_cpp z nosys
 
 
 #
