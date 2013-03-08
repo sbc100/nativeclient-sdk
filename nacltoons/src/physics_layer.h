@@ -5,6 +5,7 @@
 #define PHYSICS_LAYER_H_
 
 #include "cocos2d.h"
+#include "CCLuaStack.h"
 #include "Box2D/Box2D.h"
 
 #ifdef COCOS2D_DEBUG
@@ -38,8 +39,16 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
   void ToggleDebug();
 #endif
 
-  // Called by box2d when contact occurs
+  // Called by box2d when contacts start
   void BeginContact(b2Contact* contact);
+
+  // Called by box2d when contacts finish
+  void EndContact(b2Contact* contact);
+
+  // Methods that are exposed to / called by lua the lua
+  // script.
+  void LevelComplete();
+
  private:
   // Called by ccTouchesMoved to draw between two points
   void DrawLine(CCPoint& start, CCPoint& end);
@@ -47,6 +56,8 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
   void DrawPoint(CCPoint& location);
   // Clamp brush location to within the visible area
   void ClampBrushLocation(CCPoint& point);
+
+  void LuaNotifyContact(b2Contact* contact, const char* function_name);
 
   void AddLineToBody(b2Body *body, CCPoint start, CCPoint end);
   void AddSphereToBody(b2Body *body, CCPoint* location);
@@ -61,7 +72,7 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
   void UpdateWorld(float dt);
   bool InitPhysics();
   bool LoadLua();
-  void LevelComplete(CCNode* sender);
+  void LevelCompleteDone(CCNode* sender);
 
  private:
   int level_number_;
@@ -97,6 +108,8 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
 
   // The list of points currently being drawn by the user
   PointList points_being_drawn_;
+
+  CCLuaStack* lua_stack_;
 };
 
 #endif  // PHYSICS_LAYER_H_

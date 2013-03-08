@@ -7012,6 +7012,39 @@ static int tolua_LuaBox2D_b2Body_SetUserData00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
+/* method: SetUserData of class  b2Body */
+#ifndef TOLUA_DISABLE_tolua_LuaBox2D_b2Body_SetUserData01
+static int tolua_LuaBox2D_b2Body_SetUserData01(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"b2Body",0,&tolua_err) ||
+     !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  b2Body* self = (b2Body*)  tolua_tousertype(tolua_S,1,0);
+  int data = ((int)  tolua_tonumber(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'SetUserData'", NULL);
+#endif
+  {
+   self->SetUserData((void*)data);
+  }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'SetUserData'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
 /* method: GetWorld of class  b2Body */
 #ifndef TOLUA_DISABLE_tolua_LuaBox2D_b2Body_GetWorld00
 static int tolua_LuaBox2D_b2Body_GetWorld00(lua_State* tolua_S)
@@ -30844,6 +30877,7 @@ TOLUA_API int tolua_LuaBox2D_open (lua_State* tolua_S)
    tolua_function(tolua_S,"GetNext",tolua_LuaBox2D_b2Body_GetNext01);
    tolua_function(tolua_S,"GetUserData",tolua_LuaBox2D_b2Body_GetUserData00);
    tolua_function(tolua_S,"SetUserData",tolua_LuaBox2D_b2Body_SetUserData00);
+   tolua_function(tolua_S,"SetUserData",tolua_LuaBox2D_b2Body_SetUserData01);
    tolua_function(tolua_S,"GetWorld",tolua_LuaBox2D_b2Body_GetWorld00);
    tolua_function(tolua_S,"GetWorld",tolua_LuaBox2D_b2Body_GetWorld01);
    tolua_function(tolua_S,"Dump",tolua_LuaBox2D_b2Body_Dump00);

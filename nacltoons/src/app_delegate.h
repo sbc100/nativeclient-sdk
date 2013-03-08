@@ -15,6 +15,7 @@ enum Tags {
   TAG_BRUSH = 6,
   TAG_LEVEL_ICON = 7,
   TAG_LEVEL_ICON_SELECTED = 8,
+  TAG_GROUND = 9,
   TAG_OBJECTS_START = 256,
 };
 

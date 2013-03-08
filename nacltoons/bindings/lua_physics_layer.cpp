@@ -45,6 +45,37 @@ static int tolua_physics_layer_PhysicsLayer_GetWorld00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
+/* method: GetWorld of class  PhysicsLayer */
+#ifndef TOLUA_DISABLE_tolua_physics_layer_PhysicsLayer_LevelComplete00
+static int tolua_physics_layer_PhysicsLayer_LevelComplete00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"PhysicsLayer",0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  PhysicsLayer* self = (PhysicsLayer*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'GetWorld'", NULL);
+#endif
+  {
+    self->LevelComplete();
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'LevelComplete'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
 /* Open function */
 TOLUA_API int tolua_physics_layer_open (lua_State* tolua_S)
 {
@@ -55,6 +86,7 @@ TOLUA_API int tolua_physics_layer_open (lua_State* tolua_S)
   tolua_cclass(tolua_S,"PhysicsLayer","PhysicsLayer","CCLayerColor",NULL);
   tolua_beginmodule(tolua_S,"PhysicsLayer");
    tolua_function(tolua_S,"GetWorld",tolua_physics_layer_PhysicsLayer_GetWorld00);
+   tolua_function(tolua_S,"LevelComplete",tolua_physics_layer_PhysicsLayer_LevelComplete00);
   tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);
  return 1;

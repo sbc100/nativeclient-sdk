@@ -4,4 +4,5 @@ $#include "physics_layer.h"
 class PhysicsLayer : public CCLayerColor
 {
         b2World* GetWorld();
+        void LevelComplete();
 }

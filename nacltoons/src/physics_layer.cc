@@ -9,6 +9,14 @@
 #include "physics_nodes/CCPhysicsSprite.h"
 #include "CCLuaEngine.h"
 
+extern "C" {
+#include "lua.h"
+#include "tolua++.h"
+#include "lualib.h"
+#include "lauxlib.h"
+#include "tolua_fix.h"
+}
+
 // Pixels-to-meters ratio for converting screen coordinates
 // to Box2D "meters".
 #define PTM_RATIO 32
@@ -100,14 +108,16 @@ void PhysicsLayer::CreateRenderTarget() {
 bool PhysicsLayer::LoadLua() {
   CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
   CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
-  CCLuaStack* stack = engine->getLuaStack();
+  assert(engine);
+  lua_stack_ = engine->getLuaStack();
+  assert(lua_stack_);
 
-  stack->pushString("sample_game/game.lua");
-  stack->pushCCObject(this, "PhysicsLayer");
-  stack->pushInt(level_number_);
+  lua_stack_->pushString("sample_game/game.lua");
+  lua_stack_->pushCCObject(this, "PhysicsLayer");
+  lua_stack_->pushInt(level_number_);
 
   // Call 'main' with three arguments pushed above
-  int rtn = stack->executeFunctionByName("main", 3);
+  int rtn = lua_stack_->executeFunctionByName("main", 3);
   if (rtn != 1)
     return false;
 
@@ -138,6 +148,7 @@ bool PhysicsLayer::InitPhysics() {
   b2EdgeShape ground_box;
   ground_box.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
   ground_body->CreateFixture(&ground_box, 0);
+  ground_body->SetUserData((void*)TAG_GROUND);
 
   box2d_world_->SetContactListener(this);
 
@@ -184,51 +195,54 @@ void PhysicsLayer::UpdateWorld(float dt) {
   box2d_world_->Step(dt, VELOCITY_ITERATIONS, POS_ITERATIONS);
 }
 
-void PhysicsLayer::BeginContact(b2Contact* contact) {
-  CCPhysicsSprite* ball = (CCPhysicsSprite*)getChildByTag(TAG_BALL);
-  b2Body* ball_body = ball->getB2Body();
-  b2Body* body1 = contact->GetFixtureA()->GetBody();
-  b2Body* body2 = contact->GetFixtureB()->GetBody();
-  b2Body* body_other = NULL;
+void PhysicsLayer::LuaNotifyContact(b2Contact* contact,
+                                    const char* function_name) {
+  // Return early if lua didn't define the function_name
+  lua_State* state = lua_stack_->getLuaState();
+  lua_getglobal(state, function_name);
+  bool is_func = lua_isfunction(state, -1);
+  lua_pop(state, 1);
 
-  if (body1 == ball_body)
-    body_other = body2;
-  else if (body2 == ball_body)
-    body_other = body1;
-  else // we are only interested in collisions involving the ball
+  if (!is_func)
     return;
 
-  int star_tags[] = { TAG_STAR1, TAG_STAR2, TAG_STAR3 };
-  for (uint i = 0; i < sizeof(star_tags)/sizeof(int); i++) {
-    if (stars_collected_[i])
-      continue;
-    CCPhysicsSprite* star = (CCPhysicsSprite*)getChildByTag(star_tags[i]);
-    if (body_other == star->getB2Body()) {
-      CCLog("star %d reached", i);
-      stars_collected_[i] = true;
-      CCAction* action = CCFadeOut::create(0.5f);
-      star->runAction(action);
-    }
-  }
+  // Only send to lua collitions between body's that
+  // have been tagged.
+  b2Body* body1 = contact->GetFixtureA()->GetBody();
+  b2Body* body2 = contact->GetFixtureB()->GetBody();
+  int tag1 = (int)body1->GetUserData();
+  int tag2 = (int)body2->GetUserData();
+  if (!tag1 || !tag2)
+    return;
 
-  if (!goal_reached_) {
-    CCPhysicsSprite* goal = (CCPhysicsSprite*)getChildByTag(TAG_GOAL);
-    if (body_other == goal->getB2Body()) {
-      CCLog("goal reached");
-      goal_reached_ = true;
-
-      // fade out the goal and trigger gameover callback when its
-      // done
-      CCActionInterval* fadeout = CCFadeOut::create(0.5f);
-      CCFiniteTimeAction* fadeout_done = CCCallFuncN::create(this,
-          callfuncN_selector(PhysicsLayer::LevelComplete));
-      CCSequence* seq = CCSequence::create(fadeout, fadeout_done, NULL);
-      goal->runAction(seq);
-    }
-  }
+  // Call 'ContactBegan' lua function passing in 'this'
+  // as well as the tags of the two bodies that collided
+  lua_stack_->pushCCObject(this, "PhysicsLayer");
+  lua_stack_->pushInt(tag1);
+  lua_stack_->pushInt(tag2);
+  lua_stack_->executeFunctionByName(function_name, 3);
 }
 
-void PhysicsLayer::LevelComplete(CCNode* sender) {
+void PhysicsLayer::BeginContact(b2Contact* contact) {
+  LuaNotifyContact(contact, "BeginContact");
+}
+
+void PhysicsLayer::EndContact(b2Contact* contact) {
+  LuaNotifyContact(contact, "EndContact");
+}
+
+void PhysicsLayer::LevelComplete() {
+  // fade out the goal and trigger gameover callback when its
+  // done
+  CCPhysicsSprite* goal = (CCPhysicsSprite*)getChildByTag(TAG_GOAL);
+  CCActionInterval* fadeout = CCFadeOut::create(0.5f);
+  CCFiniteTimeAction* fadeout_done = CCCallFuncN::create(this,
+      callfuncN_selector(PhysicsLayer::LevelCompleteDone));
+  CCSequence* seq = CCSequence::create(fadeout, fadeout_done, NULL);
+  goal->runAction(seq);
+}
+
+void PhysicsLayer::LevelCompleteDone(CCNode* sender) {
   unschedule(schedule_selector(PhysicsLayer::UpdateWorld));
   setTouchEnabled(false);
   GameplayScene* scene = static_cast<GameplayScene*>(getParent());

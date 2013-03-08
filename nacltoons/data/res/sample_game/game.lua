@@ -17,7 +17,8 @@ local theme = {
        dofile(root_dir..'/level1.lua'),
        dofile(root_dir..'/level2.lua'),
        dofile(root_dir..'/level3.lua'),
-   }
+   },
+   behavior = 'behavior.lua'
 }
 
 return theme

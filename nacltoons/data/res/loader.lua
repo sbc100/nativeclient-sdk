@@ -1,34 +1,19 @@
+-- Copyright (c) 2013 The Chromium Authors. All rights reserved.
+-- Use of this source code is governed by a BSD-style license that can be
+-- found in the LICENSE file.
+
 -- Main entry point for use of lua in the game.
 -- Currently when this file is run it will load the game data from
 -- the 'game1' folder and populate the scene with sprites.
 
--- Tags used when lua creates nodes. This allows the C++ side to
--- look up the nodes using these tags.
-local tags = {
-    LAYER_PHYSICS = 100,
-    LAYER_UI = 101,
-    BALL = 1,
-    GOAL = 2,
-    STAR1 = 3,
-    STAR2 = 4,
-    STAR3 = 5,
-    BRUSH = 6,
-    LEVEL_ICON = 7,
-    LEVEL_ICON_SELECTED = 8,
-    OBJECTS_START = 256,
-}
+require('path')
+require('util')
 
-local PTM_RATIO = 32
-
--- Convert a value from screen coordinate system to Box2D world coordinates
-local function ScreenToWorld(value)
-    return value / PTM_RATIO
-end
-
---- Log messages to console
-local function Log(...)
-    print('LUA: '..string.format(...))
-end
+-- Make local alias of util functions so loader code can be shorter
+-- and easier to read.
+local Log = util.Log
+local ScreenToWorld = util.ScreenToWorld
+local tags = util.tags
 
 --- Load game data structure from the given lua file.
 -- This is a global function that is called from the C++ code.
@@ -124,7 +109,7 @@ local function CreateLine(world, brush, from, to, object)
     -- Now create a visible CCPhysicsSprite that the body is attached to
     local sprite = CCPhysicsSprite:createWithTexture(brush_tex)
     sprite:setB2Body(body)
-    sprite:setPTMRatio(PTM_RATIO)
+    sprite:setPTMRatio(util.PTM_RATIO)
 
     -- And add a sequence of non-physics sprites as children of the first
     local dist = CCPointMake(dist_x, dist_y)
@@ -151,7 +136,7 @@ local function PointFromLua(origin, point)
 end
 
 --- Create a physics sprite at a fiven location with a given image
-local function CreatePhysicsSprite(b2d_world, location, image, sensor)
+local function CreatePhysicsSprite(b2d_world, tag, location, image, sensor)
     Log('goal: '..location.x..'x'..location.y)
     local ball = CCPhysicsSprite:create(image)
     local body_def = b2BodyDef:new_local()
@@ -159,8 +144,9 @@ local function CreatePhysicsSprite(b2d_world, location, image, sensor)
         body_def.type = b2_dynamicBody
     end
     local body = b2d_world:CreateBody(body_def)
+    body:SetUserData(tag)
     ball:setB2Body(body)
-    ball:setPTMRatio(PTM_RATIO)
+    ball:setPTMRatio(util.PTM_RATIO)
     ball:setPosition(location)
     AddSphereToBody(body, ball:boundingBox().size.height/2, sensor)
     return ball
@@ -177,7 +163,8 @@ local function LoadLevel(layer, game, level_number)
     local origin = CCDirector:sharedDirector():getVisibleOrigin()
     local world = layer:GetWorld()
 
-    local ball = CreatePhysicsSprite(world, PointFromLua(origin, level.start),
+    local ball = CreatePhysicsSprite(world, tags.BALL,
+                                     PointFromLua(origin, level.start),
                                      game.ball_image, false)
     layer:addChild(ball, 1, tags.BALL)
 
@@ -187,14 +174,14 @@ local function LoadLevel(layer, game, level_number)
 
     -- Create goal and stars
     Log('goal: '..level.goal[1]..'x'..level.goal[2])
-    local goal = CreatePhysicsSprite(world, PointFromLua(origin, level.goal),
+    local goal = CreatePhysicsSprite(world, tags.GOAL, PointFromLua(origin, level.goal),
                                      game.goal_image, true)
     layer:addChild(goal, 1, tags.GOAL)
 
     for i, star in ipairs(level.stars) do
-        local sprite = CreatePhysicsSprite(world, PointFromLua(origin, star),
-                                           game.star_image, true)
         local tag = tags.STAR1 + i - 1
+        local sprite = CreatePhysicsSprite(world, tag, PointFromLua(origin, star),
+                                           game.star_image, true)
         Log('loading star [tag='..tag..']: '..star[1]..'x'..star[2])
         layer:addChild(sprite, 1, tag)
     end
@@ -226,6 +213,14 @@ end
 
 function main(game_name, physics_layer, level_number)
    local game = LoadGame(game_name)
+   BeginContact = nil
+   EndContact = nil
+   if game.behavior ~= nil then
+       local dirname = path.dirname(game_name)
+       local behavior_file = path.join(dirname, 'behavior.lua')
+       Log(behavior_file)
+       dofile(behavior_file)
+   end
    LoadLevel(physics_layer, game, level_number)
    return 1
 end
