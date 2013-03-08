@@ -6,14 +6,30 @@
   found in the LICENSE file.
   -->
   <head>
-    <title>cocos2dx CppHello</title>
+    <title>NaCl Toons</title>
+    <script type="text/javascript" src="common.js"></script>
+    <script type="text/javascript" src="edit.js"></script>
   </head>
-  <body>
-    <h1>cocos2dx CppHello</h1>
-    <embed
-        width=480
-        height=320
-        src="nacltoons.nmf"
-        type="application/x-nacl"/>
+  <body data-name="nacltoons" data-width=800 data-height=600 data-tools="newlib" data-configs="Debug" data-path=".">
+    <div id="container" style="width:1024px">
+    <h1 style="margin-bottom:0;text-align:center">NaCl Toons</h1></div>
+    <div id="menu" style="background-color:#FFD700;height:600px;width:224px;float:left;">
+      <h2>Menu</h2>
+      <table>
+      <tr><td><button id="reloadGame">Restart Game</button></td></tr>
+      <tr><td><button id="reloadLevel">Restart Level</button></td></tr>
+     </table>
+    </div>
+    <div id="listener"></div>
+    <div>
+      <table style="width:1024px;height=600;">
+      <tr>
+        <th>Game Srript</th>
+        <th>Level Script</th>
+      </tr>
+      </table>
+      <textarea id="gameSrc" style="height:350px;width:512px;">Here is my GAME</textarea></td>
+      <textarea id="levelSrc" style="height:350px;width:512px;">Here is my LEVEL</textarea></td>
+    </div>
   </body>
 </html>
