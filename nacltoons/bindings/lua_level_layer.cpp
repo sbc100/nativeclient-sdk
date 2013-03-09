@@ -1,7 +1,21 @@
 /*
 ** Lua binding: level_layer
-** Generated automatically by tolua++-1.0.93 on Mon Feb 25 16:17:52 2013.
+** Generated automatically by tolua++-1.0.93 on Fri Mar  8 17:21:39 2013.
 */
+
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+#ifndef __cplusplus
+#include "stdlib.h"
+#endif
+#include "string.h"
+
+#include "tolua++.h"
+
+/* Exported function */
+TOLUA_API int  tolua_level_layer_open (lua_State* tolua_S);
+
 #include "lua_level_layer.h"
 #include "level_layer.h"
 
@@ -9,8 +23,8 @@
 static void tolua_reg_types (lua_State* tolua_S)
 {
  tolua_usertype(tolua_S,"CCLayerColor");
- tolua_usertype(tolua_S,"LevelLayer");
  tolua_usertype(tolua_S,"b2World");
+ tolua_usertype(tolua_S,"LevelLayer");
 }
 
 /* method: GetWorld of class  LevelLayer */
@@ -45,7 +59,7 @@ static int tolua_level_layer_LevelLayer_GetWorld00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
-/* method: GetWorld of class  LevelLayer */
+/* method: LevelComplete of class  LevelLayer */
 #ifndef TOLUA_DISABLE_tolua_level_layer_LevelLayer_LevelComplete00
 static int tolua_level_layer_LevelLayer_LevelComplete00(lua_State* tolua_S)
 {
@@ -61,13 +75,13 @@ static int tolua_level_layer_LevelLayer_LevelComplete00(lua_State* tolua_S)
  {
   LevelLayer* self = (LevelLayer*)  tolua_tousertype(tolua_S,1,0);
 #ifndef TOLUA_RELEASE
-  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'GetWorld'", NULL);
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'LevelComplete'", NULL);
 #endif
   {
-    self->LevelComplete();
+   self->LevelComplete();
   }
  }
- return 1;
+ return 0;
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'LevelComplete'.",&tolua_err);

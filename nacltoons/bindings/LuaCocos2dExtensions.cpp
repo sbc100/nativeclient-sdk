@@ -1,12 +1,24 @@
 /*
 ** Lua binding: extensions
-** Generated automatically by tolua++-1.0.93 on Mon Feb 25 16:44:34 2013.
+** Generated automatically by tolua++-1.0.93 on Fri Mar  8 17:21:39 2013.
 */
-#include "LuaCocos2dExtensions.h"
-#include "cocos2d.h"
-#include "CCLuaEngine.h"
-#include "physics_nodes/CCPhysicsSprite.h"
 
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+#ifndef __cplusplus
+#include "stdlib.h"
+#endif
+#include "string.h"
+
+#include "tolua++.h"
+
+/* Exported function */
+TOLUA_API int  tolua_extensions_open (lua_State* tolua_S);
+
+#include "LuaCocos2dExtensions.h"
+#include "physics_nodes/CCPhysicsSprite.h"
+#include "tolua_fix.h"
 USING_NS_CC;
 USING_NS_CC_EXT;
 

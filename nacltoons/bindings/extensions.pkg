@@ -1,6 +1,6 @@
 $#include "LuaCocos2dExtensions.h"
 $#include "physics_nodes/CCPhysicsSprite.h"
-$#include "Box2D/Box2D.h"
+$#include "tolua_fix.h"
 
 $USING_NS_CC;
 $USING_NS_CC_EXT;
