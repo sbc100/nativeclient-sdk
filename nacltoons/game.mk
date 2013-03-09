@@ -36,10 +36,11 @@ COCOS_ROOT = ../third_party/cocos2d-x
 SOURCES := src/main.cc \
 	   src/app_delegate.cc \
 	   src/frontend.cc \
-	   src/gameplay_scene.cc \
-	   src/physics_layer.cc \
+	   src/game_manager.cc \
+	   src/level_layer.cc \
+	   src/ui_layer.cc \
 	   bindings/LuaBox2D.cpp \
-	   bindings/lua_physics_layer.cpp \
+	   bindings/lua_level_layer.cpp \
 	   bindings/LuaCocos2dExtensions.cpp \
 	   $(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed/GLES-Render.cpp \
 	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsDebugNode.cpp \

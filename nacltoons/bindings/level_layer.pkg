@@ -1,0 +1,8 @@
+$#include "lua_level_layer.h"
+$#include "level_layer.h"
+
+class LevelLayer : public CCLayerColor
+{
+        b2World* GetWorld();
+        void LevelComplete();
+}

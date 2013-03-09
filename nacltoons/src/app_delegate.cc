@@ -7,7 +7,7 @@
 #include "frontend.h"
 #include "LuaBox2D.h"
 #include "LuaCocos2dExtensions.h"
-#include "lua_physics_layer.h"
+#include "lua_level_layer.h"
 
 
 USING_NS_CC;
@@ -40,8 +40,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
   assert(lua_state);
   // add box2D bindings
   tolua_LuaBox2D_open(lua_state);
-  // add PhysicsLayer bindings
-  tolua_physics_layer_open(lua_state);
+  // add LevelLayer bindings
+  tolua_level_layer_open(lua_state);
   // add cocos2dx extensions bindings
   tolua_extensions_open(lua_state);
 

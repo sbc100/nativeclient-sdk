@@ -1,8 +1,8 @@
 // Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#ifndef PHYSICS_LAYER_H_
-#define PHYSICS_LAYER_H_
+#ifndef LEVEL_LAYER_H_
+#define LEVEL_LAYER_H_
 
 #include "cocos2d.h"
 #include "CCLuaStack.h"
@@ -17,14 +17,15 @@ USING_NS_CC;
 typedef std::vector<cocos2d::CCPoint> PointList;
 
 /**
- * Physics layer that the user interacts with.
+ * Lavel layer in which gameplay takes place.  This layer contains
+ * the box2d world simulation.
  */
-class PhysicsLayer : public CCLayerColor, public b2ContactListener {
+class LevelLayer : public CCLayerColor, public b2ContactListener {
  public:
-  PhysicsLayer(int level_number);
-  ~PhysicsLayer();
+  LevelLayer(int level_number);
+  ~LevelLayer();
 
-  static PhysicsLayer* create(int level_number);
+  static LevelLayer* create(int level_number);
 
   virtual bool init();
   virtual void draw();
@@ -112,4 +113,4 @@ class PhysicsLayer : public CCLayerColor, public b2ContactListener {
   CCLuaStack* lua_stack_;
 };
 
-#endif  // PHYSICS_LAYER_H_
+#endif  // LEVEL_LAYER_H_

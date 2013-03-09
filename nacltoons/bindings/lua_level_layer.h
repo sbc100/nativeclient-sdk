@@ -1,5 +1,5 @@
 /*
-** Lua binding: physics_layer
+** Lua binding: level_layer
 ** Generated automatically by tolua++-1.0.93 on Wed Feb 27 11:18:21 2013.
 */
 
@@ -9,4 +9,4 @@ extern "C" {
 }
 
 /* Exported function */
-TOLUA_API int  tolua_physics_layer_open (lua_State* tolua_S);
+TOLUA_API int  tolua_level_layer_open (lua_State* tolua_S);

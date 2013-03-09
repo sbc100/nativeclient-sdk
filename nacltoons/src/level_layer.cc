@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "physics_layer.h"
+#include "level_layer.h"
 #include "app_delegate.h"
-#include "gameplay_scene.h"
+#include "game_manager.h"
 
 #include "physics_nodes/CCPhysicsSprite.h"
 #include "CCLuaEngine.h"
@@ -34,16 +34,16 @@ extern "C" {
 
 USING_NS_CC_EXT;
 
-PhysicsLayer* PhysicsLayer::create(int level_number)
+LevelLayer* LevelLayer::create(int level_number)
 {
-  PhysicsLayer* layer = new PhysicsLayer(level_number);
+  LevelLayer* layer = new LevelLayer(level_number);
   if (!layer)
     return NULL;
   layer->init();
   return layer;
 }
 
-bool PhysicsLayer::init() {
+bool LevelLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0,0x8F,0xD8,0xD8)))
     return false;
 
@@ -63,11 +63,11 @@ bool PhysicsLayer::init() {
   brush_radius_ = MAX(brush_size.height/2, brush_size.width/2);
 
   // Schedule physics updates each frame
-  schedule(schedule_selector(PhysicsLayer::UpdateWorld));
+  schedule(schedule_selector(LevelLayer::UpdateWorld));
   return true;
 }
 
-PhysicsLayer::PhysicsLayer(int level_number) :
+LevelLayer::LevelLayer(int level_number) :
    level_number_(level_number),
    goal_reached_(false),
    current_touch_id_(-1),
@@ -81,7 +81,7 @@ PhysicsLayer::PhysicsLayer(int level_number) :
   memset(stars_collected_, 0, sizeof(stars_collected_));
 }
 
-PhysicsLayer::~PhysicsLayer() {
+LevelLayer::~LevelLayer() {
   brush_->release();
   delete box2d_world_;
 #ifdef COCOS2D_DEBUG
@@ -89,12 +89,12 @@ PhysicsLayer::~PhysicsLayer() {
 #endif
 }
 
-void PhysicsLayer::registerWithTouchDispatcher() {
+void LevelLayer::registerWithTouchDispatcher() {
   CCDirector* director = CCDirector::sharedDirector();
   director->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
 }
 
-void PhysicsLayer::CreateRenderTarget() {
+void LevelLayer::CreateRenderTarget() {
   // create render target for shape drawing
   assert(!render_target_);
   CCSize win_size = CCDirector::sharedDirector()->getWinSize();
@@ -105,7 +105,7 @@ void PhysicsLayer::CreateRenderTarget() {
   addChild(render_target_);
 }
 
-bool PhysicsLayer::LoadLua() {
+bool LevelLayer::LoadLua() {
   CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
   CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
   assert(engine);
@@ -113,7 +113,7 @@ bool PhysicsLayer::LoadLua() {
   assert(lua_stack_);
 
   lua_stack_->pushString("sample_game/game.lua");
-  lua_stack_->pushCCObject(this, "PhysicsLayer");
+  lua_stack_->pushCCObject(this, "LevelLayer");
   lua_stack_->pushInt(level_number_);
 
   // Call 'main' with three arguments pushed above
@@ -124,7 +124,7 @@ bool PhysicsLayer::LoadLua() {
   return true;
 }
 
-bool PhysicsLayer::InitPhysics() {
+bool LevelLayer::InitPhysics() {
   b2Vec2 gravity(0.0f, -9.8f);
   box2d_world_ = new b2World(gravity);
   box2d_world_->SetAllowSleeping(true);
@@ -167,7 +167,7 @@ bool PhysicsLayer::InitPhysics() {
   return true;
 }
 
-void PhysicsLayer::ToggleDebug() {
+void LevelLayer::ToggleDebug() {
   debug_enabled_ = !debug_enabled_;
 
   // Set visibility of all children based on debug_enabled_
@@ -190,12 +190,12 @@ CCRect CalcBoundingBox(CCSprite* sprite) {
                     size.width, size.height/2);
 }
 
-void PhysicsLayer::UpdateWorld(float dt) {
+void LevelLayer::UpdateWorld(float dt) {
   // update physics
   box2d_world_->Step(dt, VELOCITY_ITERATIONS, POS_ITERATIONS);
 }
 
-void PhysicsLayer::LuaNotifyContact(b2Contact* contact,
+void LevelLayer::LuaNotifyContact(b2Contact* contact,
                                     const char* function_name) {
   // Return early if lua didn't define the function_name
   lua_State* state = lua_stack_->getLuaState();
@@ -217,39 +217,39 @@ void PhysicsLayer::LuaNotifyContact(b2Contact* contact,
 
   // Call 'ContactBegan' lua function passing in 'this'
   // as well as the tags of the two bodies that collided
-  lua_stack_->pushCCObject(this, "PhysicsLayer");
+  lua_stack_->pushCCObject(this, "LevelLayer");
   lua_stack_->pushInt(tag1);
   lua_stack_->pushInt(tag2);
   lua_stack_->executeFunctionByName(function_name, 3);
 }
 
-void PhysicsLayer::BeginContact(b2Contact* contact) {
+void LevelLayer::BeginContact(b2Contact* contact) {
   LuaNotifyContact(contact, "BeginContact");
 }
 
-void PhysicsLayer::EndContact(b2Contact* contact) {
+void LevelLayer::EndContact(b2Contact* contact) {
   LuaNotifyContact(contact, "EndContact");
 }
 
-void PhysicsLayer::LevelComplete() {
+void LevelLayer::LevelComplete() {
   // fade out the goal and trigger gameover callback when its
   // done
   CCPhysicsSprite* goal = (CCPhysicsSprite*)getChildByTag(TAG_GOAL);
   CCActionInterval* fadeout = CCFadeOut::create(0.5f);
   CCFiniteTimeAction* fadeout_done = CCCallFuncN::create(this,
-      callfuncN_selector(PhysicsLayer::LevelCompleteDone));
+      callfuncN_selector(LevelLayer::LevelCompleteDone));
   CCSequence* seq = CCSequence::create(fadeout, fadeout_done, NULL);
   goal->runAction(seq);
 }
 
-void PhysicsLayer::LevelCompleteDone(CCNode* sender) {
-  unschedule(schedule_selector(PhysicsLayer::UpdateWorld));
+void LevelLayer::LevelCompleteDone(CCNode* sender) {
+  unschedule(schedule_selector(LevelLayer::UpdateWorld));
   setTouchEnabled(false);
-  GameplayScene* scene = static_cast<GameplayScene*>(getParent());
-  scene->GameOver(true);
+  CCScene* scene = static_cast<CCScene*>(getParent());
+  GameManager::sharedManager()->GameOver(scene, true);
 }
 
-void PhysicsLayer::DrawPoint(CCPoint& location) {
+void LevelLayer::DrawPoint(CCPoint& location) {
   ClampBrushLocation(location);
   render_target_->begin();
   brush_->setVisible(true);
@@ -260,7 +260,7 @@ void PhysicsLayer::DrawPoint(CCPoint& location) {
   points_being_drawn_.push_back(location);
 }
 
-void PhysicsLayer::draw() {
+void LevelLayer::draw() {
   CCLayerColor::draw();
 
 #ifdef COCOS2D_DEBUG
@@ -273,7 +273,7 @@ void PhysicsLayer::draw() {
 #endif
 }
 
-void PhysicsLayer::ClampBrushLocation(CCPoint& point) {
+void LevelLayer::ClampBrushLocation(CCPoint& point) {
   CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
   CCSize visible_size = CCDirector::sharedDirector()->getVisibleSize();
 
@@ -288,7 +288,7 @@ void PhysicsLayer::ClampBrushLocation(CCPoint& point) {
   if (point.y > max_y) point.y = max_y;
 }
 
-void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end) {
+void LevelLayer::DrawLine(CCPoint& start, CCPoint& end) {
   ClampBrushLocation(start);
   ClampBrushLocation(end);
 
@@ -313,7 +313,7 @@ void PhysicsLayer::DrawLine(CCPoint& start, CCPoint& end) {
   points_being_drawn_.push_back(end);
 }
 
-bool PhysicsLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+bool LevelLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
   if (current_touch_id_ != -1)
     return false;
 
@@ -328,14 +328,14 @@ bool PhysicsLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
   return true;
 }
 
-void PhysicsLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+void LevelLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) {
   assert(touch->getID() == current_touch_id_);
   CCPoint end = touch->getLocation();
   CCPoint start = touch->getPreviousLocation();
   DrawLine(start, end);
 }
 
-void PhysicsLayer::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+void LevelLayer::ccTouchEnded(CCTouch* touch, CCEvent* event) {
   assert(touch->getID() == current_touch_id_);
   b2Body* body = CreatePhysicsBody();
   CCSprite* sprite = CreatePhysicsSprite(body);
@@ -401,7 +401,7 @@ CCRect CalcBodyBounds(b2Body* body) {
   return CCRectMake(minX, remY, width, height);
 }
 
-CCSprite* PhysicsLayer::CreatePhysicsSprite(b2Body* body) {
+CCSprite* LevelLayer::CreatePhysicsSprite(b2Body* body) {
   CCPhysicsSprite *sprite;
 
   // create a new texture based on the current contents of the
@@ -440,7 +440,7 @@ CCSprite* PhysicsLayer::CreatePhysicsSprite(b2Body* body) {
   return sprite;
 }
 
-b2Body* PhysicsLayer::CreatePhysicsBody() {
+b2Body* LevelLayer::CreatePhysicsBody() {
   assert(points_being_drawn_.size());
   CCPoint start_point = points_being_drawn_.front();
 
@@ -482,7 +482,7 @@ b2Body* PhysicsLayer::CreatePhysicsBody() {
   return body;
 }
 
-void PhysicsLayer::AddShapeToBody(b2Body *body, b2Shape* shape) {
+void LevelLayer::AddShapeToBody(b2Body *body, b2Shape* shape) {
   b2FixtureDef shape_def;
   shape_def.shape = shape;
   shape_def.density = box2d_density_;
@@ -491,7 +491,7 @@ void PhysicsLayer::AddShapeToBody(b2Body *body, b2Shape* shape) {
   body->CreateFixture(&shape_def);
 }
 
-void PhysicsLayer::AddSphereToBody(b2Body *body, CCPoint* location) {
+void LevelLayer::AddSphereToBody(b2Body *body, CCPoint* location) {
   b2CircleShape shape;
   shape.m_radius = SCREEN_TO_WORLD(brush_radius_);
   shape.m_p.x = SCREEN_TO_WORLD(location->x) - body->GetPosition().x;
@@ -499,7 +499,7 @@ void PhysicsLayer::AddSphereToBody(b2Body *body, CCPoint* location) {
   AddShapeToBody(body, &shape);
 }
 
-void PhysicsLayer::AddLineToBody(b2Body *body, CCPoint start, CCPoint end) {
+void LevelLayer::AddLineToBody(b2Body *body, CCPoint start, CCPoint end) {
   float distance = ccpDistance(start, end);
 
   float sx = start.x;

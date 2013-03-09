@@ -4,7 +4,7 @@
 
 #include "frontend.h"
 #include "app_delegate.h"
-#include "gameplay_scene.h"
+#include "game_manager.h"
 
 #include "CCLuaEngine.h"
 
@@ -66,14 +66,7 @@ void LayoutMenu(CCMenu* menu, uint row_size, CCPoint padding)
 void FrontEndLayer::LevelSelected(CCObject* sender) {
   int level = ((CCMenuItem*)sender)->getTag();
   CCLog("LevelSelected: %d", level);
-  CCTransitionScene* transition;
-  CCDirector* director = CCDirector::sharedDirector();
-
-  // transition to a new (autorelease) GameplayScene.
-  CCScene* scene = GameplayScene::create(level);
-  director->setDepthTest(true);
-  transition = CCTransitionPageTurn::create(1.0f, scene, false);
-  director->pushScene(transition);
+  GameManager::sharedManager()->LoadLevel(level);
 }
 
 void FrontEndLayer::AddChildAligned(CCNode* node, int height) {

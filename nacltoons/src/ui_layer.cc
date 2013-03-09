@@ -1,67 +1,16 @@
 // Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#include "gameplay_scene.h"
-#include "physics_layer.h"
 
-/**
- * Tags used by the GameplayScene to identify child elements. Actual values
- * here are not important as long as they are unique within the scene.
- */
-enum ObjectTags {
-  TAG_LAYER_PHYSICS = 100,
-  TAG_LAYER_UI = 101,
-  TAG_LAYER_OVERLAY = 102,
-};
+#include "ui_layer.h"
 
-USING_NS_CC;
-
-GameplayScene* GameplayScene::create(int level_number)
-{
-  GameplayScene* scene = new GameplayScene(level_number);
-  if (!scene)
-    return NULL;
-  scene->init();
-  return scene;
-}
-
-void GameplayScene::Restart() {
-  removeChild(getChildByTag(TAG_LAYER_PHYSICS));
-  removeChild(getChildByTag(TAG_LAYER_OVERLAY));
-  CCLayer* physics = PhysicsLayer::create(level_number_);
-  addChild(physics, 1, TAG_LAYER_PHYSICS);
-}
-
-void GameplayScene::GameOver(bool success) {
-  CCSize visible_size = CCDirector::sharedDirector()->getVisibleSize();
-
-  // Create a black overlay layer with success/failure message
-  CCLayer* overlay = CCLayerColor::create(ccc4(0x0, 0x0, 0x0, 0x0));
-  const char* text = success ? "Success!" : "Failure!";
-  CCLabelTTF* label = CCLabelTTF::create(text, "Arial.ttf", 24);
-  label->setPosition(ccp(visible_size.width/2, visible_size.height/2));
-  overlay->addChild(label);
-  addChild(overlay, 2, TAG_LAYER_OVERLAY);
-
-  // Face the overlay layer into to 50%
-  CCActionInterval* fadein = CCFadeTo::create(0.5f, 0x7F);
-  overlay->runAction(fadein);
-}
-
-bool GameplayScene::init() {
-  if (!CCScene::init())
-    return false;
-  CCLayer* ui = UILayer::create();
-  addChild(ui, 3, TAG_LAYER_UI);
-
-  Restart();
-  return true;
-}
+#include "game_manager.h"
+#include "level_layer.h"
 
 void UILayer::Restart(CCObject* sender) {
   CCLog("Restart pressed");
-  GameplayScene* scene = static_cast<GameplayScene*>(getParent());
-  scene->Restart();
+  CCScene* scene = static_cast<CCScene*>(getParent());
+  GameManager::sharedManager()->Restart(scene);
 }
 
 void UILayer::Exit(CCObject* sender) {
@@ -72,9 +21,9 @@ void UILayer::Exit(CCObject* sender) {
 #ifdef COCOS2D_DEBUG
 void UILayer::ToggleDebug(CCObject* sender) {
   CCLog("ToggleDebug pressed");
-  GameplayScene* scene = static_cast<GameplayScene*>(getParent());
-  CCNode* physics = scene->getChildByTag(TAG_LAYER_PHYSICS);
-  static_cast<PhysicsLayer*>(physics)->ToggleDebug();
+  CCScene* scene = static_cast<CCScene*>(getParent());
+  CCNode* layer = scene->getChildByTag(TAG_LAYER_LEVEL);
+  static_cast<LevelLayer*>(layer)->ToggleDebug();
 }
 #endif
 
