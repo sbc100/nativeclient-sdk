@@ -131,6 +131,7 @@ CopyHeaders() {
   CopyHeaderDir sprite_nodes
   CopyHeaderDir support
   CopyHeaderDir support/data_support
+  CopyHeaderDir support/user_default
   CopyHeaderDir support/tinyxml2
   CopyHeaderDir text_input_node
   CopyHeaderDir textures
