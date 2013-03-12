@@ -31,7 +31,6 @@ extern "C" {
 #define DEFAULT_FRICTION 0.2f
 #define DEFAULT_RESTITUTION 0.1f
 
-
 USING_NS_CC_EXT;
 
 LevelLayer* LevelLayer::create(int level_number)
@@ -112,14 +111,13 @@ bool LevelLayer::LoadLua() {
   lua_stack_ = engine->getLuaStack();
   assert(lua_stack_);
 
-  lua_stack_->pushString("sample_game/game.lua");
   lua_stack_->pushCCObject(this, "LevelLayer");
   lua_stack_->pushInt(level_number_);
-
-  // Call 'main' with three arguments pushed above
-  int rtn = lua_stack_->executeFunctionByName("main", 3);
-  if (rtn != 1)
+  int rtn = lua_stack_->executeFunctionByName("LoadLevel", 2);
+  if (rtn == -1) {
+    assert(false && "level loading failed");
     return false;
+  }
 
   return true;
 }
@@ -148,7 +146,6 @@ bool LevelLayer::InitPhysics() {
   b2EdgeShape ground_box;
   ground_box.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
   ground_body->CreateFixture(&ground_box, 0);
-  ground_body->SetUserData((void*)TAG_GROUND);
 
   box2d_world_->SetContactListener(this);
 
@@ -215,12 +212,11 @@ void LevelLayer::LuaNotifyContact(b2Contact* contact,
   if (!tag1 || !tag2)
     return;
 
-  // Call 'ContactBegan' lua function passing in 'this'
-  // as well as the tags of the two bodies that collided
-  lua_stack_->pushCCObject(this, "LevelLayer");
+  // Call the lua function callback passing in tags of the two bodies that
+  // collided
   lua_stack_->pushInt(tag1);
   lua_stack_->pushInt(tag2);
-  lua_stack_->executeFunctionByName(function_name, 3);
+  lua_stack_->executeFunctionByName(function_name, 2);
 }
 
 void LevelLayer::BeginContact(b2Contact* contact) {
@@ -232,17 +228,6 @@ void LevelLayer::EndContact(b2Contact* contact) {
 }
 
 void LevelLayer::LevelComplete() {
-  // fade out the goal and trigger gameover callback when its
-  // done
-  CCPhysicsSprite* goal = (CCPhysicsSprite*)getChildByTag(TAG_GOAL);
-  CCActionInterval* fadeout = CCFadeOut::create(0.5f);
-  CCFiniteTimeAction* fadeout_done = CCCallFuncN::create(this,
-      callfuncN_selector(LevelLayer::LevelCompleteDone));
-  CCSequence* seq = CCSequence::create(fadeout, fadeout_done, NULL);
-  goal->runAction(seq);
-}
-
-void LevelLayer::LevelCompleteDone(CCNode* sender) {
   unschedule(schedule_selector(LevelLayer::UpdateWorld));
   setTouchEnabled(false);
   CCScene* scene = static_cast<CCScene*>(getParent());

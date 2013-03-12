@@ -8,20 +8,14 @@ util = {}
 
 util.PTM_RATIO = 32
 
--- Tags used when lua creates nodes. This allows the C++ side to
+-- Tags used used by lua and C++ both.
 -- look up the nodes using these tags.
 util.tags = {
+    BRUSH = 50,
+    LEVEL_ICON = 51,
+    LEVEL_ICON_SELECTED = 52,
     LAYER_PHYSICS = 100,
     LAYER_UI = 101,
-    BALL = 1,
-    GOAL = 2,
-    STAR1 = 3,
-    STAR2 = 4,
-    STAR3 = 5,
-    BRUSH = 6,
-    LEVEL_ICON = 7,
-    LEVEL_ICON_SELECTED = 8,
-    OBJECTS_START = 256,
 }
 
 -- Convert a value from screen coordinate system to Box2D world coordinates

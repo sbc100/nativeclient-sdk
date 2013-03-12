@@ -29,6 +29,7 @@ class GameManager {
   void GameOver(CCScene* scene, bool success);
   void LoadLevel(int level_number);
   static GameManager* sharedManager();
+  bool LoadGame(const char* folder);
  private:
   void CreateLevel(CCScene* scene);
   GameManager() {}

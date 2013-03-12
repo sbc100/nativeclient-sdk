@@ -73,7 +73,6 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
   void UpdateWorld(float dt);
   bool InitPhysics();
   bool LoadLua();
-  void LevelCompleteDone(CCNode* sender);
 
  private:
   int level_number_;

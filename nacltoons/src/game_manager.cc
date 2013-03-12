@@ -4,6 +4,7 @@
 #include "game_manager.h"
 #include "level_layer.h"
 #include "ui_layer.h"
+#include "CCLuaEngine.h"
 
 USING_NS_CC;
 
@@ -25,7 +26,29 @@ void GameManager::Restart(CCScene* scene)
 {
   scene->removeChild(scene->getChildByTag(TAG_LAYER_LEVEL));
   scene->removeChild(scene->getChildByTag(TAG_LAYER_OVERLAY));
+
+  // Recreate the level
   CreateLevel(scene);
+}
+
+bool GameManager::LoadGame(const char* folder) {
+  CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
+  CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
+  assert(engine);
+  CCLuaStack* lua_stack = engine->getLuaStack();
+  assert(lua_stack);
+
+  CCLog("running LoadGame on stack: %p", lua_stack);
+  lua_stack->pushString(folder);
+
+  // Call 'LoadGame' with single argument pushed above.
+  // 'LoadGame' is a global symbol defined in loader.lua.
+  int rtn = lua_stack->executeFunctionByName("LoadGame", 1);
+  assert(rtn != -1);
+  if (rtn != 1)
+    return false;
+
+  return true;
 }
 
 void GameManager::LoadLevel(int level_number)

@@ -85,17 +85,20 @@ void FrontEndLayer::AddChildAligned(CCNode* node, int height) {
 void FrontEndLayer::StartGame(CCObject* sender) {
   CCLog("StartGame pressed");
 
+  // Load the game.def file
+  GameManager::sharedManager()->LoadGame("sample_game");
+
   // Remove the old menu that sent us here
   CCNode* old_menu = ((CCMenuItem*)sender)->getParent();
   removeChild(old_menu);
 
-  // Load the game in lua to find out how many levels we have
+  // Call the LevelCount global lua function from loader.lua
   CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
   CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
   CCLuaStack* stack = engine->getLuaStack();
+
   stack->pushCCObject(this, "CCLayerColor");
-  stack->pushString("sample_game/game.lua");
-  int level_count = stack->executeFunctionByName("LevelCount", 2);
+  int level_count = stack->executeFunctionByName("LevelCount", 1);
   CCLog("found %d levels", level_count);
   assert(level_count > 0);
 
