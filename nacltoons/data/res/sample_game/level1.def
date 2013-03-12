@@ -28,6 +28,9 @@ local level = {
 
        -- create a dynamic line anchored to the world at a fixed point.
        { type = 'line', start = { 220, 50 }, finish = { 620, 50 }, dynamic = true, anchor = { 420, 50 } },
+
+       -- create a 'floor' object using the 'edge' type
+       { type = 'edge', start = { 0, 0 }, finish = { 800, 0 }, tag = 'FLOOR' },
    }
 }
 

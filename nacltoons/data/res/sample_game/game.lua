@@ -1,6 +1,7 @@
 -- Sample game behavior.  This file contains global functions
 -- that are called from the C++ game engine when certain events
 -- occur:
+--   StartGame
 --   StartLevel
 --   BeginContact
 --   EndContact
@@ -20,7 +21,11 @@ local num_stars = 3
 
 local scripts = {}
 
-scripts.StartLevel = function(new_layer, level_number)
+scripts.StartGame = function()
+    util.Log('game.lua: StartGame')
+end
+
+scripts.StartLevel = function(level_number)
     util.Log('game.lua: StartLevel: ' .. level_number)
     level_obj.game_state = {
         goal_reached = false,

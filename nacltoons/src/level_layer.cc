@@ -127,26 +127,6 @@ bool LevelLayer::InitPhysics() {
   box2d_world_ = new b2World(gravity);
   box2d_world_->SetAllowSleeping(true);
   box2d_world_->SetContinuousPhysics(true);
-
-  // Find visible rect, and convert to box2d space.
-  CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
-  CCSize visible_size = CCDirector::sharedDirector()->getVisibleSize();
-  float world_width = SCREEN_TO_WORLD(visible_size.width);
-  b2Vec2 world_origin(SCREEN_TO_WORLD(origin.x), SCREEN_TO_WORLD(origin.y));
-
-  // create the ground
-  b2BodyDef ground_def;
-  ground_def.position = world_origin;
-  b2Body* ground_body = box2d_world_->CreateBody(&ground_def);
-
-  CCLog("origin: %.fx%.f", origin.x, origin.y);
-  CCLog("size: %.fx%f", visible_size.width, visible_size.height);
-
-  // Define the ground box shape.
-  b2EdgeShape ground_box;
-  ground_box.Set(b2Vec2(0, 0), b2Vec2(world_width, 0));
-  ground_body->CreateFixture(&ground_box, 0);
-
   box2d_world_->SetContactListener(this);
 
 #ifdef COCOS2D_DEBUG

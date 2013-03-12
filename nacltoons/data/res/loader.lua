@@ -58,17 +58,37 @@ local function LoadGameDef(filename)
     Log('found ' .. #game.levels .. ' level(s)')
     game.filename = filename
 
-    if game.script ~= nil then
+    if game.script then
         Log('loading game script: ' .. game.script)
         game.script = dofile(path.join(game.root, game.script))
     end
+
     return game
+end
+
+--- Create CCPoint from a lua table containing 2 elements.
+-- This is used to convert point data from .def files into
+-- the cocos2dx coordinate space.
+local function PointFromLua(point)
+    return CCPointMake(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
+end
+
+--- Convert CCPoint to b2Vec.
+local function b2VecFromCocos(cocos_vec)
+    return b2Vec2:new_local(ScreenToWorld(cocos_vec.x),
+                            ScreenToWorld(cocos_vec.y))
+end
+
+--- Create a b2Vec from a lua list containing 2 elements.
+-- This is used to convert point data from .def files directly
+-- to the box2dx coordinate system
+local function b2VecFromLua(point)
+    return b2VecFromCocos(PointFromLua(point))
 end
 
 --- Create a fix pivot point between the world and the given object.
 local function CreatePivot(anchor, body)
-    local anchor_point = b2Vec2:new_local(ScreenToWorld(anchor.x),
-                                          ScreenToWorld(anchor.y))
+    local anchor_point = b2VecFromCocos(anchor)
 
     -- create a new fixed body to pivot against
     local ground_def = b2BodyDef:new_local()
@@ -93,7 +113,7 @@ local function CreateLine(brush, from, to, object)
     end
     local body = level_obj.world:CreateBody(body_def)
 
-    if object.anchor ~= nil then
+    if object.anchor then
         CreatePivot(object.anchor, body)
     end
 
@@ -107,7 +127,7 @@ local function CreateLine(brush, from, to, object)
     local dist_x = to.x - from.x
     local dist_y = to.y - from.y
     local angle = math.atan2(dist_y, dist_x)
-    Log('adding sprite at: '..from.x..'x'..from.y)
+    Log('adding sprite at: ' .. from.x .. 'x' .. from.y)
 
     -- create fixture
     local center = b2Vec2:new_local(ScreenToWorld(dist_x/2),
@@ -145,12 +165,6 @@ local function CreateLine(brush, from, to, object)
     return sprite
 end
 
---- Create CCPoint from a lua table containing 2 elements.
--- The point is then offset according the origin.
-local function PointFromLua(point)
-    return CCPointMake(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
-end
-
 --- Create a physics sprite at a fiven location with a given image
 local function CreatePhysicsSprite(layer, objectdef)
     local pos = PointFromLua(objectdef.pos)
@@ -177,6 +191,10 @@ end
 function LoadGame(root_dir)
    game_root = root_dir
    game_obj = LoadGameDef(path.join(game_root, 'game.def'))
+   game_obj.origin = CCDirector:sharedDirector():getVisibleOrigin()
+   if game_obj.script and game_obj.script.StartGame then
+       game_obj.script.StartGame()
+   end
 end
 
 --- Determine the number of levels in the currently loaded game.
@@ -206,8 +224,6 @@ function LoadLevel(layer, level_number)
     level_obj.world = layer:GetWorld()
     level_obj.leveldef = level
 
-    game_obj.origin = CCDirector:sharedDirector():getVisibleOrigin()
-
     for _, sprite in ipairs(level.sprites) do
         CreatePhysicsSprite(layer, sprite)
         if sprite.script then
@@ -221,24 +237,30 @@ function LoadLevel(layer, level_number)
     local brush = CCSpriteBatchNode:create(assets.brush_image, 500)
     layer:addChild(brush, 1, tags.BRUSH)
 
-    -- Load fixtures
+    -- Load shapes
     if level.shapes then
         for _, shape in ipairs(level.shapes) do
             if shape.type == 'line' then
                 local start = PointFromLua(shape.start)
                 local finish = PointFromLua(shape.finish)
-                if shape.anchor ~= nil then
+                if shape.anchor then
                     shape.anchor = PointFromLua(shape.anchor)
                 end
                 local line = CreateLine(brush, start, finish, shape)
                 brush:addChild(line, 1)
+            elseif shape.type == 'edge' then
+                local body_def = b2BodyDef:new_local()
+                local body = level_obj.world:CreateBody(body_def)
+                local b2shape = b2EdgeShape:new_local()
+                b2shape:Set(b2VecFromLua(shape.start), b2VecFromLua(shape.finish))
+                body:CreateFixture(b2shape, 0)
             else
                 assert(false)
             end
         end
     end
 
-    StartLevel(layer, level_number)
+    StartLevel(level_number)
 end
 
 local function CallCollisionHandler(tag1, tag2, handler_name)
@@ -252,15 +274,15 @@ local function CallCollisionHandler(tag1, tag2, handler_name)
     end
 
     -- call the individual object's collision handler, if any
-    if object1.script ~= nil and object1.script[handler_name] ~= nil then
+    if object1.script and object1.script[handler_name] then
         object1.script[handler_name](object2)
     end
-    if object2.script ~= nil and object2.script[handler_name] ~= nil then
+    if object2.script and object2.script[handler_name] then
         object2.script[handler_name](object1)
     end
 
     -- call the game's collision handler, if any
-    if game_obj.script[handler_name] ~= nil then
+    if game_obj.script[handler_name] then
         game_obj.script[handler_name](object1, object2)
     end
 end
@@ -273,10 +295,10 @@ function EndContact(tag1, tag2)
     CallCollisionHandler(tag1, tag2, 'EndContact')
 end
 
-function StartLevel(layer, level_number)
+function StartLevel(level_number)
     -- only call handlers if the objects in question have tags
     -- that are known to the currently running level
-    if game_obj.script.StartLevel ~= nil then
-        game_obj.script.StartLevel(layer, level_number)
+    if game_obj.script.StartLevel then
+        game_obj.script.StartLevel(level_number)
     end
 end

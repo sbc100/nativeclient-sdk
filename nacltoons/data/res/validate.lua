@@ -93,7 +93,7 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
             object.tag_str = object.tag
             object.tag = #leveldef.tag_list + 1
 
-            if leveldef.tag_map[object.tag_str] ~= nil then
+            if leveldef.tag_map[object.tag_str] then
                 Err('duplicate object tag: ' .. object.tag_str)
             end
 
@@ -116,7 +116,7 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
 
     if leveldef.shapes then
         local valid_keys = { 'start', 'finish', 'type', 'anchor', 'tag', 'dynamic' }
-        local valid_types = { 'line' }
+        local valid_types = { 'line', 'edge' }
         local required_keys = { 'type' }
         for _, shape in pairs(leveldef.shapes) do
             CheckValidKeys(filename, shape, valid_keys)
@@ -143,7 +143,7 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
 
 end
 
-if arg ~= nil and #arg >= 1 then
+if arg and #arg >= 1 then
    -- When run from the command line run validation on passed in game.def file.
    local filename = arg[1]
    local gamedef = dofile(filename)
