@@ -14,11 +14,6 @@ ifndef BUILDBOT_BUILDERNAME
 NACL_ARCH ?= x86_64
 endif
 
-# Use this variable to enable/disable nacl_mounts an an alternative to
-# nacl_io.  When you do this you will also want to clean the cocos build using:
-# "build/build_cocos2dx.sh clean"
-#NACL_MOUNTS = 1
-
 DEBUG ?= 1
 ifeq ($(DEBUG),1)
   CONFIG := Debug
@@ -31,14 +26,10 @@ PUBLISH_DIR := $(OUT_DIR)/publish
 
 all: cocos2dx
 	@echo '@@@BUILD_STEP build game@@@'
-ifdef NACL_MOUNTS
-	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG) NACL_MOUNTS=$(NACL_MOUNTS)
-else
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
-endif
 
 cocos2dx : build/build-cocos2dx.sh
-	NACL_MOUNTS=$(NACL_MOUNTS) NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
+	NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
 
 really-clean: clean
 	$(RM) -r $(OUT_DIR)
@@ -51,10 +42,8 @@ publish: all
 	mkdir -p $(PUBLISH_DIR)
 	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nexe $(PUBLISH_DIR)
 	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nmf $(PUBLISH_DIR)
-	cp -r data/* $(PUBLISH_DIR)
-ifndef NACL_MOUNTS
-	cp -r data/res $(PUBLISH_DIR)/Resources
-endif
+	cp data/*.* $(PUBLISH_DIR)
+	ln -s $(PWD)/data/res $(PUBLISH_DIR)/Resources
 
 CHROME_ARGS += --no-first-run --user-data-dir=$(OUT_DIR)/user-data-dir
 
