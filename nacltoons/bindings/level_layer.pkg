@@ -1,8 +1,18 @@
 $#include "lua_level_layer.h"
 $#include "level_layer.h"
+$#include "game_manager.h"
 
 class LevelLayer : public CCLayerColor
 {
-        b2World* GetWorld();
-        void LevelComplete();
+  b2World* GetWorld();
+  void LevelComplete();
+  void ToggleDebug();
+}
+
+class GameManager
+{
+  static GameManager* sharedManager();
+  Restart();
+  LoadLevel(int level_number);
+  LoadGame(const char* folder);
 }

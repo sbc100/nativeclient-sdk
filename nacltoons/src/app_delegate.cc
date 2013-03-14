@@ -4,11 +4,10 @@
 #include "app_delegate.h"
 
 #include "CCLuaEngine.h"
-#include "frontend.h"
 #include "LuaBox2D.h"
 #include "LuaCocos2dExtensions.h"
 #include "lua_level_layer.h"
-
+#include "game_manager.h"
 
 USING_NS_CC;
 
@@ -57,8 +56,6 @@ bool AppDelegate::applicationDidFinishLaunching() {
   if (rtn)
     return false;
 
-  // Create the initial (autorelease) scene and run with it.
-  CCScene* scene = FrontEndScene::create();
-  director->runWithScene(scene);
+  GameManager::sharedManager()->LoadGame("sample_game");
   return true;
 }

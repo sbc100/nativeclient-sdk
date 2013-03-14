@@ -33,25 +33,18 @@ extern "C" {
 
 USING_NS_CC_EXT;
 
-LevelLayer* LevelLayer::create(int level_number)
-{
-  LevelLayer* layer = new LevelLayer(level_number);
-  if (!layer)
-    return NULL;
-  layer->init();
-  return layer;
-}
-
 bool LevelLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0,0x8F,0xD8,0xD8)))
     return false;
 
   setTouchEnabled(true);
-
   InitPhysics();
+  return true;
+}
 
-  // Load level from lua file.  For now we simple load level 1.
-  LoadLua();
+bool LevelLayer::LoadLevel(int level_number) {
+  // Load level from lua file.
+  LoadLua(level_number);
 
   // Calculate brush size
   CCSpriteBatchNode* brush_batch = (CCSpriteBatchNode*)getChildByTag(TAG_BRUSH);
@@ -66,8 +59,7 @@ bool LevelLayer::init() {
   return true;
 }
 
-LevelLayer::LevelLayer(int level_number) :
-   level_number_(level_number),
+LevelLayer::LevelLayer() :
    goal_reached_(false),
    current_touch_id_(-1),
    render_target_(NULL),
@@ -104,7 +96,7 @@ void LevelLayer::CreateRenderTarget() {
   addChild(render_target_);
 }
 
-bool LevelLayer::LoadLua() {
+bool LevelLayer::LoadLua(int level_number) {
   CCScriptEngineManager* manager = CCScriptEngineManager::sharedManager();
   CCLuaEngine* engine = (CCLuaEngine*)manager->getScriptEngine();
   assert(engine);
@@ -112,7 +104,7 @@ bool LevelLayer::LoadLua() {
   assert(lua_stack_);
 
   lua_stack_->pushCCObject(this, "LevelLayer");
-  lua_stack_->pushInt(level_number_);
+  lua_stack_->pushInt(level_number);
   int rtn = lua_stack_->executeFunctionByName("LoadLevel", 2);
   if (rtn == -1) {
     assert(false && "level loading failed");
@@ -210,8 +202,7 @@ void LevelLayer::EndContact(b2Contact* contact) {
 void LevelLayer::LevelComplete() {
   unschedule(schedule_selector(LevelLayer::UpdateWorld));
   setTouchEnabled(false);
-  CCScene* scene = static_cast<CCScene*>(getParent());
-  GameManager::sharedManager()->GameOver(scene, true);
+  GameManager::sharedManager()->GameOver(true);
 }
 
 void LevelLayer::DrawPoint(CCPoint& location) {

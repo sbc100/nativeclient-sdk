@@ -22,10 +22,10 @@ typedef std::vector<cocos2d::CCPoint> PointList;
  */
 class LevelLayer : public CCLayerColor, public b2ContactListener {
  public:
-  LevelLayer(int level_number);
+  LevelLayer();
   ~LevelLayer();
 
-  static LevelLayer* create(int level_number);
+  CREATE_FUNC(LevelLayer);
 
   virtual bool init();
   virtual void draw();
@@ -36,9 +36,8 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
 
   b2World* GetWorld() { return box2d_world_; }
 
-#ifdef COCOS2D_DEBUG
   void ToggleDebug();
-#endif
+  bool LoadLevel(int level_number);
 
   // Called by box2d when contacts start
   void BeginContact(b2Contact* contact);
@@ -72,10 +71,10 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
   CCSprite* CreatePhysicsSprite(b2Body* body);
   void UpdateWorld(float dt);
   bool InitPhysics();
-  bool LoadLua();
 
  private:
-  int level_number_;
+  bool LoadLua(int level_number);
+
   // Brush texture used for drawing shapes
   CCSprite* brush_;
   float brush_radius_;

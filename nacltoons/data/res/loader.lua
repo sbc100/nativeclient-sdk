@@ -194,6 +194,9 @@ function LoadGame(root_dir)
    game_obj.origin = CCDirector:sharedDirector():getVisibleOrigin()
    if game_obj.script and game_obj.script.StartGame then
        game_obj.script.StartGame()
+   else
+       default_game = dofile('default_game.lua')
+       default_game.StartGame()
    end
 end
 

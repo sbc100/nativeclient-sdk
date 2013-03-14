@@ -13,7 +13,6 @@
  */
 enum ObjectTags {
   TAG_LAYER_LEVEL = 100,
-  TAG_LAYER_UI = 101,
   TAG_LAYER_OVERLAY = 102,
 };
 
@@ -25,15 +24,16 @@ USING_NS_CC;
  */
 class GameManager {
  public:
-  void Restart(CCScene* scene);
-  void GameOver(CCScene* scene, bool success);
+  void Restart();
+  void GameOver(bool success);
   void LoadLevel(int level_number);
   static GameManager* sharedManager();
   bool LoadGame(const char* folder);
  private:
-  void CreateLevel(CCScene* scene);
-  GameManager() {}
+  void CreateLevel();
+  GameManager() : level_number_(0), scene_(NULL) {}
   int level_number_;
+  CCScene* scene_;
 };
 
 #endif  // GAME_MANAGER_H_

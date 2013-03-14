@@ -4,6 +4,8 @@
 -- single value which is the table describing the level.
 
 local level = {
+   num_stars = 3,
+
    sprites = {
        { pos = { 200, 250 }, image = 'ball_image', tag = 'BALL', script = 'ball.lua' },
        { pos = { 34, 56 }, image = 'goal_image', tag = 'GOAL', sensor = true  },

@@ -17,16 +17,50 @@
 require 'util'
 require 'path'
 
-local num_stars = 3
-
 local scripts = {}
+local MENU_DRAW_ORDER = 3
 
-scripts.StartGame = function()
-    util.Log('game.lua: StartGame')
+--- Local function for creating a simple menu from text labels
+local function CreateMenu(menu_def)
+    local menu = CCMenu:create()
+    for _, item in ipairs(menu_def.items) do
+        local label = CCLabelTTF:create(item[1], menu_def.font, menu_def.font_size)
+        local menu_item = CCMenuItemLabel:create(label)
+        menu_item:registerScriptTapHandler(item[2])
+        menu:addChild(menu_item)
+    end
+    menu:alignItemsVertically()
+
+    local items = menu:getChildren()
+    for i=0,items:count()-1 do
+        local item = items:objectAtIndex(i)
+        item:setPositionX(item:getContentSize().width/2)
+    end
+    return menu
 end
 
+--- Menu callback
+local function HandleRestart()
+    GameManager:sharedManager():Restart()
+end
+
+--- Menu callback
+local function HandleExit()
+    CCDirector:sharedDirector():popScene()
+end
+
+--- Menu callback
+local function ToggleDebug()
+    level_obj.layer:ToggleDebug()
+end
+
+--- Game behaviour callback.  Called when a level is started/restarted.
+-- This function sets up level-specific game state, and adds any UI
+-- needed for the level.  In this case we add a menu layer to the scene
+-- that is drawn on top of the LevelLayer.
 scripts.StartLevel = function(level_number)
     util.Log('game.lua: StartLevel: ' .. level_number)
+
     level_obj.game_state = {
         goal_reached = false,
         stars_collected = { },
@@ -36,8 +70,35 @@ scripts.StartLevel = function(level_number)
     level_obj.ball_tag = level_obj.leveldef.tag_map['BALL']
     level_obj.goal_tag = level_obj.leveldef.tag_map['GOAL']
     level_obj.star_tag = level_obj.leveldef.tag_map['STAR1']
+
+    -- Create a textual menu it its own layer as a sibling of the LevelLayer
+    menu_def = {
+        font = 'Arial.ttf',
+        font_size = 24,
+        pos = { 10, 300 },
+        items = {
+            { 'Restart', HandleRestart },
+            { 'Exit', HandleExit },
+            { 'Toggle Debug', ToggleDebug } },
+    }
+
+    menu = CreateMenu(menu_def)
+    local layer = CCLayer:create()
+    layer:addChild(menu)
+    menu:setPosition(ccp(game_obj.origin.x + menu_def.pos[1],
+                         game_obj.origin.y + menu_def.pos[2]))
+
+    local parent = level_obj.layer:getParent()
+    parent:addChild(layer, MENU_DRAW_ORDER)
 end
 
+--- Game behaviour callback.  Called when two tagged objects start
+-- colliding (in the box2d world).
+--
+-- In this game we check for collisions between the 'BALL' and the
+-- 'STAR's that can be collects as well as the 'GOAL'.  Objects
+-- are identified using tags.  The numeric tag values are looked up
+-- and cached when the level first starts.
 scripts.BeginContact = function(object1, object2)
     util.Log('game.lua: BeginContact')
 
@@ -51,7 +112,7 @@ scripts.BeginContact = function(object1, object2)
     end
 
     local state = level_obj.game_state
-    for i=1,num_stars do
+    for i=1,level_obj.leveldef.num_stars do
         local star_tag = level_obj.star_tag + i - 1
         if other.tag == star_tag then
             if state.stars_collected[i] ~= true then
@@ -82,8 +143,10 @@ scripts.BeginContact = function(object1, object2)
     end
 end
 
-scripts.EndContact = function(tag1, tag2)
-    -- util.Log('game.lua: BeginContact')
+--- Game behaviour callback.  Called when two tagged objects stop
+-- colliding (in the box2d world).
+scripts.EndContact = function(object1, object2)
+    -- util.Log('game.lua: EndContact')
 end
 
 return scripts

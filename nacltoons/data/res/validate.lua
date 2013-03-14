@@ -86,7 +86,7 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
         return Err("file does not evaluate to an object of type 'table'")
     end
 
-    CheckValidKeys(filename, leveldef, { 'shapes', 'sprites' })
+    CheckValidKeys(filename, leveldef, { 'num_stars', 'shapes', 'sprites' })
 
     local function RegisterObject(object)
         if object.tag then
