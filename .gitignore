@@ -10,8 +10,9 @@
 *.pyo
 *.suo
 
-# Ignore all hidden files
-.*
+# Ignore hidden files
+.DS_Store*
+.Trashes
 
 # Ignore all directories than contain these names
 scons-out/

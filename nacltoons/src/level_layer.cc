@@ -63,9 +63,7 @@ LevelLayer::LevelLayer() :
    goal_reached_(false),
    current_touch_id_(-1),
    render_target_(NULL),
-#ifdef COCOS2D_DEBUG
    debug_enabled_(false),
-#endif
    box2d_density_(DEFAULT_DENSITY),
    box2d_restitution_(DEFAULT_RESTITUTION),
    box2d_friction_(DEFAULT_FRICTION) {
@@ -179,8 +177,8 @@ void LevelLayer::LuaNotifyContact(b2Contact* contact,
   // have been tagged.
   b2Body* body1 = contact->GetFixtureA()->GetBody();
   b2Body* body2 = contact->GetFixtureB()->GetBody();
-  int tag1 = (int)body1->GetUserData();
-  int tag2 = (int)body2->GetUserData();
+  int tag1 = (intptr_t)body1->GetUserData();
+  int tag2 = (intptr_t)body2->GetUserData();
   if (!tag1 || !tag2)
     return;
 

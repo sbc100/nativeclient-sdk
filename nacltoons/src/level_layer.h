@@ -94,9 +94,10 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
 #ifdef COCOS2D_DEBUG
   // Debug drawing support for Box2D.
   GLESDebugDraw* box2d_debug_draw_;
+#endif
+
   // Flag to enable drawing of Box2D debug data.
   bool debug_enabled_;
-#endif
 
   // Density given to new physics objects
   float box2d_density_;

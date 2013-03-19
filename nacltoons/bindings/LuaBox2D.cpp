@@ -7033,7 +7033,7 @@ static int tolua_LuaBox2D_b2Body_SetUserData01(lua_State* tolua_S)
   if (!self) tolua_error(tolua_S,"invalid 'self' in function 'SetUserData'", NULL);
 #endif
   {
-   self->SetUserData((void*)data);
+   self->SetUserData((void*)(long)data);
   }
  }
  return 0;

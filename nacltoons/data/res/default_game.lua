@@ -47,7 +47,6 @@ local function LayoutMenu(menu, max_cols, padding)
     end
 
     assert(item_index == items:count())
-    menu:setPosition(CCPointMake(game_obj.origin.x, game_obj.origin.y))
 end
 
 -- Horizontally center a node within a layer at a given height.
@@ -63,12 +62,20 @@ local function Center(node, height)
     node:setPosition(CCPointMake(xpos, ypos))
 end
 
+local function ElasticMove(node, start_pos, end_pos, duration, period)
+    node:setPosition(start_pos)
+    local move_to = CCMoveTo:create(duration, end_pos)
+    node:runAction(CCEaseElasticOut:create(move_to, period))
+end
+
 --- Local function for creating the level selection menu.
 local function CreateLevelMenu(layer)
     local label = CCLabelTTF:create("Select Level", FONT_NAME, FONT_SIZE)
     layer:addChild(label)
     -- Center label 100 pixels from the top of the sceen
     Center(label, -100)
+    local start_pos = ccp(label:getPositionX(), label:getPositionY() + 100)
+    ElasticMove(label, start_pos, ccp(label:getPosition()), 1.0, 0.3)
 
     -- Create the level selection menu
     local menu = CCMenu:create()
@@ -98,6 +105,11 @@ local function CreateLevelMenu(layer)
     end
     layer:addChild(menu)
     LayoutMenu(menu, 2, CCPointMake(20, 20))
+
+    -- Slide menu in from botton
+    local end_pos = ccp(game_obj.origin.x, game_obj.origin.y)
+    local start_pos = ccp(end_pos.x, end_pos.y - 600)
+    ElasticMove(menu, start_pos, end_pos, 1.0, 0.7)
 end
 
 --- Game behaviour callback.   This function is called when the game
