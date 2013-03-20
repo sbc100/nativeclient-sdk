@@ -29,7 +29,7 @@ all: cocos2dx
 	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
 
 cocos2dx : build/build-cocos2dx.sh
-	NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
+	USE_BOX2D=1 NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
 
 really-clean: clean
 	$(RM) -r $(OUT_DIR)

@@ -18,8 +18,12 @@ int main(int argc, char **argv)
     AppDelegate app;
 
     CCEGLView* eglView = CCEGLView::sharedOpenGLView();
-    eglView->setFrameSize(800, 600);
-    CCFileUtils::sharedFileUtils()->addSearchPath("../../../data/res");
+    eglView->setFrameSize(700, 500);
+    char respath[PATH_MAX];
+    if (!getcwd(respath, PATH_MAX))
+      return 1;
+    strcat(respath, "/../../../data/res");
+    CCFileUtils::sharedFileUtils()->addSearchPath(respath);
 
     return CCApplication::sharedApplication()->run();
 }

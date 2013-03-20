@@ -4,6 +4,8 @@ INCLUDES = -I.. -I../src -I../src/third_party -I../bindings
 
 COCOS_ROOT = ../../../src/third_party/cocos2d-x
 
+USE_BOX2D = 1
+
 SOURCES = main.cc \
     app_delegate.cc \
     game_manager.cc \
@@ -21,7 +23,6 @@ INCLUDES += -I$(COCOS_ROOT)/scripting/lua/lua
 INCLUDES += -I$(COCOS_ROOT)/external
 INCLUDES += -I$(COCOS_ROOT)/extensions
 
-DEFINES += -DCC_ENABLE_BOX2D_INTEGRATION
 SHAREDLIBS += -lcocos2d -llua -lcocosdenshion -lbox2d -lextension
 COCOS_LIBS = $(LIB_DIR)/libcocos2d.so
 
