@@ -115,7 +115,7 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
     leveldef.object_map = {}
 
     if leveldef.shapes then
-        local valid_keys = { 'start', 'finish', 'type', 'anchor', 'tag', 'dynamic' }
+        local valid_keys = { 'start', 'finish', 'color', 'type', 'anchor', 'tag', 'dynamic' }
         local valid_types = { 'line', 'edge' }
         local required_keys = { 'type' }
         for _, shape in pairs(leveldef.shapes) do

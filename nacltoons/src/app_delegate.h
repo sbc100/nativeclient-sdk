@@ -6,12 +6,6 @@
 
 #include "cocos2d.h"
 
-enum Tags {
-  TAG_BRUSH = 50,
-  TAG_LEVEL_ICON = 51,
-  TAG_LEVEL_ICON_SELECTED = 52,
-};
-
 /**
  * The cocos2d-x application entry point.
  */

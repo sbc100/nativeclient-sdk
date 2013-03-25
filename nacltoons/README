@@ -1,0 +1,15 @@
+NaClToons
+=========
+
+NaClToons is fully fledged example for use with the NaCl SDK.  The
+plan is to have it be both a game engine and a game creation
+toolkit.
+
+NaClToons is based on Cocos2D-X and used Box2D for physics and Lua
+for game logic.
+
+This is still very much a work in progress.  Currently it is only
+know to build on linux.  The top level Makefile should build
+everything and includes 'make run' target to run the app.  It is
+also possible to build it as a standalone linux application by using
+the Makefile in the proj.linux folder.

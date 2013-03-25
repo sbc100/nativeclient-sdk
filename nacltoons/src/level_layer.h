@@ -29,10 +29,6 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
 
   virtual bool init();
   virtual void draw();
-  virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
-  virtual void ccTouchMoved(CCTouch* touch, CCEvent* event);
-  virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
-  virtual void registerWithTouchDispatcher();
 
   b2World* GetWorld() { return box2d_world_; }
 
@@ -49,45 +45,17 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
   // script.
   void LevelComplete();
 
- private:
-  // Called by ccTouchesMoved to draw between two points
-  void DrawLine(CCPoint& start, CCPoint& end);
-  // Called by ccTouchesBegan to draw a single point.
-  void DrawPoint(CCPoint& location);
-  // Clamp brush location to within the visible area
-  void ClampBrushLocation(CCPoint& point);
-
+ protected:
+  // Called by BeginContact and EndContact to nofify Lua code when box2d
+  // contacts start and finish.
   void LuaNotifyContact(b2Contact* contact, const char* function_name);
 
-  void AddLineToBody(b2Body *body, CCPoint start, CCPoint end);
-  void AddSphereToBody(b2Body *body, CCPoint* location);
-  void AddShapeToBody(b2Body *body, b2Shape* shape);
-
-  // Create a new render target for drawing into
-  void CreateRenderTarget();
-
-  // Create a physics object based on the points that were drawn.
-  b2Body* CreatePhysicsBody();
-  CCSprite* CreatePhysicsSprite(b2Body* body);
-  void UpdateWorld(float dt);
-  bool InitPhysics();
-
- private:
   bool LoadLua(int level_number);
 
-  // Brush texture used for drawing shapes
-  CCSprite* brush_;
-  float brush_radius_;
-  bool stars_collected_[3];
-  bool goal_reached_;
+  bool InitPhysics();
+  void UpdateWorld(float dt);
 
-  // The touch ID that is drawing the current shape.  Events from
-  // other touches are ignored while this has a valid value.
-  int current_touch_id_;
-
-  // Render target that shapes are drawn into
-  CCRenderTexture* render_target_;
-
+ private:
   // Box2D physics world
   b2World* box2d_world_;
 
@@ -98,16 +66,6 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
 
   // Flag to enable drawing of Box2D debug data.
   bool debug_enabled_;
-
-  // Density given to new physics objects
-  float box2d_density_;
-  // Restitution given to new physics objects
-  float box2d_restitution_;
-  // Friction given to new physics objects
-  float box2d_friction_;
-
-  // The list of points currently being drawn by the user
-  PointList points_being_drawn_;
 
   CCLuaStack* lua_stack_;
 };

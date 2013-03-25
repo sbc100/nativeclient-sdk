@@ -3,8 +3,11 @@
 -- occur:
 --   StartGame
 --   StartLevel
---   BeginContact
---   EndContact
+--   OnTouchBegan(x, y) -- return true to accept touch
+--   OnTouchMoved(x, y)
+--   OnTouchEnded(x, y)
+--   OnContactBegan
+--   OnContactEnded
 --
 -- As well as arguments recieved this script has access
 -- to global game variables:
@@ -16,6 +19,7 @@
 
 require 'util'
 require 'path'
+require 'drawing'
 
 local scripts = {}
 local MENU_DRAW_ORDER = 3
@@ -92,6 +96,15 @@ scripts.StartLevel = function(level_number)
     parent:addChild(layer, MENU_DRAW_ORDER)
 end
 
+--- Forward touch events to default drawing handler.
+scripts.OnTouchBegan = drawing.OnTouchBegan
+
+--- Forward touch events to default drawing handler.
+scripts.OnTouchMoved = drawing.OnTouchMoved
+
+--- Forward touch events to default drawing handler.
+scripts.OnTouchEnded = drawing.OnTouchEnded
+
 --- Game behaviour callback.  Called when two tagged objects start
 -- colliding (in the box2d world).
 --
@@ -99,8 +112,8 @@ end
 -- 'STAR's that can be collects as well as the 'GOAL'.  Objects
 -- are identified using tags.  The numeric tag values are looked up
 -- and cached when the level first starts.
-scripts.BeginContact = function(object1, object2)
-    util.Log('game.lua: BeginContact')
+scripts.OnContactBegan = function(object1, object2)
+    util.Log('game.lua: OnContactBegan')
 
     -- We are only interested in collisions involving the ball
     if object1.tag == level_obj.ball_tag then
@@ -145,8 +158,8 @@ end
 
 --- Game behaviour callback.  Called when two tagged objects stop
 -- colliding (in the box2d world).
-scripts.EndContact = function(object1, object2)
-    -- util.Log('game.lua: EndContact')
+scripts.OnContactEnded = function(object1, object2)
+    -- util.Log('game.lua: OnContactEnded')
 end
 
 return scripts

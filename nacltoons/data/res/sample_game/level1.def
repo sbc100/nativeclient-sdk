@@ -8,19 +8,19 @@ local level = {
 
    sprites = {
        { pos = { 100, 500 }, image = 'ball_image', script = 'ball.lua', tag = 'BALL' },
-       { pos = { 700, 50  }, image = 'goal_image', tag = 'GOAL', sensor = true },
-       { pos = { 200, 490 }, image = 'star_image', tag = 'STAR1', sensor = true },
-       { pos = { 200, 250 }, image = 'star_image', tag = 'STAR2', sensor = true },
-       { pos = { 420, 100 }, image = 'star_image', tag = 'STAR3', sensor = true },
+       { pos = { 700, 40  }, image = 'goal_image', tag = 'GOAL', sensor = true },
+       { pos = { 200, 480 }, image = 'star_image', tag = 'STAR1', sensor = true },
+       { pos = { 200, 240 }, image = 'star_image', tag = 'STAR2', sensor = true },
+       { pos = { 420, 90 }, image = 'star_image', tag = 'STAR3', sensor = true },
    },
 
    shapes = {
        -- create three ramps for the ball to roll down
-       { type = 'line', start = { 20, 450 }, finish = { 550, 400 } },
+       { type = 'line', color = { 50, 230, 0 }, start = { 20, 450 }, finish = { 550, 400 } },
 
-       { type = 'line', start = { 200, 200}, finish = { 780, 380 } },
+       { type = 'line', color = { 230, 50, 0 }, start = { 200, 200}, finish = { 780, 380 } },
 
-       { type = 'line', start = { 20, 240}, finish = { 200, 50 } },
+       { type = 'line', color = { 0, 50, 230 }, start = { 20, 240}, finish = { 200, 50 } },
 
        -- create a box
        { type = 'line', start = { 500, 200 }, finish = { 500, 300 } },

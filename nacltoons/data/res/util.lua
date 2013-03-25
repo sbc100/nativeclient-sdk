@@ -12,8 +12,6 @@ util.PTM_RATIO = 32
 -- look up the nodes using these tags.
 util.tags = {
     BRUSH = 50,
-    LEVEL_ICON = 51,
-    LEVEL_ICON_SELECTED = 52,
     LAYER_PHYSICS = 100,
     LAYER_UI = 101,
 }
@@ -26,4 +24,11 @@ end
 --- Log messages to console
 util.Log = function(...)
     print('LUA: '..string.format(...))
+end
+
+--- Create CCPoint from a lua table containing 2 elements.
+-- This is used to convert point data from .def files into
+-- the cocos2dx coordinate space.
+util.PointFromLua = function(point)
+    return CCPointMake(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
 end
