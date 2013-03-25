@@ -25,7 +25,7 @@ local current_touchid = -1
 local current_touchobject = -1
 
 local function OnTouchBegan(x, y, touchid)
-    for tag, obj_def in pairs(level_obj.leveldef.object_map) do
+    for tag, obj_def in pairs(level_obj.object_map) do
         -- only consider objects that have an OnTouchBegan handler
         if obj_def.script and obj_def.script.OnTouchBegan then
             local sprite = level_obj.layer:getChildByTag(tag)
@@ -42,34 +42,47 @@ local function OnTouchBegan(x, y, touchid)
         end
     end
 
-    if game_obj.script.OnTouchBegan and game_obj.script.OnTouchBegan(x, y) then
-        current_touchid = touchid
-        current_touchobject = game_obj
-        return true
+    -- If neither object handles the touch then ask the level
+    if level_obj.script and level_obj.script.OnTouchBegan then
+        if level_obj.script.OnTouchBegan(x, y) then
+            current_touchid = touchid
+            current_touchobject = level_obj
+            return true
+        end
     end
+
+    -- Finally ask the game.
+    if game_obj.script.OnTouchBegan then
+        if game_obj.script.OnTouchBegan(x, y) then
+            current_touchid = touchid
+            current_touchobject = game_obj
+            return true
+        end
+    end
+
+    -- No object handle the touch.  Returning false tells cocos2dx we are not
+    -- interested in this particular touch.
+    return false
 end
 
 local function OnTouchMoved(x, y, touchid)
     -- ignore touch moves unless the touchid matches the one we are currently tracking
-    if touchid ~= current_touchid then
-        return false
+    if touchid == current_touchid then
+        if current_touchobject.script.OnTouchMoved then
+            current_touchobject.script.OnTouchMoved(x, y)
+        end
     end
-    if current_touchobject.script.OnTouchMoved then
-        return current_touchobject.script.OnTouchMoved(x, y)
-    end
-    return false
 end
 
 local function OnTouchEnded(x, y, touchid)
     -- ignore touch ends unless the touchid matches the one we are currently tracking
-    if touchid ~= current_touchid then
-        return
+    if touchid == current_touchid then
+        if current_touchobject.script.OnTouchEnded then
+            current_touchobject.script.OnTouchEnded(x, y)
+        end
+        current_touchid = -1
+        current_touchobject = nil
     end
-    if current_touchobject.script.OnTouchEnded then
-        current_touchobject.script.OnTouchEnded(x, y)
-    end
-    current_touchid = -1
-    current_touchobject = nil
 end
 
 touch_handler.TouchHandler = function(touch_type, x, y, touchid)

@@ -71,9 +71,9 @@ scripts.StartLevel = function(level_number)
     }
 
     -- Lookup some tags that are used later in the collution code.
-    level_obj.ball_tag = level_obj.leveldef.tag_map['BALL']
-    level_obj.goal_tag = level_obj.leveldef.tag_map['GOAL']
-    level_obj.star_tag = level_obj.leveldef.tag_map['STAR1']
+    level_obj.ball_tag = level_obj.tag_map['BALL']
+    level_obj.goal_tag = level_obj.tag_map['GOAL']
+    level_obj.star_tag = level_obj.tag_map['STAR1']
 
     -- Create a textual menu it its own layer as a sibling of the LevelLayer
     menu_def = {
@@ -125,7 +125,7 @@ scripts.OnContactBegan = function(object1, object2)
     end
 
     local state = level_obj.game_state
-    for i=1,level_obj.leveldef.num_stars do
+    for i=1,level_obj.num_stars do
         local star_tag = level_obj.star_tag + i - 1
         if other.tag == star_tag then
             if state.stars_collected[i] ~= true then

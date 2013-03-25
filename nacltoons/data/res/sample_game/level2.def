@@ -13,6 +13,8 @@ local level = {
        { pos = { 200, 150 }, image = 'star_image', tag = 'STAR2' },
        { pos = { 300, 200 }, image = 'star_image', tag = 'STAR3' },
    },
+
+   script = 'level2.lua'
 }
 
 return level

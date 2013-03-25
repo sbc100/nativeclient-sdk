@@ -88,14 +88,12 @@ function LoadLevel(layer, level_number)
     assert(level_number <= #game_obj.levels and level_number > 0,
            'Invalid level number: ' .. level_number)
     local filename = path.join(game_obj.root, game_obj.levels[level_number])
-    level = dofile(filename)
-    validate.ValidateLevelDef(filename, game_obj, level)
-
-    local assets = game_obj.assets
-    level_obj = {}
+    level_obj = dofile(filename)
+    validate.ValidateLevelDef(filename, game_obj, level_obj)
     level_obj.layer = layer
     level_obj.world = layer:GetWorld()
-    level_obj.leveldef = level
+
+    local assets = game_obj.assets
 
     -- Load brush image
     local brush = CCSpriteBatchNode:create(assets.brush_image, 500)
@@ -117,7 +115,7 @@ function LoadLevel(layer, level_number)
 
     -- Load sprites
     for _, sprite_def in ipairs(level.sprites) do
-        local sprite = drawing.CreateSprite(sprite_def)
+        local sprite = drawing.DrawSprite(sprite_def)
         layer:addChild(sprite, 1, sprite_def.tag)
         if sprite_def.script then
             local script = path.join(game_obj.root, sprite_def.script)
@@ -129,8 +127,14 @@ function LoadLevel(layer, level_number)
     -- Load shapes
     if level.shapes then
         for _, shape in ipairs(level.shapes) do
-            drawing.CreateShape(shape)
+            drawing.DrawShape(shape)
         end
+    end
+
+    -- Load custom level script
+    if level_obj.script then
+        Log('loading level script: ' .. level_obj.script)
+        level_obj.script = dofile(path.join(game_obj.root, level_obj.script))
     end
 
     layer:registerScriptTouchHandler(touch_handler.TouchHandler)
@@ -138,8 +142,8 @@ function LoadLevel(layer, level_number)
 end
 
 local function CallCollisionHandler(tag1, tag2, handler_name)
-    local object1 = level_obj.leveldef.object_map[tag1]
-    local object2 = level_obj.leveldef.object_map[tag2]
+    local object1 = level_obj.object_map[tag1]
+    local object2 = level_obj.object_map[tag2]
 
     -- only call handlers if the objects in question have tags
     -- that are known to the currently running level
