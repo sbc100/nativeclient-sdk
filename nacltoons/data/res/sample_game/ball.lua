@@ -30,11 +30,11 @@ scripts.OnTouchEnded = function(other)
 end
 
 scripts.OnContactBegan = function(other)
-    util.Log('ball contact start: ' .. other.tag)
+    util.Log('ball contact start: ' .. other.tag_str)
 end
 
 scripts.OnContactEnded = function(other)
-    util.Log('ball contact ended: ' .. other.tag)
+    util.Log('ball contact ended: ' .. other.tag_str)
 end
 
 return scripts

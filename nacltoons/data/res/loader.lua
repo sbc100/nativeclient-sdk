@@ -50,6 +50,30 @@ local function LoadGameDef(filename)
     return game
 end
 
+function RegisterObject(object, tag, tag_str)
+    level_obj.tag_list[tag] = tag_str
+    assert(level_obj.object_map[tag] == nil, 'object_map already contains ' .. tag)
+    level_obj.object_map[tag] = object
+    -- If a tag_str is given then register it in the string -> int mapping
+    if tag_str then
+        assert(level_obj.tag_map[tag_str] == nil, 'duplicate object tag: ' .. tag_str)
+        level_obj.tag_map[tag_str] = tag
+    end
+    if not tag_str then tag_str = '' end
+    Log('object registered: ' .. tag .. " = '" .. tag_str .. "'")
+end
+
+local function RegisterObjectDef(object)
+    if object.tag then
+        object.tag_str = object.tag
+        object.tag = #level_obj.tag_list + 1
+        RegisterObject(object, object.tag, object.tag_str)
+    else
+        object.tag = 0
+        object.tag_str = ''
+    end
+end
+
 --- Load game data from a given root directory.
 -- This game then becomes the currently running game.
 -- @param The root directory of the game to be loaded.
@@ -79,6 +103,15 @@ function LoadGame(root_dir)
    end
 end
 
+local function LevelInit()
+    -- level_obj.tag_map maps string tags to integer tags
+    -- level_obj.tag_list is simply a list of string tags
+    -- level_obj.object_map maps tags to object defs
+    level_obj.tag_map = {}
+    level_obj.tag_list = {}
+    level_obj.object_map = {}
+end
+
 --- Load the given level of the given game
 -- @param layer The level to populate with game objects
 -- @param level_number The level to load
@@ -89,7 +122,10 @@ function LoadLevel(layer, level_number)
            'Invalid level number: ' .. level_number)
     local filename = path.join(game_obj.root, game_obj.levels[level_number])
     level_obj = dofile(filename)
+
     validate.ValidateLevelDef(filename, game_obj, level_obj)
+
+    LevelInit()
     level_obj.layer = layer
     level_obj.world = layer:GetWorld()
 
@@ -97,7 +133,7 @@ function LoadLevel(layer, level_number)
 
     -- Load brush image
     local brush = CCSpriteBatchNode:create(assets.brush_image, 500)
-    layer:addChild(brush, 1, tags.BRUSH)
+    layer:addChild(brush, 1)
     drawing.SetBrush(brush)
 
     -- Start music playback
@@ -114,8 +150,9 @@ function LoadLevel(layer, level_number)
     end
 
     -- Load sprites
-    for _, sprite_def in ipairs(level.sprites) do
-        local sprite = drawing.DrawSprite(sprite_def)
+    for _, sprite_def in ipairs(level_obj.sprites) do
+        RegisterObjectDef(sprite_def)
+        local sprite = drawing.CreateSprite(sprite_def)
         layer:addChild(sprite, 1, sprite_def.tag)
         if sprite_def.script then
             local script = path.join(game_obj.root, sprite_def.script)
@@ -125,9 +162,10 @@ function LoadLevel(layer, level_number)
     end
 
     -- Load shapes
-    if level.shapes then
-        for _, shape in ipairs(level.shapes) do
-            drawing.DrawShape(shape)
+    if level_obj.shapes then
+        for _, shape_def in ipairs(level_obj.shapes) do
+            RegisterObjectDef(shape_def)
+            drawing.CreateShape(shape_def)
         end
     end
 

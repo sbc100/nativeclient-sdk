@@ -6967,7 +6967,7 @@ static int tolua_LuaBox2D_b2Body_GetUserData00(lua_State* tolua_S)
 #endif
   {
    void* tolua_ret = (void*)  self->GetUserData();
-   tolua_pushuserdata(tolua_S,(void*)tolua_ret);
+   tolua_pushnumber(tolua_S,(lua_Number)(long)tolua_ret);
   }
  }
  return 1;

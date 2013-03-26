@@ -20,7 +20,8 @@ typedef std::vector<cocos2d::CCPoint> PointList;
  * Lavel layer in which gameplay takes place.  This layer contains
  * the box2d world simulation.
  */
-class LevelLayer : public CCLayerColor, public b2ContactListener {
+class LevelLayer : public CCLayerColor,
+                   public b2ContactListener {
  public:
   LevelLayer();
   ~LevelLayer();
@@ -31,6 +32,8 @@ class LevelLayer : public CCLayerColor, public b2ContactListener {
   virtual void draw();
 
   b2World* GetWorld() { return box2d_world_; }
+
+  b2Body* FindBodyAt(b2Vec2* pos);
 
   void ToggleDebug();
   bool LoadLevel(int level_number);

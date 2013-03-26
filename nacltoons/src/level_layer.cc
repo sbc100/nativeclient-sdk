@@ -33,6 +33,31 @@ extern "C" {
 
 USING_NS_CC_EXT;
 
+class Box2DCallbackHandler : public b2QueryCallback
+{
+ public:
+  Box2DCallbackHandler(b2Vec2* test_point) : found_body_(NULL),
+                                             test_point_(*test_point) {}
+
+  // Called by box2d when doing AABB testing to find bodies.
+  bool ReportFixture(b2Fixture* fixture)
+  {
+    if (fixture->TestPoint(test_point_)) {
+      found_body_ = fixture->GetBody();
+      return false; // we found a body, stop looking
+    }
+
+    return true; // keep looking
+  }
+
+  // Used by b2QueryCallback to store body found at test_point_
+  b2Body* found_body_;
+
+ protected:
+  // Used by b2QueryCallback to find bodies as a given location
+  b2Vec2 test_point_;
+};
+
 bool LevelLayer::init() {
   if (!CCLayerColor::initWithColor(ccc4(0,0x8F,0xD8,0xD8)))
     return false;
@@ -182,3 +207,17 @@ void LevelLayer::draw() {
   }
 #endif
 }
+
+b2Body* LevelLayer::FindBodyAt(b2Vec2* pos) {
+  b2AABB aabb;
+  b2Vec2 d;
+  d.Set(0.001f, 0.001f);
+  aabb.lowerBound = *pos - d;
+  aabb.upperBound = *pos + d;
+
+  // Query the world for overlapping shapes.
+  Box2DCallbackHandler handler(pos);
+  box2d_world_->QueryAABB(&handler, aabb);
+  return handler.found_body_;
+}
+

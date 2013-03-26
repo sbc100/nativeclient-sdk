@@ -8,12 +8,8 @@ util = {}
 
 util.PTM_RATIO = 32
 
--- Tags used used by lua and C++ both.
--- look up the nodes using these tags.
 util.tags = {
-    BRUSH = 50,
-    LAYER_PHYSICS = 100,
-    LAYER_UI = 101,
+    TAG_DYNAMIC_START = 0xff,
 }
 
 -- Convert a value from screen coordinate system to Box2D world coordinates
@@ -31,4 +27,10 @@ end
 -- the cocos2dx coordinate space.
 util.PointFromLua = function(point)
     return CCPointMake(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
+end
+
+--- Convert CCPoint to b2Vec.
+util.b2VecFromCocos = function(cocos_vec)
+    return b2Vec2:new_local(util.ScreenToWorld(cocos_vec.x),
+                            util.ScreenToWorld(cocos_vec.y))
 end

@@ -19,25 +19,30 @@ require 'util'
 
 drawing = {}
 
+-- Brush information (set by SetBrush)
 local brush_node
 local brush_thickness
 
---- Convert CCPoint to b2Vec.
-local function b2VecFromCocos(cocos_vec)
-    return b2Vec2:new_local(util.ScreenToWorld(cocos_vec.x),
-                            util.ScreenToWorld(cocos_vec.y))
-end
+-- Constant for grouping physics bodies
+local MAIN_CATEGORY = 0x1
+local DRAWING_CATEGORY = 0x2
+
+-- Local state for default touch handlers
+local current_shape = nil
+local current_tag = 99 -- util.tags.TAG_DYNAMIC_START
+local last_pos = nil
+local brush_color = ccc3(255, 100, 100)
 
 --- Create a b2Vec from a lua list containing 2 elements.
 -- This is used to convert point data from .def files directly
 -- to the box2dx coordinate system
 local function b2VecFromLua(point)
-    return b2VecFromCocos(util.PointFromLua(point))
+    return util.b2VecFromCocos(util.PointFromLua(point))
 end
 
 --- Create a fixed pivot point between the world and the given body.
 local function CreatePivot(anchor, body)
-    local anchor_point = b2VecFromCocos(anchor)
+    local anchor_point = util.b2VecFromCocos(anchor)
 
     -- create a new fixed body to pivot against
     local ground_def = b2BodyDef:new_local()
@@ -147,9 +152,6 @@ local function NewPhysicsSprite(sprite, location)
     return body
 end
 
-local main_category = 0x1
-local drawing_category = 0x2
-
 -- Set the collision group for a fixture
 local function SetCategory(fixture, category)
     local filter = fixture:GetFilterData()
@@ -163,7 +165,7 @@ local function MakeBodyDynamic(body)
     body:SetType(b2_dynamicBody)
     local fixture = body:GetFixtureList()
     while fixture do
-        SetCategory(fixture, main_category)
+        SetCategory(fixture, MAIN_CATEGORY)
         fixture = fixture:GetNext()
     end
 end
@@ -203,8 +205,8 @@ end
 --- Create a physics sprite at a fiven location with a given image
 drawing.CreateSprite = function(sprite_def)
     local pos = util.PointFromLua(sprite_def.pos)
-    util.Log('Create sprite [tag=' .. sprite_def.tag .. ' image=' .. sprite_def.image .. ']: ' ..
-        math.floor(pos.x) .. 'x' .. math.floor(pos.y))
+    -- util.Log('Create sprite [tag=' .. sprite_def.tag .. ' image=' .. sprite_def.image .. ']: ' ..
+    --    math.floor(pos.x) .. 'x' .. math.floor(pos.y))
     local image = game_obj.assets[sprite_def.image]
     local sprite = CCPhysicsSprite:create(image)
     local body = NewPhysicsSprite(sprite, pos)
@@ -229,7 +231,7 @@ drawing.DrawStartPoint = function(location, color)
 
     -- Add collision info
     local fixture = AddSphereToBody(body, location, sprite:boundingBox().size.height/2, false)
-    SetCategory(fixture, drawing_category)
+    SetCategory(fixture, DRAWING_CATEGORY)
     return sprite
 end
 
@@ -246,20 +248,15 @@ drawing.DrawEndPoint = function(sprite, location, color)
     -- Add collision info
     local body = sprite:getB2Body()
     local fixture = AddSphereToBody(body, location, sprite:boundingBox().size.height/2, false)
-    SetCategory(fixture, drawing_category)
+    SetCategory(fixture, DRAWING_CATEGORY)
 
     MakeBodyDynamic(body)
 end
 
 drawing.AddLineToShape = function(sprite, from, to, color)
     fixture = AddLineToShape(sprite, from, to, color)
-    SetCategory(fixture, drawing_category)
+    SetCategory(fixture, DRAWING_CATEGORY)
 end
-
--- Local state for default touch handlers
-local current_shape = nil
-local last_pos = nil
-local brush_color = ccc3(255, 100, 100)
 
 --- Sample OnTouchMoved for drawing-based games.  For bespoke drawing behaviour
 -- clone and modify this code.
@@ -272,6 +269,12 @@ drawing.OnTouchBegan = function(x, y)
    -- create initial sphere to represent start of shape
    last_pos = ccp(x, y)
    current_shape = drawing.DrawStartPoint(last_pos, brush_color)
+   current_shape:setTag(current_tag)
+   current_shape:getB2Body():SetUserData(current_tag)
+   local obj_def = { tag = current_tag, tag_str = 'drawn_shape_' .. current_tag }
+   RegisterObject(obj_def, obj_def.tag, obj_def.tag_str)
+   current_tag = current_tag + 1
+
    return true
 end
 

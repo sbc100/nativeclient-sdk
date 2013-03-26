@@ -7,6 +7,7 @@ class LevelLayer : public CCLayerColor
   b2World* GetWorld();
   void LevelComplete();
   void ToggleDebug();
+  b2Body* FindBodyAt(b2Vec2* pos);
 }
 
 class GameManager

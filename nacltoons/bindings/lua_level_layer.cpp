@@ -1,6 +1,6 @@
 /*
 ** Lua binding: level_layer
-** Generated automatically by tolua++-1.0.93 on Wed Mar 13 15:50:48 2013.
+** Generated automatically by tolua++-1.0.93 on Fri Mar 22 13:11:24 2013.
 */
 
 // Copyright (c) 2013 The Chromium Authors. All rights reserved.
@@ -23,8 +23,10 @@ TOLUA_API int  tolua_level_layer_open (lua_State* tolua_S);
 /* function to register type */
 static void tolua_reg_types (lua_State* tolua_S)
 {
- tolua_usertype(tolua_S,"GameManager");
+ tolua_usertype(tolua_S,"b2Vec2");
  tolua_usertype(tolua_S,"CCLayerColor");
+ tolua_usertype(tolua_S,"GameManager");
+ tolua_usertype(tolua_S,"b2Body");
  tolua_usertype(tolua_S,"b2World");
  tolua_usertype(tolua_S,"LevelLayer");
 }
@@ -118,6 +120,40 @@ static int tolua_level_layer_LevelLayer_ToggleDebug00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'ToggleDebug'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: FindBodyAt of class  LevelLayer */
+#ifndef TOLUA_DISABLE_tolua_level_layer_LevelLayer_FindBodyAt00
+static int tolua_level_layer_LevelLayer_FindBodyAt00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"LevelLayer",0,&tolua_err) ||
+     !tolua_isusertype(tolua_S,2,"b2Vec2",0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  LevelLayer* self = (LevelLayer*)  tolua_tousertype(tolua_S,1,0);
+  b2Vec2* pos = ((b2Vec2*)  tolua_tousertype(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'FindBodyAt'", NULL);
+#endif
+  {
+   b2Body* tolua_ret = (b2Body*)  self->FindBodyAt(pos);
+    tolua_pushusertype(tolua_S,(void*)tolua_ret,"b2Body");
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'FindBodyAt'.",&tolua_err);
  return 0;
 #endif
 }
@@ -260,6 +296,7 @@ TOLUA_API int tolua_level_layer_open (lua_State* tolua_S)
    tolua_function(tolua_S,"GetWorld",tolua_level_layer_LevelLayer_GetWorld00);
    tolua_function(tolua_S,"LevelComplete",tolua_level_layer_LevelLayer_LevelComplete00);
    tolua_function(tolua_S,"ToggleDebug",tolua_level_layer_LevelLayer_ToggleDebug00);
+   tolua_function(tolua_S,"FindBodyAt",tolua_level_layer_LevelLayer_FindBodyAt00);
   tolua_endmodule(tolua_S);
   tolua_cclass(tolua_S,"GameManager","GameManager","",NULL);
   tolua_beginmodule(tolua_S,"GameManager");

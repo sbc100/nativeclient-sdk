@@ -12,6 +12,7 @@
 -- $ LUA_PATH="data/res/path.lua" lua ./data/res/validate.lua data/res/sample_game/game.def
 
 require 'path'
+require 'util'
 
 local function Error(filename, message)
     assert(false, "Error in '" .. filename .. "':" ..  message)
@@ -88,32 +89,6 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
 
     CheckValidKeys(filename, leveldef, { 'num_stars', 'shapes', 'sprites', 'script' })
 
-    local function RegisterObject(object)
-        if object.tag then
-            object.tag_str = object.tag
-            object.tag = #leveldef.tag_list + 1
-
-            if leveldef.tag_map[object.tag_str] then
-                Err('duplicate object tag: ' .. object.tag_str)
-            end
-
-            leveldef.tag_list[object.tag] = object.tag_str
-            leveldef.tag_map[object.tag_str] = object.tag
-            assert(leveldef.object_map[object.tag] == nil, 'object_map already contains ' .. object.tag)
-            leveldef.object_map[object.tag] = object
-        else
-           object.tag = 0
-           object.tag_str = ''
-        end
-    end
-
-    -- leveldef.tag_map maps string tags to integer tags
-    -- leveldef.tag_list is simply a list of string tags
-    -- leveldef.object_map maps tags to object defs
-    leveldef.tag_map = {}
-    leveldef.tag_list = {}
-    leveldef.object_map = {}
-
     if leveldef.shapes then
         local valid_keys = { 'start', 'finish', 'color', 'type', 'anchor', 'tag', 'dynamic' }
         local valid_types = { 'line', 'edge' }
@@ -124,7 +99,6 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
             if not ListContains(valid_types, shape.type) then
                 Err('invalid shape type: ' .. shape.type)
             end
-            RegisterObject(shape)
         end
     end
 
@@ -137,7 +111,6 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
             if gamedef.assets[sprite.image] == nil then
                 Err('invalid image asset: ' .. sprite.image)
             end
-            RegisterObject(sprite)
         end
     end
 

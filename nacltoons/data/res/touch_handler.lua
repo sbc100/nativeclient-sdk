@@ -11,33 +11,29 @@ require 'util'
 
 touch_handler = {}
 
-local function ContainsTouchLocation(node, x, y)
-    local pos_x = node:getPositionX()
-    local pos_y = node:getPositionY()
-    local s = node:getContentSize()
-    util.Log('pos ' .. math.floor(pos_x) .. 'x' .. math.floor(pos_y))
-    util.Log('size ' .. math.floor(s.width) .. 'x' .. math.floor(s.height))
-    local touchRect = CCRectMake(-s.width / 2 + pos_x, -s.height / 2 + pos_y, s.width, s.height)
-    return touchRect:containsPoint(ccp(x, y))
-end
-
 local current_touchid = -1
 local current_touchobject = -1
 
+local function FindTaggedBodyAt(x, y)
+    local b2pos = util.b2VecFromCocos(ccp(x, y))
+    local body = level_obj.layer:FindBodyAt(b2pos)
+    if body then
+        local tag = body:GetUserData()
+        if tag then
+            return level_obj.object_map[tag]
+        end
+    end
+end
+
 local function OnTouchBegan(x, y, touchid)
-    for tag, obj_def in pairs(level_obj.object_map) do
-        -- only consider objects that have an OnTouchBegan handler
+    local obj_def = FindTaggedBodyAt(x, y)
+    if obj_def  then
+        -- print("Found touched object: " .. obj_def.tag)
         if obj_def.script and obj_def.script.OnTouchBegan then
-            local sprite = level_obj.layer:getChildByTag(tag)
-            if sprite then
-                -- util.Log('Looking for tag: ' .. tag .. ' ' .. obj_def.tag_str)
-                if ContainsTouchLocation(sprite, x, y) then
-                    if obj_def.script.OnTouchBegan(x, y) then
-                        current_touchid = touchid
-                        current_touchobject = obj_def
-                        return true
-                    end
-                end
+            if obj_def.script.OnTouchBegan(x, y) then
+                current_touchid = touchid
+                current_touchobject = obj_def
+                return true
             end
         end
     end
