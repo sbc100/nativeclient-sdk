@@ -2,22 +2,22 @@
 -- lua script.  All this level script does it peform drawing offset
 -- from the touch location.
 
-require 'drawing'
+local drawing = require 'drawing'
 
-local scripts = {}
+local handlers = {}
 
 local drawing_offset = 30
 
-scripts.OnTouchBegan = function(x, y)
+function handlers.OnTouchBegan(x, y)
     return drawing.OnTouchBegan(x + drawing_offset, y + drawing_offset)
 end
 
-scripts.OnTouchMoved = function(x, y)
+function handlers.OnTouchMoved(x, y)
     drawing.OnTouchMoved(x + drawing_offset, y + drawing_offset)
 end
 
-scripts.OnTouchEnded = function(x, y)
+function handlers.OnTouchEnded(x, y)
     drawing.OnTouchEnded(x + drawing_offset, y + drawing_offset)
 end
 
-return scripts
+return handlers

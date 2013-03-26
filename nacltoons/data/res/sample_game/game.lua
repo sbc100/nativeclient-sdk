@@ -9,19 +9,21 @@
 --   OnContactBegan
 --   OnContactEnded
 --
+-- This file should not alter to global namespace.
+--
 -- As well as arguments recieved this script has access
--- to global game variables:
+-- to the global game variables:
 --   game_obj - global state, which persists between level and
 --              level reloads but is destroyes on game restart
 --              or reload.
 --   level_obj - stores level specific state which is destroyed
 --               on level restart.
 
-require 'util'
-require 'path'
-require 'drawing'
+local util = require 'util'
+local path = require 'path'
+local drawing = require 'drawing'
 
-local scripts = {}
+local handlers = {}
 local MENU_DRAW_ORDER = 3
 
 --- Local function for creating a simple menu from text labels
@@ -62,7 +64,7 @@ end
 -- This function sets up level-specific game state, and adds any UI
 -- needed for the level.  In this case we add a menu layer to the scene
 -- that is drawn on top of the LevelLayer.
-scripts.StartLevel = function(level_number)
+function handlers.StartLevel(level_number)
     util.Log('game.lua: StartLevel: ' .. level_number)
 
     level_obj.game_state = {
@@ -97,13 +99,13 @@ scripts.StartLevel = function(level_number)
 end
 
 --- Forward touch events to default drawing handler.
-scripts.OnTouchBegan = drawing.OnTouchBegan
+handlers.OnTouchBegan = drawing.OnTouchBegan
 
 --- Forward touch events to default drawing handler.
-scripts.OnTouchMoved = drawing.OnTouchMoved
+handlers.OnTouchMoved = drawing.OnTouchMoved
 
 --- Forward touch events to default drawing handler.
-scripts.OnTouchEnded = drawing.OnTouchEnded
+handlers.OnTouchEnded = drawing.OnTouchEnded
 
 --- Game behaviour callback.  Called when two tagged objects start
 -- colliding (in the box2d world).
@@ -112,7 +114,7 @@ scripts.OnTouchEnded = drawing.OnTouchEnded
 -- 'STAR's that can be collects as well as the 'GOAL'.  Objects
 -- are identified using tags.  The numeric tag values are looked up
 -- and cached when the level first starts.
-scripts.OnContactBegan = function(object1, object2)
+function handlers.OnContactBegan(object1, object2)
     util.Log('game.lua: OnContactBegan')
 
     -- We are only interested in collisions involving the ball
@@ -158,8 +160,8 @@ end
 
 --- Game behaviour callback.  Called when two tagged objects stop
 -- colliding (in the box2d world).
-scripts.OnContactEnded = function(object1, object2)
+function handlers.OnContactEnded(object1, object2)
     -- util.Log('game.lua: OnContactEnded')
 end
 
-return scripts
+return handlers

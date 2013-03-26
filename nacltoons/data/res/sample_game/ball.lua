@@ -1,6 +1,6 @@
--- Object behaviour script.  This script returns a table contains
--- callback function which are called when event occur on a given
--- object.
+-- Object behaviour script.  This script returns a table containing
+-- callback function which are called when events occur on a given
+-- object.  It should not pollute the global namespace.
 --
 -- The following callbacks are available to game objects:
 --
@@ -18,23 +18,25 @@
 --   level_obj - stores level specific state which is destroyed
 --               on level restart.
 
-local scripts = {}
+local handlers = {}
 
-scripts.OnTouchBegan = function(other)
+local util = require 'util'
+
+function handlers.OnTouchBegan(other)
     util.Log('ball touch began')
     return true
 end
 
-scripts.OnTouchEnded = function(other)
+function handlers.OnTouchEnded(other)
     util.Log('ball touch ended')
 end
 
-scripts.OnContactBegan = function(other)
+function handlers.OnContactBegan(other)
     util.Log('ball contact start: ' .. other.tag_str)
 end
 
-scripts.OnContactEnded = function(other)
+function handlers.OnContactEnded(other)
     util.Log('ball contact ended: ' .. other.tag_str)
 end
 
-return scripts
+return handlers

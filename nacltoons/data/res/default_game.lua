@@ -8,7 +8,9 @@
 local FONT_NAME = 'Arial.ttf'
 local FONT_SIZE = 48
 
-local scripts = {}
+local util = require 'util'
+
+local handlers = {}
 
 --- Local function which lays out the level selection menu in a grid
 -- @param the menu object who's children are the menu items.
@@ -114,7 +116,7 @@ end
 
 --- Game behaviour callback.   This function is called when the game
 -- first starts and in charge of creating the first scene.
-scripts.StartGame = function()
+function handlers.StartGame()
     util.Log('StartGame')
     local director = CCDirector:sharedDirector()
 
@@ -147,4 +149,4 @@ scripts.StartGame = function()
     director:runWithScene(scene)
 end
 
-return scripts
+return handlers

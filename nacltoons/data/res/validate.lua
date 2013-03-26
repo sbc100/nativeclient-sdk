@@ -11,8 +11,8 @@
 -- It is possible to run this code a game.def file from the command line:
 -- $ LUA_PATH="data/res/path.lua" lua ./data/res/validate.lua data/res/sample_game/game.def
 
-require 'path'
-require 'util'
+local path = require 'path'
+local util = require 'util'
 
 local function Error(filename, message)
     assert(false, "Error in '" .. filename .. "':" ..  message)
@@ -130,3 +130,5 @@ if arg and #arg >= 1 then
        validate.ValidateLevelDef(filename, gamedef, level)
    end
 end
+
+return validate

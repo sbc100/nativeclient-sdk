@@ -4,7 +4,7 @@
 
 --- Utility functions and constants shared by nacltoons lua code
 
-util = {}
+local util = {}
 
 util.PTM_RATIO = 32
 
@@ -13,24 +13,26 @@ util.tags = {
 }
 
 -- Convert a value from screen coordinate system to Box2D world coordinates
-util.ScreenToWorld = function(value)
+function util.ScreenToWorld(value)
     return value / util.PTM_RATIO
 end
 
 --- Log messages to console
-util.Log = function(...)
+function util.Log(...)
     print('LUA: '..string.format(...))
 end
 
 --- Create CCPoint from a lua table containing 2 elements.
 -- This is used to convert point data from .def files into
 -- the cocos2dx coordinate space.
-util.PointFromLua = function(point)
+function util.PointFromLua(point)
     return CCPointMake(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
 end
 
 --- Convert CCPoint to b2Vec.
-util.b2VecFromCocos = function(cocos_vec)
+function util.b2VecFromCocos(cocos_vec)
     return b2Vec2:new_local(util.ScreenToWorld(cocos_vec.x),
                             util.ScreenToWorld(cocos_vec.y))
 end
+
+return util

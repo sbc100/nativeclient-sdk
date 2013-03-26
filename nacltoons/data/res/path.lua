@@ -4,9 +4,9 @@
 
 --- Path manipulation utility functions.
 
-path = {}
+local path = {}
 
-path.dirname = function (filename)
+function path.dirname(filename)
     while true do
         if filename == "" or string.sub(filename, -1) == "/" then
             break
@@ -20,9 +20,11 @@ path.dirname = function (filename)
     return filename
 end
 
-path.join = function (dirname, basename)
+function path.join(dirname, basename)
     if string.sub(dirname, -1) ~= "/" then
         dirname = dirname .. "/"
     end
     return dirname .. basename
 end
+
+return path

@@ -15,9 +15,9 @@
 --   - OnTouchMoved
 --   - OnTouchEnded
 
-require 'util'
+local util = require 'util'
 
-drawing = {}
+local drawing = {}
 
 -- Brush information (set by SetBrush)
 local brush_node
@@ -171,7 +171,7 @@ local function MakeBodyDynamic(body)
 end
 
 --- Set brush texture for subsequent draw operations
-drawing.SetBrush = function (brush)
+function drawing.SetBrush (brush)
     -- calculate thickness based on brush sprite size
     brush_node = brush
     brush_tex = brush:getTexture()
@@ -182,7 +182,7 @@ end
 --- Draw a shape described by a given shape def.
 -- This creates physics sprites and accosiated box2d bodies for
 -- the shape.
-drawing.CreateShape = function(shape_def)
+function drawing.CreateShape(shape_def)
     if shape_def.type == 'line' then
         local start = util.PointFromLua(shape_def.start)
         local finish = util.PointFromLua(shape_def.finish)
@@ -203,7 +203,7 @@ drawing.CreateShape = function(shape_def)
 end
 
 --- Create a physics sprite at a fiven location with a given image
-drawing.CreateSprite = function(sprite_def)
+function drawing.CreateSprite(sprite_def)
     local pos = util.PointFromLua(sprite_def.pos)
     -- util.Log('Create sprite [tag=' .. sprite_def.tag .. ' image=' .. sprite_def.image .. ']: ' ..
     --    math.floor(pos.x) .. 'x' .. math.floor(pos.y))
@@ -222,7 +222,7 @@ end
 --- Create a single circlular point with the brush.
 -- This is used to start shapes that the use draws.  The starting
 -- point contains the box2d body for the shape.
-drawing.DrawStartPoint = function(location, color)
+function drawing.DrawStartPoint(location, color)
     -- Add visible sprite
     local sprite = CCPhysicsSprite:createWithTexture(brush_tex)
     local body = NewPhysicsSprite(sprite, location)
@@ -235,7 +235,7 @@ drawing.DrawStartPoint = function(location, color)
     return sprite
 end
 
-drawing.DrawEndPoint = function(sprite, location, color)
+function drawing.DrawEndPoint(sprite, location, color)
     -- Add visible sprite
     local child_sprite = CCSprite:createWithTexture(brush_tex)
     local relative_x = location.x - sprite:getPositionX()
@@ -253,14 +253,14 @@ drawing.DrawEndPoint = function(sprite, location, color)
     MakeBodyDynamic(body)
 end
 
-drawing.AddLineToShape = function(sprite, from, to, color)
+function drawing.AddLineToShape(sprite, from, to, color)
     fixture = AddLineToShape(sprite, from, to, color)
     SetCategory(fixture, DRAWING_CATEGORY)
 end
 
 --- Sample OnTouchMoved for drawing-based games.  For bespoke drawing behaviour
 -- clone and modify this code.
-drawing.OnTouchBegan = function(x, y)
+function drawing.OnTouchBegan(x, y)
    --- ignore touches if we are already drawing something
    if current_shape then
        return false
@@ -280,7 +280,7 @@ end
 
 --- Sample OnTouchMoved for drawing-based games.  For bespoke drawing behaviour
 -- clone and modify this code.
-drawing.OnTouchMoved = function(x, y)
+function drawing.OnTouchMoved(x, y)
     -- Draw line segments as the touch moves
     new_pos = ccp(x, y)
     local length = ccpDistance(new_pos, last_pos);
@@ -292,7 +292,7 @@ end
 
 --- Sample OnTouchEnded for drawing-based games.  For bespoke drawing behaviour
 -- clone and modify this code.
-drawing.OnTouchEnded = function(x, y)
+function drawing.OnTouchEnded(x, y)
     -- Draw the final line segment and the end point of the line
     new_pos = ccp(x, y)
     local length = ccpDistance(new_pos, last_pos);
@@ -303,3 +303,5 @@ drawing.OnTouchEnded = function(x, y)
     last_pos = nil
     current_shape = nil
 end
+
+return drawing

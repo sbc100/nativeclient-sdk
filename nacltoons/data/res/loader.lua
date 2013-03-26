@@ -14,16 +14,15 @@
 --  - OnContactEnded
 --  - StartLevel
 
-require 'drawing'
-require 'path'
-require 'touch_handler'
-require 'util'
-require 'validate'
+local drawing = require 'drawing'
+local path = require 'path'
+local touch_handler = require 'touch_handler'
+local util = require 'util'
+local validate = require 'validate'
 
 -- Make local alias of util functions so loader code can be shorter
 -- and easier to read.
 local Log = util.Log
-local tags = util.tags
 
 -- The currently loaded game (set by LoadGame)
 game_obj = nil

@@ -7,9 +7,9 @@
 -- a single function called TouchHandler.  This functions registered
 -- as the touch handler for CCLayer in which the gameplace takes place.
 
-require 'util'
+local util = require 'util'
 
-touch_handler = {}
+local touch_handler = {}
 
 local current_touchid = -1
 local current_touchobject = -1
@@ -81,7 +81,7 @@ local function OnTouchEnded(x, y, touchid)
     end
 end
 
-touch_handler.TouchHandler = function(touch_type, x, y, touchid)
+function touch_handler.TouchHandler(touch_type, x, y, touchid)
     if touch_type == 'began' then
         return OnTouchBegan(x, y, touchid)
     elseif touch_type == 'moved' then
@@ -90,3 +90,5 @@ touch_handler.TouchHandler = function(touch_type, x, y, touchid)
         return OnTouchEnded(x, y, touchid)
     end
 end
+
+return touch_handler
