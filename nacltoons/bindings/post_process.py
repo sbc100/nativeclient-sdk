@@ -36,6 +36,8 @@ def main(args):
     int* pLuaID = (tolua_ret) ? &tolua_ret->m_nLuaID : NULL;
     toluafix_pushusertype_ccobject(tolua_S, nID, pLuaID, (void*)tolua_ret''')
 
+    file_data = file_data.replace('*((LUA_FUNCTION*) ', '(')
+
   with open(filename, 'w') as output_file:
     output_file.write(file_data)
 

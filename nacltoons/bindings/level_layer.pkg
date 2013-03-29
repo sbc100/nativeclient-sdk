@@ -1,13 +1,14 @@
 $#include "lua_level_layer.h"
 $#include "level_layer.h"
 $#include "game_manager.h"
+$#include "tolua_fix.h"
 
 class LevelLayer : public CCLayerColor
 {
   b2World* GetWorld();
   void LevelComplete();
   void ToggleDebug();
-  b2Body* FindBodyAt(b2Vec2* pos);
+  void FindBodiesAt(b2Vec2* pos, LUA_FUNCTION callback);
 }
 
 class GameManager

@@ -36,26 +36,29 @@ USING_NS_CC_EXT;
 class Box2DCallbackHandler : public b2QueryCallback
 {
  public:
-  Box2DCallbackHandler(b2Vec2* test_point) : found_body_(NULL),
-                                             test_point_(*test_point) {}
+  Box2DCallbackHandler(b2Vec2* test_point, CCLuaStack* lua_stack,
+                       int lua_handler) :
+     test_point_(*test_point),
+     lua_handler_(lua_handler),
+     lua_stack_(lua_stack) {}
 
   // Called by box2d when doing AABB testing to find bodies.
   bool ReportFixture(b2Fixture* fixture)
   {
     if (fixture->TestPoint(test_point_)) {
-      found_body_ = fixture->GetBody();
-      return false; // we found a body, stop looking
+      b2Body* body = fixture->GetBody();
+      lua_stack_->pushUserType(body, "b2Body");
+      lua_stack_->executeFunctionByHandler(lua_handler_, 1);
     }
 
     return true; // keep looking
   }
 
-  // Used by b2QueryCallback to store body found at test_point_
-  b2Body* found_body_;
-
  protected:
   // Used by b2QueryCallback to find bodies as a given location
   b2Vec2 test_point_;
+  int lua_handler_;
+  CCLuaStack* lua_stack_;
 };
 
 bool LevelLayer::init() {
@@ -208,7 +211,7 @@ void LevelLayer::draw() {
 #endif
 }
 
-b2Body* LevelLayer::FindBodyAt(b2Vec2* pos) {
+void LevelLayer::FindBodiesAt(b2Vec2* pos, int lua_handler) {
   b2AABB aabb;
   b2Vec2 d;
   d.Set(0.001f, 0.001f);
@@ -216,8 +219,6 @@ b2Body* LevelLayer::FindBodyAt(b2Vec2* pos) {
   aabb.upperBound = *pos + d;
 
   // Query the world for overlapping shapes.
-  Box2DCallbackHandler handler(pos);
+  Box2DCallbackHandler handler(pos, lua_stack_, lua_handler);
   box2d_world_->QueryAABB(&handler, aabb);
-  return handler.found_body_;
 }
-

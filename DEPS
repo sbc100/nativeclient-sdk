@@ -3,6 +3,6 @@ deps = {
   "src/third_party/gtest": "http://googletest.googlecode.com/svn/trunk/@570",
   "src/third_party/naclports": "http://naclports.googlecode.com/svn/trunk/@712",
   "src/third_party/cocos2d-x":
-    "https://github.com/sbc100/cocos2d-x.git@ae6d7a2"
+    "https://github.com/sbc100/cocos2d-x.git@8be1294"
 }
 

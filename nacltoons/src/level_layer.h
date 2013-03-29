@@ -33,7 +33,9 @@ class LevelLayer : public CCLayerColor,
 
   b2World* GetWorld() { return box2d_world_; }
 
-  b2Body* FindBodyAt(b2Vec2* pos);
+  // Find all bodies at a given position and call the
+  // given lua_handler for each one.
+  void FindBodiesAt(b2Vec2* pos, int lua_handler);
 
   void ToggleDebug();
   bool LoadLevel(int level_number);

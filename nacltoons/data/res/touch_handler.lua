@@ -17,15 +17,24 @@ local touch_state = {
     is_object = false,
 }
 
-local function FindTaggedBodyAt(x, y)
+local function FindTaggedBodiesAt(x, y)
     local b2pos = util.b2VecFromCocos(ccp(x, y))
-    local body = level_obj.layer:FindBodyAt(b2pos)
-    if body then
+    local found_bodies = {}
+    local function handler(body)
         local tag = body:GetUserData()
         if tag then
-            return level_obj.object_map[tag]
+            -- FindBodiesAt can report the same bodies more than
+            -- once since it reports the body for each fixture that
+            -- exists at a given point, so filter out duplicates here.
+            if not found_bodies[tag] then
+                util.Log("got body.. " .. tag)
+                found_bodies[tag] = level_obj.object_map[tag]
+            end
         end
     end
+
+    level_obj.layer:FindBodiesAt(b2pos, handler)
+    return found_bodies
 end
 
 local lasttap_time = 0
@@ -45,7 +54,7 @@ local function OnTouchBegan(x, y, touchid)
         distance = ccpDistance(ccp(x, y), ccp(lasttap_location[1], lasttap_location[2]))
     end
     if (now - lasttap_time > touch_handler.DOUBLE_CLICK_INTERVAL
-        or distance > DOUBLE_CLICK_TOLERANCE) then
+        or distance > touch_handler.DOUBLE_CLICK_TOLERANCE) then
         lasttap_count = 1
     else
         lasttap_count = lasttap_count + 1
@@ -56,8 +65,9 @@ local function OnTouchBegan(x, y, touchid)
     tapcount = lasttap_count
     util.Log('tap ' .. tapcount)
 
-    local obj_def = FindTaggedBodyAt(x, y, 0x1)
-    if obj_def  then
+    local objects = FindTaggedBodiesAt(x, y, 0x1)
+
+    for _, obj_def in pairs(objects) do
         if obj_def.script and obj_def.script.OnTouchBegan then
             if obj_def.script.OnTouchBegan(obj_def, x, y, tapcount) then
                 touch_state.touchid = touchid
