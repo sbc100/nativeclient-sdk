@@ -4,11 +4,11 @@
 --
 -- The following callbacks are available to game objects:
 --
---   OnTouchBegan(x, y) - return true to accept touch
---   OnTouchMoved(x, y)
---   OnTouchEnded(x, y)
---   OnContactBegan(other_def)
---   OnContactEnded(other_def)
+--   OnTouchBegan(self, x, y) - return true to accept touch
+--   OnTouchMoved(self, x, y)
+--   OnTouchEnded(self, x, y)
+--   OnContactBegan(self, other)
+--   OnContactEnded(self, other)
 --
 -- As well as arguments recieved this script has access
 -- to global game variables:
@@ -22,20 +22,20 @@ local handlers = {}
 
 local util = require 'util'
 
-function handlers.OnTouchBegan(other)
+function handlers.OnTouchBegan(self, x, y)
     util.Log('ball touch began')
     return true
 end
 
-function handlers.OnTouchEnded(other)
+function handlers.OnTouchEnded(self, x, y)
     util.Log('ball touch ended')
 end
 
-function handlers.OnContactBegan(other)
+function handlers.OnContactBegan(self, other)
     util.Log('ball contact start: ' .. other.tag_str)
 end
 
-function handlers.OnContactEnded(other)
+function handlers.OnContactEnded(self, other)
     util.Log('ball contact ended: ' .. other.tag_str)
 end
 

@@ -11,8 +11,11 @@ local util = require 'util'
 
 local touch_handler = {}
 
-local current_touchid = -1
-local current_touchobject = -1
+local touch_state = {
+    touchid = -1,
+    reciever = nil,
+    is_object = false,
+}
 
 local function FindTaggedBodyAt(x, y)
     local b2pos = util.b2VecFromCocos(ccp(x, y))
@@ -25,14 +28,41 @@ local function FindTaggedBodyAt(x, y)
     end
 end
 
+local lasttap_time = 0
+local lasttap_count = 1
+local lasttap_location = nil
+
+touch_handler.DOUBLE_CLICK_INTERVAL = 0.250
+touch_handler.DOUBLE_CLICK_TOLERANCE = 5
+
 local function OnTouchBegan(x, y, touchid)
-    local obj_def = FindTaggedBodyAt(x, y)
+    -- Do double tap detection based on taps that occur within
+    -- DOUBLE_CLICK_INTERVAL of each other and with a certain
+    -- distance of each other.
+    local now = CCTime:getTime()
+    local distance = 0
+    if lasttap_location then
+        distance = ccpDistance(ccp(x, y), ccp(lasttap_location[1], lasttap_location[2]))
+    end
+    if (now - lasttap_time > touch_handler.DOUBLE_CLICK_INTERVAL
+        or distance > DOUBLE_CLICK_TOLERANCE) then
+        lasttap_count = 1
+    else
+        lasttap_count = lasttap_count + 1
+    end
+    lasttap_time = now
+    lasttap_location = { x, y }
+
+    tapcount = lasttap_count
+    util.Log('tap ' .. tapcount)
+
+    local obj_def = FindTaggedBodyAt(x, y, 0x1)
     if obj_def  then
-        -- print("Found touched object: " .. obj_def.tag)
         if obj_def.script and obj_def.script.OnTouchBegan then
-            if obj_def.script.OnTouchBegan(x, y) then
-                current_touchid = touchid
-                current_touchobject = obj_def
+            if obj_def.script.OnTouchBegan(obj_def, x, y, tapcount) then
+                touch_state.touchid = touchid
+                touch_state.receiver = obj_def
+                touch_state.is_object = true
                 return true
             end
         end
@@ -40,18 +70,20 @@ local function OnTouchBegan(x, y, touchid)
 
     -- If neither object handles the touch then ask the level
     if level_obj.script and level_obj.script.OnTouchBegan then
-        if level_obj.script.OnTouchBegan(x, y) then
-            current_touchid = touchid
-            current_touchobject = level_obj
+        if level_obj.script.OnTouchBegan(x, y, tapcount) then
+            touch_state.touchid = touchid
+            touch_state.receiver = level_obj
+            touch_state.is_object = false
             return true
         end
     end
 
     -- Finally ask the game.
     if game_obj.script.OnTouchBegan then
-        if game_obj.script.OnTouchBegan(x, y) then
-            current_touchid = touchid
-            current_touchobject = game_obj
+        if game_obj.script.OnTouchBegan(x, y, tapcount) then
+            touch_state.touchid = touchid
+            touch_state.receiver = game_obj
+            touch_state.is_object = false
             return true
         end
     end
@@ -63,21 +95,30 @@ end
 
 local function OnTouchMoved(x, y, touchid)
     -- ignore touch moves unless the touchid matches the one we are currently tracking
-    if touchid == current_touchid then
-        if current_touchobject.script.OnTouchMoved then
-            current_touchobject.script.OnTouchMoved(x, y)
+    if touchid == touch_state.touchid then
+        if touch_state.receiver.script.OnTouchMoved then
+            if touch_state.is_object then
+                touch_state.receiver.script.OnTouchMoved(receiver, x, y)
+            else
+                touch_state.receiver.script.OnTouchMoved(x, y)
+            end
         end
     end
 end
 
 local function OnTouchEnded(x, y, touchid)
     -- ignore touch ends unless the touchid matches the one we are currently tracking
-    if touchid == current_touchid then
-        if current_touchobject.script.OnTouchEnded then
-            current_touchobject.script.OnTouchEnded(x, y)
+    if touchid == touch_state.touchid then
+        if touch_state.receiver.script.OnTouchEnded then
+            if touch_state.is_object then
+                touch_state.receiver.script.OnTouchEnded(receiver, x, y)
+            else
+                touch_state.receiver.script.OnTouchEnded(x, y)
+            end
         end
-        current_touchid = -1
-        current_touchobject = nil
+        touch_state.touchid = -1
+        touch_state.receiver = nil
+        touch_state.is_object = false
     end
 end
 

@@ -73,6 +73,17 @@ local function RegisterObjectDef(object)
     end
 end
 
+local function LoadScript(obj_def)
+    if obj_def.script then
+        Log('loading object script: ' .. obj_def.script)
+        local script = path.join(game_obj.root, obj_def.script)
+        obj_def.script = dofile(script)
+        if obj_def.script and obj_def.script.Update then
+            obj_def.node:scheduleUpdateWithPriorityLua(obj_def.script.Update, 0)
+        end
+    end
+end
+
 --- Load game data from a given root directory.
 -- This game then becomes the currently running game.
 -- @param The root directory of the game to be loaded.
@@ -111,6 +122,15 @@ local function LevelInit()
     level_obj.object_map = {}
 end
 
+local function GameUpdate(delta)
+    if game_obj.script.Update then
+        game_obj.script.Update(delta)
+    end
+    if level_obj and level_obj.script and level_obj.script.Update then
+        level_obj.script.Update(delta)
+    end
+end
+
 --- Load the given level of the given game
 -- @param layer The level to populate with game objects
 -- @param level_number The level to load
@@ -131,9 +151,9 @@ function LoadLevel(layer, level_number)
     local assets = game_obj.assets
 
     -- Load brush image
-    local brush = CCSpriteBatchNode:create(assets.brush_image, 500)
-    layer:addChild(brush, 1)
-    drawing.SetBrush(brush)
+    level_obj.brush = CCSpriteBatchNode:create(assets.brush_image, 500)
+    layer:addChild(level_obj.brush, 1)
+    drawing.SetBrush(level_obj.brush)
 
     -- Start music playback
     if game_obj.assets.music then
@@ -151,31 +171,51 @@ function LoadLevel(layer, level_number)
     -- Load sprites
     for _, sprite_def in ipairs(level_obj.sprites) do
         RegisterObjectDef(sprite_def)
-        local sprite = drawing.CreateSprite(sprite_def)
-        layer:addChild(sprite, 1, sprite_def.tag)
-        if sprite_def.script then
-            local script = path.join(game_obj.root, sprite_def.script)
-            Log('loading object script: ' .. script)
-            sprite_def.script = dofile(script)
-        end
+        sprite_def.node = drawing.CreateSprite(sprite_def)
+        layer:addChild(sprite_def.node, 1, sprite_def.tag)
+        LoadScript(sprite_def)
     end
 
     -- Load shapes
     if level_obj.shapes then
         for _, shape_def in ipairs(level_obj.shapes) do
             RegisterObjectDef(shape_def)
-            drawing.CreateShape(shape_def)
+            shape_def.node = drawing.CreateShape(shape_def)
+            LoadScript(shape_def)
         end
     end
 
     -- Load custom level script
-    if level_obj.script then
-        Log('loading level script: ' .. level_obj.script)
-        level_obj.script = dofile(path.join(game_obj.root, level_obj.script))
+    level_obj.node = level_obj.layer
+    LoadScript(level_obj)
+
+    if game_obj.script.Update then
+        level_obj.layer:scheduleUpdateWithPriorityLua(GameUpdate, 0)
     end
 
     layer:registerScriptTouchHandler(touch_handler.TouchHandler)
     StartLevel(level_number)
+end
+
+local function ApplyToAllChildren(node, callback)
+    callback(node)
+    local children = node:getChildren()
+    if children then
+        for i=0,children:count()-1 do
+            child = children:objectAtIndex(i)
+            ApplyToAllChildren(child, callback)
+        end
+    end
+end
+
+function LevelComplete()
+    level_obj.layer:unscheduleUpdate()
+    level_obj.layer:LevelComplete()
+    local function unschedule(node)
+        node:unscheduleUpdate()
+    end
+    ApplyToAllChildren(level_obj.layer, unschedule)
+    level_obj = nil
 end
 
 local function CallCollisionHandler(tag1, tag2, handler_name)
@@ -190,10 +230,14 @@ local function CallCollisionHandler(tag1, tag2, handler_name)
 
     -- call the individual object's collision handler, if any
     if object1.script and object1.script[handler_name] then
-        object1.script[handler_name](object2)
+        object1.script[handler_name](object1, object2)
     end
     if object2.script and object2.script[handler_name] then
-        object2.script[handler_name](object1)
+        object2.script[handler_name](object2, object1)
+    end
+
+    if level_obj.script and level_obj.script[handler_name] then
+        level_obj.script[handler_name](object1, object2)
     end
 
     -- call the game's collision handler, if any

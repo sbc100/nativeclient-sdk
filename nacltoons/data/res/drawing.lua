@@ -33,6 +33,11 @@ local current_tag = 99 -- util.tags.TAG_DYNAMIC_START
 local last_pos = nil
 local brush_color = ccc3(255, 100, 100)
 
+-- Callbacks that are registered for drawn objects.  The game
+-- can register its own callbacks here to add behavior for
+-- drawn objects.
+drawing.handlers = {}
+
 --- Create a b2Vec from a lua list containing 2 elements.
 -- This is used to convert point data from .def files directly
 -- to the box2dx coordinate system
@@ -171,7 +176,7 @@ local function MakeBodyDynamic(body)
 end
 
 --- Set brush texture for subsequent draw operations
-function drawing.SetBrush (brush)
+function drawing.SetBrush(brush)
     -- calculate thickness based on brush sprite size
     brush_node = brush
     brush_tex = brush:getTexture()
@@ -191,6 +196,7 @@ function drawing.CreateShape(shape_def)
         end
         local line = CreateLine(start, finish, shape_def)
         brush_node:addChild(line, 1)
+        return line
     elseif shape_def.type == 'edge' then
         local body_def = b2BodyDef:new_local()
         local body = level_obj.world:CreateBody(body_def)
@@ -258,11 +264,15 @@ function drawing.AddLineToShape(sprite, from, to, color)
     SetCategory(fixture, DRAWING_CATEGORY)
 end
 
+function drawing.IsDrawing()
+   return current_shape ~= nil
+end
+
 --- Sample OnTouchMoved for drawing-based games.  For bespoke drawing behaviour
 -- clone and modify this code.
 function drawing.OnTouchBegan(x, y)
    --- ignore touches if we are already drawing something
-   if current_shape then
+   if drawing.IsDrawing() then
        return false
    end
 
@@ -271,7 +281,11 @@ function drawing.OnTouchBegan(x, y)
    current_shape = drawing.DrawStartPoint(last_pos, brush_color)
    current_shape:setTag(current_tag)
    current_shape:getB2Body():SetUserData(current_tag)
-   local obj_def = { tag = current_tag, tag_str = 'drawn_shape_' .. current_tag }
+   local obj_def = {
+       tag = current_tag,
+       script = drawing.handlers,
+       tag_str = 'drawn_shape_' .. current_tag,
+   }
    RegisterObject(obj_def, obj_def.tag, obj_def.tag_str)
    current_tag = current_tag + 1
 
@@ -300,8 +314,10 @@ function drawing.OnTouchEnded(x, y)
         drawing.AddLineToShape(current_shape, last_pos, new_pos, brush_color)
     end
     drawing.DrawEndPoint(current_shape, new_pos, brush_color)
+    local rtn = current_shape
     last_pos = nil
     current_shape = nil
+    return rtn
 end
 
 return drawing
