@@ -42,7 +42,11 @@ publish: all
 	mkdir -p $(PUBLISH_DIR)
 	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nexe $(PUBLISH_DIR)
 	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nmf $(PUBLISH_DIR)
-	cp data/*.* $(PUBLISH_DIR)
+	ln -s $(PWD)/data/background.js $(PUBLISH_DIR)/background.js
+	ln -s $(PWD)/data/common.js $(PUBLISH_DIR)/common.js
+	ln -s $(PWD)/data/edit.js $(PUBLISH_DIR)/edit.js
+	ln -s $(PWD)/data/index.html $(PUBLISH_DIR)/index.html
+	ln -s $(PWD)/data/manifest.json $(PUBLISH_DIR)/manifest.json
 	ln -s $(PWD)/data/res $(PUBLISH_DIR)/Resources
 
 CHROME_ARGS += --no-first-run --user-data-dir=$(OUT_DIR)/user-data-dir

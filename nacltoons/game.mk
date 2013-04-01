@@ -65,6 +65,9 @@ endif
 NACL_SDK_VERSION_MIN := 27.186236
 include $(NACL_SDK_ROOT)/tools/common.mk
 
+# TODO(noelallen) override to remove incognito until Chrome fix
+CHROME_ARGS:=--enable-nacl --ppapi-out-of-process
+
 # In recent SDK versions defining NACL_SDK_VERSION_MIN is enough to trigger and error
 # but older SDKs didn't know about this so we check for older versions that don't
 # support --sdk-version
