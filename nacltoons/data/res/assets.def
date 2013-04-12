@@ -1,6 +1,7 @@
 assets.def
 default_game.lua
 drawing.lua
+gui.lua
 loader.lua
 path.lua
 touch_handler.lua

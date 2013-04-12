@@ -10,16 +10,17 @@ var current_fs = null;
 function EscapeString(htmlString) {
   var replaceMap = {
     '&': '&amp;',
-    '<', '&amp;',
-    '>', '&gt;',
-    '"', '&quot;',
-    '\'', '&#039;'
+    '<': '&amp;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&#039;'
   };
 
-  for (var key in dictionary) {
+  for (var key in replaceMap) {
     htmlString = htmlString.replace(key, replaceMap[key])
   }
 
+  console.log('Got: ' + htmlString)
   return htmlString
 }
 
@@ -51,10 +52,28 @@ function ResourceError(e) {
   console.log('Error: ' + msg);
 }
 
+// Remove a file from the temp file system
+function ClearResource(path, callback) {
+  var filename = 'Resources/' + path
+  current_fs.root.getFile(filename, {create: false},
+    function(fileEntry) {
+      console.log('Openned ' + filename + ' from temp FS.\n');
+      fileEntry.remove(function() {
+          console.log('Removed file ' + path + ' from temp FS.\n')
+          callback();
+      })
+    },
+    function() {
+      console.log('Failed to remove ' + filename + ' from temp FS.\n');
+      callback();
+    });
+}
+
+
 // Load a Resource first from TEMP, then via URL if not found
 function LoadResource(path, callback) {
   // Tried to read the file from the file system first
-  filename = 'Resources/' + path
+  var filename = 'Resources/' + path
   current_fs.root.getFile(filename, {create: false},
     function(fileEntry) {
       console.log('Openned ' + filename + ' from temp FS.\n');
@@ -114,6 +133,27 @@ function SaveResource(path, data) {
     });
 }
 
+function ClearSources(sourceList) {
+  var srcs = sourceList.split('\n');
+  var counter = 0;
+
+  for (var i=0; i < srcs.length;i++) {
+    var filename = srcs[i];
+    if (filename) {
+      ClearResource(filename, function() {
+        counter = counter + 1;
+        console.log('Called delete ' + filename + ' ' + counter.toString());
+        if (counter == srcs.length) {
+          console.log('Calling populate.\n')
+          PopulateSources(sourceList);
+        }
+      });
+    } else {
+      counter = counter + 1;
+    }
+  }
+}
+
 // Build a ComboBox of sources
 function PopulateSources(sourceList) {
   var items  = sourceList.split('\n');
@@ -121,7 +161,9 @@ function PopulateSources(sourceList) {
   var out = '';
 
   for (var i=0; i < items.length;i++) {
-    out += EscapeString('<option>' + items[i] + '</option>');
+    if (items[i]) {
+      out += '<option>' + EscapeString(items[i]) + '</option>';
+    }
   }
 
   listbox.innerHTML = out;
@@ -175,7 +217,7 @@ function attachListeners() {
         fs.root.getDirectory('Resources', {create: true}, function(dirEntry) {
           console.log('Created Resources cache.\n');
         }, ResourceError);
-        LoadResource('assets.def', PopulateSources);
+        LoadResource('assets.def', ClearSources);
       },
       function(e) { alert('Failed to access space'); });
 }

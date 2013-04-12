@@ -22,30 +22,13 @@
 local util = require 'util'
 local path = require 'path'
 local drawing = require 'drawing'
+local gui = require 'gui'
 
 local handlers = {}
 local MENU_DRAW_ORDER = 3
 local FONT_NAME = 'Arial.ttf'
 local FONT_SIZE = 32
 
---- Local function for creating a simple menu from text labels
-local function CreateMenu(menu_def)
-    local menu = CCMenu:create()
-    for _, item in ipairs(menu_def.items) do
-        local label = CCLabelTTF:create(item[1], menu_def.font, menu_def.font_size)
-        local menu_item = CCMenuItemLabel:create(label)
-        menu_item:registerScriptTapHandler(item[2])
-        menu:addChild(menu_item)
-    end
-    menu:alignItemsVertically()
-
-    local items = menu:getChildren()
-    for i=0,items:count()-1 do
-        local item = items:objectAtIndex(i)
-        item:setPositionX(item:getContentSize().width/2)
-    end
-    return menu
-end
 
 --- Menu callback
 local function HandleRestart()
@@ -110,20 +93,20 @@ function handlers.StartLevel(level_number)
 
     -- Create a textual menu it its own layer as a sibling of the LevelLayer
     menu_def = {
-        font = 'Arial.ttf',
+        font_name = 'Arial.ttf',
         font_size = 24,
+        align = 'Left',
         pos = { 10, 300 },
         items = {
-            { 'Restart', HandleRestart },
-            { 'Exit', HandleExit },
-            { 'Toggle Debug', ToggleDebug } },
+            { name='Restart', callback=HandleRestart },
+            { name='Exit', callback=HandleExit },
+            { name='Toggle Debug', callback=ToggleDebug }
+        },
     }
 
-    menu = CreateMenu(menu_def)
+    menu = gui.CreateMenu(menu_def)
     local layer = CCLayer:create()
     layer:addChild(menu)
-    menu:setPosition(ccp(game_obj.origin.x + menu_def.pos[1],
-                         game_obj.origin.y + menu_def.pos[2]))
 
     local parent = level_obj.layer:getParent()
     parent:addChild(layer, MENU_DRAW_ORDER)

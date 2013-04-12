@@ -5,12 +5,11 @@
 -- Example/default game logic.  This code displays the level selection
 -- menu and triggers the loading of individual levels.
 
-local FONT_NAME = 'Arial.ttf'
-local FONT_SIZE = 48
 
 local util = require 'util'
-
+local gui = require 'gui'
 local handlers = {}
+
 
 --- Local function which lays out the level selection menu in a grid
 -- @param the menu object who's children are the menu items.
@@ -72,7 +71,7 @@ end
 
 --- Local function for creating the level selection menu.
 local function CreateLevelMenu(layer)
-    local label = CCLabelTTF:create("Select Level", FONT_NAME, FONT_SIZE)
+    local label = gui.CreateLabel({name="Select Level"})
     layer:addChild(label)
     -- Center label 100 pixels from the top of the sceen
     Center(label, -100)
@@ -101,7 +100,7 @@ local function CreateLevelMenu(layer)
         item:setTag(i)
         item:registerScriptTapHandler(LevelSelected)
 
-        local label = CCLabelTTF:create(label_string, FONT_NAME, FONT_SIZE)
+        local label = gui.CreateLabel({name=label_string})
         label:setPosition(label_pos)
         item:addChild(label)
     end
@@ -112,6 +111,25 @@ local function CreateLevelMenu(layer)
     local end_pos = ccp(game_obj.origin.x, game_obj.origin.y)
     local start_pos = ccp(end_pos.x, end_pos.y - 600)
     ElasticMove(menu, start_pos, end_pos, 1.0, 0.7)
+end
+
+
+local function MainMenu(value)
+    local scene = CCScene:create()
+    local layer = CCLayerColor:create(background_color)
+    local director = CCDirector:sharedDirector()
+
+    util.Log("Got to MainMenu with " .. value)
+
+    if value == 1 then
+        scene:addChild(layer)
+        CreateLevelMenu(layer)
+        director:replaceScene(scene)
+    end
+    if value == 2 then
+        scene:addChild(layer)
+        director:replaceScene(scene)
+    end
 end
 
 --- Game behaviour callback.   This function is called when the game
@@ -127,25 +145,24 @@ function handlers.StartGame()
     local layer = CCLayerColor:create(background_color)
     scene:addChild(layer)
 
-    local start_label = CCLabelTTF:create("Start Game", FONT_NAME, FONT_SIZE)
-
-    local function HandleStartGame()
-        util.Log("HandleStartGame")
-        local scene = CCScene:create()
-        local layer = CCLayerColor:create(background_color)
-
-        scene:addChild(layer)
-        CreateLevelMenu(layer)
-        director:replaceScene(scene)
-    end
-
-    local start = CCMenuItemLabel:create(start_label)
-    start:registerScriptTapHandler(HandleStartGame)
-
-    local menu = CCMenu:createWithItem(start)
+    menu_def = {
+        items = {
+            {
+              name = 'Start Game',
+              callback = MainMenu,
+              value = 1
+            },
+            {
+              name = 'Edit Game',
+              callback = MainMenu,
+              value = 2
+            },
+        },
+    }
+    local menu = gui.CreateMenu(menu_def)
     layer:addChild(menu)
 
-    Center(menu, 600)
+    --Center(menu, 600)
     director:runWithScene(scene)
 end
 
