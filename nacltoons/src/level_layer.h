@@ -9,7 +9,9 @@
 #include "Box2D/Box2D.h"
 
 #ifdef COCOS2D_DEBUG
+#ifndef WIN32
 #include "GLES-Render.h"
+#endif
 #endif
 
 USING_NS_CC;
@@ -65,8 +67,10 @@ class LevelLayer : public CCLayerColor,
   b2World* box2d_world_;
 
 #ifdef COCOS2D_DEBUG
+#ifndef WIN32
   // Debug drawing support for Box2D.
   GLESDebugDraw* box2d_debug_draw_;
+#endif
 #endif
 
   // Flag to enable drawing of Box2D debug data.

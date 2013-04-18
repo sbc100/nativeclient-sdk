@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <stdint.h>
+
 #include "level_layer.h"
 #include "app_delegate.h"
 #include "game_manager.h"
@@ -87,7 +89,9 @@ LevelLayer::LevelLayer() : debug_enabled_(false) {
 LevelLayer::~LevelLayer() {
   delete box2d_world_;
 #ifdef COCOS2D_DEBUG
+#ifndef WIN32
   delete box2d_debug_draw_;
+#endif
 #endif
 }
 
@@ -117,6 +121,7 @@ bool LevelLayer::InitPhysics() {
   box2d_world_->SetContactListener(this);
 
 #ifdef COCOS2D_DEBUG
+#ifndef WIN32
   box2d_debug_draw_ = new GLESDebugDraw(PTM_RATIO);
   box2d_world_->SetDebugDraw(box2d_debug_draw_);
 
@@ -128,6 +133,7 @@ bool LevelLayer::InitPhysics() {
   //flags += b2Draw::e_pairBit;
   box2d_debug_draw_->SetFlags(flags);
 #endif
+#endif
   return true;
 }
 
@@ -138,7 +144,7 @@ void LevelLayer::ToggleDebug() {
   CCArray* children = getChildren();
   if (!children)
     return;
-  for (uint i = 0; i < children->count(); i++)
+  for (uint32_t i = 0; i < children->count(); i++)
   {
     CCNode* child = static_cast<CCNode*>(children->objectAtIndex(i));
     child->setVisible(!debug_enabled_);

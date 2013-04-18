@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{077C7AF6-390E-446A-AB62-98901614EC7B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>nacltoons</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_BOX2D_INTEGRATION=1;COCOS2D_DEBUG=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\nacltoons\src;$(ProjectDir)..\..\..\third_party\cocos2d-x\scripting\lua\tolua;$(ProjectDir)..\..\..\nacltoons\bindings;$(ProjectDir)..\..\..\third_party\cocos2d-x\scripting\lua\lua;$(ProjectDir)..\..\..\third_party\cocos2d-x\scripting\lua\cocos2dx_support;$(ProjectDir)..\..\..\third_party\cocos2d-x\external;$(ProjectDir)..\..\..\third_party\cocos2d-x\extensions;$(ProjectDir)..\..\..\third_party\cocos2d-x\cocos2dx\platform\third_party\win32;$(ProjectDir)..\..\..\third_party\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\third_party\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\third_party\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\third_party\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\third_party\cocos2d-x\cocos2dx\platform\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4267;4251;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\third_party\cocos2d-x\extensions\physics_nodes\CCPhysicsDebugNode.cpp" />
+    <ClCompile Include="..\..\..\third_party\cocos2d-x\extensions\physics_nodes\CCPhysicsSprite.cpp" />
+    <ClCompile Include="..\..\bindings\LuaBox2D.cpp" />
+    <ClCompile Include="..\..\bindings\LuaCocos2dExtensions.cpp" />
+    <ClCompile Include="..\..\bindings\lua_level_layer.cpp" />
+    <ClCompile Include="..\..\src\app_delegate.cc" />
+    <ClCompile Include="..\..\src\game_manager.cc" />
+    <ClCompile Include="..\..\src\level_layer.cc" />
+    <ClCompile Include="..\..\src\main.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\bindings\LuaBox2D.h" />
+    <ClInclude Include="..\..\bindings\lua_level_layer.h" />
+    <ClInclude Include="..\..\src\app_delegate.h" />
+    <ClInclude Include="..\..\src\game_manager.h" />
+    <ClInclude Include="..\..\src\level_layer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\third_party\cocos2d-x\cocos2dx\proj.win32\cocos2d.vcxproj">
+      <Project>{98a51ba8-fc3a-415b-ac8f-8c7bd464e93e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\third_party\cocos2d-x\CocosDenshion\proj.win32\CocosDenshion.vcxproj">
+      <Project>{f8edd7fa-9a51-4e80-baeb-860825d2eac6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\third_party\cocos2d-x\external\Box2D\proj.win32\Box2D.vcxproj">
+      <Project>{929480e7-23c0-4df6-8456-096d71547116}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\third_party\cocos2d-x\scripting\lua\proj.win32\liblua.vcxproj">
+      <Project>{ddc3e27f-004d-4dd4-9dd3-931a013d2159}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\bindings\Makefile" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
