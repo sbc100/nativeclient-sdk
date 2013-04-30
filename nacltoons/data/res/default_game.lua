@@ -8,47 +8,10 @@
 
 local util = require 'util'
 local gui = require 'gui'
+local editor = require 'editor'
+
 local handlers = {}
 
-
---- Local function which lays out the level selection menu in a grid
--- @param the menu object who's children are the menu items.
--- @param max_cols the max number of items to include in each row.
--- @param padding CCSize to use for padding item.
-local function LayoutMenu(menu, max_cols, padding)
-    local items = menu:getChildren()
-
-    local item0 = tolua.cast(items:objectAtIndex(0), "CCNode")
-    local item_size = item0:getContentSize()
-
-    local w = item_size.width
-    local h = item_size.height
-
-    local num_rows = (items:count() + max_cols - 1) / max_cols
-    local menu_height = num_rows * (h + padding.y)
-    local startY = (600 - menu_height) / 2
-
-    local item_index = 0
-    for i=0,num_rows-1 do
-        local num_cols = math.min(max_cols, items:count() - (i * max_cols))
-        util.Log(num_cols)
-
-        local row_width = num_cols * w + padding.x * (num_cols - 1)
-        local startX = (800 - row_width)/2
-        local y = startY + (num_rows - i - 1) * (padding.y + h)
-
-        for i=0,num_cols-1 do
-            local item = items:objectAtIndex(item_index)
-            item:setAnchorPoint(CCPointMake(0,0))
-            item:setPosition(ccp(startX, y))
-            util.Log("Setting pos of menu item %d: %.fx%.f", item_index, startX, y)
-            startX = startX + padding.x + w
-            item_index = item_index + 1
-        end
-    end
-
-    assert(item_index == items:count())
-end
 
 -- Horizontally center a node within a layer at a given height.
 local function Center(node, height)
@@ -89,6 +52,7 @@ local function CreateLevelMenu(layer)
         local level_number = tag
         util.Log('LevelSelected: ' .. level_number)
         GameManager:sharedManager():LoadLevel(level_number)
+        print(game_obj.game_mode)
     end
 
     -- For each level create a menu item and a textual label
@@ -105,7 +69,7 @@ local function CreateLevelMenu(layer)
         item:addChild(label)
     end
     layer:addChild(menu)
-    LayoutMenu(menu, 2, CCPointMake(20, 20))
+    gui.GridLayout(menu, 2, CCPointMake(20, 20))
 
     -- Slide menu in from botton
     local end_pos = ccp(game_obj.origin.x, game_obj.origin.y)
@@ -114,21 +78,24 @@ local function CreateLevelMenu(layer)
 end
 
 
-local function MainMenu(value)
+local function MainMenuCallback(value)
     local scene = CCScene:create()
     local layer = CCLayerColor:create(background_color)
     local director = CCDirector:sharedDirector()
 
-    util.Log("Got to MainMenu with " .. value)
+    util.Log("Got to MainMenuCallback with " .. value)
 
     if value == 1 then
         scene:addChild(layer)
         CreateLevelMenu(layer)
         director:replaceScene(scene)
-    end
-    if value == 2 then
+        game_obj.game_mode = 'play'
+    elseif value == 2 then
         scene:addChild(layer)
+        CreateLevelMenu(layer)
         director:replaceScene(scene)
+        game_obj.script = editor
+        game_obj.game_mode = 'edit'
     end
 end
 
@@ -145,16 +112,16 @@ function handlers.StartGame()
     local layer = CCLayerColor:create(background_color)
     scene:addChild(layer)
 
-    menu_def = {
+    local menu_def = {
         items = {
             {
               name = 'Start Game',
-              callback = MainMenu,
+              callback = MainMenuCallback,
               value = 1
             },
             {
               name = 'Edit Game',
-              callback = MainMenu,
+              callback = MainMenuCallback,
               value = 2
             },
         },
@@ -162,7 +129,6 @@ function handlers.StartGame()
     local menu = gui.CreateMenu(menu_def)
     layer:addChild(menu)
 
-    --Center(menu, 600)
     director:runWithScene(scene)
 end
 

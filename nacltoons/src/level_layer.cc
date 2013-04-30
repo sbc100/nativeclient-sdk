@@ -22,16 +22,6 @@ extern "C" {
 // Pixels-to-meters ratio for converting screen coordinates
 // to Box2D "meters".
 #define PTM_RATIO 32
-#define SCREEN_TO_WORLD(n) ((n) / PTM_RATIO)
-#define WORLD_TO_SCREEN(n) ((n) * PTM_RATIO)
-#define VELOCITY_ITERATIONS 8
-#define POS_ITERATIONS 1
-
-#define MAX_SPRITES 100
-
-#define DEFAULT_DENSITY 1.0f
-#define DEFAULT_FRICTION 0.2f
-#define DEFAULT_RESTITUTION 0.1f
 
 USING_NS_CC_EXT;
 
@@ -74,12 +64,8 @@ bool LevelLayer::init() {
 bool LevelLayer::LoadLevel(int level_number) {
   // Load level from lua file.
   LoadLua(level_number);
-
   CCLog("loaded level");
   setTouchEnabled(true);
-
-  // Schedule physics updates each frame
-  schedule(schedule_selector(LevelLayer::UpdateWorld));
   return true;
 }
 
@@ -158,11 +144,6 @@ CCRect CalcBoundingBox(CCSprite* sprite) {
                     size.width, size.height/2);
 }
 
-void LevelLayer::UpdateWorld(float dt) {
-  // update physics
-  box2d_world_->Step(dt, VELOCITY_ITERATIONS, POS_ITERATIONS);
-}
-
 void LevelLayer::LuaNotifyContact(b2Contact* contact,
                                     const char* function_name) {
   // Return early if lua didn't define the function_name
@@ -199,7 +180,6 @@ void LevelLayer::EndContact(b2Contact* contact) {
 }
 
 void LevelLayer::LevelComplete() {
-  unschedule(schedule_selector(LevelLayer::UpdateWorld));
   setTouchEnabled(false);
   GameManager::sharedManager()->GameOver(true);
 }

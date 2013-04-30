@@ -28,6 +28,8 @@ local handlers = {}
 local MENU_DRAW_ORDER = 3
 local FONT_NAME = 'Arial.ttf'
 local FONT_SIZE = 32
+local VELOCITY_ITERATIONS = 8
+local POS_ITERATIONS = 1
 
 
 --- Menu callback
@@ -54,8 +56,12 @@ local function PositionTimer(timer)
     timer:setPosition(ccp(xpos, ypos))
 end
 
-
+--- Game behaviour callback.  Called every frame with the time delta
+-- in seconds since the previous frame.
 function handlers.Update(delta)
+    -- Update box2d world
+    level_obj.world:Step(delta, VELOCITY_ITERATIONS, POS_ITERATIONS)
+
     -- Check for timeout
     local state = level_obj.game_state
     state.time_remaining = state.time_remaining - delta
@@ -78,6 +84,7 @@ end
 -- that is drawn on top of the LevelLayer.
 function handlers.StartLevel(level_number)
     util.Log('game.lua: StartLevel: ' .. level_number)
+    drawing.handlers.OnTouchBegan = drawn_object_handlers
 
     -- Initialize game state
     level_obj.game_state = {
@@ -91,9 +98,8 @@ function handlers.StartLevel(level_number)
     level_obj.goal_tag = level_obj.tag_map['GOAL']
     level_obj.star_tag = level_obj.tag_map['STAR1']
 
-    -- Create a textual menu it its own layer as a sibling of the LevelLayer
+    -- Create a textual menu as a sibling of the LevelLayer
     menu_def = {
-        font_name = 'Arial.ttf',
         font_size = 24,
         align = 'Left',
         pos = { 10, 300 },
@@ -105,11 +111,8 @@ function handlers.StartLevel(level_number)
     }
 
     menu = gui.CreateMenu(menu_def)
-    local layer = CCLayer:create()
-    layer:addChild(menu)
-
     local parent = level_obj.layer:getParent()
-    parent:addChild(layer, MENU_DRAW_ORDER)
+    parent:addChild(menu, MENU_DRAW_ORDER)
 
     -- Create time display
     level_obj.time_display = CCLabelTTF:create("--", FONT_NAME, FONT_SIZE)
@@ -133,7 +136,9 @@ local last_draw_time = 0
 
 --- Touch handler to use for all dynamic objects
 -- This handler will delete the object when it is double clicked
-function drawing.handlers.OnTouchBegan(self, x, y, tapcount)
+--
+local drawn_object_handlers = {}
+function drawn_object_handlers.OnTouchBegan(self, x, y, tapcount)
     if tapcount == 2 then
         -- If there was an object created by the first click of this
         -- double click then remove it now.

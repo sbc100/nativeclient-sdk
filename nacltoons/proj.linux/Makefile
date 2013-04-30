@@ -1,8 +1,9 @@
 EXECUTABLE = nacltoons
 
-INCLUDES = -I.. -I../src -I../src/third_party -I../bindings
-
 COCOS_ROOT = ../../../src/third_party/cocos2d-x
+
+INCLUDES = -I.. -I../src -I../src/third_party -I../bindings \
+           -I$(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
 USE_BOX2D = 1
 
@@ -24,7 +25,7 @@ INCLUDES += -I$(COCOS_ROOT)/external
 INCLUDES += -I$(COCOS_ROOT)/extensions
 
 SHAREDLIBS += -lcocos2d -llua -lcocosdenshion -lbox2d -lextension
-COCOS_LIBS = $(LIB_DIR)/libcocos2d.so
+COCOS_LIBS = $(LIB_DIR)/libcocos2d.so $(LIB_DIR)/libbox2d.a
 
 $(TARGET): $(OBJECTS) $(STATICLIBS) $(COCOS_LIBS) $(CORE_MAKEFILE_LIST)
 	@mkdir -p $(@D)
@@ -47,6 +48,9 @@ $(OBJ_DIR)/%.o: $(COCOS_ROOT)/%.cpp $(CORE_MAKEFILE_LIST)
 	$(LOG_CXX)$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) $(VISIBILITY) -c $< -o $@
 
 run: publish
+
+debug: $(TARGET) publish
+	cd $(dir $^) && gdb ./$(notdir $<) --ex run
 
 publish:
 	@mkdir -p $(BIN_DIR)

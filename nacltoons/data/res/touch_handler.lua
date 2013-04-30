@@ -22,12 +22,13 @@ local function FindTaggedBodiesAt(x, y)
     local found_bodies = {}
     local function handler(body)
         local tag = body:GetUserData()
-        if tag then
+        if tag ~= 0 then
             -- FindBodiesAt can report the same bodies more than
             -- once since it reports the body for each fixture that
             -- exists at a given point, so filter out duplicates here.
             if not found_bodies[tag] then
                 util.Log("got body.. " .. tag)
+                assert(level_obj.object_map[tag])
                 found_bodies[tag] = level_obj.object_map[tag]
             end
         end
@@ -108,7 +109,7 @@ local function OnTouchMoved(x, y, touchid)
     if touchid == touch_state.touchid then
         if touch_state.receiver.script.OnTouchMoved then
             if touch_state.is_object then
-                touch_state.receiver.script.OnTouchMoved(receiver, x, y)
+                touch_state.receiver.script.OnTouchMoved(touch_state.receiver, x, y)
             else
                 touch_state.receiver.script.OnTouchMoved(x, y)
             end
@@ -121,7 +122,7 @@ local function OnTouchEnded(x, y, touchid)
     if touchid == touch_state.touchid then
         if touch_state.receiver.script.OnTouchEnded then
             if touch_state.is_object then
-                touch_state.receiver.script.OnTouchEnded(receiver, x, y)
+                touch_state.receiver.script.OnTouchEnded(touch_state.receiver, x, y)
             else
                 touch_state.receiver.script.OnTouchEnded(x, y)
             end

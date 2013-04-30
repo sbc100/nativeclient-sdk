@@ -60,7 +60,6 @@ class LevelLayer : public CCLayerColor,
   bool LoadLua(int level_number);
 
   bool InitPhysics();
-  void UpdateWorld(float dt);
 
  private:
   // Box2D physics world

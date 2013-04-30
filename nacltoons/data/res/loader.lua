@@ -63,18 +63,19 @@ function RegisterObject(object, tag, tag_str)
 end
 
 local function RegisterObjectDef(object)
+    local new_tag = #level_obj.tag_list + 1
     if object.tag then
         object.tag_str = object.tag
-        object.tag = #level_obj.tag_list + 1
-        RegisterObject(object, object.tag, object.tag_str)
     else
-        object.tag = 0
-        object.tag_str = ''
+        object.tag_str = tostring(new_tag)
     end
+
+    object.tag = new_tag
+    RegisterObject(object, object.tag, object.tag_str)
 end
 
 local function LoadScript(obj_def)
-    if obj_def.script then
+    if obj_def.script and game_obj.game_mode ~= "edit" then
         Log('loading object script: ' .. obj_def.script)
         local script = path.join(game_obj.root, obj_def.script)
         obj_def.script = dofile(script)
