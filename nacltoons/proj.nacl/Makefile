@@ -15,10 +15,10 @@
 # to override this, specify TOOLCHAIN=newlib|glibc or CONFIG=Debug|Release on
 # the make command-line or in this file prior to including common.mk.  The
 # toolchain we use by default will be the first valid one listed
-VALID_TOOLCHAINS:="newlib glibc"
-TOOLCHAIN?=newlib
+VALID_TOOLCHAINS := "newlib glibc"
+TOOLCHAIN ?= newlib
 
-OUTBASE:=out
+OUTBASE := ../out
 
 #
 # Target Name
@@ -26,20 +26,20 @@ OUTBASE:=out
 # The base name of the final NEXE, also the name of the NMF file containing
 # the mapping between architecture and actual NEXE.
 #
-TARGET:=nacltoons
+TARGET := nacltoons
 
-COCOS_ROOT = ../third_party/cocos2d-x
+COCOS_ROOT = ../../third_party/cocos2d-x
 
 #
 # List of sources to compile
 #
-SOURCES := src/main.cc \
-	   src/app_delegate.cc \
-	   src/game_manager.cc \
-	   src/level_layer.cc \
-	   bindings/LuaBox2D.cpp \
-	   bindings/lua_level_layer.cpp \
-	   bindings/LuaCocos2dExtensions.cpp \
+SOURCES := main.cc \
+	   ../src/app_delegate.cc \
+	   ../src/game_manager.cc \
+	   ../src/level_layer.cc \
+	   ../bindings/LuaBox2D.cpp \
+	   ../bindings/lua_level_layer.cpp \
+	   ../bindings/LuaCocos2dExtensions.cpp \
 	   $(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed/GLES-Render.cpp \
 	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
 	   $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsSprite.cpp \
@@ -50,7 +50,7 @@ SOURCES := src/main.cc \
 	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/tolua_fix.c
 
 
-PAGE:=$(OUTBASE)/publish/index.html
+PAGE := index.html
 
 #
 # Get pepper directory for toolchain and includes.
@@ -66,7 +66,7 @@ NACL_SDK_VERSION_MIN := 27.186236
 include $(NACL_SDK_ROOT)/tools/common.mk
 
 # TODO(noelallen) override to remove incognito until Chrome fix
-CHROME_ARGS:=--enable-nacl --ppapi-out-of-process --no-first-run --user-data-dir=$(OUTBASE)/user-data-dir
+CHROME_ARGS := --enable-nacl --ppapi-out-of-process --no-first-run --user-data-dir=$(OUTBASE)/user-data-dir
 
 # In recent SDK versions defining NACL_SDK_VERSION_MIN is enough to trigger and error
 # but older SDKs didn't know about this so we check for older versions that don't
@@ -90,8 +90,8 @@ NACLPORTS_ROOT = $(NACL_SDK_ROOT)/ports
 endif
 
 CINCLUDE= \
-  -Isrc \
-  -Ibindings \
+  -I../src \
+  -I../bindings \
   -I$(COCOS2DX_PATH) \
   -I$(COCOS2DX_PATH)/cocoa \
   -I$(COCOS2DX_PATH)/external \
@@ -100,9 +100,9 @@ CINCLUDE= \
   -I$(COCOS2DX_PATH)/kazmath/include \
   -I$(NACL_SDK_ROOT)/include \
   -I$(NACLPORTS_ROOT)/include \
-  -I../third_party/cocos2d-x/external \
-  -I../third_party/cocos2d-x/extensions \
-  -I../third_party/cocos2d-x/samples/Cpp/TestCpp/Classes/Box2DTestBed
+  -I$(COCOS_ROOT)/external \
+  -I$(COCOS_ROOT)/extensions \
+  -I$(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
 LIB_PATHS += $(COCOS2DX_PATH)/lib
 LIB_PATHS += $(NACLPORTS_ROOT)/lib
@@ -120,13 +120,18 @@ LIB_PATHS += $(NACLPORTS_ROOT)/lib
 # and the set we do not.  This example does not havea any additional library
 # dependencies.
 #
-DEPS=
-SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
-LIBS=$(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
-LIBS+=nacl_io ppapi_gles2 ppapi ppapi_cpp z
+DEPS =
+SOUNDLIBS = cocosdenshion alut openal vorbisfile vorbis ogg
+LIBS = $(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
+LIBS += nacl_io ppapi_gles2 ppapi ppapi_cpp z
 
-GLIBC_PATHS+=-L$(TC_PATH)/$(OSNAME)_x86_glibc/i686-nacl/usr/lib
-GLIBC_PATHS+=-L$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/usr/lib
+GLIBC_PATHS += -L$(TC_PATH)/$(OSNAME)_x86_glibc/i686-nacl/usr/lib
+GLIBC_PATHS += -L$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/usr/lib
+
+LAUNCH: CHECK_FOR_CHROME all
+	$(RUN_PY) -C $(abspath $(OUTBASE)/publish) -P $(PAGE_TC_CONFIG) \
+	    $(addprefix -E ,$(CHROME_ENV)) -- $(CHROME_PATH) $(CHROME_ARGS) \
+	    --register-pepper-plugins="$(PPAPI_DEBUG),$(PPAPI_RELEASE)"
 
 #
 # Use the library dependency macro for each dependency

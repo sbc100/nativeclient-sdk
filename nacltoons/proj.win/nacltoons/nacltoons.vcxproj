@@ -86,7 +86,7 @@
     <ClCompile Include="..\..\src\app_delegate.cc" />
     <ClCompile Include="..\..\src\game_manager.cc" />
     <ClCompile Include="..\..\src\level_layer.cc" />
-    <ClCompile Include="..\..\src\main.cc" />
+    <ClCompile Include="..\main.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\bindings\LuaBox2D.h" />

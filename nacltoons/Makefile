@@ -27,7 +27,7 @@ TOOLCHAIN ?= newlib
 
 all: cocos2dx
 	@echo '@@@BUILD_STEP build game@@@'
-	TOOLCHAIN=$(TOOLCHAIN) NACL_ARCH=$(NACL_ARCH) CONFIG=$(CONFIG) $(MAKE) -f game.mk
+	TOOLCHAIN=$(TOOLCHAIN) NACL_ARCH=$(NACL_ARCH) CONFIG=$(CONFIG) $(MAKE) -C proj.nacl
 
 cocos2dx : build/build-cocos2dx.sh
 	USE_BOX2D=1 NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
@@ -54,7 +54,7 @@ publish: all
 CHROME_ARGS += --no-first-run --user-data-dir=$(OUT_DIR)/user-data-dir
 
 run: publish
-	NACL_ARCH=$(NACL_ARCH) CHROME_ARGS="$(CHROME_ARGS)" $(MAKE) -f game.mk RUN
+	NACL_ARCH=$(NACL_ARCH) CHROME_ARGS="$(CHROME_ARGS)" $(MAKE) -C proj.nacl RUN
 
 run-app: publish
 	$(CHROME_PATH) $(CHROME_ARGS) --load-extension=$(PUBLISH_DIR) chrome://newtab
