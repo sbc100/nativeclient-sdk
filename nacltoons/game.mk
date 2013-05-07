@@ -15,8 +15,8 @@
 # to override this, specify TOOLCHAIN=newlib|glibc or CONFIG=Debug|Release on
 # the make command-line or in this file prior to including common.mk.  The
 # toolchain we use by default will be the first valid one listed
-VALID_TOOLCHAINS:=newlib
-TOOLCHAIN:=newlib
+VALID_TOOLCHAINS:="newlib glibc"
+TOOLCHAIN?=newlib
 
 OUTBASE:=out
 
@@ -125,6 +125,8 @@ SOUNDLIBS=cocosdenshion alut openal vorbisfile vorbis ogg
 LIBS=$(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
 LIBS+=nacl_io ppapi_gles2 ppapi ppapi_cpp z
 
+GLIBC_PATHS+=-L$(TC_PATH)/$(OSNAME)_x86_glibc/i686-nacl/usr/lib
+GLIBC_PATHS+=-L$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/usr/lib
 
 #
 # Use the library dependency macro for each dependency
@@ -147,20 +149,20 @@ $(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
 $(eval $(call NMF_RULE,$(TARGET),))
 
 #
-# Add extra dependacies so that our final targets get rebuilt whenever
+# Add extra dependencies so that our final targets get rebuilt whenever
 # cocos2dx or its dependencies change.
 #
 $(OUTDIR)/$(TARGET)_x86_64.nexe: \
-	$(COCOS2DX_PATH)/lib/newlib_x86_64/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_PATH)/lib/newlib_x86_64/$(CONFIG)/liblua.a \
-	$(COCOS2DX_PATH)/lib/newlib_x86_64/$(CONFIG)/libbox2d.a
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/liblua.a \
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libbox2d.a
 
 $(OUTDIR)/$(TARGET)_arm.nexe: \
-	$(COCOS2DX_PATH)/lib/newlib_arm/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_PATH)/lib/newlib_arm/$(CONFIG)/liblua.a \
-	$(COCOS2DX_PATH)/lib/newlib_arm/$(CONFIG)/libbox2d.a
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/liblua.a \
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libbox2d.a
 
 $(OUTDIR)/$(TARGET)_x86_32.nexe: \
-	$(COCOS2DX_PATH)/lib/newlib_x86_32/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_PATH)/lib/newlib_x86_32/$(CONFIG)/liblua.a \
-	$(COCOS2DX_PATH)/lib/newlib_x86_32/$(CONFIG)/libbox2d.a
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua.a \
+	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libbox2d.a

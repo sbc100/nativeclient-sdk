@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd $(dirname $0) && pwd)"
 OUT_ROOT=${SCRIPT_DIR}/../out
 mkdir -p ${OUT_ROOT}
 OUT_ROOT="$(cd ${OUT_ROOT} && pwd)"
+TOOLCHAIN=${TOOLCHAIN:-newlib}
 
 OUT_DIR=${OUT_ROOT}/cocos2dx
 COCOS2DX_ROOT="$(cd ${SCRIPT_DIR}/../../third_party/cocos2d-x && pwd)"
@@ -47,7 +48,7 @@ BuildTargetArchLibcConfig() {
   if [ $ARCH = "arm" ]; then
     local TOOLCHAIN_DIR=${OS_SUBDIR_SHORT}_arm_newlib
   else
-    local TOOLCHAIN_DIR=${OS_SUBDIR_SHORT}_x86_newlib
+    local TOOLCHAIN_DIR=${OS_SUBDIR_SHORT}_x86_$3
   fi
 
   NACL_TOOLCHAIN_ROOT=${NACL_SDK_ROOT}/toolchain/${TOOLCHAIN_DIR}
@@ -84,8 +85,8 @@ BuildTargetArchLibcConfig() {
 
 # $1=Dir $2=Arch
 BuildTargetArch() {
-  BuildTargetArchLibcConfig $1 $2 newlib Release
-  BuildTargetArchLibcConfig $1 $2 newlib Debug
+  BuildTargetArchLibcConfig $1 $2 ${TOOLCHAIN} Release
+  BuildTargetArchLibcConfig $1 $2 ${TOOLCHAIN} Debug
 }
 
 

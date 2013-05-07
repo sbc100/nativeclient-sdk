@@ -23,10 +23,11 @@ endif
 
 OUT_DIR := out
 PUBLISH_DIR := $(OUT_DIR)/publish
+TOOLCHAIN ?= newlib
 
 all: cocos2dx
 	@echo '@@@BUILD_STEP build game@@@'
-	$(MAKE) -f game.mk NACL_ARCH=$(NACL_ARCH) DEBUG=$(DEBUG)
+	TOOLCHAIN=$(TOOLCHAIN) NACL_ARCH=$(NACL_ARCH) CONFIG=$(CONFIG) $(MAKE) -f game.mk
 
 cocos2dx : build/build-cocos2dx.sh
 	USE_BOX2D=1 NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
@@ -40,8 +41,9 @@ clean:
 publish: all
 	rm -fr $(PUBLISH_DIR)
 	mkdir -p $(PUBLISH_DIR)
-	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nexe $(PUBLISH_DIR)
-	cp $(OUT_DIR)/newlib/$(CONFIG)/*.nmf $(PUBLISH_DIR)
+	cp $(OUT_DIR)/$(TOOLCHAIN)/$(CONFIG)/*.nexe $(PUBLISH_DIR)
+	cp $(OUT_DIR)/$(TOOLCHAIN)/$(CONFIG)/*.nmf $(PUBLISH_DIR)
+	if [ "$(TOOLCHAIN)" = "glibc" ]; then cp -r $(OUT_DIR)/$(TOOLCHAIN)/$(CONFIG)/lib* $(PUBLISH_DIR); fi
 	ln -s $(PWD)/data/background.js $(PUBLISH_DIR)/background.js
 	ln -s $(PWD)/data/common.js $(PUBLISH_DIR)/common.js
 	ln -s $(PWD)/data/edit.js $(PUBLISH_DIR)/edit.js
