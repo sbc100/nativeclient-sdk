@@ -1,20 +1,16 @@
--- Level description file.  This file describes a single level.  It
--- is desgined to be referenced from the theme descritions file.
--- It should not pollute the global namespace and should return a
--- single value which is the table describing the level.
+# Level description file.  This file describes a single level.  It
+# is desgined to be referenced from the theme descritions file.
+# It should not pollute the global namespace and should return a
+# single value which is the table describing the level.
+# vi: filetype=yaml
 
-local level = {
-   num_stars = 3,
+num_stars: 3
 
-   sprites = {
-       { pos = { 34, 56 }, image = 'goal_image', tag = 'GOAL' },
-       { pos = { 200, 250 }, image = 'ball_image', tag = 'BALL' },
-       { pos = { 100, 100 }, image = 'star_image', tag = 'STAR1' },
-       { pos = { 200, 150 }, image = 'star_image', tag = 'STAR2' },
-       { pos = { 300, 200 }, image = 'star_image', tag = 'STAR3' },
-   },
+sprites:
+ - { pos: [ 34, 56   ], image: goal_image, tag: GOAL }
+ - { pos: [ 200, 250 ], image: ball_image, tag: BALL }
+ - { pos: [ 100, 100 ], image: star_image, tag: STAR1 }
+ - { pos: [ 200, 150 ], image: star_image, tag: STAR2 }
+ - { pos: [ 300, 200 ], image: star_image, tag: STAR3 }
 
-   script = 'level2.lua'
-}
-
-return level
+script: level2.lua

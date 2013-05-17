@@ -1,39 +1,34 @@
--- Level description file.  This file describes a single level.  It
--- is designed to be referenced from the game.def file.
--- It should not pollute the global namespace and should return a
--- single value which is the table describing the level.
+# Level description file.  This file describes a single level.  It
+# is designed to be referenced from the game.def file.
+# It should not pollute the global namespace and should return a
+# single value which is the table describing the level.
+# vi: filetype=yaml
 
-local level = {
-   num_stars = 3,
+num_stars: 3
 
-   sprites = {
-       { pos = { 100, 500 }, image = 'ball_image', script = 'ball.lua', tag = 'BALL' },
-       { pos = { 700, 40  }, image = 'goal_image', tag = 'GOAL', sensor = true },
-       { pos = { 200, 480 }, image = 'star_image', tag = 'STAR1', sensor = true },
-       { pos = { 200, 240 }, image = 'star_image', tag = 'STAR2', sensor = true },
-       { pos = { 420, 90 }, image = 'star_image', tag = 'STAR3', sensor = true },
-   },
+sprites:
+  - { pos: [ 100, 500 ], image: ball_image, script: ball.lua, tag: BALL }
+  - { pos: [ 700, 40  ], image: goal_image, tag: GOAL, sensor: true }
+  - { pos: [ 200, 480 ], image: star_image, tag: STAR1, sensor: true }
+  - { pos: [ 200, 240 ], image: star_image, tag: STAR2, sensor: true }
+  - { pos: [ 420, 90  ], image: star_image, tag: STAR3, sensor: true }
 
-   shapes = {
-       -- create three ramps for the ball to roll down
-       { type = 'line', color = { 50, 230, 0 }, start = { 20, 450 }, finish = { 550, 400 } },
+shapes:
+  # create three ramps for the ball to roll down
+  - { type: line, color: [ 50, 230, 0 ], start: [ 20, 450 ], finish: [ 550, 400 ] }
 
-       { type = 'line', color = { 230, 50, 0 }, start = { 200, 200}, finish = { 780, 380 } },
+  - { type: line, color: [ 230, 50, 0 ], start: [ 200, 200], finish: [ 780, 380 ] }
 
-       { type = 'line', color = { 0, 50, 230 }, start = { 20, 240}, finish = { 200, 50 } },
+  - { type: line, color: [ 0, 50, 230 ], start: [ 20, 240 ], finish: [ 200, 50  ] }
 
-       -- create a box
-       { type = 'line', start = { 500, 200 }, finish = { 500, 300 } },
-       { type = 'line', start = { 500, 300 }, finish = { 600, 300 } },
-       { type = 'line', start = { 600, 300 }, finish = { 600, 200 } },
-       { type = 'line', start = { 600, 200 }, finish = { 500, 200 } },
+  # create a box
+  - { type: line, start: [ 500, 200 ], finish: [ 500, 300 ] }
+  - { type: line, start: [ 500, 300 ], finish: [ 600, 300 ] }
+  - { type: line, start: [ 600, 300 ], finish: [ 600, 200 ] }
+  - { type: line, start: [ 600, 200 ], finish: [ 500, 200 ] }
 
-       -- create a dynamic line anchored to the world at a fixed point.
-       { type = 'line', start = { 220, 50 }, finish = { 620, 50 }, dynamic = true, anchor = { 420, 50 } },
+  # create a dynamic line anchored to the world at a fixed point.
+  - { type: line, start: [ 220, 50 ], finish: [ 620, 50 ], dynamic: true, anchor: [ 420, 50 ] }
 
-       -- create a 'floor' object using the 'edge' type
-       { type = 'edge', start = { 0, 0 }, finish = { 800, 0 }, tag = 'FLOOR' },
-   }
-}
-
-return level
+  # create a 'floor' object using the 'edge' type
+  - { type: edge, start: [ 0, 0 ], finish: [ 800, 0 ], tag: FLOOR }

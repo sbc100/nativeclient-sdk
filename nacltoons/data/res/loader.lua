@@ -35,7 +35,7 @@ level_obj = nil
 -- a bit of post-processing on it.
 local function LoadGameDef(filename)
     Log('loading gamedef: '..filename)
-    local game = dofile(filename)
+    local game = util.LoadYaml(filename)
     game.root = path.dirname(filename)
     validate.ValidateGameDef(filename, game)
     Log('found ' .. #game.levels .. ' level(s)')
@@ -141,7 +141,7 @@ function LoadLevel(layer, level_number)
     assert(level_number <= #game_obj.levels and level_number > 0,
            'Invalid level number: ' .. level_number)
     local filename = path.join(game_obj.root, game_obj.levels[level_number])
-    level_obj = dofile(filename)
+    level_obj = util.LoadYaml(filename)
 
     validate.ValidateLevelDef(filename, game_obj, level_obj)
 

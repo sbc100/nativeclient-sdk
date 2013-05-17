@@ -1,22 +1,17 @@
--- Game descrption file.  This file describes all of the games assets.
--- This file  should not pollute the global namespace and should return
--- a single table describing the game.
+# Game descrption file.  This file describes all of the games assets.
+# This file  should not pollute the global namespace and should return
+# a single table describing the game.
+# vi: filetype=yaml
 
-local game = {
-   assets = {
-       ball_image = 'images/ball.png',
-       goal_image = 'images/goal.png',
-       star_image = 'images/star.png',
-       brush_image = 'images/brush.png',
-       level_icon = 'images/level.png',
-       level_icon_selected = 'images/level_selected.png',
-   },
-   levels = {
-       'level1.def',
-       'level2.def',
-       'level3.def',
-   },
-   script = 'game.lua'
-}
-
-return game
+assets:
+  ball_image: images/ball.png
+  goal_image: images/goal.png
+  star_image: images/star.png
+  brush_image: images/brush.png
+  level_icon: images/level.png
+  level_icon_selected: images/level_selected.png
+levels:
+  - level1.def
+  - level2.def
+  - level3.def
+script: game.lua

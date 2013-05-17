@@ -13,7 +13,7 @@ OUT_ROOT="$(cd ${OUT_ROOT} && pwd)"
 TOOLCHAIN=${TOOLCHAIN:-newlib}
 
 OUT_DIR=${OUT_ROOT}/cocos2dx
-COCOS2DX_ROOT="$(cd ${SCRIPT_DIR}/../../third_party/cocos2d-x && pwd)"
+COCOS2DX_ROOT="$(cd ${SCRIPT_DIR}/../third_party/cocos2d-x && pwd)"
 
 # Pick platform directory for compiler.
 readonly OS_NAME=$(uname -s)

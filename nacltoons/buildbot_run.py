@@ -46,6 +46,12 @@ def RunCommand(cmd, env=None):
     sys.exit(1)
 
 
+def StepRunTests():
+  Log('@@@BUILD_STEP Run tests@@@')
+  RunCommand(['make', 'test'])
+  RunCommand(['make', 'validate'])
+
+
 def StepInstallSDK():
   Log('@@@BUILD_STEP Install SDK@@@')
   naclsdk = os.path.join(SDKROOT, 'nacl_sdk', 'naclsdk')
@@ -67,10 +73,11 @@ def StepInstallSDK():
 def StepBuild():
   env = dict(os.environ)
   env['NACL_SDK_ROOT'] = os.path.join(SDKROOT, 'nacl_sdk', 'pepper_canary')
-  RunCommand('make -j8', env)
+  RunCommand(['make', '-j8'], env)
 
 
 def main():
+  StepRunTests()
   StepInstallSDK()
   StepBuild()
   return 0

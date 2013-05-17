@@ -9,10 +9,11 @@
 --   ValidateLevelDef
 --
 -- It is possible to run this code a game.def file from the command line:
--- $ LUA_PATH="data/res/path.lua" lua ./data/res/validate.lua data/res/sample_game/game.def
+-- $ ./lua.sh ./data/res/validate.lua data/res/sample_game/game.def
 
 local path = require 'path'
 local util = require 'util'
+local yaml = require 'yaml'
 
 local function Error(filename, message)
     assert(false, "Error in '" .. filename .. "':" ..  message)
@@ -60,7 +61,12 @@ validate.ValidateGameDef = function(filename, gamedef)
         return Err('file does not evaluate to an object of type table')
     end
 
+
     CheckValidKeys(filename, gamedef, { 'assets', 'script', 'levels', 'root' })
+    if not gamedef.assets then
+        return
+    end
+
     CheckRequiredKeys(filename, gamedef.assets, { 'level_icon', 'level_icon_selected' }, 'asset list')
 
     for asset_name, asset_file in pairs(gamedef.assets) do
@@ -119,15 +125,19 @@ end
 if arg and #arg >= 1 then
    -- When run from the command line run validation on passed in game.def file.
    local filename = arg[1]
-   local gamedef = dofile(filename)
-   gamedef.root = path.dirname(filename)
-   validate.ValidateGameDef(filename, gamedef)
+   if string.sub(filename, -4) == '.def' then
+       local gamedef = util.LoadYaml(filename)
+       gamedef.root = path.dirname(filename)
+       validate.ValidateGameDef(filename, gamedef)
 
-   -- Now validate all the levels in the game.
-   for _, level in ipairs(gamedef.levels) do
-       filename = path.join(gamedef.root, level)
-       level = dofile(filename)
-       validate.ValidateLevelDef(filename, gamedef, level)
+       -- Now validate all the levels in the game.
+       for _, level in ipairs(gamedef.levels) do
+           filename = path.join(gamedef.root, level)
+           level = util.LoadYaml(filename)
+           validate.ValidateLevelDef(filename, gamedef, level)
+       end
+
+       print("Validation successful!")
    end
 end
 

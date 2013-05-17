@@ -28,7 +28,8 @@ OUTBASE := ../out
 #
 TARGET := nacltoons
 
-COCOS_ROOT = ../../third_party/cocos2d-x
+COCOS_ROOT = ../third_party/cocos2d-x
+LUA_YAML_ROOT = ../third_party/lua-yaml
 
 #
 # List of sources to compile
@@ -47,8 +48,7 @@ SOURCES := main.cc \
 	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/CCLuaStack.cpp \
 	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/Cocos2dxLuaLoader.cpp \
 	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/LuaCocos2d.cpp \
-	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/tolua_fix.c
-
+	   $(COCOS_ROOT)/scripting/lua/cocos2dx_support/tolua_fix.c \
 
 PAGE := index.html
 
@@ -79,7 +79,7 @@ endif
 CFLAGS += -DCOCOS2D_DEBUG -DCC_ENABLE_BOX2D_INTEGRATION
 CFLAGS += -Wall -Wno-unknown-pragmas
 
-COCOS2DX_PATH = $(OUTBASE)/cocos2dx
+COCOS2DX_ROOT = $(OUTBASE)/cocos2dx
 
 # By default we pull naclports from the installed SDK, but we can
 # build and use them locally by defining LOCAL_PORTS
@@ -92,20 +92,22 @@ endif
 CINCLUDE= \
   -I../src \
   -I../bindings \
-  -I$(COCOS2DX_PATH) \
-  -I$(COCOS2DX_PATH)/cocoa \
-  -I$(COCOS2DX_PATH)/external \
-  -I$(COCOS2DX_PATH)/include \
-  -I$(COCOS2DX_PATH)/platform/nacl \
-  -I$(COCOS2DX_PATH)/kazmath/include \
+  -I$(LUA_YAML_ROOT) \
+  -I$(COCOS2DX_ROOT) \
+  -I$(COCOS2DX_ROOT)/cocoa \
+  -I$(COCOS2DX_ROOT)/external \
+  -I$(COCOS2DX_ROOT)/include \
+  -I$(COCOS2DX_ROOT)/platform/nacl \
+  -I$(COCOS2DX_ROOT)/kazmath/include \
   -I$(NACL_SDK_ROOT)/include \
   -I$(NACLPORTS_ROOT)/include \
   -I$(COCOS_ROOT)/external \
   -I$(COCOS_ROOT)/extensions \
   -I$(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
-LIB_PATHS += $(COCOS2DX_PATH)/lib
+LIB_PATHS += $(COCOS2DX_ROOT)/lib
 LIB_PATHS += $(NACLPORTS_ROOT)/lib
+LIB_PATHS += $(OUTBASE)/lua-yaml
 
 #
 # List of libraries to link against.  Unlike some tools, the GCC and LLVM
@@ -122,13 +124,13 @@ LIB_PATHS += $(NACLPORTS_ROOT)/lib
 #
 DEPS =
 SOUNDLIBS = cocosdenshion alut openal vorbisfile vorbis ogg
-LIBS = $(DEPS) lua cocos2d $(SOUNDLIBS) freetype box2d xml2 png12 jpeg tiff webp
+LIBS = $(DEPS) lua cocos2d $(SOUNDLIBS) lua-yaml freetype box2d xml2 png12 jpeg tiff webp
 LIBS += nacl_io ppapi_gles2 ppapi ppapi_cpp z
 
 GLIBC_PATHS += -L$(TC_PATH)/$(OSNAME)_x86_glibc/i686-nacl/usr/lib
 GLIBC_PATHS += -L$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/usr/lib
 
-LAUNCH: CHECK_FOR_CHROME all
+run: CHECK_FOR_CHROME all
 	$(RUN_PY) -C $(abspath $(OUTBASE)/publish) -P $(PAGE_TC_CONFIG) \
 	    $(addprefix -E ,$(CHROME_ENV)) -- $(CHROME_PATH) $(CHROME_ARGS) \
 	    --register-pepper-plugins="$(PPAPI_DEBUG),$(PPAPI_RELEASE)"
@@ -158,16 +160,16 @@ $(eval $(call NMF_RULE,$(TARGET),))
 # cocos2dx or its dependencies change.
 #
 $(OUTDIR)/$(TARGET)_x86_64.nexe: \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/liblua.a \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libbox2d.a
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/liblua.a \
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libbox2d.a
 
 $(OUTDIR)/$(TARGET)_arm.nexe: \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/liblua.a \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libbox2d.a
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/liblua.a \
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libbox2d.a
 
 $(OUTDIR)/$(TARGET)_x86_32.nexe: \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua.a \
-	$(COCOS2DX_PATH)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libbox2d.a
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libcocos2d.a \
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua.a \
+	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libbox2d.a

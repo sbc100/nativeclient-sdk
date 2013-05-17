@@ -25,18 +25,21 @@ OUT_DIR := out
 PUBLISH_DIR := $(OUT_DIR)/publish
 TOOLCHAIN ?= newlib
 
-all: cocos2dx
+all: cocos2dx lua-yaml
 	@echo '@@@BUILD_STEP build game@@@'
 	TOOLCHAIN=$(TOOLCHAIN) NACL_ARCH=$(NACL_ARCH) CONFIG=$(CONFIG) $(MAKE) -C proj.nacl
 
-cocos2dx : build/build-cocos2dx.sh
+cocos2dx: build/build-cocos2dx.sh
 	USE_BOX2D=1 NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
+
+lua-yaml:
+	TOOLCHAIN=$(TOOLCHAIN) CONFIG=$(CONFIG) NACL_ARCH=$(NACL_ARCH) $(MAKE) -f build/lua-yaml.mk
 
 really-clean: clean
 	$(RM) -r $(OUT_DIR)
 
 clean:
-	$(MAKE) -f game.mk clean
+	$(MAKE) -C proj.nacl clean
 
 publish: all
 	rm -fr $(PUBLISH_DIR)
@@ -59,4 +62,13 @@ run: publish
 run-app: publish
 	$(CHROME_PATH) $(CHROME_ARGS) --load-extension=$(PUBLISH_DIR) chrome://newtab
 
-.PHONY: all naclports cocos2dx clean publish run run-app really-clean
+third_party/lua-yaml/yaml.so:
+	make -C third_party/lua-yaml INC="-I/usr/include/lua5.1 -I."
+
+test: ../third_party/lua-yaml/yaml.so
+	third_party/lunit/lunit -i ./lua.sh tests/*_test.lua
+
+validate: ../third_party/lua-yaml/yaml.so
+	./lua.sh data/res/validate.lua data/res/sample_game/game.def
+
+.PHONY: all lua-yaml cocos2dx clean publish run run-app really-clean test validate

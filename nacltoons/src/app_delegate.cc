@@ -9,6 +9,10 @@
 #include "lua_level_layer.h"
 #include "game_manager.h"
 
+extern "C" {
+LUALIB_API int luaopen_yaml(lua_State *L);
+}
+
 USING_NS_CC;
 
 bool AppDelegate::applicationDidFinishLaunching() {
@@ -43,6 +47,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
   tolua_level_layer_open(lua_state);
   // add cocos2dx extensions bindings
   tolua_extensions_open(lua_state);
+  // add yaml bindings
+  luaopen_yaml(lua_state);
 
   CCFileUtils* utils = CCFileUtils::sharedFileUtils();
   std::string path = utils->fullPathForFilename("loader.lua");
