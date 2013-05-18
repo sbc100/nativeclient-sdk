@@ -60,7 +60,7 @@ BuildTargetArchLibcConfig() {
   else
     local DEBUG=0
   fi
-  export LIB_DIR=${OUT_DIR}/lib/$3_${ARCH_DIR}
+  export LIB_DIR=${OUT_ROOT}/lib/$3_${ARCH_DIR}
   export OBJ_DIR=${OUT_DIR}/obj/${ARCH_DIR}
   export NACLCC=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-gcc
   export NACLCXX=${NACL_BIN_PATH}/${NACL_CROSS_PREFIX}-g++

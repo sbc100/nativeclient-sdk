@@ -4,7 +4,7 @@
 
 TARGET = lua-yaml
 OUTBASE = out/lua-yaml/obj
-LIB_OUT = out/lua-yaml
+LIBDIR = out/lib
 
 include $(NACL_SDK_ROOT)/tools/common.mk
 
@@ -29,3 +29,5 @@ SOURCES = \
 
 $(foreach src,$(SOURCES),$(eval $(call COMPILE_RULE,$(src),$(CFLAGS),$(CINCLUDE))))
 $(eval $(call LIB_RULE,$(TARGET),$(SOURCES)))
+
+all: install

@@ -33,6 +33,7 @@ cocos2dx: build/build-cocos2dx.sh
 	USE_BOX2D=1 NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh
 
 lua-yaml:
+	@echo '@@@BUILD_STEP lua-yaml@@@'
 	TOOLCHAIN=$(TOOLCHAIN) CONFIG=$(CONFIG) NACL_ARCH=$(NACL_ARCH) $(MAKE) -f build/lua-yaml.mk
 
 really-clean: clean

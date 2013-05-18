@@ -62,7 +62,7 @@ ifndef NACL_SDK_ROOT
   $(error NACL_SDK_ROOT not set)
 endif
 
-NACL_SDK_VERSION_MIN := 27.186236
+NACL_SDK_VERSION_MIN := 29
 include $(NACL_SDK_ROOT)/tools/common.mk
 
 # TODO(noelallen) override to remove incognito until Chrome fix
@@ -105,9 +105,8 @@ CINCLUDE= \
   -I$(COCOS_ROOT)/extensions \
   -I$(COCOS_ROOT)/samples/Cpp/TestCpp/Classes/Box2DTestBed
 
-LIB_PATHS += $(COCOS2DX_ROOT)/lib
+LIB_PATHS += $(OUTBASE)/lib
 LIB_PATHS += $(NACLPORTS_ROOT)/lib
-LIB_PATHS += $(OUTBASE)/lua-yaml
 
 #
 # List of libraries to link against.  Unlike some tools, the GCC and LLVM
@@ -160,16 +159,19 @@ $(eval $(call NMF_RULE,$(TARGET),))
 # cocos2dx or its dependencies change.
 #
 $(OUTDIR)/$(TARGET)_x86_64.nexe: \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/liblua.a \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libbox2d.a
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libcocos2d.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/liblua.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_64/$(CONFIG)/libbox2d.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua-yaml.a
 
 $(OUTDIR)/$(TARGET)_arm.nexe: \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/liblua.a \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libbox2d.a
+	$(OUTBASE)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libcocos2d.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/liblua.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/libbox2d.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_arm/$(CONFIG)/liblua-yaml.a
 
 $(OUTDIR)/$(TARGET)_x86_32.nexe: \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libcocos2d.a \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua.a \
-	$(COCOS2DX_ROOT)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libbox2d.a
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libcocos2d.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/libbox2d.a \
+	$(OUTBASE)/lib/$(TOOLCHAIN)_x86_32/$(CONFIG)/liblua-yaml.a
