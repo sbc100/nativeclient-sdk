@@ -6,11 +6,11 @@
 
 num_stars: 3
 
-sprites:
- - { pos: [ 34, 56   ], image: goal_image, tag: GOAL }
- - { pos: [ 200, 250 ], image: ball_image, tag: BALL }
- - { pos: [ 100, 100 ], image: star_image, tag: STAR1 }
- - { pos: [ 200, 150 ], image: star_image, tag: STAR2 }
- - { pos: [ 300, 200 ], image: star_image, tag: STAR3 }
+shapes:
+ - { type: image, dynamic: true, pos: [ 200, 250 ], image: ball_image, tag: BALL }
+ - { type: image, pos: [ 34, 56   ], image: goal_image, tag: GOAL }
+ - { type: image, pos: [ 100, 100 ], image: star_image, tag: STAR1 }
+ - { type: image, pos: [ 200, 150 ], image: star_image, tag: STAR2 }
+ - { type: image, pos: [ 300, 200 ], image: star_image, tag: STAR3 }
 
 script: level2.lua

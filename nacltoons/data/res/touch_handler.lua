@@ -20,14 +20,16 @@ local touch_state = {
 local function FindTaggedBodiesAt(x, y)
     local b2pos = util.b2VecFromCocos(ccp(x, y))
     local found_bodies = {}
+    local found_something = false
     local function handler(body)
+        found_something = true
         local tag = body:GetUserData()
         if tag ~= 0 then
             -- FindBodiesAt can report the same bodies more than
             -- once since it reports the body for each fixture that
             -- exists at a given point, so filter out duplicates here.
             if not found_bodies[tag] then
-                util.Log("got body.. " .. tag)
+                util.Log("found body.. " .. tag)
                 assert(level_obj.object_map[tag])
                 found_bodies[tag] = level_obj.object_map[tag]
             end
@@ -35,6 +37,9 @@ local function FindTaggedBodiesAt(x, y)
     end
 
     level_obj.layer:FindBodiesAt(b2pos, handler)
+    if found_something and #found_bodies == 0 then
+        util.Log("Found untagged bodies")
+    end
     return found_bodies
 end
 
@@ -64,7 +69,7 @@ local function OnTouchBegan(x, y, touchid)
     lasttap_location = { x, y }
 
     tapcount = lasttap_count
-    util.Log('tap ' .. tapcount)
+    util.Log('tapcount ' .. tapcount)
 
     local objects = FindTaggedBodiesAt(x, y, 0x1)
 

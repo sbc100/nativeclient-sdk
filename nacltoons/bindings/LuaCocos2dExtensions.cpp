@@ -1,6 +1,6 @@
 /*
 ** Lua binding: extensions
-** Generated automatically by tolua++-1.0.93 on Fri Mar  8 17:21:39 2013.
+** Generated automatically by tolua++-1.0.93 on Wed May 15 13:59:27 2013.
 */
 
 // Copyright (c) 2013 The Chromium Authors. All rights reserved.
@@ -18,6 +18,7 @@ TOLUA_API int  tolua_extensions_open (lua_State* tolua_S);
 
 #include "LuaCocos2dExtensions.h"
 #include "physics_nodes/CCPhysicsSprite.h"
+#include "physics_nodes/CCPhysicsNode.h"
 #include "tolua_fix.h"
 USING_NS_CC;
 USING_NS_CC_EXT;
@@ -25,13 +26,173 @@ USING_NS_CC_EXT;
 /* function to register type */
 static void tolua_reg_types (lua_State* tolua_S)
 {
- tolua_usertype(tolua_S,"CCTexture2D");
+ tolua_usertype(tolua_S,"CCSpriteFrame");
+ tolua_usertype(tolua_S,"CCRect");
+ tolua_usertype(tolua_S,"CCPhysicsNode");
  tolua_usertype(tolua_S,"CCSprite");
  tolua_usertype(tolua_S,"CCPhysicsSprite");
  tolua_usertype(tolua_S,"b2Body");
- tolua_usertype(tolua_S,"CCSpriteFrame");
- tolua_usertype(tolua_S,"CCRect");
+ tolua_usertype(tolua_S,"CCTexture2D");
+ tolua_usertype(tolua_S,"CCNode");
 }
+
+/* method: getB2Body of class  CCPhysicsNode */
+#ifndef TOLUA_DISABLE_tolua_extensions_CCPhysicsNode_getB2Body00
+static int tolua_extensions_CCPhysicsNode_getB2Body00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"const CCPhysicsNode",0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  const CCPhysicsNode* self = (const CCPhysicsNode*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getB2Body'", NULL);
+#endif
+  {
+   b2Body* tolua_ret = (b2Body*)  self->getB2Body();
+    tolua_pushusertype(tolua_S,(void*)tolua_ret,"b2Body");
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getB2Body'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: setB2Body of class  CCPhysicsNode */
+#ifndef TOLUA_DISABLE_tolua_extensions_CCPhysicsNode_setB2Body00
+static int tolua_extensions_CCPhysicsNode_setB2Body00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"CCPhysicsNode",0,&tolua_err) ||
+     !tolua_isusertype(tolua_S,2,"b2Body",0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  CCPhysicsNode* self = (CCPhysicsNode*)  tolua_tousertype(tolua_S,1,0);
+  b2Body* pBody = ((b2Body*)  tolua_tousertype(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'setB2Body'", NULL);
+#endif
+  {
+   self->setB2Body(pBody);
+  }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'setB2Body'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: getPTMRatio of class  CCPhysicsNode */
+#ifndef TOLUA_DISABLE_tolua_extensions_CCPhysicsNode_getPTMRatio00
+static int tolua_extensions_CCPhysicsNode_getPTMRatio00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"const CCPhysicsNode",0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  const CCPhysicsNode* self = (const CCPhysicsNode*)  tolua_tousertype(tolua_S,1,0);
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'getPTMRatio'", NULL);
+#endif
+  {
+   float tolua_ret = (float)  self->getPTMRatio();
+   tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'getPTMRatio'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: setPTMRatio of class  CCPhysicsNode */
+#ifndef TOLUA_DISABLE_tolua_extensions_CCPhysicsNode_setPTMRatio00
+static int tolua_extensions_CCPhysicsNode_setPTMRatio00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"CCPhysicsNode",0,&tolua_err) ||
+     !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  CCPhysicsNode* self = (CCPhysicsNode*)  tolua_tousertype(tolua_S,1,0);
+  float fPTMRatio = ((float)  tolua_tonumber(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'setPTMRatio'", NULL);
+#endif
+  {
+   self->setPTMRatio(fPTMRatio);
+  }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'setPTMRatio'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: create of class  CCPhysicsNode */
+#ifndef TOLUA_DISABLE_tolua_extensions_CCPhysicsNode_create00
+static int tolua_extensions_CCPhysicsNode_create00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertable(tolua_S,1,"CCPhysicsNode",0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  {
+   CCPhysicsNode* tolua_ret = (CCPhysicsNode*)  CCPhysicsNode::create();
+    tolua_pushusertype(tolua_S,(void*)tolua_ret,"CCPhysicsNode");
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'create'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
 
 /* method: getB2Body of class  CCPhysicsSprite */
 #ifndef TOLUA_DISABLE_tolua_extensions_CCPhysicsSprite_getB2Body00
@@ -381,6 +542,14 @@ TOLUA_API int tolua_extensions_open (lua_State* tolua_S)
  tolua_reg_types(tolua_S);
  tolua_module(tolua_S,NULL,0);
  tolua_beginmodule(tolua_S,NULL);
+  tolua_cclass(tolua_S,"CCPhysicsNode","CCPhysicsNode","CCNode",NULL);
+  tolua_beginmodule(tolua_S,"CCPhysicsNode");
+   tolua_function(tolua_S,"getB2Body",tolua_extensions_CCPhysicsNode_getB2Body00);
+   tolua_function(tolua_S,"setB2Body",tolua_extensions_CCPhysicsNode_setB2Body00);
+   tolua_function(tolua_S,"getPTMRatio",tolua_extensions_CCPhysicsNode_getPTMRatio00);
+   tolua_function(tolua_S,"setPTMRatio",tolua_extensions_CCPhysicsNode_setPTMRatio00);
+   tolua_function(tolua_S,"create",tolua_extensions_CCPhysicsNode_create00);
+  tolua_endmodule(tolua_S);
   tolua_cclass(tolua_S,"CCPhysicsSprite","CCPhysicsSprite","CCSprite",NULL);
   tolua_beginmodule(tolua_S,"CCPhysicsSprite");
    tolua_function(tolua_S,"getB2Body",tolua_extensions_CCPhysicsSprite_getB2Body00);

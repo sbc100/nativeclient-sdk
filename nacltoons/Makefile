@@ -66,7 +66,7 @@ run-app: publish
 third_party/lua-yaml/yaml.so:
 	make -C third_party/lua-yaml INC="-I/usr/include/lua5.1 -I."
 
-test: third_party/lua-yaml/yaml.so
+test: third_party/lua-yaml/yaml.so validate
 	third_party/lunit/lunit -i ./lua.sh tests/*_test.lua
 
 validate: third_party/lua-yaml/yaml.so

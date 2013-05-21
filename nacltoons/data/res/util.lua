@@ -31,8 +31,15 @@ end
 --- Create CCPoint from a lua table containing 2 elements.
 -- This is used to convert point data from .def files into
 -- the cocos2dx coordinate space.
-function util.PointFromLua(point)
-    return CCPointMake(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
+function util.PointFromLua(point, absolute)
+    if absolute == nil then
+        absolute = true
+    end
+    if abolute then
+        return ccp(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
+    else
+        return ccp(point[1], point[2])
+    end
 end
 
 --- Convert CCPoint to b2Vec.
@@ -206,7 +213,6 @@ function util.TableToString(tt, ignore_keys, key_map, indent)
     table.insert(sb, string.rep (' ', indent - 2))
     table.insert(sb, '}\n')
     return table.concat(sb)
-
 end
 
 return util

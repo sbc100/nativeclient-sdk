@@ -6,9 +6,9 @@
 
 num_stars: 3
 
-sprites:
- - { pos: [ 200, 250 ], image: ball_image, tag: BALL, script: ball.lua }
- - { pos: [ 34, 56   ], image: goal_image, tag: GOAL, sensor: true  }
- - { pos: [ 100, 100 ], image: star_image, tag: STAR1, sensor: true }
- - { pos: [ 200, 150 ], image: star_image, tag: STAR2, sensor: true }
- - { pos: [ 300, 200 ], image: star_image, tag: STAR3, sensor: true }
+shapes:
+ - { type: image, dynamic: true, pos: [ 200, 250 ], image: ball_image, tag: BALL, script: ball.lua }
+ - { type: image, pos: [ 34, 56   ], image: goal_image, tag: GOAL, sensor: true  }
+ - { type: image, pos: [ 100, 100 ], image: star_image, tag: STAR1, sensor: true }
+ - { type: image, pos: [ 200, 150 ], image: star_image, tag: STAR2, sensor: true }
+ - { type: image, pos: [ 300, 200 ], image: star_image, tag: STAR3, sensor: true }

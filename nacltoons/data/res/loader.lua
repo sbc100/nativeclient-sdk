@@ -169,21 +169,21 @@ function LoadLevel(layer, level_number)
         layer:addChild(sprite)
     end
 
-    -- Load sprites
-    for _, sprite_def in ipairs(level_obj.sprites) do
-        RegisterObjectDef(sprite_def)
-        sprite_def.node = drawing.CreateSprite(sprite_def)
-        layer:addChild(sprite_def.node, 1, sprite_def.tag)
-        LoadScript(sprite_def)
+    -- Load shapes
+    local function LoadShapes(shapes)
+        for _, shape_def in ipairs(shapes) do
+            if #shape_def > 0 then
+                LoadShapes(shape_def)
+            else
+                RegisterObjectDef(shape_def)
+                shape_def.node = drawing.CreateShape(shape_def)
+                LoadScript(shape_def)
+            end
+        end
     end
 
-    -- Load shapes
     if level_obj.shapes then
-        for _, shape_def in ipairs(level_obj.shapes) do
-            RegisterObjectDef(shape_def)
-            shape_def.node = drawing.CreateShape(shape_def)
-            LoadScript(shape_def)
-        end
+        LoadShapes(level_obj.shapes)
     end
 
     -- Load custom level script

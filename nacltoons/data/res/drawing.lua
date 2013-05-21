@@ -28,12 +28,20 @@ local drawing = {
 drawing.mode = drawing.MODE_FREEHAND
 
 -- Brush information (set by SetBrush)
-local brush_node
+local brush_tex
 local brush_thickness
 
 -- Constant for grouping physics bodies
 local MAIN_CATEGORY = 0x1
 local DRAWING_CATEGORY = 0x2
+
+-- Constants for tagging cocos nodes
+local TAG_BATCH_NODE = 0x1
+
+-- Starting batch size for CCSpriteBatchNode.  We override
+-- the default since we often have many sprites in each
+-- node (each drawn element is it own batch node).
+local DEFAULT_BATCH_COUNT = 100
 
 -- Local state for default touch handlers
 local current_shape = nil
@@ -52,6 +60,13 @@ drawing.handlers = {}
 -- to the box2dx coordinate system
 local function b2VecFromLua(point)
     return util.b2VecFromCocos(util.PointFromLua(point))
+end
+
+local function CreateBrushBatch(parent)
+    local node = CCSpriteBatchNode:createWithTexture(brush_tex, DEFAULT_BATCH_COUNT)
+    assert(node)
+    parent:addChild(node, 1, TAG_BATCH_NODE)
+    return node
 end
 
 --- Create a fixed pivot point between the world and the given body.
@@ -79,16 +94,26 @@ local function AddShapeToBody(body, shape, sensor)
     return body:CreateFixture(fixture_def)
 end
 
-local function InitPhysicsSprite(sprite, location, dynamic)
+local function InitPhysicsNode(node, location, dynamic, tag)
     local body_def = b2BodyDef:new_local()
     if dynamic == true then
         body_def.type = b2_dynamicBody
     end
     local body = level_obj.world:CreateBody(body_def)
-    sprite:setB2Body(body)
-    sprite:setPTMRatio(util.PTM_RATIO)
-    sprite:setPosition(location)
+    node:setB2Body(body)
+    node:setPTMRatio(util.PTM_RATIO)
+    node:setPosition(location)
+    node:setTag(tag)
+    body:SetUserData(tag)
+    level_obj.layer:addChild(node, 1, tag)
     return body
+end
+
+-- Create and initialise a new invisible physics node.
+local function CreatePhysicsNode(location, dynamic, tag)
+    local node = CCPhysicsNode:create()
+    InitPhysicsNode(node, location, dynamic, tag)
+    return node
 end
 
 local function DrawBrush(parent, location, color)
@@ -96,16 +121,6 @@ local function DrawBrush(parent, location, color)
     child_sprite:setPosition(location)
     child_sprite:setColor(color)
     parent:addChild(child_sprite)
-end
-
-function DrawPhysicsBrush(location, color, tag, dynamic)
-    local sprite = CCPhysicsSprite:createWithTexture(brush_tex)
-    local body = InitPhysicsSprite(sprite, location, dynamic)
-    sprite:setColor(color)
-    sprite:setTag(tag)
-    body:SetUserData(tag)
-    brush_node:addChild(sprite)
-    return sprite
 end
 
 -- Add a new circle/sphere fixture to a body and return the new fixture
@@ -118,63 +133,44 @@ local function AddSphereToBody(body, location, radius, sensor)
 end
 
 -- Add a new line/box fixture to a body and return the new fixture
-local function AddLineToShape(sprite, from, to, color)
+local function AddLineToShape(node, from, to, color, absolute)
     -- calculate length and angle of line based on start and end points
-    local body = sprite:getB2Body()
+    local body = node:getB2Body()
     local length = ccpDistance(from, to);
     local dist_x = to.x - from.x
     local dist_y = to.y - from.y
 
     -- create fixture
-    local relative_start_x = from.x - sprite:getPositionX()
-    local relative_start_y = from.y - sprite:getPositionY()
-    local center = b2Vec2:new_local(util.ScreenToWorld(relative_start_x + dist_x/2),
-                                    util.ScreenToWorld(relative_start_y + dist_y/2))
+    local rel_start = from
+    if absolute then
+       rel_start = node:convertToNodeSpace(from)
+    end
+    local center = b2Vec2:new_local(util.ScreenToWorld(rel_start.x + dist_x/2),
+                                    util.ScreenToWorld(rel_start.y + dist_y/2))
     local shape = b2PolygonShape:new_local()
     local angle = math.atan2(dist_y, dist_x)
     shape:SetAsBox(util.ScreenToWorld(length/2), util.ScreenToWorld(brush_thickness),
                    center, angle)
     local fixture = AddShapeToBody(body, shape, false)
 
-    -- Now create the  visible CCPhysicsSprite that the body is attached to
-    sprite:setColor(color)
-    sprite:setPTMRatio(util.PTM_RATIO)
-
-    -- And add a sequence of non-physics sprites as children of the first
+    -- Create sequence of sprite nodes as children
     local dist = CCPointMake(dist_x, dist_y)
     local num_children = math.ceil(length / brush_step)
     local inc_x = dist_x / num_children
     local inc_y = dist_y / num_children
-    local child_location = ccp(relative_start_x + brush_thickness, relative_start_y + brush_thickness)
+    local child_location = rel_start
 
-    util.Log('Create line at: ' .. util.PointToString(from) .. ' len=' .. length .. ' num=' .. num_children)
+    util.Log('Create line at: rel=' .. util.PointToString(rel_start) .. ' len=' .. length .. ' num=' .. num_children)
+
+    local batch_node = node:getChildByTag(TAG_BATCH_NODE)
+    assert(batch_node)
     for i = 1,num_children do
         child_location.x = child_location.x + inc_x
         child_location.y = child_location.y + inc_y
-        DrawBrush(sprite, child_location, color)
+        DrawBrush(batch_node, child_location, color)
     end
 
     return fixture
-end
-
---- Create a line between two points.
--- Uses a sequence of brush sprites an a single box2d rect.
-local function CreateLine(from, to, objdef)
-    -- create body
-    util.Log("Creating line with tag " .. objdef.tag)
-
-    if objdef.color then
-        color = ccc3(objdef.color[1], objdef.color[2], objdef.color[3])
-    else
-        color = ccc3(255, 255, 255)
-    end
-
-    local sprite = drawing.DrawStartPoint(from, color, objdef.tag, objdef.dynamic)
-    if objdef.anchor then
-        CreatePivot(objdef.anchor, sprite:getB2Body())
-    end
-    AddLineToShape(sprite, from, to, color)
-    return sprite
 end
 
 -- Set the collision group for a fixture
@@ -198,116 +194,160 @@ end
 --- Set brush texture for subsequent draw operations
 function drawing.SetBrush(brush)
     -- calculate thickness based on brush sprite size
-    brush_node = brush
     brush_tex = brush:getTexture()
     local brush_size = brush_tex:getContentSizeInPixels()
     brush_thickness = math.max(brush_size.height/2, brush_size.width/2)
     brush_step = brush_thickness * 1.5
 end
 
+--- Create a physics sprite at a given location with a given image
+local function AddSpriteToShape(node, sprite_def, absolute)
+    local pos = util.PointFromLua(sprite_def.pos, absolute)
+    util.Log('Create sprite [tag=' .. sprite_def.tag .. ' image=' .. sprite_def.image .. ' absolute=' .. tostring(absolute) .. ']: ' ..
+        util.PointToString(pos))
+    local image = game_obj.assets[sprite_def.image]
+    local sprite = CCSprite:create(image)
+    local rel_pos
+    local world_pos
+    if absolute then
+       rel_pos = node:convertToNodeSpace(pos)
+       world_pos = pos
+    else
+       rel_pos = pos
+       world_pos = node:convertToWorldSpace(pos)
+    end
+    sprite:setPosition(rel_pos)
+    node:addChild(sprite)
+    AddSphereToBody(node:getB2Body(), world_pos, sprite:boundingBox().size.height/2, sprite_def.sensor)
+    return sprite
+end
+
+local function AddChildShape(shape, child_def, absolute)
+    if child_def.color then
+        color = ccc3(child_def.color[1], child_def.color[2], child_def.color[3])
+    else
+        color = ccc3(255, 255, 255)
+    end
+
+    if child_def.type == 'line' then
+        local start = util.PointFromLua(child_def.start, absolute)
+        local finish = util.PointFromLua(child_def.finish, absolute)
+        AddLineToShape(shape, start, finish, color, absolute)
+    elseif child_def.type == 'image' then
+        AddSpriteToShape(shape, child_def, absolute)
+    else
+        assert(false, 'invalid shape type: ' .. shape_def.type)
+    end
+end
+
 --- Draw a shape described by a given shape def.
 -- This creates physics sprites and accosiated box2d bodies for
 -- the shape.
 function drawing.CreateShape(shape_def)
-    if shape_def.type == 'line' then
-        local start = util.PointFromLua(shape_def.start)
-        local finish = util.PointFromLua(shape_def.finish)
-        if shape_def.anchor then
-            shape_def.anchor = util.PointFromLua(shape_def.anchor)
+    local shape = nil
+
+    if shape_def.type == 'compound' then
+        local pos = util.PointFromLua(shape_def.pos)
+        shape = CreatePhysicsNode(pos, shape_def.dynamic, shape_def.tag)
+        CreateBrushBatch(shape)
+        if shape_def.children then
+            for _, child_def in ipairs(shape_def.children) do
+                child_def.tag = shape_def.tag
+                child = AddChildShape(shape, child_def, false)
+            end
         end
-        return CreateLine(start, finish, shape_def)
+    elseif shape_def.type == 'line' then
+        local pos = util.PointFromLua(shape_def.start)
+        shape = CreatePhysicsNode(pos, shape_def.dynamic, shape_def.tag)
+        CreateBrushBatch(shape)
+        AddChildShape(shape, shape_def, true)
     elseif shape_def.type == 'edge' then
         local body_def = b2BodyDef:new_local()
         local body = level_obj.world:CreateBody(body_def)
         local b2shape = b2EdgeShape:new_local()
         b2shape:Set(b2VecFromLua(shape_def.start), b2VecFromLua(shape_def.finish))
         body:CreateFixture(b2shape, 0)
+        return
+    elseif shape_def.type == 'image' then
+        local pos = util.PointFromLua(shape_def.pos)
+        shape = CreatePhysicsNode(pos, shape_def.dynamic, shape_def.tag)
+        AddChildShape(shape, shape_def, true)
     else
-        assert(false)
+        assert(false, 'invalid shape type: ' .. shape_def.type)
     end
-end
 
---- Create a physics sprite at a fiven location with a given image
-function drawing.CreateSprite(sprite_def)
-    local pos = util.PointFromLua(sprite_def.pos)
-    -- util.Log('Create sprite [tag=' .. sprite_def.tag .. ' image=' .. sprite_def.image .. ']: ' ..
-    --    util.PointToString(pos))
-    local image = game_obj.assets[sprite_def.image]
-    local sprite = CCPhysicsSprite:create(image)
-    local dynamic = not sprite_def.sensor
-    local body = InitPhysicsSprite(sprite, pos, dynamic)
-    body:SetUserData(sprite_def.tag)
+    if shape_def.anchor then
+        local body = shape:getB2Body()
+        local anchor = util.PointFromLua(shape_def.anchor)
+        CreatePivot(anchor, body)
+    end
 
-    AddSphereToBody(body, pos, sprite:boundingBox().size.height/2, sprite_def.sensor)
-    return sprite
+    return shape
 end
 
 --- Create a single circlular point with the brush.
--- This is used to start shapes that the use draws.  The starting
--- point contains the box2d body for the shape.
+-- This is used to start shapes that the user draws.  The returned
+-- node is the an invisible node that acts as the physics objects.
+-- Sprite nodes are then attached to this as the user draws.
 function drawing.DrawStartPoint(location, color, tag, dynamic)
+    -- Add invisibe physics node
+    local node = CreatePhysicsNode(location, dynamic, tag)
+    CreateBrushBatch(node)
+
     -- Add visible sprite
-    local sprite = DrawPhysicsBrush(location, color, tag, dynamic)
+    local sprite = CCSprite:createWithTexture(brush_tex)
+    sprite:setColor(color)
+    node:addChild(sprite)
 
     -- Add collision info
-    local fixture = AddSphereToBody(sprite:getB2Body(), location, brush_thickness, false)
+    local fixture = AddSphereToBody(node:getB2Body(), location, brush_thickness, false)
     SetCategory(fixture, DRAWING_CATEGORY)
 
-    return sprite
+    return node
 end
 
 --- Create a circle composed of brush sprites backed by a single box2d
 -- circle fixture.
 function drawing.DrawCircle(center, radius, color, tag)
-    -- Create an initial, invisble sprite at the center, to which we
-    -- attach a sequence of visible child sprites
+    -- Create the initial (invisible) node at the center
+    -- and then attach a sequence of visible child sprites
+    local node = CreatePhysicsNode(center, true, tag)
+    local batch_node = CreateBrushBatch(node)
 
     local inner_radius = math.max(radius - brush_thickness, 1)
     local circumference = 2 * math.pi * inner_radius
     local num_sprites = math.max(circumference / brush_step, 1)
     local angle_delta = 2 * math.pi / num_sprites
 
-    -- The firsh brush draw is the origin of the physics object.
-    local start_point = ccp(center.x + inner_radius, center.y)
-    local sprite = DrawPhysicsBrush(start_point, color, tag)
-
-    local start_offset = ccp(start_point.x - center.x, start_point.y - center.y)
-
-    local anchor = sprite:getAnchorPointInPoints()
-    util.Log('drawing circle: radius=' .. math.floor(radius) .. ' sprites=' .. num_sprites)
-    util.Log('drawing circle: anchor=' .. util.PointToString(anchor))
-    for angle = angle_delta, 2 * math.pi, angle_delta do
+    util.Log('drawing circle: radius=' .. math.floor(radius) .. ' sprites=' .. math.floor(num_sprites))
+    for angle = 0, 2 * math.pi, angle_delta do
         x = inner_radius * math.cos(angle)
         y = inner_radius * math.sin(angle)
-        local pos = ccp(x - start_offset.x + anchor.x, y - start_offset.y + anchor.y)
-        DrawBrush(sprite, pos, color)
+        DrawBrush(batch_node, ccp(x, y), color)
     end
 
     -- Create the box2d physics body to match the sphere.
-    local fixture = AddSphereToBody(sprite:getB2Body(), center, radius, false)
+    local fixture = AddSphereToBody(node:getB2Body(), center, radius, false)
     SetCategory(fixture, DRAWING_CATEGORY)
-
-    return sprite
+    return node
 end
 
-function drawing.DrawEndPoint(sprite, location, color)
+function drawing.DrawEndPoint(node, location, color)
     -- Add visible sprite
     local child_sprite = CCSprite:createWithTexture(brush_tex)
-    local relative_x = location.x - sprite:getPositionX()
-    local relative_y = location.y - sprite:getPositionY()
-    local brush_size = brush_tex:getContentSizeInPixels()
-    child_sprite:setPosition(ccp(relative_x + brush_size.width/2, relative_y + brush_size.height/2))
+    location = node:convertToNodeSpace(location)
+    child_sprite:setPosition(location)
     child_sprite:setColor(color)
-    sprite:addChild(child_sprite)
+    node:addChild(child_sprite)
 
     -- Add collision info
-    local body = sprite:getB2Body()
-    local fixture = AddSphereToBody(body, location, sprite:boundingBox().size.height/2, false)
+    local body = node:getB2Body()
+    local fixture = AddSphereToBody(body, location, brush_thickness, false)
     SetCategory(fixture, DRAWING_CATEGORY)
 end
 
 function drawing.AddLineToShape(sprite, from, to, color)
-    fixture = AddLineToShape(sprite, from, to, color)
+    fixture = AddLineToShape(sprite, from, to, color, true)
     SetCategory(fixture, DRAWING_CATEGORY)
 end
 
@@ -320,6 +360,10 @@ end
 function drawing.OnTouchBegan(x, y)
     --- ignore touches if we are already drawing something
     if drawing.IsDrawing() then
+        return false
+    end
+
+    if drawing.mode == drawing.MODE_SELECT then
         return false
     end
 
@@ -375,7 +419,6 @@ function drawing.OnTouchMoved(x, y)
 
         current_shape.node = drawing.DrawStartPoint(start_pos, brush_color, tag)
         drawing.AddLineToShape(current_shape.node, start_pos, new_pos, brush_color)
-
     elseif drawing.mode == drawing.MODE_CIRCLE then
         local tag = current_shape.node:getTag()
         drawing.DestroySprite(current_shape.node)

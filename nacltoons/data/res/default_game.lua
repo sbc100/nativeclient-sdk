@@ -52,7 +52,6 @@ local function CreateLevelMenu(layer)
         local level_number = tag
         util.Log('LevelSelected: ' .. level_number)
         GameManager:sharedManager():LoadLevel(level_number)
-        print(game_obj.game_mode)
     end
 
     -- For each level create a menu item and a textual label

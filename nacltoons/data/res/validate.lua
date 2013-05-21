@@ -93,52 +93,46 @@ validate.ValidateLevelDef = function(filename, gamedef, leveldef)
         return Err("file does not evaluate to an object of type 'table'")
     end
 
-    CheckValidKeys(filename, leveldef, { 'num_stars', 'shapes', 'sprites', 'script' })
+    CheckValidKeys(filename, leveldef, { 'num_stars', 'shapes', 'script' })
 
     if leveldef.shapes then
-        local valid_keys = { 'start', 'finish', 'color', 'type', 'anchor', 'tag', 'dynamic' }
-        local valid_types = { 'line', 'edge' }
+        local valid_keys = { 'script', 'pos', 'children', 'sensor', 'image', 'start', 'finish', 'color', 'type', 'anchor', 'tag', 'dynamic' }
+        local valid_types = { 'compound', 'line', 'edge', 'image' }
         local required_keys = { 'type' }
-        for _, shape in pairs(leveldef.shapes) do
-            CheckValidKeys(filename, shape, valid_keys)
-            CheckRequiredKeys(filename, shape, required_keys, 'shape')
-            if not ListContains(valid_types, shape.type) then
-                Err('invalid shape type: ' .. shape.type)
+
+        local function ValidateShapeList(shapes)
+            for _, shape in pairs(shapes) do
+                if #shape > 0 then
+                    ValidateShapeList(shape)
+                else
+                    CheckValidKeys(filename, shape, valid_keys)
+                    CheckRequiredKeys(filename, shape, required_keys, 'shape')
+                    if not ListContains(valid_types, shape.type) then
+                        Err('invalid shape type: ' .. shape.type)
+                    end
+                end
             end
         end
-    end
 
-    if leveldef.sprites then
-        local valid_keys = { 'pos', 'tag', 'image', 'script', 'sensor' }
-        local required_keys = { 'pos', 'image' }
-        for _, sprite in pairs(leveldef.sprites) do
-            CheckValidKeys(filename, sprite, valid_keys)
-            CheckRequiredKeys(filename, sprite, required_keys, 'sprite')
-            if gamedef.assets[sprite.image] == nil then
-                Err('invalid image asset: ' .. sprite.image)
-            end
-        end
+        ValidateShapeList(leveldef.shapes)
     end
-
 end
 
-if arg and #arg >= 1 then
+if debug.getinfo(1).what == "main" and debug.getinfo(3) == nil then
    -- When run from the command line run validation on passed in game.def file.
    local filename = arg[1]
-   if string.sub(filename, -4) == '.def' then
-       local gamedef = util.LoadYaml(filename)
-       gamedef.root = path.dirname(filename)
-       validate.ValidateGameDef(filename, gamedef)
+   local gamedef = util.LoadYaml(filename)
+   gamedef.root = path.dirname(filename)
+   validate.ValidateGameDef(filename, gamedef)
 
-       -- Now validate all the levels in the game.
-       for _, level in ipairs(gamedef.levels) do
-           filename = path.join(gamedef.root, level)
-           level = util.LoadYaml(filename)
-           validate.ValidateLevelDef(filename, gamedef, level)
-       end
-
-       print("Validation successful!")
+   -- Now validate all the levels in the game.
+   for _, level in ipairs(gamedef.levels) do
+       filename = path.join(gamedef.root, level)
+       level = util.LoadYaml(filename)
+       validate.ValidateLevelDef(filename, gamedef, level)
    end
+
+   print("Validation successful!")
 end
 
 return validate

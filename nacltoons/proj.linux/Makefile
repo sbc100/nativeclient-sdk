@@ -66,13 +66,16 @@ $(OBJ_DIR)/%.o: ../third_party/%.c $(CORE_MAKEFILE_LIST)
 	@mkdir -p $(@D)
 	$(LOG_CC)$(CC) $(CFLAGS) $(INCLUDES) $(DEFINES) $(VISIBILITY) -c $< -o $@
 
+validate: ../third_party/lua-yaml/yaml.so
+	../lua.sh ../data/res/validate.lua ../data/res/sample_game/game.def
+
 run: publish
 
 debug: $(TARGET) publish
 	cd $(dir $^) && gdb ./$(notdir $<) --ex run
 
-publish:
+publish: validate
 	@mkdir -p $(BIN_DIR)
 	cp -ar ../data/res/* $(BIN_DIR)
 
-.PHONY: publish cocos
+.PHONY: publish cocos validate
