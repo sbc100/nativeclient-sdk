@@ -21,9 +21,6 @@ namespace NaCl.Build.CPPTasks
     public class NaClCompile : NaClToolTask
     {
         [Required]
-        public string PropertiesFile { get; set; }
-
-        [Required]
         public string NaCLCompilerPath { get; set; }
 
         public int ProcessorNumber { get; set; }
@@ -50,37 +47,6 @@ namespace NaCl.Build.CPPTasks
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
         {
             this.EnvironmentVariables = new string[] { "CYGWIN=nodosfilewarning", "LC_CTYPE=C" };
-        }
-
-        protected IDictionary<string, string> GenerateCommandLinesFromTlog()
-        {
-            IDictionary<string, string> cmdLineDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            string tlogFilename = this.TLogCommandFile.GetMetadata("FullPath");
-            if (File.Exists(tlogFilename))
-            {
-                using (StreamReader reader = File.OpenText(tlogFilename))
-                {
-                    string filename = string.Empty;
-                    for (string lineStr = reader.ReadLine(); lineStr != null; lineStr = reader.ReadLine())
-                    {
-                        if (lineStr.Length == 0 ||
-                            (lineStr[0] == '^' && lineStr.Length == 1))
-                        {
-                            Log.LogError("Invalid line in command tlog");
-                            break;
-                        }
-                        else if (lineStr[0] == '^')
-                        {
-                            filename = lineStr.Substring(1);
-                        }
-                        else
-                        {
-                            cmdLineDictionary[filename] = lineStr;
-                        }
-                    }
-                }
-            }
-            return cmdLineDictionary;
         }
 
         protected override void LogEventsFromTextOutput(string singleLine, MessageImportance messageImportance)
@@ -143,7 +109,9 @@ namespace NaCl.Build.CPPTasks
                                     Log.LogMessage(MessageImportance.High, "File " + sourcePath + " is missing dependency " + filename);
                                 }
 
-                                writer.WriteLine(filename);
+                                string fname = filename.ToUpperInvariant();
+                                fname = Path.GetFullPath(fname);
+                                writer.WriteLine(fname);
                             }
 
                             //remove d file
@@ -188,6 +156,11 @@ namespace NaCl.Build.CPPTasks
             return trackedFiles;
         }
 
+        protected override string TLogCommandForSource(ITaskItem source)
+        {
+            return GenerateCommandLineForSource(source) + " " + source.GetMetadata("FullPath").ToUpperInvariant();
+        }
+
         protected override void OutputCommandTLog(ITaskItem[] compiledSources)
         {
             IDictionary<string, string> commandLines = GenerateCommandLinesFromTlog();
@@ -198,7 +171,7 @@ namespace NaCl.Build.CPPTasks
                 foreach (ITaskItem source in compiledSources)
                 {
                     string rmSource = FileTracker.FormatRootingMarker(source);
-                    commandLines[rmSource] = GenerateCommandLineFromProps(source) + " " + source.GetMetadata("FullPath").ToUpperInvariant();
+                    commandLines[rmSource] = TLogCommandForSource(source);
                 }
             }
 
@@ -214,49 +187,30 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        protected string GenerateCommandLineFromProps(ITaskItem sourceFile,
+        protected string GenerateCommandLineForSource(ITaskItem sourceFile,
                                                       bool fullOutputName=false)
         {
             StringBuilder commandLine = new StringBuilder(GCCUtilities.s_CommandLineLength);
 
-            if (sourceFile != null)
+            //build command line from components and add required switches
+            string props = xamlParser.Parse(sourceFile, fullOutputName);
+            commandLine.Append(props);
+            commandLine.Append(" -c");
+
+            // Remove rtti items as they are not relevant in C compilation and will 
+            // produce warnings
+            if (SourceIsC(sourceFile.ToString()))
             {
-                //build command line from components and add required switches
-                string props = xamlParser.Parse(sourceFile, fullOutputName);
-                commandLine.Append(props);
-                commandLine.Append(" -c ");
+                commandLine.Replace("-fno-rtti", "");
+                commandLine.Replace("-frtti", "");
+            }
 
-                // Remove rtti items as they are not relevant in C compilation and will 
-                // produce warnings
-                if (SourceIsC(sourceFile.ToString()))
-                {
-                    commandLine.Replace("-fno-rtti", "");
-                    commandLine.Replace("-frtti", "");
-                }
-
-                if (ConfigurationType == "DynamicLibrary")
-                {
-                    commandLine.Append(" -fPIC ");
-                }
+            if (ConfigurationType == "DynamicLibrary")
+            {
+                commandLine.Append(" -fPIC");
             }
 
             return commandLine.ToString();
-        }
-
-        protected ITaskItem[] MergeOutOfDateSources(ITaskItem[] outOfDateSourcesFromTracking,
-                List<ITaskItem> outOfDateSourcesFromCommandLineChanges)
-        {
-            List<ITaskItem> mergedSources = new List<ITaskItem>(outOfDateSourcesFromTracking);
-
-            foreach (ITaskItem item in outOfDateSourcesFromCommandLineChanges)
-            {
-                if (!mergedSources.Contains(item))
-                {
-                    mergedSources.Add(item);
-                }
-            }
-
-            return mergedSources.ToArray();
         }
 
         private int Compile(string pathToTool)
@@ -316,8 +270,8 @@ namespace NaCl.Build.CPPTasks
             {
                 try
                 {
-                    string commandLine = GenerateCommandLineFromProps(sourceItem, true);
-                    commandLine += GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
+                    string commandLine = GenerateCommandLineForSource(sourceItem, true);
+                    commandLine += " " + GCCUtilities.ConvertPathWindowsToPosix(sourceItem.ToString());
 
                     if (OutputCommandLine)
                     {
@@ -356,7 +310,7 @@ namespace NaCl.Build.CPPTasks
 
             foreach (ITaskItem sourceItem in CompileSourceList)
             {
-                string commandLine = GenerateCommandLineFromProps(sourceItem);
+                string commandLine = GenerateCommandLineForSource(sourceItem);
                 if (srcGroups.ContainsKey(commandLine))
                 {
                     srcGroups[commandLine].Add(sourceItem);
@@ -423,43 +377,9 @@ namespace NaCl.Build.CPPTasks
             return returnCode;
         }
 
-        protected void CalcSourcesToCompile()
+        protected override string GenerateResponseFileCommands()
         {
-            //check if full recompile is required otherwise perform incremental
-            if (this.ForcedRebuildRequired() || this.MinimalRebuildFromTracking == false)
-            {
-                this.CompileSourceList = this.Sources;
-                return;
-            }
-
-            //retrieve list of sources out of date due to command line changes
-            List<ITaskItem> outOfDateSourcesFromCommandLine = GetOutOfDateSourcesFromCmdLineChanges();
-
-            //retrieve sources out of date due to tracking
-            CanonicalTrackedOutputFiles trackedOutputFiles = new CanonicalTrackedOutputFiles(this, this.TLogWriteFiles);
-            this.TrackedInputFiles = new CanonicalTrackedInputFiles(this,
-                                                                    this.TLogReadFiles,
-                                                                    this.Sources,
-                                                                    this.ExcludedInputPaths,
-                                                                    trackedOutputFiles,
-                                                                    true,
-                                                                    false);
-            ITaskItem[] outOfDateSourcesFromTracking = this.TrackedInputFiles.ComputeSourcesNeedingCompilation();
-
-            //merge out of date lists
-            CompileSourceList = MergeOutOfDateSources(outOfDateSourcesFromTracking, outOfDateSourcesFromCommandLine);
-
-            if (this.CompileSourceList.Length == 0)
-            {
-                this.SkippedExecution = true;
-                return;
-            }
-
-            //remove sources to compile from tracked file list
-            this.TrackedInputFiles.RemoveEntriesForSource(this.CompileSourceList);
-            trackedOutputFiles.RemoveEntriesForSource(this.CompileSourceList);
-            this.TrackedInputFiles.SaveTlog();
-            trackedOutputFiles.SaveTlog();
+            return "";
         }
 
         protected bool SourceIsC(string sourceFilename)
@@ -472,68 +392,27 @@ namespace NaCl.Build.CPPTasks
                 return false;
         }
 
-        public override bool Execute()
-        {
-            bool returnResult = false;
-
-            try
-            {
-                xamlParser = new XamlParser(PropertiesFile);
-                if (!Setup())
-                    return false;
-                CalcSourcesToCompile();
-                returnResult = base.Execute();
-            }
-            finally
-            {
-
-            }
-
-            return returnResult;
-        }
-
-        protected List<ITaskItem> GetOutOfDateSourcesFromCmdLineChanges()
-        {
-            //get dictionary of source + command lines
-            IDictionary<string, string> dictionary = this.GenerateCommandLinesFromTlog();
-            List<ITaskItem> outOfDateSources = new List<ITaskItem>();
-
-            //add sources to out of date list if the tlog dictionary string do not match the generated command line string
-            StringBuilder currentCommandLine = new StringBuilder(GCCUtilities.s_CommandLineLength);
-            foreach (ITaskItem sourceItem in Sources)
-            {
-                currentCommandLine.Length = 0;
-
-                currentCommandLine.Append(GenerateCommandLineFromProps(sourceItem));
-                currentCommandLine.Append(" ");
-                currentCommandLine.Append(sourceItem.GetMetadata("FullPath").ToUpperInvariant());
-
-                string tlogCommandLine = null;
-                if (dictionary.TryGetValue(FileTracker.FormatRootingMarker(sourceItem), out tlogCommandLine))
-                {
-                    if ((tlogCommandLine == null) || !currentCommandLine.ToString().Equals(tlogCommandLine, StringComparison.Ordinal))
-                    {
-                        outOfDateSources.Add(sourceItem);
-                    }
-                }
-                else
-                {
-                    outOfDateSources.Add(sourceItem);
-                }
-            }
-            return outOfDateSources;
-        }
-
-        [Output]
-        public ITaskItem[] CompileSourceList
+        protected override string CommandTLogFilename
         {
             get
             {
-                return this.compileSourceList;
+                return BaseTool() + ".compile.command.1.tlog";
             }
-            set
+        }
+
+        protected override string[] ReadTLogFilenames
+        {
+            get
             {
-                this.compileSourceList = value;
+                return new string[] { BaseTool() + ".compile.read.1.tlog" };
+            }
+        }
+
+        protected override string WriteTLogFilename
+        {
+            get
+            {
+                return BaseTool() + ".compile.write.1.tlog";
             }
         }
 

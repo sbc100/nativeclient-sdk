@@ -49,9 +49,6 @@ namespace NaCl.Build.CPPTasks
         public string CreateNMFPath { get; set; }
 
         [Required]
-        public string PropertiesFile { get; set; }
-
-        [Required]
         public string ConfigurationType { get; set; }
 
         public NaClLink()
@@ -114,18 +111,15 @@ namespace NaCl.Build.CPPTasks
 
         public override bool Execute()
         {
-            xamlParser = new XamlParser(PropertiesFile);
-            if (!Setup())
-                return false;
-
             if (!OutputCommandLine)
                 Log.LogMessage("Linking: {0}", Path.GetFileName(OutputFile));
 
             if (!base.Execute())
                 return false;
 
-            if (!PostLink())
-                return false;
+            if (!SkippedExecution)
+                if (!PostLink())
+                    return false;
 
             return true;
         }

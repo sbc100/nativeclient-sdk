@@ -22,9 +22,6 @@ namespace NaCl.Build.CPPTasks
         [Required]
         public string LibrarianToolPath { get; set; }
 
-        [Required]
-        public string PropertiesFile { get; set; }
-
         public NaClLib()
             : base(new ResourceManager("NaCl.Build.CPPTasks.Properties.Resources", Assembly.GetExecutingAssembly()))
         {
@@ -51,6 +48,30 @@ namespace NaCl.Build.CPPTasks
                 return false;
 
             return base.Execute();
+        }
+
+        protected override string CommandTLogFilename
+        {
+            get
+            {
+                return BaseTool() + ".lib.command.1.tlog";
+            }
+        }
+
+        protected override string[] ReadTLogFilenames
+        {
+            get
+            {
+                return new string[] { BaseTool() + ".lib.read.1.tlog" };
+            }
+        }
+
+        protected override string WriteTLogFilename
+        {
+            get
+            {
+                return BaseTool() + ".lib.write.1.tlog";
+            }
         }
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)

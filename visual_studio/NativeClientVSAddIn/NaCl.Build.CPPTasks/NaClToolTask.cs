@@ -28,10 +28,12 @@ namespace NaCl.Build.CPPTasks
         private ITaskItem[] tlogWriteFiles;
         private CanonicalTrackedInputFiles trackedInputFiles;
         private bool skippedExecution;
-        private bool minimalRebuildFromTracking;
         private bool trackFileAccess;
         protected ITaskItem[] compileSourceList;
         protected XamlParser xamlParser;
+
+        [Required]
+        public string PropertiesFile { get; set; }
 
         [Required]
         public string TrackerLogDirectory { get; set; }
@@ -41,6 +43,9 @@ namespace NaCl.Build.CPPTasks
 
         [Required]
         public bool OutputCommandLine { get; set; }
+
+        [Required]
+        public bool MinimalRebuildFromTracking { get; set; }
 
         [Required]
         public string Platform { get; set; }
@@ -98,8 +103,7 @@ namespace NaCl.Build.CPPTasks
 
         protected bool Setup()
         {
-            this.SkippedExecution = false;
-
+            SkippedExecution = false;
             if (!ValidateParameters())
             {
                 return false;
@@ -114,19 +118,12 @@ namespace NaCl.Build.CPPTasks
                 }
             }
 
-            if (this.TrackFileAccess || this.MinimalRebuildFromTracking)
+            if (TrackFileAccess || MinimalRebuildFromTracking)
             {
-                this.SetTrackerLogPaths();
+                SetTrackerLogPaths();
             }
 
-            if (this.ForcedRebuildRequired() || this.MinimalRebuildFromTracking == false)
-            {
-                if (this.Sources == null || this.Sources.Length == 0)
-                {
-                    this.SkippedExecution = true;
-                }
-            }
-
+            CalcSourcesToBuild();
             return true;
         }
 
@@ -177,12 +174,17 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
+        protected virtual string TLogCommandForSource(ITaskItem source)
+        {
+            return GenerateResponseFileCommands();
+        }
+
         protected virtual void OutputCommandTLog(ITaskItem[] compiledSources)
         {
             string fullpath = TLogCommandFile.GetMetadata("FullPath");
             using (var writer = new StreamWriter(fullpath, false, Encoding.Unicode))
             {
-                string cmds = GenerateResponseFileCommands();
+                string cmds = TLogCommandForSource(Sources[0]);
                 string sourcePath = "";
                 foreach (ITaskItem source in Sources)
                 {
@@ -198,17 +200,23 @@ namespace NaCl.Build.CPPTasks
 
         public override bool Execute()
         {
-            bool  returnResult = base.Execute();
+            xamlParser = new XamlParser(PropertiesFile);
+            if (!Setup())
+                return false;
 
-            // Update tracker log files if execution occurred
-            //if (this.skippedExecution == false)
+            if (SkippedExecution)
+                return true;
+
+            bool res = base.Execute();
+            // Update tracker log files if execution was successful
+            if (res)
             {
                 CanonicalTrackedOutputFiles outputs = OutputWriteTLog(compileSourceList);
                 OutputReadTLog(compileSourceList, outputs);
                 OutputCommandTLog(compileSourceList);
             }
 
-            return returnResult;
+            return res;
         }
 
         protected override Encoding ResponseFileEncoding
@@ -221,28 +229,144 @@ namespace NaCl.Build.CPPTasks
 
         protected virtual void SetTrackerLogPaths()
         {
-            if (this.TLogCommandFile == null)
+            if (TLogCommandFile == null)
             {
-                string commandFile = Path.Combine(this.TlogDirectory, this.CommandTLogFilename);
-                this.TLogCommandFile = new TaskItem(commandFile);
+                string commandFile = Path.Combine(TlogDirectory, CommandTLogFilename);
+                TLogCommandFile = new TaskItem(commandFile);
             }
 
-            if (this.TLogReadFiles == null)
+            if (TLogReadFiles == null)
             {
-                this.TLogReadFiles = new ITaskItem[this.ReadTLogFilenames.Length];
-                for (int n = 0; n < this.ReadTLogFilenames.Length; n++)
+                TLogReadFiles = new ITaskItem[ReadTLogFilenames.Length];
+                for (int n = 0; n < ReadTLogFilenames.Length; n++)
                 {
-                    string readFile = Path.Combine(this.TlogDirectory, this.ReadTLogFilenames[n]);
-                    this.TLogReadFiles[n] = new TaskItem(readFile);
+                    string readFile = Path.Combine(TlogDirectory, ReadTLogFilenames[n]);
+                    TLogReadFiles[n] = new TaskItem(readFile);
                 }
             }
 
             if (this.TLogWriteFiles == null)
             {
-                this.TLogWriteFiles = new ITaskItem[1];
-                string writeFile = Path.Combine(this.TlogDirectory, this.WriteTLogFilename);
-                this.TLogWriteFiles[0] = new TaskItem(writeFile);
+                TLogWriteFiles = new ITaskItem[1];
+                string writeFile = Path.Combine(TlogDirectory, WriteTLogFilename);
+                TLogWriteFiles[0] = new TaskItem(writeFile);
             }
+        }
+
+        protected ITaskItem[] MergeOutOfDateSources(ITaskItem[] outOfDateSourcesFromTracking,
+                                                    List<ITaskItem> outOfDateSourcesFromCommandLineChanges)
+        {
+            List<ITaskItem> mergedSources = new List<ITaskItem>(outOfDateSourcesFromTracking);
+
+            foreach (ITaskItem item in outOfDateSourcesFromCommandLineChanges)
+            {
+                if (!mergedSources.Contains(item))
+                {
+                    mergedSources.Add(item);
+                }
+            }
+
+            return mergedSources.ToArray();
+        }
+
+        protected IDictionary<string, string> GenerateCommandLinesFromTlog()
+        {
+            IDictionary<string, string> cmdLineDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string tlogFilename = this.TLogCommandFile.GetMetadata("FullPath");
+            if (!File.Exists(tlogFilename))
+                return cmdLineDictionary;
+
+            using (StreamReader reader = File.OpenText(tlogFilename))
+            {
+                string[] filenames = null;
+                for (string lineStr = reader.ReadLine(); lineStr != null; lineStr = reader.ReadLine())
+                {
+                    if (lineStr.Length == 0 || (lineStr[0] == '^' && lineStr.Length == 1))
+                    {
+                        Log.LogError("Invalid line in command tlog");
+                        break;
+                    }
+                    else if (lineStr[0] == '^')
+                    {
+                        filenames = lineStr.Substring(1).Split('|');
+                    }
+                    else
+                    {
+                        foreach (string filename in filenames)
+                        {
+                            cmdLineDictionary[filename] = lineStr;
+                        }
+                    }
+                }
+            }
+            return cmdLineDictionary;
+        }
+
+        protected List<ITaskItem> GetOutOfDateSourcesFromCmdLineChanges()
+        {
+            //get dictionary of source + command lines
+            IDictionary<string, string> dictionary = GenerateCommandLinesFromTlog();
+            List<ITaskItem> outOfDateSources = new List<ITaskItem>();
+
+            //add sources to out of date list if the tlog dictionary string do not match the generated command line string
+            StringBuilder currentCommandLine = new StringBuilder(GCCUtilities.s_CommandLineLength);
+            foreach (ITaskItem sourceItem in Sources)
+            {
+                currentCommandLine.Length = 0;
+                currentCommandLine.Append(TLogCommandForSource(sourceItem));
+
+                string tlogCommandLine = null;
+                if (dictionary.TryGetValue(FileTracker.FormatRootingMarker(sourceItem), out tlogCommandLine))
+                {
+                    if (tlogCommandLine == null || !currentCommandLine.ToString().Equals(tlogCommandLine, StringComparison.Ordinal))
+                    {
+                        outOfDateSources.Add(sourceItem);
+                    }
+                }
+                else
+                {
+                    outOfDateSources.Add(sourceItem);
+                }
+            }
+            return outOfDateSources;
+        }
+
+        protected void CalcSourcesToBuild()
+        {
+            //check if full recompile is required otherwise perform incremental
+            if (ForcedRebuildRequired() || MinimalRebuildFromTracking == false)
+            {
+                CompileSourceList = Sources;
+                return;
+            }
+
+            //retrieve list of sources out of date due to command line changes
+            List<ITaskItem> outOfDateSourcesFromCommandLine = GetOutOfDateSourcesFromCmdLineChanges();
+
+            //retrieve sources out of date due to tracking
+            CanonicalTrackedOutputFiles outputs = new CanonicalTrackedOutputFiles(this, TLogWriteFiles);
+            TrackedInputFiles = new CanonicalTrackedInputFiles(this,
+                                                               TLogReadFiles,
+                                                               Sources,
+                                                               ExcludedInputPaths,
+                                                               outputs,
+                                                               true,
+                                                               false);
+            ITaskItem[] outOfDateSourcesFromTracking = TrackedInputFiles.ComputeSourcesNeedingCompilation();
+
+            //merge out of date lists
+            CompileSourceList = MergeOutOfDateSources(outOfDateSourcesFromTracking, outOfDateSourcesFromCommandLine);
+            if (CompileSourceList.Length == 0)
+            {
+                SkippedExecution = true;
+                return;
+            }
+
+            //remove sources to compile from tracked file list
+            TrackedInputFiles.RemoveEntriesForSource(CompileSourceList);
+            outputs.RemoveEntriesForSource(CompileSourceList);
+            TrackedInputFiles.SaveTlog();
+            outputs.SaveTlog();
         }
 
         [Output]
@@ -255,6 +379,19 @@ namespace NaCl.Build.CPPTasks
             set
             {
                 this.skippedExecution = value;
+            }
+        }
+
+        [Output]
+        public ITaskItem[] CompileSourceList
+        {
+            get
+            {
+                return this.compileSourceList;
+            }
+            set
+            {
+                this.compileSourceList = value;
             }
         }
 
@@ -281,19 +418,6 @@ namespace NaCl.Build.CPPTasks
                 return string.Empty;
             }
         }
-
-        public bool MinimalRebuildFromTracking
-        {
-            get
-            {
-                return this.minimalRebuildFromTracking;
-            }
-            set
-            {
-                this.minimalRebuildFromTracking = value;
-            }
-        }
-
 
         public ITaskItem[] TLogReadFiles
         {
@@ -355,29 +479,11 @@ namespace NaCl.Build.CPPTasks
             }
         }
 
-        protected virtual string CommandTLogFilename
-        {
-            get
-            {
-                return BaseTool() + ".compile.command.1.tlog";
-            }
-        }
+        protected abstract string CommandTLogFilename { get; }
 
-        protected virtual string[] ReadTLogFilenames
-        {
-            get
-            {
-                return new string[] { BaseTool() + ".compile.read.1.tlog" };
-            }
-        }
+        protected abstract string WriteTLogFilename { get; }
 
-        protected virtual string WriteTLogFilename
-        {
-            get
-            {
-                return BaseTool() + ".compile.write.1.tlog";
-            }
-        }
+        protected abstract string[] ReadTLogFilenames { get; }
 
         public virtual string PlatformToolset
         {
