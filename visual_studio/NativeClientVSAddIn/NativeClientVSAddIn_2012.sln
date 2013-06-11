@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeClientVSAddIn_2012", "NativeClientVSAddIn_2012\NativeClientVSAddIn_2012.csproj", "{16A0B3E3-6E53-430B-B388-3811E09FC7B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests_2012", "UnitTests\UnitTests_2012.csproj", "{C2657776-4A69-478D-89E9-AF81FA716FF5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FCD6F8FE-DF89-4232-A138-42C97826712A} = {FCD6F8FE-DF89-4232-A138-42C97826712A}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0D12608-4652-49A2-A1A7-3B469F4B9359}"
+	ProjectSection(SolutionItems) = preProject
+		Local.testsettings = Local.testsettings
+		NativeClientVSAddIn.vsmdi = NativeClientVSAddIn.vsmdi
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaCl.Build.CPPTasks", "NaCl.Build.CPPTasks\NaCl.Build.CPPTasks.csproj", "{FCD6F8FE-DF89-4232-A138-42C97826712A}"
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = NativeClientVSAddIn.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{16A0B3E3-6E53-430B-B388-3811E09FC7B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16A0B3E3-6E53-430B-B388-3811E09FC7B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16A0B3E3-6E53-430B-B388-3811E09FC7B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16A0B3E3-6E53-430B-B388-3811E09FC7B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2657776-4A69-478D-89E9-AF81FA716FF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2657776-4A69-478D-89E9-AF81FA716FF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2657776-4A69-478D-89E9-AF81FA716FF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2657776-4A69-478D-89E9-AF81FA716FF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCD6F8FE-DF89-4232-A138-42C97826712A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCD6F8FE-DF89-4232-A138-42C97826712A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCD6F8FE-DF89-4232-A138-42C97826712A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCD6F8FE-DF89-4232-A138-42C97826712A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

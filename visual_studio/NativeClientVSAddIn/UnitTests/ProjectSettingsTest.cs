@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -108,6 +108,11 @@ namespace UnitTests
     [TestMethod]
     public void VerifySettingsWin32Initialization()
     {
+      if (TestUtilities.IsVS2012())
+      {
+        // TODO(sbc): This test is unreliable under VS2012. http://crbug.com/246253
+        Assert.Inconclusive();
+      }
       string solutionWin32Initialization = TestUtilities.CreateBlankValidNaClSolution(
             dte_, "ProjectSettingsTestWin32Init", "Win32", "Win32", TestContext);
       VerifyDefaultPepperSettings(solutionWin32Initialization);
@@ -142,6 +147,11 @@ namespace UnitTests
     [TestMethod]
     public void VerifySettingsPepperInitialization()
     {
+      if (TestUtilities.IsVS2012())
+      {
+        // TODO(sbc): This test is unreliable under VS2012. http://crbug.com/246253
+        Assert.Inconclusive();
+      }
       string solutionPepperInitialization = TestUtilities.CreateBlankValidNaClSolution(
           dte_,
           "ProjectSettingsTestPepperInit",
@@ -237,6 +247,11 @@ namespace UnitTests
     [TestMethod]
     public void VerifySettingsNaClInitialization()
     {
+      if (TestUtilities.IsVS2012())
+      {
+        // TODO(sbc): This test is unreliable under VS2012. http://crbug.com/246253
+        Assert.Inconclusive();
+      }
       string solutionNaClInitialization = TestUtilities.CreateBlankValidNaClSolution(
           dte_,
           "ProjectSettingsTestNaClInit",

@@ -17,7 +17,7 @@ import shutil
 import string
 import xml_patch
 import third_party.etree.ElementTree as ElementTree
-
+import sys
 
 PEPPER_PLATFORM_NAME = 'PPAPI'
 
@@ -25,22 +25,36 @@ DEFAULT_MS_BUILD_DIRECTORY = os.path.expandvars('%ProgramFiles(x86)%\\MSBuild')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-PLATFORM_FILES = [
+PLATFORM_FILES_2010 = [
     ('Microsoft.Cpp.Win32.default.props',
-     'Microsoft.Cpp.[platform].default.props.patch',
+     'Microsoft.Cpp.Win32.default.props.patch',
      'Microsoft.Cpp.PPAPI.default.props'),
     ('Microsoft.Cpp.Win32.props',
-     'Microsoft.Cpp.[platform].props.patch',
+     'Microsoft.Cpp.Win32.props.patch',
      'Microsoft.Cpp.PPAPI.props'),
     ('Microsoft.Cpp.Win32.targets',
-     'Microsoft.Cpp.[platform].targets.patch',
+     'Microsoft.Cpp.Win32.targets.patch',
      'Microsoft.Cpp.PPAPI.targets'),
     ('PlatformToolsets\\v100\\Microsoft.Cpp.Win32.v100.props',
-     'PlatformToolsets\\v100\\Microsoft.Cpp.[platform].v100.props.patch',
+     'PlatformToolsets\\v100\\Microsoft.Cpp.Win32.v100.props.patch',
      'PlatformToolsets\\v100\\Microsoft.Cpp.PPAPI.v100.props'),
     ('PlatformToolsets\\v100\\Microsoft.Cpp.Win32.v100.targets',
-     'PlatformToolsets\\v100\\Microsoft.Cpp.[platform].v100.targets.patch',
+     'PlatformToolsets\\v100\\Microsoft.Cpp.Win32.v100.targets.patch',
      'PlatformToolsets\\v100\\Microsoft.Cpp.PPAPI.v100.targets')]
+
+PLATFORM_FILES_2012 = [
+    ('Microsoft.Cpp.Win32.default.props',
+     'V110/Microsoft.Cpp.Win32.default.props.patch',
+     'Microsoft.Cpp.PPAPI.default.props'),
+    ('Microsoft.Cpp.Win32.targets',
+     'V110/Microsoft.Cpp.Win32.targets.patch',
+     'Microsoft.Cpp.PPAPI.targets'),
+    ('PlatformToolsets\\v110\\Microsoft.Cpp.Win32.v110.props',
+     'V110\\PlatformToolsets\\v110\\Microsoft.Cpp.Win32.v110.props.patch',
+     'PlatformToolsets\\v110\\Microsoft.Cpp.PPAPI.v110.props'),
+    ('PlatformToolsets\\v110\\Microsoft.Cpp.Win32.v110.targets',
+     'V110\\PlatformToolsets\\v110\\Microsoft.Cpp.Win32.v110.targets.patch',
+     'PlatformToolsets\\v110\\Microsoft.Cpp.PPAPI.v110.targets')]
 
 UI_FILES = [
     ('general.xml',
@@ -50,8 +64,12 @@ UI_FILES = [
      'Props\\ppapi_general_ps.xml.patch',
      'Props\\ppapi_general_ps.xml')]
 
-COPY_FILES = [
+ADD_FILES = [
     'ImportAfter\\PPAPI.override.props']
+
+
+class Error(Exception):
+  pass
 
 
 def PrependCopyright(source_file_name, dest_file_name):
@@ -102,7 +120,11 @@ def CreateTemplateFile(source, patch, dest):
   """
   source_xml = ElementTree.parse(source)
   patch_xml = ElementTree.parse(patch)
-  modified_xml = xml_patch.PatchXML(source_xml, patch_xml)
+  print "Patching: %s" % dest
+  try:
+    modified_xml = xml_patch.PatchXML(source_xml, patch_xml)
+  except Exception as e:
+    raise Error("Error patching file: %s: %s" % (source, e))
 
   if not os.path.exists(os.path.dirname(dest)):
     os.makedirs(os.path.dirname(dest))
@@ -143,34 +165,40 @@ def FixAttributesNamespace(tree):
     elem.attrib = new_attrib
 
 
-def CreatePPAPI(msbuild_dir):
-  """Creates the PPAPI template.
+def CreatePPAPIPlatform(install_dir):
+  if not os.path.exists(install_dir):
+    raise Error('install directory was not found: %s' % install_dir)
 
-  Args:
-    msbuild_dir: The path to the MSBuild installation.
-
-  Returns:
-    Nothing.
-
-  Raises:
-    Exception indicating Win32 platform was not found.
-  """
-  if not os.path.exists(msbuild_dir):
-    raise Exception('MSBuild directory was not found!')
-
-  install_dir = os.path.join(msbuild_dir, 'Microsoft.Cpp\\v4.0\\Platforms')
 
   # Note 1033 is code for the english language.
-  ui_xml_dir = os.path.join(msbuild_dir, 'Microsoft.Cpp\\v4.0\\1033')
+  ui_xml_dir = os.path.join(os.path.dirname(install_dir), '1033')
 
   win32_dir = os.path.join(install_dir, 'Win32')
   ppapi_dir = os.path.join(install_dir, PEPPER_PLATFORM_NAME)
   patch_dir = os.path.join(SCRIPT_DIR, 'PPAPI_Patch')
 
   if not os.path.exists(win32_dir):
-    raise Exception('Win32 platform is not installed on this machine!')
+    raise Error('Win32 MSBuild directory not found: %s' % win32_dir)
 
-  for template_creation in PLATFORM_FILES:
+  print "Cloning Win32 platform from: %s"  % win32_dir
+
+  for root, dirs, files in os.walk(win32_dir):
+    root = root.replace(win32_dir, '')[1:]
+
+    if not os.path.exists(os.path.join(ppapi_dir, root)):
+      os.makedirs(os.path.join(ppapi_dir, root))
+
+    for filename in files:
+      src = os.path.join(win32_dir, root, filename)
+      dest = os.path.join(ppapi_dir, root, filename.replace('Win32', 'PPAPI'))
+      shutil.copyfile(src, dest)
+
+  if 'V110' in install_dir:
+    platform_files = PLATFORM_FILES_2012
+  else:
+    platform_files = PLATFORM_FILES_2010
+
+  for template_creation in platform_files:
     CreateTemplateFile(
         os.path.join(win32_dir, template_creation[0]),
         os.path.join(patch_dir, template_creation[1]),
@@ -182,25 +210,54 @@ def CreatePPAPI(msbuild_dir):
         os.path.join(patch_dir, template_creation[1]),
         os.path.join(ppapi_dir, template_creation[2]))
 
-  for file_name in COPY_FILES:
+  for file_name in ADD_FILES:
     copy_from = os.path.join(patch_dir, file_name)
     copy_to = os.path.join(ppapi_dir, file_name)
     if not os.path.exists(os.path.dirname(copy_to)):
       os.makedirs(os.path.dirname(copy_to))
     shutil.copyfile(copy_from, copy_to)
 
-  shutil.copyfile(
-      os.path.join(win32_dir, 'Microsoft.Build.CPPTasks.Win32.dll'),
-      os.path.join(ppapi_dir, 'Microsoft.Build.CPPTasks.PPAPI.dll'))
+
+def CreatePPAPI(msbuild_dir):
+  """Creates the PPAPI template.
+
+  Args:
+    msbuild_dir: The path to the MSBuild installation.
+
+  Returns:
+    Nothing.
+
+  Raises:
+    Error indicating Win32 platform was not found.
+  """
+
+  if not os.path.exists(msbuild_dir):
+    raise Error('MSBuild directory was not found: %s' % msbuild_dir)
+
+  install_dir = os.path.join(msbuild_dir, 'Microsoft.Cpp\\v4.0\\Platforms')
+  if os.path.exists(install_dir):
+    CreatePPAPIPlatform(install_dir)
+
+  install_dir = os.path.join(msbuild_dir,
+                             'Microsoft.Cpp\\v4.0\\V110\\Platforms')
+  if os.path.exists(install_dir):
+    CreatePPAPIPlatform(install_dir)
 
 
-def main():
-  parser = optparse.OptionParser(usage='Usage: %prog [options]')
-  parser.add_option('-b', '--msbuild-path', dest='msbuild_path',
-      default=DEFAULT_MS_BUILD_DIRECTORY,
-      help='Provide the path to the MSBuild directory', metavar='PATH')
-  (options, args) = parser.parse_args()
-  CreatePPAPI(options.msbuild_path)
+def main(args):
+  try:
+    parser = optparse.OptionParser(usage='Usage: %prog [options]')
+    parser.add_option('-b', '--msbuild-path',
+        default=DEFAULT_MS_BUILD_DIRECTORY,
+        help='Provide the path to the MSBuild directory', metavar='PATH')
+    options, args = parser.parse_args(args)
+    CreatePPAPI(options.msbuild_path)
+
+  except Error as e:
+    sys.stderr.write("error: %s\n" % e)
+    return 1
+
+  return 0
 
 if __name__ == '__main__':
-  main()
+  sys.exit(main(sys.argv[1:]))

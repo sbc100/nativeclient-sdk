@@ -52,7 +52,12 @@ namespace UnitTests
       // to dte which fail because dte is busy.
       ComMessageFilter.Register();
 
-      Type visualStudioType = Type.GetTypeFromProgID("VisualStudio.DTE.10.0");
+      Type visualStudioType;
+      if (IsVS2012())
+        visualStudioType = Type.GetTypeFromProgID("VisualStudio.DTE.11.0");
+      else
+        visualStudioType = Type.GetTypeFromProgID("VisualStudio.DTE.10.0");
+
       DTE2 visualStudio = Activator.CreateInstance(visualStudioType) as DTE2;
       if (visualStudio == null)
       {
@@ -83,6 +88,34 @@ namespace UnitTests
       ComMessageFilter.Revoke();
     }
 
+    public static void SetProjectType(Project project, string projectType, string platformName)
+    {
+        VCConfiguration config;
+        IVCRulePropertyStorage rule;
+
+        config = TestUtilities.GetVCConfiguration(project, "Debug", platformName);
+        rule = config.Rules.Item("ConfigurationGeneral");
+        rule.SetPropertyValue("ConfigurationType", projectType);
+
+        config = TestUtilities.GetVCConfiguration(project, "Release", platformName);
+        rule = config.Rules.Item("ConfigurationGeneral");
+        rule.SetPropertyValue("ConfigurationType", projectType);
+    }
+
+    public static bool IsVS2012()
+    {
+#if VS2012
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    static void AddPlatform(Project project, String platform, String copyFrom)
+    {
+        project.ConfigurationManager.AddPlatform(platform, copyFrom, true);
+    }
+
     /// <summary>
     /// Creates a blank valid NaCl project with up-to-date settings.  The path to the new solution
     /// is returned.
@@ -96,10 +129,13 @@ namespace UnitTests
     public static string CreateBlankValidNaClSolution(
         DTE2 dte, string name, string pepperCopyFrom, string naclCopyFrom, TestContext testContext)
     {
-      const string BlankSolution = "BlankValidSolution";
+      string blankSolution = "BlankValidSolution";
+      string srcSolution = blankSolution;
+      if (IsVS2012())
+          srcSolution += "2012";
       string newSolutionDir = Path.Combine(testContext.DeploymentDirectory, name);
-      string newSolution = Path.Combine(newSolutionDir, BlankSolution + ".sln");
-      CopyDirectory(Path.Combine(testContext.DeploymentDirectory, BlankSolution), newSolutionDir);
+      string newSolution = Path.Combine(newSolutionDir, blankSolution + ".sln");
+      CopyDirectory(Path.Combine(testContext.DeploymentDirectory, srcSolution), newSolutionDir);
 
       try
       {
@@ -110,27 +146,33 @@ namespace UnitTests
         if (PropertyManager.IsNaClPlatform(pepperCopyFrom))
         {
           // create nacl platforms first
-          proj.ConfigurationManager.AddPlatform(Strings.NaCl64PlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.NaCl32PlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.NaClARMPlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.PNaClPlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.PepperPlatformName, pepperCopyFrom, true);
+          AddPlatform(proj, Strings.NaCl64PlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.NaCl32PlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.NaClARMPlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.PNaClPlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.PepperPlatformName, pepperCopyFrom);
         }
         else
         {
           // create pepper platform first
-          proj.ConfigurationManager.AddPlatform(Strings.PepperPlatformName, pepperCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.NaCl64PlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.NaCl32PlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.NaClARMPlatformName, naclCopyFrom, true);
-          proj.ConfigurationManager.AddPlatform(Strings.PNaClPlatformName, naclCopyFrom, true);
+          AddPlatform(proj, Strings.PepperPlatformName, pepperCopyFrom);
+          AddPlatform(proj, Strings.NaCl64PlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.NaCl32PlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.NaClARMPlatformName, naclCopyFrom);
+          AddPlatform(proj, Strings.PNaClPlatformName, naclCopyFrom);
         }
+
+        proj.Save();
 
         // Set the active solution configuration to Debug|NaCl64.
         SetSolutionConfiguration(dte, NaClProjectUniqueName, "Debug", Strings.NaCl64PlatformName);
 
-        proj.Save();
         dte.Solution.SaveAs(newSolution);
+
+        SetSolutionConfiguration(dte, NaClProjectUniqueName, "Release", Strings.NaCl64PlatformName);
+
+        dte.Solution.SaveAs(newSolution);
+
       }
       finally
       {

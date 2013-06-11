@@ -2,6 +2,9 @@
   <Import Project="$(VCTargetsPath)\NaCl\ImportBefore\*.targets" Condition="Exists('$(VCTargetsPath)\NaCl\ImportBefore')" />
   <Import Project="$(VCTargetsPath)\Microsoft.CppCommon.targets" />
 
+  <!-- VS2012 (v110) required Platform.targets to be imported -->
+  <Import Condition="Exists('$(VCTargetsPath)\Microsoft.Cpp.Platform.targets')" Project="$(VCTargetsPath)\Microsoft.Cpp.Platform.targets"/>
+
   <UsingTask TaskName="NaClCompile" AssemblyFile="$(VCTargetsPath)\NaCl\NaCl.Build.CPPTasks.dll" />
   <UsingTask TaskName="NaClLink" AssemblyFile="$(VCTargetsPath)\NaCl\NaCl.Build.CPPTasks.dll" />
   <UsingTask TaskName="NaClLib" AssemblyFile="$(VCTargetsPath)\NaCl\NaCl.Build.CPPTasks.dll" />

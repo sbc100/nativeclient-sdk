@@ -37,9 +37,9 @@ StyleCop.Cache
 
 /visual_studio/NativeClientVSAddIn/NaCl.Build.CPPTasks/obj/
 /visual_studio/NativeClientVSAddIn/NativeClientVSAddIn.vsmdi
-/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn/obj/
-/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn/bin/
-/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn/NativeClientVSAddIn.xml
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn*/obj/
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn*/bin/
+/visual_studio/NativeClientVSAddIn/NativeClientVSAddIn*/NativeClientVSAddIn.xml
 /visual_studio/NativeClientVSAddIn/UnitTests/obj/
 /visual_studio/NativeClientVSAddIn/TestResults/
 

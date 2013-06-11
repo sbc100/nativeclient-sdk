@@ -4,10 +4,10 @@ setlocal
 :: Locations
 set out_directory=..\..\out\vs_addin\Test
 set mstest_file=Results.trx
-set test_assembly=..\..\out\vs_addin\2010\Debug\UnitTests.dll
+set test_assembly=..\..\out\vs_addin\2012\Debug\UnitTests.dll
 
 :: Set up the Visual Studio environment
-call "%VS100COMNTOOLS%vsvars32.bat"
+call "%VS110COMNTOOLS%vsvars32.bat"
 
 :: Make the output directory and clean up existing mstest result file
 mkdir %out_directory%

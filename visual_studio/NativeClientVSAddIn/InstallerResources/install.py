@@ -26,12 +26,18 @@ PNACL_PLATFORM = 'PNaCl'
 NACL_PLATFORM_OLD = 'NaCl'
 PEPPER_PLATFORM = 'PPAPI'
 
-DEFAULT_VS_USER_DIRECTORY = os.path.expandvars(
-    '%USERPROFILE%\\My Documents\\Visual Studio 2010')
+DEFAULT_VS_DIRECTORIES = ('%USERPROFILE%\\My Documents\\Visual Studio 2010',
+                          '%USERPROFILE%\\My Documents\\Visual Studio 2012')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ADDIN_FILES = ['NativeClientVSAddIn.AddIn', 'NativeClientVSAddIn.dll']
+
+options = None
+
+if sys.version_info < (2, 6, 2):
+  print "\n\nWARNING: Python version 2.6.2 or greater is required. " \
+        "Current version is %s\n\n" % (sys.version_info[:3],)
 
 
 class InstallError(Exception):
@@ -54,12 +60,6 @@ def UninstallFile(file_path):
     print 'Removed: %s' % (file_path)
 
 
-def Uninstall(platform_dirs, addin_dir):
-  for dirname in platform_dirs:
-    UninstallDirectory(dirname)
-  for file_name in ADDIN_FILES:
-    UninstallFile(os.path.join(addin_dir, file_name))
-
 
 def CheckForRunningProgams():
   tasklist = os.popen('tasklist.exe').readlines()
@@ -79,12 +79,161 @@ def Ask(question):
       return False
 
 
+def UninstallAddin(vsuser_path):
+  addin_dir = os.path.join(vsuser_path, 'Addins')
+  for file_name in ADDIN_FILES:
+    UninstallFile(os.path.join(addin_dir, file_name))
+
+
+def InstallAddin(vsuser_path):
+  vsuser_path = os.path.expandvars(vsuser_path)
+
+  vsname = os.path.basename(vsuser_path)
+  if '2012' in vsname:
+    vs_version = '2012'
+  elif '2010' in vsname:
+    vs_version = '2010'
+  else:
+     raise InstallError("Unable to determine valid VS version (2010 or 2012) "
+                        "from path: %s" % vsuser_path)
+
+  # Ensure install directories exist.
+  if not os.path.exists(vsuser_path):
+    raise InstallError("Could not find user Visual Studio directory: %s" % (
+        vsuser_path))
+
+  addin_dir = os.path.join(vsuser_path, 'Addins')
+
+  if not os.path.exists(addin_dir):
+    os.makedirs(addin_dir)
+
+  print "\nInstalling Add-in: %s" % vsuser_path
+  # Copy the necessary files into place.
+  for file_name in ADDIN_FILES:
+    shutil.copy(os.path.join(SCRIPT_DIR, vs_version, file_name), addin_dir)
+
+  print "Add-in installed."
+
+
+def InstallMSBuildPlatforms(platform_root):
+  if not os.path.exists(platform_root):
+    raise InstallError("Could not find path: %s" % platform_root)
+
+  if not os.access(platform_root, os.W_OK):
+    # Admin is needed to write to the default platform directory.
+    if ctypes.windll.shell32.IsUserAnAdmin() != 1:
+      raise InstallError("Not running as administrator. The install script "
+                         "needs write access to protected Visual Studio "
+                         "directories.")
+    raise InstallError("install script needs write access to: %s"
+                       % platform_root)
+
+  nacl_dir_32 = os.path.join(platform_root, NACL32_PLATFORM)
+  nacl_dir_64 = os.path.join(platform_root, NACL64_PLATFORM)
+  nacl_dir_arm = os.path.join(platform_root, NACLARM_PLATFORM)
+  pnacl_dir = os.path.join(platform_root, PNACL_PLATFORM)
+  nacl_dir_old = os.path.join(platform_root, NACL_PLATFORM_OLD)
+  nacl_common = os.path.join(os.path.dirname(platform_root), 'NaCl')
+  all_dirs = (nacl_dir_32, nacl_dir_64, nacl_dir_arm,
+              pnacl_dir, nacl_dir_old, nacl_common)
+
+  # Remove existing installation.
+  if any(os.path.exists(d) for d in all_dirs):
+    # If not forced then ask user permission.
+    if not options.force:
+      if not Ask("Warning: Pre-existing add-in installation "
+                 "will be overwritten."):
+        raise InstallError('User did not allow overwrite of existing install.')
+    print "Removing existing install..."
+    UninstallMSBuild(platform_root)
+
+  print "\nInstalling MSBuild components..."
+
+  shutil.copytree(os.path.join(SCRIPT_DIR, 'NaCl'), nacl_common)
+  print "NaCl common resources installed."
+
+  shutil.copytree(os.path.join(SCRIPT_DIR, NACL32_PLATFORM), nacl_dir_32)
+  print "%s platform installed." % NACL32_PLATFORM
+
+  shutil.copytree(os.path.join(SCRIPT_DIR, NACL64_PLATFORM), nacl_dir_64)
+  print "%s platform installed." % NACL64_PLATFORM
+
+  shutil.copytree(os.path.join(SCRIPT_DIR, NACLARM_PLATFORM), nacl_dir_arm)
+  print "%s platform installed." % NACLARM_PLATFORM
+
+  shutil.copytree(os.path.join(SCRIPT_DIR, PNACL_PLATFORM), pnacl_dir)
+  print "PNaCl platform installed."
+
+
+def InstallMSBuild():
+
+  # Ask user before installing PPAPI template.
+  if options.install_ppapi is None:
+    ppapi_answer = Ask("Set up configuration to enable Pepper development "
+          "with Visual Studio?\n"
+          "((Yes)) - I want to create and copy relevant files into a "
+          "Pepper subdirectory\n"
+          "((No)) - I am not interested or will set up the configuration later")
+    if ppapi_answer:
+      options.install_ppapi = True
+      print "Confirmed installer will include PPAPI platform."
+    else:
+      options.install_ppapi = False
+      print "Will not install PPAPI platform during installation."
+
+  if not os.path.exists(options.msbuild_path):
+    raise InstallError("Could not find MS Build directory: %s" % (
+        options.msbuild_path))
+
+  root_2010 = os.path.join(options.msbuild_path,
+                           'Microsoft.Cpp', 'v4.0', 'Platforms')
+  InstallMSBuildPlatforms(root_2010)
+
+  root_2012 = os.path.join(options.msbuild_path,
+                           'Microsoft.Cpp', 'v4.0', 'V110', 'Platforms')
+  InstallMSBuildPlatforms(root_2012)
+
+  if options.install_ppapi:
+    pepper_dir = os.path.join(root_2010, PEPPER_PLATFORM)
+    pepper_dir2 = os.path.join(root_2012, PEPPER_PLATFORM)
+    UninstallDirectory(pepper_dir)
+    UninstallDirectory(pepper_dir2)
+    create_ppapi_platform.CreatePPAPI(options.msbuild_path)
+    print "PPAPI platform installed."
+
+
+def UninstallMSBuild(platform_root):
+  nacl_dir_32 = os.path.join(platform_root, NACL32_PLATFORM)
+  nacl_dir_64 = os.path.join(platform_root, NACL64_PLATFORM)
+  nacl_dir_arm = os.path.join(platform_root, NACLARM_PLATFORM)
+  pnacl_dir = os.path.join(platform_root, PNACL_PLATFORM)
+  nacl_dir_old = os.path.join(platform_root, NACL_PLATFORM_OLD)
+  nacl_common = os.path.join(os.path.dirname(platform_root), 'NaCl')
+  remove_dirs = (nacl_dir_32, nacl_dir_64, nacl_dir_arm,
+                 pnacl_dir, nacl_dir_old, nacl_common)
+  for dirname in remove_dirs:
+    UninstallDirectory(dirname)
+
+
+def Uninstall():
+  root_2010 = os.path.join(options.msbuild_path,
+                           'Microsoft.Cpp', 'v4.0', 'Platforms')
+  root_2012 = os.path.join(options.msbuild_path,
+                           'Microsoft.Cpp', 'v4.0', 'V110', 'Platforms')
+  UninstallMSBuild(root_2010)
+  UninstallMSBuild(root_2012)
+
+  for vsuser_path in options.vsuser_path:
+    UninstallAddin(vsuser_path)
+
+
 def main():
+  global options
   parser = optparse.OptionParser(usage='Usage: %prog [options]')
-  parser.add_option('-b', '--msbuild-path', dest='msbuild_path',
+  parser.add_option('-b', '--msbuild-path',
       metavar='PATH', help='Provide the path to the MSBuild directory')
-  parser.add_option('-a', '--vsuser-path', dest='vsuser_path',
-      default=DEFAULT_VS_USER_DIRECTORY, metavar='PATH',
+  parser.add_option('-a', '--vsuser-path',
+      default=DEFAULT_VS_DIRECTORIES, metavar='PATH', action='append',
       help='Provide the path to the Visual Studio user directory')
   parser.add_option('-f', '--force', action="store_true",
       default=False, help='Force an overwrite of existing files')
@@ -93,12 +242,12 @@ def main():
   parser.add_option('-n', '--no-ppapi', action="store_false",
       dest='install_ppapi', help='Do not install PPAPI template and do not ask')
   parser.add_option('-u', '--uninstall', action="store_true",
-      dest='uninstall', help='Remove the add-in.')
-  (options, args) = parser.parse_args()
+      help='Remove the add-in.')
+  options, args = parser.parse_args()
 
-  print "*************************************************"
-  print "Native-Client Visual Studio 2010 Add-in Installer"
-  print "*************************************************\n"
+  print "*********************************************"
+  print "Native-Client Visual Studio Add-in Installer"
+  print "*********************************************\n"
 
   if platform.system() != 'Windows':
     raise InstallError('Must install to Windows system')
@@ -112,7 +261,6 @@ def main():
       options.msbuild_path = os.path.expandvars('%ProgramFiles(x86)%\\MSBuild')
     else:
       options.msbuild_path = os.path.expandvars('%ProgramFiles%\\MSBuild')
-
 
   if CheckForRunningProgams():
     if not options.force:
@@ -135,54 +283,6 @@ def main():
       if CheckForRunningProgams():
         raise InstallError('Failed to kill Visual Studio and MSBuild instances')
 
-  if sys.version_info < (2, 6, 2):
-    print "\n\nWARNING: Only python version 2.6.2 or greater is supported. " \
-          "Current version is %s\n\n" % (sys.version_info[:3],)
-
-  # Ensure install directories exist.
-  if not os.path.exists(options.vsuser_path):
-    raise InstallError("Could not find user Visual Studio directory: %s" % (
-        options.vsuser_path))
-  if not os.path.exists(options.msbuild_path):
-    raise InstallError("Could not find MS Build directory: %s" % (
-        options.msbuild_path))
-
-  addin_dir = os.path.join(options.vsuser_path, 'Addins')
-  platform_root = os.path.join(options.msbuild_path,
-                               'Microsoft.Cpp', 'v4.0', 'Platforms')
-  if not os.path.exists(platform_root):
-    raise InstallError("Could not find path: %s" % platform_root)
-
-  if not os.access(platform_root, os.W_OK):
-    # Admin is needed to write to the default platform directory.
-    if ctypes.windll.shell32.IsUserAnAdmin() != 1:
-      raise InstallError("Not running as administrator. The install script "
-                         "needs write access to protected Visual Studio "
-                         "directories.")
-    raise InstallError("install script needs write access to: %s"
-                       % platform_root)
-
-  nacl_dir_32 = os.path.join(platform_root, NACL32_PLATFORM)
-  nacl_dir_64 = os.path.join(platform_root, NACL64_PLATFORM)
-  nacl_dir_arm = os.path.join(platform_root, NACLARM_PLATFORM)
-  pnacl_dir = os.path.join(platform_root, PNACL_PLATFORM)
-  nacl_dir_old = os.path.join(platform_root, NACL_PLATFORM_OLD)
-  nacl_common = os.path.join(os.path.dirname(platform_root), 'NaCl')
-  pepper_dir = os.path.join(platform_root, PEPPER_PLATFORM)
-  remove_dirs = (nacl_dir_32, nacl_dir_64, nacl_dir_arm,
-                 pnacl_dir, nacl_dir_old, pepper_dir,
-                 nacl_common)
-  # If uninstalling then redirect to uninstall program.
-  if options.uninstall:
-    Uninstall(remove_dirs, addin_dir)
-    print "\nUninstall complete!\n"
-    sys.exit(0)
-
-  if not os.path.exists(platform_root):
-    raise InstallError("Could not find path: %s" % platform_root)
-  if not os.path.exists(addin_dir):
-    os.makedirs(addin_dir)
-
   # Ensure environment variables are set.
   if not options.force:
     nacl_sdk_root = os.getenv('NACL_SDK_ROOT', None)
@@ -192,59 +292,20 @@ def main():
     if chrome_path is None:
       raise InstallError('Environment Variable CHROME_PATH is not set')
 
-  # Remove existing installation.
-  if any(os.path.exists(d) for d in remove_dirs):
-    # If not forced then ask user permission.
-    if not options.force:
-      if not Ask("Warning: Pre-existing add-in installation "
-                 "will be overwritten."):
-        raise InstallError('User did not allow overwrite of existing install.')
-    print "Removing existing install..."
-    Uninstall(remove_dirs, addin_dir)
-
-  # Ask user before installing PPAPI template.
-  if options.install_ppapi is None:
-    ppapi_answer = Ask("Set up configuration to enable Pepper development "
-          "with Visual Studio?\n"
-          "((Yes)) - I want to create and copy relevant files into a "
-          "Pepper subdirectory\n"
-          "((No)) - I am not interested or will set up the configuration later")
-    if ppapi_answer:
-      options.install_ppapi = True
-      print "Confirmed installer will include PPAPI platform."
-    else:
-      options.install_ppapi = False
-      print "Will not install PPAPI platform during installation."
-
-  print "\nBegin installing components..."
+  # If uninstalling then redirect to uninstall program.
+  if options.uninstall:
+    Uninstall()
+    print "\nUninstall complete!\n"
+    return 0
 
   try:
-    # Copy the necessary files into place.
-    for file_name in ADDIN_FILES:
-      shutil.copy(os.path.join(SCRIPT_DIR, file_name), addin_dir)
-    print "Add-in installed."
+    InstallMSBuild()
 
-    shutil.copytree(os.path.join(SCRIPT_DIR, 'NaCl'), nacl_common)
-    print "NaCl common resources installed."
-
-    shutil.copytree(os.path.join(SCRIPT_DIR, NACL32_PLATFORM), nacl_dir_32)
-    print "%s platform installed." % NACL32_PLATFORM
-
-    shutil.copytree(os.path.join(SCRIPT_DIR, NACL64_PLATFORM), nacl_dir_64)
-    print "%s platform installed." % NACL64_PLATFORM
-
-    shutil.copytree(os.path.join(SCRIPT_DIR, NACLARM_PLATFORM), nacl_dir_arm)
-    print "%s platform installed." % NACLARM_PLATFORM
-
-    shutil.copytree(os.path.join(SCRIPT_DIR, PNACL_PLATFORM), pnacl_dir)
-    print "PNaCl platform installed."
-
-    if options.install_ppapi:
-      create_ppapi_platform.CreatePPAPI(options.msbuild_path)
-      print "PPAPI platform installed."
+    for vsuser_path in options.vsuser_path:
+      InstallAddin(vsuser_path)
   except:
     print "\nException occured! Rolling back install...\n"
-    Uninstall(remove_dirs, addin_dir)
+    Uninstall()
     raise
   else:
     print "\nInstallation complete!\n"

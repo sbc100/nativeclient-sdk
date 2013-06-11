@@ -4,7 +4,6 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
@@ -19,7 +18,7 @@ namespace UnitTests
         private static string SolutionBaseName_ = "CompileTest";
 
         [ClassInitialize]
-        public new static void ClassSetUp(TestContext testContext)
+        public static void ClassSetUp(TestContext testContext)
         {
             BaseCompileTest.ClassSetUp(testContext, SolutionBaseName_);
         }

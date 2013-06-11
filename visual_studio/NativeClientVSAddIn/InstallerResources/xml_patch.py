@@ -139,7 +139,7 @@ def MergeElement(source_elem, patch_elem):
   if find_target is not None:
     raise Exception('Find operation never matched:' + find_target.tag)
   elif len(remove_targets) != 0:
-    raise Exception('Remove operation never matched: ' + remove_targets)
+    raise Exception('Remove operation never matched: ' + str(remove_targets))
 
   # We may have more add operations after source has run empty:
   while patch_index < len(patch_children):

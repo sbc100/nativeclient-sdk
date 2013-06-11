@@ -3,6 +3,8 @@
   <Import Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props'))" Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props"/>
   <Import Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props'))" Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props"/>
 
+  <Import Condition="Exists('$(VCTargetsPath)\Microsoft.Cpp.Platform.props')" Project="$(VCTargetsPath)\Microsoft.Cpp.Platform.props"/>
+
   <PropertyGroup>
     <DebuggerFlavor Condition="'$(DebuggerFlavor)'==''">WindowsLocalDebugger</DebuggerFlavor>
     <IntDir Condition="'$(IntDir)'=='DUMMY'">$(Platform)\$(ToolchainName)\$(Configuration)\</IntDir>
@@ -28,7 +30,6 @@
     <LibCompiled>true</LibCompiled>
     <TargetExt>.a</TargetExt>
   </PropertyGroup>
-
 
   <Import Project="$(VCTargetsPath)\NaCl\NaCl.Paths.default.props" />
   <Import Project="$(VCTargetsPath)\NaCl\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\NaCl\ImportAfter')" />

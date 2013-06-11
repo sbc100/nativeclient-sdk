@@ -1,0 +1,43 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v110\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v110\ImportBefore')" />
+  </PatchRemove>
+  <PatchAdd>
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v110\ImportBefore\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v110\ImportBefore')" />
+  </PatchAdd>
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- added NaCl include and lib information -->
+    <PatchRemove>
+      <IncludePath Condition="'$(IncludePath)' == ''">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    </PatchRemove>
+    <PatchAdd>
+      <IncludePath Condition="'$(IncludePath)' == ''">$(VSNaClSDKRoot)include;$(VSNaClSDKRoot)include\win;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    </PatchAdd>
+    <PatchRemove>
+      <LibraryPath Condition="'$(LibraryPath)' == ''">$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86)lib;</LibraryPath>
+    </PatchRemove>
+    <PatchAdd>
+      <LibraryPath Condition="'$(LibraryPath)' == ''">$(VSNaClSDKRoot)lib\win_x86_32_host\$(Configuration);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
+    </PatchAdd>
+  </PropertyGroup>
+
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v110\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\Win32\PlatformToolsets\v110\ImportAfter')" />
+  </PatchRemove>
+  <PatchAdd>
+
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v110\ImportAfter\*.props" Condition="Exists('$(VCTargetsPath)\Platforms\PPAPI\PlatformToolsets\v110\ImportAfter')" />
+  </PatchAdd>
+
+  <PatchRemove>
+    <Import Project="$(VCTargetsPath)\Platforms\Win32\Microsoft.Cpp.Win32.Common.props" />
+  </PatchRemove>
+  <PatchAdd>
+
+    <Import Project="$(VCTargetsPath)\Platforms\PPAPI\Microsoft.Cpp.PPAPI.Common.props" />
+  </PatchAdd>
+</Project>

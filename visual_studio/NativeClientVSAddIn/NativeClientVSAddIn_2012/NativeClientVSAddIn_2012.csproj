@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -12,26 +12,30 @@
     <NoStandardLibraries>false</NoStandardLibraries>
     <AssemblyName>NativeClientVSAddIn</AssemblyName>
     <DeploymentDirectory>.\bin\</DeploymentDirectory>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\out\vs_addin\2010\Debug\</OutputPath>
+    <OutputPath>..\..\..\out\vs_addin\2012\Debug</OutputPath>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <IncrementalBuild>false</IncrementalBuild>
     <DocumentationFile>NativeClientVSAddIn.xml</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\out\vs_addin\2010\Release\</OutputPath>
+    <OutputPath>..\..\..\out\vs_addin\2012\Release\</OutputPath>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <IncrementalBuild>false</IncrementalBuild>
     <DocumentationFile>NativeClientVSAddIn.xml</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>NativeClientVSAddIn</RootNamespace>
@@ -48,10 +52,10 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.VCProject, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="Microsoft.VisualStudio.VCProject, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.VCProjectEngine, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="Microsoft.VisualStudio.VCProjectEngine, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
@@ -61,27 +65,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Connect.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PluginDebuggerVS.cs" />
-    <Compile Include="PluginDebuggerGDB.cs" />
-    <Compile Include="PropertyManager.cs" />
-    <Compile Include="WebServer.cs" />
-    <Compile Include="PluginDebuggerBase.cs" />
-    <Compile Include="ProcessInfo.cs" />
-    <Compile Include="ProcessSearcher.cs" />
-    <Compile Include="Utility.cs" />
-    <Compile Include="Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="EnvDTE">
@@ -131,14 +114,53 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
+    <Compile Include="..\NativeClientVSAddIn\AssemblyInfo.cs">
+      <Link>AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\Connect.cs">
+      <Link>Connect.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\PluginDebuggerBase.cs">
+      <Link>PluginDebuggerBase.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\PluginDebuggerGDB.cs">
+      <Link>PluginDebuggerGDB.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\PluginDebuggerVS.cs">
+      <Link>PluginDebuggerVS.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\ProcessInfo.cs">
+      <Link>ProcessInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\ProcessSearcher.cs">
+      <Link>ProcessSearcher.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\PropertyManager.cs">
+      <Link>PropertyManager.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\Strings.Designer.cs">
+      <Link>Strings.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\Utility.cs">
+      <Link>Utility.cs</Link>
+    </Compile>
+    <Compile Include="..\NativeClientVSAddIn\WebServer.cs">
+      <Link>WebServer.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\NativeClientVSAddIn\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <Link>Strings.resx</Link>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

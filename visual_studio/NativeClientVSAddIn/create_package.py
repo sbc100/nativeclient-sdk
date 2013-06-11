@@ -18,6 +18,7 @@ import win32api
 import shutil
 import tarfile
 import zipfile
+import string
 import sys
 from os.path import join
 
@@ -30,7 +31,8 @@ ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 BUILD_DIR = join(ROOT, 'out', 'vs_addin')
 
 # Directory that contains the build assemblies.
-ASSEMBLY_DIRECTORY = join(BUILD_DIR, 'Debug')
+ASSEMBLY_DIRECTORY_2010 = join(BUILD_DIR, '2010', 'Debug')
+ASSEMBLY_DIRECTORY_2012 = join(BUILD_DIR, '2012', 'Debug')
 
 # Directory containing static installer resources.
 RESOURCE_DIRECTORY = join(SCRIPT_DIR, 'InstallerResources')
@@ -42,14 +44,16 @@ OUTPUT_NAME = join(BUILD_DIR, 'vs_addin.tgz')
 ADDIN_METADATA = join(RESOURCE_DIRECTORY, 'NativeClientVSAddIn.AddIn')
 
 # AddIn dll file path. We will obtain our add-in version from this.
-ADDIN_ASSEMBLY = join(ASSEMBLY_DIRECTORY, 'NativeClientVSAddIn.dll')
+ADDIN_ASSEMBLY_2010 = join(ASSEMBLY_DIRECTORY_2010, 'NativeClientVSAddIn.dll')
+ADDIN_ASSEMBLY_2012 = join(ASSEMBLY_DIRECTORY_2012, 'NativeClientVSAddIn.dll')
 
 # Regex list to exclude from the archive. If a file path matches any of the
 # expressions during a call to AddFolderToArchive it is excluded from the
 # archive file.
 EXCLUDES = [
     r'\.svn', # Exclude .svn directories.
-    r'\.swp', # Exclude .swp files.
+    r'\.swp$', # Exclude .swp files.
+    r'\.pyc$', # Exclude .pyc files.
     r'examples\\.*\\chrome_data',
     r'examples\\.*\\Debug',
     r'examples\\.*\\newlib',
@@ -64,8 +68,11 @@ EXCLUDES = [
 
 # List of source/destination pairs to include in archive file.
 FILE_LIST = [
-  (ADDIN_ASSEMBLY, ''),
-  (join(ASSEMBLY_DIRECTORY, 'NaCl.Build.CPPTasks.dll'), 'NaCl')]
+  (ADDIN_ASSEMBLY_2010, '2010'),
+  (ADDIN_ASSEMBLY_2012, '2012'),
+  (join(ASSEMBLY_DIRECTORY_2010, 'NativeClientVSAddIn.AddIn'), '2010'),
+  (join(ASSEMBLY_DIRECTORY_2012, 'NativeClientVSAddIn.AddIn'), '2012'),
+  (join(ASSEMBLY_DIRECTORY_2010, 'NaCl.Build.CPPTasks.dll'), 'NaCl')]
 
 
 def AddFolderToArchive(path, archive, root=""):
@@ -95,33 +102,31 @@ def AddFolderToArchive(path, archive, root=""):
       WriteFileToArchive(archive, read_path, write_path)
 
 
-def AddVersionModifiedAddinFile(archive):
-  """Modifies the .AddIn file with the build version and adds to the zip.
+def CopyAddinFile(assembly, path, vs_version):
+  """Copy the .AddIn file to the given path while making the necessary
+  replacements.
 
   The version number is obtained from the NativeClientAddIn.dll assembly which
   is built during the build process.
-
-  Args:
-  archive: Already open archive file.
   """
-  path = '\\VarFileInfo\\Translation'
-  pairs = win32api.GetFileVersionInfo(ADDIN_ASSEMBLY, path)
+  infopath = '\\VarFileInfo\\Translation'
+  pairs = win32api.GetFileVersionInfo(assembly, infopath)
   lang, codepage = pairs[0]
-  path = u'\\StringFileInfo\\%04X%04X\\ProductVersion' % (lang, codepage)
-  prodVersion = win32api.GetFileVersionInfo(ADDIN_ASSEMBLY, path)
+  infopath = u'\\StringFileInfo\\%04X%04X\\ProductVersion' % (lang, codepage)
+  prodVersion = win32api.GetFileVersionInfo(assembly, infopath)
   version = "[%s]" % prodVersion
   print "\nNaCl VS Add-in Build version: %s\n" % (version)
 
   metadata_filename = os.path.basename(ADDIN_METADATA)
-  modified_file = join(ASSEMBLY_DIRECTORY, metadata_filename)
+  modified_file = join(path, metadata_filename)
 
   # Copy the metadata file to new location and modify the version info.
   with open(ADDIN_METADATA, 'r') as source_file:
     with open(modified_file, 'w') as dest_file:
-      for line in source_file:
-        dest_file.write(line.replace("[REPLACE_ADDIN_VERSION]", version))
-
-  WriteFileToArchive(archive, modified_file, metadata_filename)
+      data = source_file.read()
+      replacements = {'VS_VERSION': vs_version, 'ADDIN_VERSION': version}
+      data = string.Template(data).substitute(replacements)
+      dest_file.write(data)
 
 
 def Error(msg):
@@ -144,25 +149,41 @@ def CopyWithReplacement(src, dest, replacements):
   os.makedirs(dest)
   src_basename = os.path.basename(src)
   dest_basename = os.path.basename(dest)
-  for filename in os.listdir(src):
-    srcfile = join(src, filename)
-    # skip non-files, in particular .svn folders.
-    if not os.path.isfile(srcfile):
-      continue
-    destfile = join(dest, filename.replace(src_basename, dest_basename))
-    with open(srcfile, "rb") as f:
-      data = f.read()
-      for pat, subst in replacements.iteritems():
-        data = data.replace(pat, subst)
-    with open(destfile, "wb") as f:
-      f.write(data)
+
+  olddir = os.getcwd()
+  try:
+    os.chdir(src)
+    for root, dirs, filenames in os.walk('.'):
+      for filename in filenames:
+        srcfile = join(root, filename)
+        # skip non-files, in particular .svn folders.
+        if not os.path.isfile(srcfile):
+          continue
+
+        destdir = join(dest, root.replace(src_basename, dest_basename))
+        if not os.path.exists(destdir):
+          os.makedirs(destdir)
+
+        destfile = join(destdir, filename.replace(src_basename, dest_basename))
+        with open(srcfile, "rb") as f:
+          data = f.read()
+          for pat, subst in replacements.iteritems():
+            data = data.replace(pat, subst)
+        with open(destfile, "wb") as f:
+          f.write(data)
+  finally:
+    os.chdir(olddir)
 
 
 def main():
   if not os.path.exists(BUILD_DIR):
     Error("build dir not found: %s" % BUILD_DIR)
 
+  CopyAddinFile(ADDIN_ASSEMBLY_2010, ASSEMBLY_DIRECTORY_2010, '10.0')
+  CopyAddinFile(ADDIN_ASSEMBLY_2012, ASSEMBLY_DIRECTORY_2012, '11.0')
+
   archive = tarfile.open(OUTPUT_NAME, 'w:gz')
+
   for source_dest in FILE_LIST:
     file_name = os.path.basename(source_dest[0])
     dest = join(source_dest[1], file_name)
@@ -203,7 +224,6 @@ def main():
   CopyWithReplacement(src, dest, pnacl_replacements)
   AddFolderToArchive(dest, archive, "PNaCl")
 
-  AddVersionModifiedAddinFile(archive)
   archive.close()
 
 

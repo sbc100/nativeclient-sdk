@@ -19,7 +19,7 @@ namespace UnitTests
         private static string SolutionBaseName_ = "CompileParallelTest";
 
         [ClassInitialize]
-        public new static void ClassSetUp(TestContext testContext)
+        public static void ClassSetUp(TestContext testContext)
         {
             BaseCompileTest.ClassSetUp(testContext, SolutionBaseName_);
         }
@@ -45,7 +45,6 @@ namespace UnitTests
 
             // Add property sheet that enables multiprocessing
             VCConfiguration config;
-            IVCRulePropertyStorage rule;
             config = TestUtilities.GetVCConfiguration(project, "Debug", platform);
             config.AddPropertySheet("multiprocess.props");
             config = TestUtilities.GetVCConfiguration(project, "Release", platform);

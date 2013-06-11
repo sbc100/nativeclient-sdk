@@ -4,6 +4,8 @@
     <PlatformShortName>NaCl64</PlatformShortName>
     <PlatformArchitecture>64</PlatformArchitecture>
     <TargetArchitecture>x86_64</TargetArchitecture>
+    <PlatformToolset Condition="'$(PlatformToolset)' == ''">v110</PlatformToolset>
+
     <ProjectName Condition=" '$(ProjectName)' == '' ">$(MSBuildProjectName)</ProjectName>
     <TargetName Condition="'$(TargetName)'==''">$(ProjectName)_$(PlatformArchitecture)</TargetName>
     <ToolchainName Condition="'$(ToolchainName)' == ''">newlib</ToolchainName>

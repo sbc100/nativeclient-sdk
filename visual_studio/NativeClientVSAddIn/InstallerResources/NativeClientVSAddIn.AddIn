@@ -2,15 +2,15 @@
 <Extensibility xmlns="http://schemas.microsoft.com/AutomationExtensibility">
     <HostApplication>
         <Name>Microsoft Visual Studio Macros</Name>
-        <Version>10.0</Version>
+        <Version>$VS_VERSION</Version>
     </HostApplication>
     <HostApplication>
         <Name>Microsoft Visual Studio</Name>
-        <Version>10.0</Version>
+        <Version>$VS_VERSION</Version>
     </HostApplication>
     <Addin>
         <FriendlyName>Native Client Visual Studio Add-In</FriendlyName>
-        <Description>Aids development of Native Client applications in Visual Studio. Version: [REPLACE_ADDIN_VERSION]</Description>
+        <Description>Aids development of Native Client applications in Visual Studio. Version: $ADDIN_VERSION</Description>
         <Assembly>NativeClientVSAddIn.dll</Assembly>
         <FullClassName>NativeClientVSAddIn.Connect</FullClassName>
         <LoadBehavior>1</LoadBehavior>

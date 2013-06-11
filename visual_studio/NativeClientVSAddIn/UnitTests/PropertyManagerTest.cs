@@ -197,26 +197,43 @@ namespace UnitTests
       PropertyManager target = new PropertyManager();
       dte_.Solution.Open(naclSolution);
       Project naclProject = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
-      target.SetTarget(naclProject, Strings.NaCl64PlatformName, "Debug");
-      Assert.AreEqual(
-          PropertyManager.ProjectPlatformType.NaCl,
-          target.PlatformType,
-          "SetTarget did not succeed with nacl platform on valid project.");
 
       string slnDir = Path.GetDirectoryName(naclSolution);
       string projectDir = Path.Combine(
           slnDir, Path.GetDirectoryName(TestUtilities.NaClProjectUniqueName)) + @"\";
-      string outputDir = Path.Combine(projectDir, "NaCl64", "newlib", "Debug") + @"\";
-      string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + "_64.nexe");
+      
 
-      Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root.");
-      Assert.AreEqual(projectDir, target.ProjectDirectory, "ProjectDirectory.");
-      Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
-      Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
-      Assert.AreEqual(
-          @"newlib",
-          target.GetProperty("ConfigurationGeneral", "ToolchainName"),
-          "GetProperty() with ToolchainName incorrect.");
+      foreach (string platform in NaClPlatformNames())
+      {
+          target.SetTarget(naclProject, platform, "Debug");
+          Assert.AreEqual(
+              PropertyManager.ProjectPlatformType.NaCl,
+              target.PlatformType,
+              "SetTarget did not succeed with nacl platform on valid project.");
+
+          string outputDir = Path.Combine(projectDir, platform, "newlib", "Debug") + @"\";
+
+          string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName);
+          if (platform == "NaCl64")
+              assembly += "_64.nexe";
+          else if (platform == "NaCl32")
+              assembly += "_32.nexe";
+          else if (platform == "NaClARM")
+              assembly += "_arm.nexe";
+          else if (platform == "PNaCl")
+              assembly += ".pexe";
+          else
+              Assert.Fail();
+
+          Assert.AreEqual(projectDir, target.ProjectDirectory, "ProjectDirectory.");
+          Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
+          Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
+          Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root.");
+          Assert.AreEqual(
+              @"newlib",
+              target.GetProperty("ConfigurationGeneral", "ToolchainName"),
+              "GetProperty() with ToolchainName incorrect.");
+      }
     }
 
     /// <summary>

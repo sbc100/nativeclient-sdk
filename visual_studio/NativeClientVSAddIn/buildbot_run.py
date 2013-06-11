@@ -129,6 +129,7 @@ def StepTest():
     Log('@@@BUILD_STEP test against %s@@@' % version)
     env['NACL_SDK_ROOT'] = os.path.join(sdkroot, version)
     RunCommand('test.bat', env)
+    RunCommand('test_2012.bat', env)
 
 
 def _FindInPath(filename):

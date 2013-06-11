@@ -103,16 +103,7 @@ namespace UnitTests
         private void SetProjectType(string projectType, string platformName)
         {
             Project project = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
-            VCConfiguration config;
-            IVCRulePropertyStorage rule;
-
-            config = TestUtilities.GetVCConfiguration(project, "Debug", platformName);
-            rule = config.Rules.Item("ConfigurationGeneral");
-            rule.SetPropertyValue("ConfigurationType", projectType);
-
-            config = TestUtilities.GetVCConfiguration(project, "Release", platformName);
-            rule = config.Rules.Item("ConfigurationGeneral");
-            rule.SetPropertyValue("ConfigurationType", projectType);
+            TestUtilities.SetProjectType(project, projectType, platformName);
         }
 
         protected void CheckCompile(string platform, bool dll)

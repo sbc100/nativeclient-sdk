@@ -52,6 +52,11 @@
                   F1Keyword="VC.Project.VCConfiguration.NaClIndexHTML">
   </StringProperty>
 
+  <EnumProperty Name="ToolchainName" DisplayName="Toolchain" Category="NativeClient" Visible="false">
+    <EnumValue Name="newlib" DisplayName="newlib" />
+    <EnumValue Name="glibc" DisplayName="glibc" />
+  </EnumProperty>
+
   <StringProperty Name="OutDir" DisplayName="Output Directory"
                   Description="Specifies a relative path to the output file directory; can include environment variables."
                   Category="General" Default="$(SolutionDir)\$(Platform)\$(Toolchain)\$(Configuration)\"

@@ -3,6 +3,10 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <TrackerLogDirectory      Condition="'%(ClCompile.TrackerLogDirectory)'       == ''">$(TLogLocation)</TrackerLogDirectory>
+      <ProgramDataBaseFileName  Condition="'%(ClCompile.ProgramDataBaseFileName)'   == '' and
+                                           '$(PlatformToolsetVersion)'              != ''">$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName  Condition="'%(ClCompile.ProgramDataBaseFileName)'   == ''">$(IntDir)vc110.pdb</ProgramDataBaseFileName>
       <PreprocessorDefinitions  Condition="'%(ClCompile.PreprocessorDefinitions)'   == ''"></PreprocessorDefinitions>
       <Warnings                 Condition="'%(ClCompile.Warnings)'                  == ''">NormalWarnings</Warnings>
       <WarningsAsErrors         Condition="'%(ClCompile.WarningsAsErrors)'          == ''">false</WarningsAsErrors>
@@ -32,6 +36,7 @@
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories Condition="'%(Link.AdditionalLibraryDirectories)' == ''"></AdditionalLibraryDirectories>
       <AdditionalDependencies     Condition="'%(Link.AdditionalDependencies)'         == ''"></AdditionalDependencies>
+      <TrackerLogDirectory        Condition="'%(Link.TrackerLogDirectory)'            == ''">$(TLogLocation)</TrackerLogDirectory>
       <IgnoreAllDefaultLibraries  Condition="'%(Link.IgnoreAllDefaultLibraries)'      == ''">false</IgnoreAllDefaultLibraries>
       <NaClSystemLibs             Condition="'%(Link.NaClSystemLibs)'                 == ''">c;m;log;gcc</NaClSystemLibs>
       <ReportUndefinedSymbols     Condition="'%(Link.ReportUndefinedSymbols)'         == ''">true</ReportUndefinedSymbols>
@@ -48,6 +53,7 @@
     <Lib>
       <OutputFile                 Condition="'%(Lib.OutputFile)'                    == ''">$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
       <OutputCommandLine          Condition="'%(Lib.OutputCommandLine)'             == ''">false</OutputCommandLine>
+      <TrackerLogDirectory        Condition="'%(Lib.TrackerLogDirectory)'           == ''">$(TLogLocation)</TrackerLogDirectory>
     </Lib>
   </ItemDefinitionGroup>
 
