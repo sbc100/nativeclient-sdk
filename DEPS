@@ -3,8 +3,6 @@ deps = {
   "src/third_party/gtest": "http://googletest.googlecode.com/svn/trunk/@570",
 
   # nacltoons dependencies
-  "src/nacltoons/third_party/naclports":
-    "http://naclports.googlecode.com/svn/trunk/@712",
   "src/nacltoons/third_party/lua-yaml":
     "git://github.com/acd/lua-yaml.git@22ac93e",
   "src/nacltoons/third_party/lunit":

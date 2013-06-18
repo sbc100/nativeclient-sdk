@@ -2,12 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-#
-# GNU Make based build file.  For details on GNU Make see:
-#   http://www.gnu.org/software/make/manual/make.html
-#
-#
-
 ifndef BUILDBOT_BUILDERNAME
 # By default, unless we are building on the buildbot set NACL_ARCH to so that
 # we only build for a single architecture.
