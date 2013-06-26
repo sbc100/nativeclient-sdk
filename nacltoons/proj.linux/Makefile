@@ -30,6 +30,9 @@ SOURCES = main.cc \
 include $(COCOS_ROOT)/cocos2dx/proj.linux/cocos2dx.mk
 OBJECTS := $(OBJECTS:.cc=.o)
 
+# lua-yaml has some build warnings so filter out -Werror from the CFLAGS
+CFLAGS := $(filter-out -Werror,$(CFLAGS))
+
 INCLUDES += -I$(COCOS_ROOT)/scripting/lua/cocos2dx_support
 INCLUDES += -I$(COCOS_ROOT)/scripting/lua/lua
 INCLUDES += -I$(COCOS_ROOT)/external

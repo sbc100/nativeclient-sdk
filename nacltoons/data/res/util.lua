@@ -19,13 +19,21 @@ function util.ScreenToWorld(value)
     return value / util.PTM_RATIO
 end
 
+function util.WorldToScreen(value)
+    return value * util.PTM_RATIO
+end
+
 --- Log messages to console
-function util.Log(...)
-    print('LUA: ' .. string.format(...))
+function util.Log(arg)
+    print('LUA: ' .. tostring(arg))
 end
 
 function util.PointToString(point)
     return string.format('%dx%d', point.x, point.y)
+end
+
+function util.VecToString(v)
+    return string.format('%dx%d', util.WorldToScreen(v.x), util.WorldToScreen(v.y))
 end
 
 --- Create CCPoint from a lua table containing 2 elements.
@@ -35,7 +43,7 @@ function util.PointFromLua(point, absolute)
     if absolute == nil then
         absolute = true
     end
-    if abolute then
+    if absolute then
         return ccp(point[1] + game_obj.origin.x, point[2] + game_obj.origin.y)
     else
         return ccp(point[1], point[2])

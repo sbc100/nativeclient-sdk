@@ -21,7 +21,7 @@ TOOLCHAIN ?= newlib
 
 all: cocos2dx lua-yaml
 	@echo '@@@BUILD_STEP build game@@@'
-	TOOLCHAIN=$(TOOLCHAIN) NACL_ARCH=$(NACL_ARCH) CONFIG=$(CONFIG) $(MAKE) -C proj.nacl
+	TOOLCHAIN=$(TOOLCHAIN) NACL_ARCH=$(NACL_ARCH) CONFIG=$(CONFIG) $(MAKE) -j10 -C proj.nacl
 
 cocos2dx: build/build-cocos2dx.sh
 	USE_BOX2D=1 NACL_ARCH=$(NACL_ARCH) build/build-cocos2dx.sh

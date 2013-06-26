@@ -134,6 +134,7 @@ CopyHeaders() {
   CopyHeaderDir support/data_support
   CopyHeaderDir support/user_default
   CopyHeaderDir support/tinyxml2
+  CopyHeaderDir support/component
   CopyHeaderDir text_input_node
   CopyHeaderDir textures
   CopyHeaderDir tilemap_parallax_nodes

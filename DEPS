@@ -8,5 +8,5 @@ deps = {
   "src/nacltoons/third_party/lunit":
     "git://repo.or.cz/lunit.git@v0.5",
   "src/nacltoons/third_party/cocos2d-x":
-    "https://github.com/sbc100/cocos2d-x.git@7f5e5ef"
+    "https://github.com/sbc100/cocos2d-x.git@a01dedb"
 }

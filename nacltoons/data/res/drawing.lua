@@ -58,8 +58,10 @@ drawing.handlers = {}
 --- Create a b2Vec from a lua list containing 2 elements.
 -- This is used to convert point data from .def files directly
 -- to the box2dx coordinate system
-local function b2VecFromLua(point)
-    return util.b2VecFromCocos(util.PointFromLua(point))
+local function b2VecFromLua(luapoint)
+    local ccpoint = util.PointFromLua(luapoint)
+    local rtn = util.b2VecFromCocos(ccpoint)
+    return rtn
 end
 
 local function CreateBrushBatch(parent)
@@ -265,7 +267,10 @@ function drawing.CreateShape(shape_def)
         local body_def = b2BodyDef:new_local()
         local body = level_obj.world:CreateBody(body_def)
         local b2shape = b2EdgeShape:new_local()
-        b2shape:Set(b2VecFromLua(shape_def.start), b2VecFromLua(shape_def.finish))
+        local start = b2VecFromLua(shape_def.start)
+        local finish = b2VecFromLua(shape_def.finish)
+        util.Log('Create edge from: ' .. util.VecToString(start) .. ' to: ' .. util.VecToString(finish))
+        b2shape:Set(start, finish)
         body:CreateFixture(b2shape, 0)
         return
     elseif shape_def.type == 'image' then
@@ -335,8 +340,7 @@ end
 function drawing.DrawEndPoint(node, location, color)
     -- Add visible sprite
     local child_sprite = CCSprite:createWithTexture(brush_tex)
-    location = node:convertToNodeSpace(location)
-    child_sprite:setPosition(location)
+    child_sprite:setPosition(node:convertToNodeSpace(location))
     child_sprite:setColor(color)
     node:addChild(child_sprite)
 

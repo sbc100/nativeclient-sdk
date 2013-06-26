@@ -45,6 +45,20 @@ SOURCES := main.cc \
     $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsDebugNode.cpp \
     $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsSprite.cpp \
     $(COCOS_ROOT)/extensions/physics_nodes/CCPhysicsNode.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCEditBox/CCEditBox.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCEditBox/CCEditBoxImplNone.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlStepper.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlButton.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlPotentiometer.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlSwitch.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlUtils.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlColourPicker.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlSaturationBrightnessPicker.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlHuePicker.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControlSlider.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCScale9Sprite.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCInvocation.cpp \
+    $(COCOS_ROOT)/extensions/GUI/CCControlExtension/CCControl.cpp \
     $(COCOS_ROOT)/scripting/lua/cocos2dx_support/CCLuaEngine.cpp \
     $(COCOS_ROOT)/scripting/lua/cocos2dx_support/CCLuaStack.cpp \
     $(COCOS_ROOT)/scripting/lua/cocos2dx_support/Cocos2dxLuaLoader.cpp \
