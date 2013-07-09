@@ -182,6 +182,12 @@ def StepArchive():
 
 
 def main():
+  # Remove BOTO_CONFIG from the environment -- we want to use the NaCl .boto
+  # file that has access to gs://nativeclient-mirror.
+  if 'BOTO_CONFIG' in os.environ:
+    del os.environ['BOTO_CONFIG']
+  if 'AWS_CREDENTIAL_FILE' in os.environ:
+    del os.environ['AWS_CREDENTIAL_FILE']
   StepBuild()
   StepInstall()
   StepInstallSDK()
