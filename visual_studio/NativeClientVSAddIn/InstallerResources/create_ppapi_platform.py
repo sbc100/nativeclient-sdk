@@ -178,7 +178,9 @@ def CreatePPAPIPlatform(install_dir):
   patch_dir = os.path.join(SCRIPT_DIR, 'PPAPI_Patch')
 
   if not os.path.exists(win32_dir):
-    raise Error('Win32 MSBuild directory not found: %s' % win32_dir)
+    print 'Win32 MSBuild directory not found: %s' % win32_dir
+    print 'Skipping PPAPI platform install.'
+    return
 
   print "Cloning Win32 platform from: %s"  % win32_dir
 

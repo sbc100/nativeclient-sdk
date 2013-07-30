@@ -316,7 +316,7 @@ if __name__ == '__main__':
   rtn = 1
   try:
     rtn = main()
-  except InstallError as e:
+  except (create_ppapi_platform.Error, InstallError) as e:
     print
     print e
   except shutil.Error as e:
