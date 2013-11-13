@@ -226,7 +226,6 @@ namespace NaCl.Build.CPPTasks
                 // The SDK root is five levels up from the compiler binary.
                 string sdkroot = Path.GetDirectoryName(Path.GetDirectoryName(pathToTool));
                 sdkroot = Path.GetDirectoryName(Path.GetDirectoryName(sdkroot));
-                sdkroot = Path.GetDirectoryName(sdkroot);
 
                 if (!SDKUtilities.SupportsPNaCl(sdkroot))
                 {

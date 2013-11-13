@@ -20,7 +20,7 @@ import zipfile
 GSURL = 'https://commondatastorage.googleapis.com'
 GSPATH = 'nativeclient-mirror/nacl/nacl_sdk/sdk'
 SDKROOT = os.path.join('..', '..', 'out', 'sdk')
-SDK_VERSIONS = ['pepper_27', 'pepper_28', 'pepper_canary']
+SDK_VERSIONS = ['pepper_31', 'pepper32', 'pepper_canary']
 
 
 def Log(msg):
