@@ -193,7 +193,7 @@ namespace NaCl.Build.CPPTasks
             StringBuilder commandLine = new StringBuilder(GCCUtilities.s_CommandLineLength);
 
             //build command line from components and add required switches
-            string props = xamlParser.Parse(sourceFile, fullOutputName);
+            string props = xamlParser.Parse(sourceFile, fullOutputName, null);
             commandLine.Append(props);
             commandLine.Append(" -c");
 

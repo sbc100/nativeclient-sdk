@@ -49,13 +49,17 @@ namespace NaCl.Build.CPPTasks
             };
         }
 
-        public string Parse(ITaskItem taskItem, bool fullOutputName)
+        public string Parse(ITaskItem taskItem, bool fullOutputName, string outputExtension)
         {
             CommandLineBuilder builder = new CommandLineBuilder();
 
             foreach (string name in taskItem.MetadataNames)
             {
                 string value = taskItem.GetMetadata(name);
+                if (outputExtension != null && name == "OutputFile")
+                {
+                    value = Path.ChangeExtension(value, outputExtension);
+                }
                 if (fullOutputName && name == "ObjectFileName")
                 {
                     if ((File.GetAttributes(value) & FileAttributes.Directory) != 0)

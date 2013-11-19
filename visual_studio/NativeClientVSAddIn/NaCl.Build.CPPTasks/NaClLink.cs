@@ -77,15 +77,31 @@ namespace NaCl.Build.CPPTasks
             }
             responseFileCmds.Append("-Wl,--end-group ");
 
-            responseFileCmds.Append(xamlParser.Parse(Sources[0], false));
+            responseFileCmds.Append(xamlParser.Parse(Sources[0], false, IsPNaCl() ? ".bc" : null));
 
             return responseFileCmds.ToString();
+        }
+
+        private static string PexeToBC(string pexe)
+        {
+            return Path.ChangeExtension(pexe, ".bc");
         }
 
         private static string PexeToNexe(string pexe, string arch)
         {
             string basename = Path.GetFileNameWithoutExtension(pexe) + "_" + arch + ".nexe";
             return Path.Combine(Path.GetDirectoryName(pexe), basename);
+        }
+
+        private bool Finalize()
+        {
+            string dirname = Path.GetDirectoryName(GenerateFullPathToTool());
+            string finalize = Path.Combine(dirname, "pnacl-finalize.bat");
+            string cmd = String.Format("\"{0}\" -o \"{1}\"", PexeToBC(OutputFile), OutputFile);
+            if (!OutputCommandLine)
+                Log.LogMessage("pnacl-finalize -> {0}", Path.GetFileName(OutputFile));
+
+            return ExecuteTool(finalize, cmd, string.Empty) == 0;
         }
 
         private bool Translate(string arch, string pnacl_arch=null)
@@ -101,18 +117,17 @@ namespace NaCl.Build.CPPTasks
             if (!OutputCommandLine)
                 Log.LogMessage("pnacl-translate -> {0}", Path.GetFileName(outfile));
 
-            if (ExecuteTool(translateTool, cmd, string.Empty) != 0)
-            {
-                return false;
-            }
-
-            return true;
+            return ExecuteTool(translateTool, cmd, string.Empty) == 0;
         }
 
         public override bool Execute()
         {
-            if (!OutputCommandLine)
-                Log.LogMessage("Linking: {0}", Path.GetFileName(OutputFile));
+            if (!OutputCommandLine) {
+                string filename = OutputFile;
+                if (IsPNaCl())
+                   filename = PexeToBC(OutputFile);
+                Log.LogMessage("Linking: {0}", filename);
+            }
 
             if (!base.Execute())
                 return false;
@@ -128,6 +143,9 @@ namespace NaCl.Build.CPPTasks
         {
             if (IsPNaCl())
             {
+                if (!Finalize())
+                    return false;
+
                 if (TranslateX64 && !Translate("64", "x86-64"))
                     return false;
 
@@ -180,14 +198,6 @@ namespace NaCl.Build.CPPTasks
                 }
                 else
                 {
-                    if (ToolchainName == "glibc")
-                    {
-                        string bindir = Path.GetDirectoryName(NaClLinkerPath);
-                        string tcroot = Path.GetDirectoryName(bindir);
-                        cmd += " -D \"" + Path.Combine(bindir, "x86_64-nacl-objdump.exe") + "\"";
-                        cmd += " -L \"" + Path.Combine(tcroot, "x86_64-nacl", "lib") + "\"";
-                        cmd += " -L \"" + Path.Combine(tcroot, "x86_64-nacl", "lib32") + "\"";
-                    }
                     cmd += " \"" + OutputFile + "\"";
                 }
 
@@ -195,9 +205,7 @@ namespace NaCl.Build.CPPTasks
                     Log.LogMessage("CreateNMF -> {0}", Path.GetFileName(nmfPath));
 
                 if (ExecuteTool("python", string.Empty, cmd) != 0)
-                {
                     return false;
-                }
             }
 
             return true;
@@ -206,9 +214,7 @@ namespace NaCl.Build.CPPTasks
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (OutputCommandLine)
-            {
                 Log.LogMessage(MessageImportance.High, pathToTool + "  " + responseFileCommands + " " + commandLineCommands);
-            }
 
             return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }

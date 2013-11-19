@@ -106,16 +106,21 @@ namespace UnitTests
             TestUtilities.SetProjectType(project, projectType, platformName);
         }
 
-        protected void CheckCompile(string platform, bool dll)
+        protected void CheckCompile(string platform)
         {
+            bool ppapi = platform == Strings.PepperPlatformName;
             dte_.Solution.Open(SolutionName_);
-            SetProjectType("Executable", platform);
-            TryCompile("Debug", platform);
-            TryCompile("Release", platform);
+            if (!ppapi)
+            {
+                // PPAPI host build are always either dll's or static libraries.
+                SetProjectType("Application", platform);
+                TryCompile("Debug", platform);
+                TryCompile("Release", platform);
+            }
             SetProjectType("StaticLibrary", platform);
             TryCompile("Debug", platform);
             TryCompile("Release", platform);
-            if (dll)
+            if (ppapi)
             {
                 SetProjectType("DynamicLibrary", platform);
                 TryCompile("Debug", platform);

@@ -55,7 +55,7 @@ namespace UnitTests
 
             dte_.Solution.Close(true);
 
-            CheckCompile(platform, false);
+            CheckCompile(platform);
         }
     }
 }

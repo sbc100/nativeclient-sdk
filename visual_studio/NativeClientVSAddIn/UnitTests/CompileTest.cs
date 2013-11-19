@@ -38,7 +38,7 @@ namespace UnitTests
         [TestMethod]
         public void CheckNaCl64Compile()
         {
-            CheckCompile(Strings.NaCl64PlatformName, false);
+            CheckCompile(Strings.NaCl64PlatformName);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace UnitTests
             {
                 Assert.Inconclusive();
             }
-            CheckCompile(Strings.NaClARMPlatformName, false);
+            CheckCompile(Strings.NaClARMPlatformName);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace UnitTests
         [TestMethod]
         public void CheckPepperCompile()
         {
-            CheckCompile(Strings.PepperPlatformName, true);
+            CheckCompile(Strings.PepperPlatformName);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace UnitTests
             {
                 Assert.Inconclusive();
             }
-            CheckCompile(Strings.PNaClPlatformName, false);
+            CheckCompile(Strings.PNaClPlatformName);
         }
 
     }

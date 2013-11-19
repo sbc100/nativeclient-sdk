@@ -213,7 +213,7 @@ def main():
   # Create PNaCl
   pnacl_replacements = {
       'NaCl64': 'PNaCl',
-      'x86_64': 'i686',
+      'x86_64': 'pnacl',
       '64': '32',
       '.nexe': '.pexe',
       'nacl_link.xml': 'pnacl_link.xml',

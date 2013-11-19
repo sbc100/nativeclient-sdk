@@ -408,7 +408,7 @@ namespace UnitTests
       // VC++ Directories
       page = "ConfigurationDirectories";
       AllConfigsAssertPropertyContains(page, "IncludePath", @"$(VSNaClSDKRoot)include;", true);
-      AllConfigsAssertPropertyContains(page, "LibraryPath", @"$(VSNaClSDKRoot)lib;", true);
+      AllConfigsAssertPropertyContains(page, "LibraryPath", @"$(VSNaClSDKRoot)lib\$(ToolchainName)_x86_64\$(Configuration);", true);
 
       // C/C++ General
       page = "CL";
