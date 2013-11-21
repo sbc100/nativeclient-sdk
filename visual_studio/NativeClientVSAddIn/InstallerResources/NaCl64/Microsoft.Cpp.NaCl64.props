@@ -3,6 +3,10 @@
   <Import Condition="'$(ToolchainName)' == 'newlib' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props'))" Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_newlib\Microsoft.Cpp.NaCl.win_x86_newlib.props"/>
   <Import Condition="'$(ToolchainName)' == 'glibc' AND (exists('$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props'))" Project="$(VCTargetsPath)\NaCl\PlatformToolsets\win_x86_glibc\Microsoft.Cpp.NaCl.win_x86_glibc.props"/>
 
+  <PropertyGroup>
+    <NonCoreWin>true</NonCoreWin>
+  </PropertyGroup>
+
   <Import Condition="Exists('$(VCTargetsPath)\Microsoft.Cpp.Platform.props')" Project="$(VCTargetsPath)\Microsoft.Cpp.Platform.props"/>
 
   <PropertyGroup>
