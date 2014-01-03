@@ -28,7 +28,7 @@ def Log(msg):
   sys.stdout.flush()
 
 
-def RunCommand(cmd, env=None):
+def RunCommand(cmd, env=None, check_return_code=True):
   Log("Running: %s" % cmd)
   Log("CWD: %s" % os.getcwd())
   if type(cmd) == str:
@@ -41,23 +41,19 @@ def RunCommand(cmd, env=None):
       cmd[0] = './' + cmd[0]
 
   rtn = subprocess.call(cmd, env=env)
-  if rtn:
+  if check_return_code and rtn:
     Log("Command returned non-zero exit code: %s" % rtn)
     Log('@@@STEP_FAILURE@@@')
     sys.exit(1)
 
+  return rtn
 
-def StepBuild():
+
+def StepBuild(revision):
   Log('@@@BUILD_STEP build addin@@@')
 
-  rev = os.environ.get('BUILDBOT_GOT_REVISION')
-  if not rev:
-    Log('No BUILDBOT_GOT_REVISION found in environ')
-    Log('@@@STEP_FAILURE@@@')
-    sys.exit(1)
-
-  if rev[0] == 'r':
-    rev = rev[1:]
+  if revision[0] == 'r':
+    revision = revision[1:]
 
   # make a backup of AssemblyInfo.cs before we modify it
   filename = os.path.join('NativeClientVSAddIn', 'AssemblyInfo.cs')
@@ -72,7 +68,7 @@ def StepBuild():
       contents = f.read()
 
     pattern = r'(\[assembly: AssemblyInformationalVersion\("\d+\.\d+\.).*"\)\]'
-    contents = re.sub(pattern, r'\g<1>%s")]' % rev, contents)
+    contents = re.sub(pattern, r'\g<1>%s")]' % revision, contents)
 
     with open(filename, 'wb') as f:
       f.write(contents)
@@ -162,20 +158,33 @@ def _GetGsutil():
   return gsutil
 
 
-def StepArchive():
-  rev = os.environ.get('BUILDBOT_GOT_REVISION')
-  if not rev:
-    Log('No BUILDBOT_GOT_REVISION found in environ')
-    Log('@@@STEP_FAILURE@@@')
-    sys.exit(1)
-  Log('@@@BUILD_STEP archive build [r%s]@@@' % rev)
+def StepArchive(revision):
+  # The BUILDBOT_REVISION environment variable gets set to the revsion that
+  # triggered a given build.  For periodic schedulers this will be an empty
+  # string since they are not triggered by a particular revision.  We don't
+  # want to upload the build results to google storage for periodic schedulers
+  # so we skip this step in that case.
+  triggered_revision = os.environ.get('BUILDBOT_REVISION')
+  if triggered_revision == '' or triggered_revision is None:
+    Log('Skipping archive step: BUILDBOT_REVISION not set')
+    return
+
+  Log('@@@BUILD_STEP archive build [r%s]@@@' % revision)
   basename = 'vs_addin.tgz'
-  remote_name = '%s/%s/%s' % (GSPATH, rev, basename)
+  remote_name = '%s/%s/%s' % (GSPATH, revision, basename)
   local_filename = os.path.join('..', '..', 'out',
                                 'vs_addin', basename)
-  cmd = _GetGsutil()
-  cmd += ['cp', '-a', 'public-read', local_filename,
-          'gs://' + remote_name]
+  gs_remote_name = 'gs://' + remote_name
+  gsutil = _GetGsutil()
+
+  # Check for existing file on google storage
+  if RunCommand(gsutil + ['ls', gs_remote_name], check_return_code=False) == 0:
+    Log('File already exists on google storage: %s' % gs_remote_name)
+    Log('@@@STEP_FAILURE@@@')
+    sys.exit(1)
+
+  # Upload to google storage
+  cmd = gsutil + ['cp', '-a', 'public-read', local_filename, gs_remote_name]
   RunCommand(cmd)
   url = "%s/%s" % (GSURL, remote_name)
   Log('@@@STEP_LINK@download@%s@@@' % url)
@@ -188,11 +197,18 @@ def main():
     del os.environ['BOTO_CONFIG']
   if 'AWS_CREDENTIAL_FILE' in os.environ:
     del os.environ['AWS_CREDENTIAL_FILE']
-  StepBuild()
+
+  revision = os.environ.get('BUILDBOT_GOT_REVISION')
+  if revision is None:
+    Log('No BUILDBOT_GOT_REVISION found in environ')
+    Log('@@@STEP_FAILURE@@@')
+    sys.exit(1)
+
+  StepBuild(revision)
   StepInstall()
   StepInstallSDK()
   StepTest()
-  StepArchive()
+  StepArchive(revision)
 
 
 if __name__ == '__main__':
