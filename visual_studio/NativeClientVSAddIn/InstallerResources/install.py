@@ -166,7 +166,6 @@ def InstallMSBuildPlatforms(platform_root):
 
 
 def InstallMSBuild():
-
   # Ask user before installing PPAPI template.
   if options.install_ppapi is None:
     ppapi_answer = Ask("Set up configuration to enable Pepper development "
@@ -187,11 +186,22 @@ def InstallMSBuild():
 
   root_2010 = os.path.join(options.msbuild_path,
                            'Microsoft.Cpp', 'v4.0', 'Platforms')
-  InstallMSBuildPlatforms(root_2010)
-
   root_2012 = os.path.join(options.msbuild_path,
                            'Microsoft.Cpp', 'v4.0', 'V110', 'Platforms')
-  InstallMSBuildPlatforms(root_2012)
+
+  if not os.path.exists(root_2012) and not os.path.exists(root_2010):
+    raise InstallError("MSBuild paths for Visual Studio 2010 and "
+                       "2012 are missing.\n"
+                       "Please install one or both before installing this "
+                       "AddIn.\n"
+                       "(%s)\n"
+                       "(%s)\n" % (root_2010, root_2012))
+
+  if os.path.exists(root_2010):
+    InstallMSBuildPlatforms(root_2010)
+
+  if os.path.exists(root_2012):
+    InstallMSBuildPlatforms(root_2012)
 
   if options.install_ppapi:
     pepper_dir = os.path.join(root_2010, PEPPER_PLATFORM)
