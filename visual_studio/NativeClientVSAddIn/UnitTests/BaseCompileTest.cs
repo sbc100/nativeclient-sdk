@@ -76,7 +76,9 @@ namespace UnitTests
         /// <param name="platformName">Platform name.</param>
         private void TryCompile(string configName, string platformName)
         {
-            string failFormat = "Project compile failed for {0} platform {1} config."
+            string failFormat = "Project compile failed for {0} platform {1} config.\n"
+                              + "If this test fails it could be because the build output"
+                              + "is set to Minimal or below.\n"
                               + "Build output: {2}";
             string cygwinWarningFormat = "Did not pass cygwin nodosfilewarning environment var to"
                                        + " tools Platform: {0}, configuration: {1}";
@@ -89,6 +91,11 @@ namespace UnitTests
 
             string compileOutput = TestUtilities.GetPaneText(
                 dte_.ToolWindows.OutputWindow.OutputWindowPanes.Item("Build"));
+
+            // Check for "Build succeeded" in the output pane. This only works if
+            // the visual studio output verbosity is set to Normal or above.
+            // TODO(sbc): find some other way to verify success or at least verify
+            // that the build verbosity is set to Normal or above.
             Assert.IsTrue(
                 compileOutput.Contains("Build succeeded.", ignoreCase),
                 string.Format(failFormat, platformName, configName, compileOutput));
