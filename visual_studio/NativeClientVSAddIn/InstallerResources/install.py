@@ -26,8 +26,8 @@ PNACL_PLATFORM = 'PNaCl'
 NACL_PLATFORM_OLD = 'NaCl'
 PEPPER_PLATFORM = 'PPAPI'
 
-DEFAULT_VS_DIRECTORIES = ('%USERPROFILE%\\My Documents\\Visual Studio 2010',
-                          '%USERPROFILE%\\My Documents\\Visual Studio 2012')
+DEFAULT_VS_DIRECTORIES = ['%USERPROFILE%\\My Documents\\Visual Studio 2010',
+                          '%USERPROFILE%\\My Documents\\Visual Studio 2012']
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -86,8 +86,6 @@ def UninstallAddin(vsuser_path):
 
 
 def InstallAddin(vsuser_path):
-  vsuser_path = os.path.expandvars(vsuser_path)
-
   vsname = os.path.basename(vsuser_path)
   if '2012' in vsname:
     vs_version = '2012'
@@ -307,6 +305,14 @@ def main():
     Uninstall()
     print "\nUninstall complete!\n"
     return 0
+
+  # Verify that at least on Visual Studio user path exists, then
+  # filter out any that don't.
+  options.vsuser_path = [os.path.expandvars(p) for p in options.vsuser_path]
+  if not any(os.path.exists(p) for p in options.vsuser_path):
+    raise InstallError('Failed to find any suitable location to install the'
+                       ' Addin. Tried:\n\t' + '\n\t'.join(options.vsuser_path))
+  options.vsuser_path = [p for p in options.vsuser_path if os.path.exists(p)]
 
   try:
     InstallMSBuild()
