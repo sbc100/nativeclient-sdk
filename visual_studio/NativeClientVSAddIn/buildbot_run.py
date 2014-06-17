@@ -159,16 +159,6 @@ def _GetGsutil():
 
 
 def StepArchive(revision):
-  # The BUILDBOT_REVISION environment variable gets set to the revsion that
-  # triggered a given build.  For periodic schedulers this will be an empty
-  # string since they are not triggered by a particular revision.  We don't
-  # want to upload the build results to google storage for periodic schedulers
-  # so we skip this step in that case.
-  triggered_revision = os.environ.get('BUILDBOT_REVISION')
-  if triggered_revision == '' or triggered_revision is None:
-    Log('Skipping archive step: BUILDBOT_REVISION not set')
-    return
-
   Log('@@@BUILD_STEP archive build [r%s]@@@' % revision)
   basename = 'vs_addin.tgz'
   remote_name = '%s/%s/%s' % (GSPATH, revision, basename)
@@ -179,9 +169,8 @@ def StepArchive(revision):
 
   # Check for existing file on google storage
   if RunCommand(gsutil + ['ls', gs_remote_name], check_return_code=False) == 0:
-    Log('File already exists on google storage: %s' % gs_remote_name)
-    Log('@@@STEP_FAILURE@@@')
-    sys.exit(1)
+    Log('Skipping archive step: file already exists on google storage')
+    return
 
   # Upload to google storage
   cmd = gsutil + ['cp', '-a', 'public-read', local_filename, gs_remote_name]
