@@ -307,8 +307,8 @@ namespace UnitTests
 
       string propName = "LocalDebuggerCommandArguments";
       string dataDir = "--user-data-dir=\"$(ProjectDir)/chrome_data\"";
-      string address = "localhost:$(NaClWebServerPort)";
-      string targetFlag = "--register-pepper-plugins=\"$(TargetPath)\";application/x-nacl";
+      string address = "http://localhost:$(NaClWebServerPort)";
+      string targetFlag = "--register-pepper-plugins=\"$(TargetPath)\";application/x-ppapi";
       string debugChildrenFlag = "--wait-for-debugger-children";
       AllConfigsAssertPropertyContains(page, propName, dataDir, true);
       AllConfigsAssertPropertyContains(page, propName, address, true);
@@ -392,7 +392,7 @@ namespace UnitTests
 
       string propName = "LocalDebuggerCommandArguments";
       string dataDir = "--user-data-dir=\"$(ProjectDir)/chrome_data\"";
-      string address = "localhost:$(NaClWebServerPort)";
+      string address = "http://localhost:$(NaClWebServerPort)";
       string naclFlag = "--enable-nacl";
       string naclDebugFlag = "--enable-nacl-debug";
       string noSandBoxFlag = "--no-sandbox";

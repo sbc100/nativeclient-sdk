@@ -26,7 +26,10 @@ var common = (function () {
     moduleEl.setAttribute('width', width);
     moduleEl.setAttribute('height',height);
     moduleEl.setAttribute('src', tool + '/' + name + '.nmf');
-    moduleEl.setAttribute('type', 'application/x-nacl');
+    if (tool == 'win')
+      moduleEl.setAttribute('type', 'application/x-ppapi');
+    else
+      moduleEl.setAttribute('type', 'application/x-nacl');
 
     // The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
     // and a 'message' event listener attached.  This wrapping method is used

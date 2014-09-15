@@ -65,7 +65,7 @@
 // - Go to the NaCl SDK directory and launch the httpd.py server.
 // - Launch Chrome, go to about:flags and enable the Native Client flag and
 //   relaunch Chrome
-// - Point Chrome at localhost:5103/hello_nacl_plus
+// - Point Chrome at http://localhost:5103/hello_nacl_plus
 
 #ifdef STEP6
 // remove Windows-dependent code.

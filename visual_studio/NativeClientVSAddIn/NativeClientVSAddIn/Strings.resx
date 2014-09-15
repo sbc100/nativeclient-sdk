@@ -151,7 +151,7 @@
     <value>PPAPI</value>
   </data>
   <data name="PepperProcessPluginFlagFormat" xml:space="preserve">
-    <value>--register-pepper-plugins="{0};application/x-nacl"</value>
+    <value>--register-pepper-plugins="{0};application/x-ppapi"</value>
     <comment>Argument is plug-in assembly's path</comment>
   </data>
   <data name="PNaClPlatformName" xml:space="preserve">
