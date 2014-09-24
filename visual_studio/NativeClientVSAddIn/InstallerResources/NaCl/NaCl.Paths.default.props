@@ -21,7 +21,7 @@
     <FrameworkSdkDir Condition="'$(FrameworkSdkDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v7.0A@InstallationFolder)</FrameworkSdkDir>
 
     <ExecutablePath Condition="'$(ExecutablePath)' == ''">$(PATH);</ExecutablePath>
-    <IncludePath Condition="'$(IncludePath)' == ''">$(VSNaClSDKRoot)include;</IncludePath>
+    <IncludePath Condition="'$(IncludePath)' == ''">$(NaClDefaultIncludePath);$(VSNaClSDKRoot)include;</IncludePath>
     <LibraryPath Condition="'$(LibraryPath)' == '' AND '$(TargetArchitecture)'=='i686'">$(VSNaClSDKRoot)lib\$(ToolchainName)_x86_32\$(Configuration);</LibraryPath>
     <LibraryPath Condition="'$(LibraryPath)' == '' AND '$(TargetArchitecture)'=='x86_64'">$(VSNaClSDKRoot)lib\$(ToolchainName)_x86_64\$(Configuration);</LibraryPath>
     <LibraryPath Condition="'$(LibraryPath)' == '' AND '$(TargetArchitecture)'=='arm'">$(VSNaClSDKRoot)lib\$(ToolchainName)_arm\$(Configuration);</LibraryPath>

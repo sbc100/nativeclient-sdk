@@ -1,9 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <PlatformShortName>NaCl64</PlatformShortName>
-    <PlatformArchitecture>64</PlatformArchitecture>
-    <TargetArchitecture>x86_64</TargetArchitecture>
+    <PlatformShortName>NaClARM</PlatformShortName>
+    <PlatformArchitecture>arm</PlatformArchitecture>
+    <TargetArchitecture>arm</TargetArchitecture>
     <PlatformToolset Condition="'$(PlatformToolset)' == ''">v110</PlatformToolset>
 
     <ProjectName Condition=" '$(ProjectName)' == '' ">$(MSBuildProjectName)</ProjectName>
@@ -19,12 +19,15 @@
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">DUMMY</IntDir>
     <OutDir Condition="'$(OutDir)'==''">DUMMY</OutDir>
 
-
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
 
-    <NaClToolchainRoot>$(VSNaClSDKRoot)toolchain\win_x86_$(ToolchainName)\</NaClToolchainRoot>
+    <NaClToolchainRoot>$(VSNaClSDKRoot)toolchain\win_arm_$(ToolchainName)\</NaClToolchainRoot>
 
-    <NaClDefaultIncludePath Condition="'$(NaClDefaultIncludePath)'==''">$(NaClToolchainRoot)$(TargetArchitecture)-nacl\usr\include;$(NaClToolchainRoot)x86_64-nacl\include;$(NaClToolchainRoot)x86_64-nacl\include\c++\4.4.3;$(NaClToolchainRoot)lib\gcc\x86_64-nacl\4.4.3\include</NaClDefaultIncludePath>
+    <NaClDefaultIncludePath Condition="'$(NaClDefaultIncludePath)'==''">$(NaClToolchainRoot)$(TargetArchitecture)-nacl\usr\include;$(NaClToolchainRoot)arm-nacl\include</NaClDefaultIncludePath>
+
+    <NaClDefaultIncludePath Condition="Exists('$(NaClToolchainRoot)lib\gcc\arm-nacl\4.8.2')">$(NaClDefaultIncludePath);$(NaClToolchainRoot)arm-nacl\include\c++\4.8.2;$(NaClToolchainRoot)lib\gcc\arm-nacl\4.8.2\include</NaClDefaultIncludePath>
+
+    <NaClDefaultIncludePath Condition="Exists('$(NaClToolchainRoot)lib\gcc\arm-nacl\4.8.3')">$(NaClDefaultIncludePath);$(NaClToolchainRoot)arm-nacl\include\c++\4.8.3;$(NaClToolchainRoot)lib\gcc\arm-nacl\4.8.3\include</NaClDefaultIncludePath>
 
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
     <NaClIndexHTML Condition="'$(NaClIndexHTML)'==''">index.html</NaClIndexHTML>

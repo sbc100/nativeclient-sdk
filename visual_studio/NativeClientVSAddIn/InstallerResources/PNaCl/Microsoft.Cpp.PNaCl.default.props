@@ -1,13 +1,13 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <PlatformShortName>NaCl64</PlatformShortName>
-    <PlatformArchitecture>64</PlatformArchitecture>
-    <TargetArchitecture>x86_64</TargetArchitecture>
+    <PlatformShortName>PNaCl</PlatformShortName>
+    <PlatformArchitecture>32</PlatformArchitecture>
+    <TargetArchitecture>pnacl</TargetArchitecture>
     <PlatformToolset Condition="'$(PlatformToolset)' == ''">v110</PlatformToolset>
 
     <ProjectName Condition=" '$(ProjectName)' == '' ">$(MSBuildProjectName)</ProjectName>
-    <TargetName Condition="'$(TargetName)'==''">$(ProjectName)_$(PlatformArchitecture)</TargetName>
+    <TargetName Condition="'$(TargetName)'==''">$(ProjectName)</TargetName>
     <ToolchainName Condition="'$(ToolchainName)' == ''">newlib</ToolchainName>
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'!=''">$(IntermediateOutputPath)</IntDir>
 
@@ -19,12 +19,17 @@
     <IntDir Condition="'$(IntDir)'=='' AND '$(IntermediateOutputPath)'==''">DUMMY</IntDir>
     <OutDir Condition="'$(OutDir)'==''">DUMMY</OutDir>
 
-
     <VSNaClSDKRoot Condition="'$(VSNaClSDKRoot)'==''">$(NACL_SDK_ROOT)\</VSNaClSDKRoot>
 
-    <NaClToolchainRoot>$(VSNaClSDKRoot)toolchain\win_x86_$(ToolchainName)\</NaClToolchainRoot>
+    <NaClToolchainRoot>$(VSNaClSDKRoot)toolchain\win_pnacl\</NaClToolchainRoot>
 
-    <NaClDefaultIncludePath Condition="'$(NaClDefaultIncludePath)'==''">$(NaClToolchainRoot)$(TargetArchitecture)-nacl\usr\include;$(NaClToolchainRoot)x86_64-nacl\include;$(NaClToolchainRoot)x86_64-nacl\include\c++\4.4.3;$(NaClToolchainRoot)lib\gcc\x86_64-nacl\4.4.3\include</NaClDefaultIncludePath>
+    <NaClDefaultIncludePath Condition="'$(NaClDefaultIncludePath)'==''">$(NaClToolchainRoot)usr\local\include;$(NaClToolchainRoot)usr\include</NaClDefaultIncludePath>
+
+    <NaClDefaultIncludePath Condition="!Exists('$(NaClToolchainRoot)host_x86_32\lib\clang\3.4')">$(NaClDefaultIncludePath);$(NaClToolchainRoot)\lib\clang\3.4\include</NaClDefaultIncludePath>
+
+    <NaClDefaultIncludePath Condition="Exists('$(NaClToolchainRoot)host_x86_32\lib\clang\3.4')">$(NaClDefaultIncludePath);$(NaClToolchainRoot)host_x86_32\lib\clang\3.4\include</NaClDefaultIncludePath>
+
+    <NaClDefaultIncludePath Condition="Exists('$(NaClToolchainRoot)usr\include\c++\v1')">$(NaClDefaultIncludePath);$(NaClToolchainRoot)usr\include\c++\v1</NaClDefaultIncludePath>
 
     <NaClWebServerPort Condition="'$(NaClWebServerPort)'==''">5103</NaClWebServerPort>
     <NaClIndexHTML Condition="'$(NaClIndexHTML)'==''">index.html</NaClIndexHTML>

@@ -82,7 +82,7 @@
   <StringProperty Name="TargetName" DisplayName="Target Name"
                   Description="Specifies a file name that this project will generate."
                   F1Keyword="VC.Project.VCConfiguration.TargetName"
-                  Category="General" Default="$(ProjectName)_$(PlatformArchitecture)"
+                  Category="General" Default="$(ProjectName)"
                   >
                   <StringProperty.DataSource>
                      <DataSource Persistence="ProjectFile" Label="" />

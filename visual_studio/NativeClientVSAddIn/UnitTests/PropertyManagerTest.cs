@@ -201,7 +201,6 @@ namespace UnitTests
       string slnDir = Path.GetDirectoryName(naclSolution);
       string projectDir = Path.Combine(
           slnDir, Path.GetDirectoryName(TestUtilities.NaClProjectUniqueName)) + @"\";
-      
 
       foreach (string platform in NaClPlatformNames())
       {
@@ -234,39 +233,6 @@ namespace UnitTests
               target.GetProperty("ConfigurationGeneral", "ToolchainName"),
               "GetProperty() with ToolchainName incorrect.");
       }
-    }
-
-    /// <summary>
-    /// A test for GetProperty. Checks some non-trivial C# properties and the GetProperty method.
-    /// </summary>
-    [TestMethod]
-    public void GetPropertyPNaClTest()
-    {
-        string expectedSDKRootDir =
-            Environment.GetEnvironmentVariable(Strings.SDKPathEnvironmentVariable);
-        Assert.IsNotNull(expectedSDKRootDir, "SDK Path environment variable not set!");
-        expectedSDKRootDir = expectedSDKRootDir.TrimEnd(new char[] { '/', '\\' });
-
-        // Set up the property manager to read the NaCl platform settings from BlankValidSolution.
-        PropertyManager target = new PropertyManager();
-        dte_.Solution.Open(naclSolution);
-        Project naclProject = dte_.Solution.Projects.Item(TestUtilities.NaClProjectUniqueName);
-        target.SetTarget(naclProject, Strings.PNaClPlatformName, "Debug");
-        Assert.AreEqual(
-            PropertyManager.ProjectPlatformType.NaCl,
-            target.PlatformType,
-            "SetTarget did not succeed with nacl platform on valid project.");
-
-        string slnDir = Path.GetDirectoryName(naclSolution);
-        string projectDir = Path.Combine(
-            slnDir, Path.GetDirectoryName(TestUtilities.NaClProjectUniqueName)) + @"\";
-        string outputDir = Path.Combine(projectDir, "PNaCl", "newlib", "Debug") + @"\";
-        string assembly = Path.Combine(outputDir, TestUtilities.BlankNaClProjectName + ".pexe");
-
-        Assert.AreEqual(expectedSDKRootDir, target.SDKRootDirectory, "SDK Root.");
-        Assert.AreEqual(projectDir, target.ProjectDirectory, "ProjectDirectory.");
-        Assert.AreEqual(outputDir, target.OutputDirectory, "OutputDirectory.");
-        Assert.AreEqual(assembly, target.PluginAssembly, "PluginAssembly.");
     }
 
     /// <summary>

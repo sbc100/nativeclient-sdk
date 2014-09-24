@@ -237,7 +237,6 @@ def main(args):
       '64': '32',
       '.nexe': '.pexe',
       'nacl_link.xml': 'pnacl_link.xml',
-      '$(ProjectName)_$(PlatformArchitecture)': '$(ProjectName)',
   }
 
   dest = join(STAGING_DIR, 'PNaCl')
