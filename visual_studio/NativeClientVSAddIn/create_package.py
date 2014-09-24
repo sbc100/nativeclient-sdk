@@ -10,6 +10,7 @@ This script assumes the build script has been run to compile the add-in.
 It zips up all files required for the add-in installation and places the
 result in out/vs_addin/vs_addin.tgz.
 """
+from __future__ import print_function
 
 import os
 import re
@@ -29,6 +30,7 @@ ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 
 # Root output directory.
 BUILD_DIR = join(ROOT, 'out', 'vs_addin')
+STAGING_DIR = join(BUILD_DIR, 'staging')
 
 # Directory that contains the build assemblies.
 ASSEMBLY_DIRECTORY_2010 = join(BUILD_DIR, '2010', 'Debug')
@@ -75,31 +77,51 @@ FILE_LIST = [
   (join(ASSEMBLY_DIRECTORY_2010, 'NaCl.Build.CPPTasks.dll'), 'NaCl')]
 
 
-def AddFolderToArchive(path, archive, root=""):
-  """Adds an entire folder and sub folders to an open archive object.
+def MakeDir(dirname):
+  """Create a directory if it doesn't already exist."""
+  if not os.path.isdir(dirname):
+    os.makedirs(dirname)
+
+
+def StageDirectory(dir_to_copy):
+  """Recursively add a directory to the staging directory.
+
+  Args:
+    dir_to_copy: Directory to add.
+    basedir: The directory with the staging directory.
+  """
+  for root, _, files in os.walk(dir_to_copy):
+    for filename in files:
+      src_path = join(root, filename)
+
+      # If the file path matches an exclude, don't include it.
+      if any(re.search(expr, src_path) for expr in EXCLUDES):
+        continue
+
+      relative_root = os.path.relpath(root, dir_to_copy)
+      dest_path = join(STAGING_DIR, relative_root, filename)
+
+      MakeDir(os.path.dirname(dest_path))
+      assert(not os.path.exists(dest_path))
+      shutil.copy(src_path, dest_path)
+
+
+def AddFolderToArchive(path, archive):
+  """Recursively adds a directory to an open archive object.
 
   The archive must already be open and it is not closed by this function.
 
   Args:
-    path: Folder to add.
-    archive: Already open archive file.
-
-  Returns:
-    Nothing.
+    path: Direcotory to add.
+    archive: Open archive file.
   """
-  # Ensure the path ends in trailing slash.
-  path = path.rstrip("/\\") + "\\"
-  for dir_path, dir_names, files in os.walk(path):
+  for root, _, files in os.walk(path):
     for filename in files:
-      read_path = join(dir_path, filename)
-
-      # If the file path matches an exclude, don't include it.
-      if any(re.search(expr, read_path) for expr in EXCLUDES):
-        continue
-
-      zip_based_dir = dir_path[len(path):]
-      write_path = join(root, zip_based_dir, filename)
-      WriteFileToArchive(archive, read_path, write_path)
+      src_path = join(root, filename)
+      archive_dir = os.path.join('vs_addin', os.path.relpath(root, path))
+      archive_name = join(archive_dir, filename)
+      print('Archiving: %s' % archive_name)
+      archive.add(src_path, archive_name)
 
 
 def CopyAddinFile(assembly, path, vs_version):
@@ -114,8 +136,8 @@ def CopyAddinFile(assembly, path, vs_version):
   lang, codepage = pairs[0]
   infopath = u'\\StringFileInfo\\%04X%04X\\ProductVersion' % (lang, codepage)
   prodVersion = win32api.GetFileVersionInfo(assembly, infopath)
-  version = "[%s]" % prodVersion
-  print "\nNaCl VS Add-in Build version: %s\n" % (version)
+  version = '[%s]' % prodVersion
+  print('NaCl VS Add-in %s version: %s' % (vs_version, version))
 
   metadata_filename = os.path.basename(ADDIN_METADATA)
   modified_file = join(path, metadata_filename)
@@ -134,19 +156,8 @@ def Error(msg):
   sys.exit(1)
 
 
-def WriteFileToArchive(archive, filename, archive_name):
-  archive_name = join('vs_addin', archive_name)
-  if archive_name.replace('\\', '/') in archive.getnames():
-    print 'Skipping: %s' % archive_name
-    return
-  print 'Adding: %s' % archive_name
-  archive.add(filename, archive_name)
-
-
 def CopyWithReplacement(src, dest, replacements):
-  if os.path.exists(dest):
-    shutil.rmtree(dest)
-  os.makedirs(dest)
+  MakeDir(dest)
   src_basename = os.path.basename(src)
   dest_basename = os.path.basename(dest)
 
@@ -161,43 +172,53 @@ def CopyWithReplacement(src, dest, replacements):
           continue
 
         destdir = join(dest, root.replace(src_basename, dest_basename))
-        if not os.path.exists(destdir):
-          os.makedirs(destdir)
+        destdir = os.path.normpath(destdir)
+        MakeDir(destdir)
 
         destfile = join(destdir, filename.replace(src_basename, dest_basename))
+        if os.path.exists(destfile):
+          print('Skipping: %s' % destfile)
+          continue
+
         with open(srcfile, "rb") as f:
           data = f.read()
           for pat, subst in replacements.iteritems():
             data = data.replace(pat, subst)
+
         with open(destfile, "wb") as f:
           f.write(data)
   finally:
     os.chdir(olddir)
 
 
-def main():
+def main(args):
   if not os.path.exists(BUILD_DIR):
     Error("build dir not found: %s" % BUILD_DIR)
 
   CopyAddinFile(ADDIN_ASSEMBLY_2010, ASSEMBLY_DIRECTORY_2010, '10.0')
   CopyAddinFile(ADDIN_ASSEMBLY_2012, ASSEMBLY_DIRECTORY_2012, '11.0')
 
-  archive = tarfile.open(OUTPUT_NAME, 'w:gz')
+  print("Staging package in %s" % STAGING_DIR)
+  if os.path.exists(STAGING_DIR):
+    shutil.rmtree(STAGING_DIR)
 
-  for source_dest in FILE_LIST:
-    file_name = os.path.basename(source_dest[0])
-    dest = join(source_dest[1], file_name)
-    WriteFileToArchive(archive, source_dest[0], dest)
+  # Start by staging the entire resource tree
+  StageDirectory(RESOURCE_DIRECTORY)
 
-  AddFolderToArchive(RESOURCE_DIRECTORY, archive)
+  # Then stage anything in the FILE_LIST
+  for source, dest in FILE_LIST:
+    file_name = os.path.basename(source)
+    dest = join(STAGING_DIR, dest, file_name)
+    assert(not os.path.exists(dest))
+    MakeDir(os.path.dirname(dest))
+    shutil.copy(source, dest)
 
   # Duplicate the NaCl64 platform but rename it to NaCl32
   src = join(RESOURCE_DIRECTORY, 'NaCl64')
 
   # Create NaCl32
-  dest = join(BUILD_DIR, 'NaCl32')
+  dest = join(STAGING_DIR, 'NaCl32')
   CopyWithReplacement(src, dest, {'x86_64': 'i686', '64': '32'})
-  AddFolderToArchive(dest, archive, "NaCl32")
 
   # Create NaClARM
   arm_replacements = {
@@ -206,9 +227,8 @@ def main():
       'win_x86': 'win_arm'
   }
 
-  dest = join(BUILD_DIR, 'NaClARM')
+  dest = join(STAGING_DIR, 'NaClARM')
   CopyWithReplacement(src, dest, arm_replacements)
-  AddFolderToArchive(dest, archive, "NaClARM")
 
   # Create PNaCl
   pnacl_replacements = {
@@ -220,12 +240,15 @@ def main():
       '$(ProjectName)_$(PlatformArchitecture)': '$(ProjectName)',
   }
 
-  dest = join(BUILD_DIR, 'PNaCl')
+  dest = join(STAGING_DIR, 'PNaCl')
   CopyWithReplacement(src, dest, pnacl_replacements)
-  AddFolderToArchive(dest, archive, "PNaCl")
 
+  # Create archive
+  archive = tarfile.open(OUTPUT_NAME, 'w:gz')
+  AddFolderToArchive(STAGING_DIR, archive)
   archive.close()
+  return 0
 
 
 if __name__ == '__main__':
-  main()
+  sys.exit(main(sys.argv[1:]))
