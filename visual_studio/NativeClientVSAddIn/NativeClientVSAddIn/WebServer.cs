@@ -67,6 +67,10 @@ namespace NativeClientVSAddIn
           httpd = Path.Combine(properties.SDKRootDirectory, "tools", "httpd.py");
       string webServerArguments = httpd + " --no_dir_check " + webServerPort;
 
+      webServerOutputPane_.Clear();
+      webServerOutputPane_.OutputString(Strings.WebServerStartMessage + "\n");
+      webServerOutputPane_.Activate();
+
       // Start the web server process.
       try
       {
@@ -88,12 +92,7 @@ namespace NativeClientVSAddIn
       {
         webServerOutputPane_.OutputString(Strings.WebServerStartFail + "\n");
         webServerOutputPane_.OutputString("Exception: " + e.Message + "\n");
-        webServerOutputPane_.Activate();
       }
-
-      webServerOutputPane_.Clear();
-      webServerOutputPane_.OutputString(Strings.WebServerStartMessage + "\n");
-      webServerOutputPane_.Activate();
     }
 
     /// <summary>
