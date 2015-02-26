@@ -61,6 +61,14 @@ namespace UnitTests
         [TestMethod]
         public void CheckPepperCompile()
         {
+            if (!TestUtilities.IsVS2012())
+            {
+                // The pre-compiled libraries in the SDK (specifically
+                // ppapi_cpp.lib) are not linkable except with 2012 so
+                // this test will always fail with link errors under 2010
+                // or any other Visual Studio version.
+                Assert.Inconclusive();
+            }
             CheckCompile(Strings.PepperPlatformName);
         }
 
